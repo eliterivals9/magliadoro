@@ -1001,6 +1001,11 @@ async function caricaDati() {
     // Carica tutti gli ordini registrati
     await caricaOrdini();
 
+    // Carica la suddivisione profitto e allinea i flussi finanziari
+    if (typeof caricaSuddivisioneConti === 'function') {
+        await caricaSuddivisioneConti();
+    }
+
     // Carica la cronologia dei lotti archiviati
     await caricaCronologiaLotti();
 }
@@ -1635,6 +1640,44 @@ function isOrderActive(o) {
     return true;
 }
 
+/**
+ * Calcola l'incasso effettivo da recuperare dai clienti in base alle modifiche di Suddivisione Profitto.
+ * Formula: INCASSO_EFFETTIVO = INCASSO_BASE_CLIENTI - COSTI_ACQUISTI_COPERTI_DAL_PROFITTO + DEFICIT_DOVUTO_A_SALDI_NEGATIVI
+ */
+function calcolaIncassoEffettivo(incassoBase) {
+    const incasso_base = Number(incassoBase) || 0;
+    let costi_acquisti_profitto = 0;
+    let deficit_totale = 0;
+
+    if (profitSplitData && profitSplitData.summary) {
+        const summary = profitSplitData.summary;
+        const sWithd = Number(summary.sergio?.total_withdrawals) || 0;
+        const rWithd = Number(summary.riccardo?.total_withdrawals) || 0;
+        costi_acquisti_profitto = sWithd + rWithd;
+
+        const sNet = Number(summary.sergio?.total_net) || 0;
+        const rNet = Number(summary.riccardo?.total_net) || 0;
+
+        const deficitSergio = sNet < 0 ? Math.abs(sNet) : 0;
+        const deficitRiccardo = rNet < 0 ? Math.abs(rNet) : 0;
+        deficit_totale = deficitSergio + deficitRiccardo;
+    }
+
+    const correzione_incasso = -costi_acquisti_profitto + deficit_totale;
+    const incasso_effettivo = Math.max(0, incasso_base + correzione_incasso);
+
+    console.log(`[PROFIT SPLIT CASHFLOW DEBUG] incasso_base: ${incasso_base.toFixed(2)}, costi_acquisti_profitto: ${costi_acquisti_profitto.toFixed(2)}, deficit_totale: ${deficit_totale.toFixed(2)}, correzione_incasso: ${correzione_incasso.toFixed(2)}, incasso_effettivo: ${incasso_effettivo.toFixed(2)}`);
+
+    return {
+        incasso_base,
+        costi_acquisti_profitto,
+        deficit_totale,
+        correzione_incasso,
+        incasso_effettivo
+    };
+}
+window.calcolaIncassoEffettivo = calcolaIncassoEffettivo;
+
 function aggiornaStatisticheDashboard() {
     // Totale prodotti
     const totProdottiEl = document.getElementById('stats-totale-prodotti');
@@ -1681,9 +1724,18 @@ function aggiornaStatisticheDashboard() {
         articoliLottoCorrente += estraiNumeroArticoli(o);
     });
 
+    // Calcolo Incasso Effettivo integrato con Suddivisione Profitto
+    const cashflow = calcolaIncassoEffettivo(incassoLottoCorrente);
+    const incassoDaMostrare = cashflow.incasso_effettivo;
+
     const incassoTotaleEl = document.getElementById('stats-incasso-totale');
     if (incassoTotaleEl) {
-        incassoTotaleEl.innerText = `€ ${incassoLottoCorrente.toFixed(2).replace('.', ',')}`;
+        incassoTotaleEl.innerText = `€ ${incassoDaMostrare.toFixed(2).replace('.', ',')}`;
+        if (cashflow.correzione_incasso !== 0) {
+            incassoTotaleEl.title = `Incasso Base: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${cashflow.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${cashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        } else {
+            incassoTotaleEl.title = `Incasso Totale: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')}`;
+        }
     }
 
     const costoTotaleProdottiEl = document.getElementById('stats-costo-totale-prodotti');
@@ -1699,7 +1751,7 @@ function aggiornaStatisticheDashboard() {
     // Margine Medio Lotto Corrente (%)
     const margineMedioEl = document.getElementById('stats-margine-medio');
     if (margineMedioEl) {
-        const margine = incassoLottoCorrente > 0 ? (profittoTotaleLotto / incassoLottoCorrente) * 100 : 0;
+        const margine = incassoDaMostrare > 0 ? (profittoTotaleLotto / incassoDaMostrare) * 100 : (incassoLottoCorrente > 0 ? (profittoTotaleLotto / incassoLottoCorrente) * 100 : 0);
         margineMedioEl.innerText = `${margine.toFixed(2).replace('.', ',')}%`;
     }
 
@@ -1748,11 +1800,18 @@ function aggiornaStatisticheLottoCorrente() {
         profittoPrevisto += parseFlexibleDecimal(pStr);
     });
 
-    const marginePrevisto = incassoPrevisto > 0 ? (profittoPrevisto / incassoPrevisto) * 100 : 0;
+    const cashflowLotto = calcolaIncassoEffettivo(incassoPrevisto);
+    const incassoPrevistoEffettivo = cashflowLotto.incasso_effettivo;
+    const marginePrevisto = incassoPrevistoEffettivo > 0 ? (profittoPrevisto / incassoPrevistoEffettivo) * 100 : (incassoPrevisto > 0 ? (profittoPrevisto / incassoPrevisto) * 100 : 0);
 
     const incassoPrevistoEl = document.getElementById('lotto-incasso-previsto');
     if (incassoPrevistoEl) {
-        incassoPrevistoEl.innerText = `€ ${incassoPrevisto.toFixed(2).replace('.', ',')}`;
+        incassoPrevistoEl.innerText = `€ ${incassoPrevistoEffettivo.toFixed(2).replace('.', ',')}`;
+        if (cashflowLotto.correzione_incasso !== 0) {
+            incassoPrevistoEl.title = `Incasso Base: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${cashflowLotto.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflowLotto.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${cashflowLotto.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        } else {
+            incassoPrevistoEl.title = `Incasso Previsto dai clienti: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')}`;
+        }
     }
 
     const profittoPrevistoEl = document.getElementById('lotto-profitto-previsto');
@@ -12430,6 +12489,14 @@ async function caricaSuddivisioneConti() {
 
             // Renderizza l'elenco delle modifiche registrate
             renderTabellaModifiche(data.modifications || []);
+
+            // Allinea le statistiche di incasso nella dashboard e nel riepilogo lotto
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard();
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
         } else {
             showToast("Errore nel caricamento della suddivisione profitto: " + (data.error || "Errore sconosciuto"), "error");
         }
