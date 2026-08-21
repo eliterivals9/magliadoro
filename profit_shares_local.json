@@ -1,0 +1,19 @@
+{
+  "shares": {
+    "135": {
+      "order_id": "135",
+      "updated_at": "2026-08-20T21:24:57.671Z",
+      "order_data_key": "18/08/2026, 21:18:51",
+      "sergio_percentage": 50,
+      "riccardo_percentage": 50
+    },
+    "18/08/2026, 21:18:51": {
+      "order_id": "135",
+      "updated_at": "2026-08-20T21:24:57.671Z",
+      "order_data_key": "18/08/2026, 21:18:51",
+      "sergio_percentage": 50,
+      "riccardo_percentage": 50
+    }
+  },
+  "movements": []
+}

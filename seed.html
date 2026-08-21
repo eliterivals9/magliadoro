@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Product Seeding Tool</title>
+    <!-- Tailwind CSS CDN per una grafica curata ed elegante -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        pre, code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-gray-900 to-slate-800 text-white p-6 md:p-8">
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight mb-2">Supabase Product Seeding</h1>
+            <p class="text-gray-300 text-sm md:text-base">
+                Strumento di importazione temporaneo per caricare tutti i prodotti di fallback nel database remoto Supabase.
+            </p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="p-6 md:p-8 space-y-6">
+            <!-- Iframe invisibile per estrarre i dati reali -->
+            <iframe id="data-extractor-iframe" src="/index.html" class="hidden"></iframe>
+
+            <!-- Stato di configurazione -->
+            <div id="status-card" class="bg-gray-50 rounded-xl p-5 border border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="font-semibold text-gray-800">Stato Connessione</h3>
+                    <p id="connection-details" class="text-gray-500 text-sm mt-1">Verifica dei parametri in corso...</p>
+                </div>
+                <span id="status-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    Verifica...
+                </span>
+            </div>
+
+            <!-- Logger di Logica -->
+            <div class="space-y-2">
+                <h3 class="font-semibold text-gray-800 text-sm uppercase tracking-wider">Log Operazioni</h3>
+                <div id="log-container" class="bg-gray-950 text-gray-300 p-4 rounded-xl text-xs h-60 overflow-y-auto space-y-1 border border-gray-900">
+                    <p class="text-gray-500">[Attesa] Pronto per iniziare il controllo iniziale...</p>
+                </div>
+            </div>
+
+            <!-- Pulsante d'azione -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 justify-between pt-4 border-t border-gray-100">
+                <div class="text-xs text-gray-400">
+                    *Al termine del seeding, questa pagina può essere eliminata o ignorata.
+                </div>
+                <button id="btn-seed" disabled class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-md transition-all duration-200">
+                    Importa tutti i prodotti in Supabase
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Seeding -->
+    <script>
+        const iframe = document.getElementById('data-extractor-iframe');
+        const btnSeed = document.getElementById('btn-seed');
+        const logContainer = document.getElementById('log-container');
+        const connectionDetails = document.getElementById('connection-details');
+        const statusBadge = document.getElementById('status-badge');
+
+        let supabaseUrl = null;
+        let supabaseAnonKey = null;
+        let isIframeLoaded = false;
+        let isConfigLoaded = false;
+
+        function addLog(message, type = 'info') {
+            const p = document.createElement('p');
+            const time = new Date().toLocaleTimeString();
+            p.className = 'leading-relaxed';
+            
+            if (type === 'error') {
+                p.innerHTML = `<span class="text-red-400 font-semibold">[ERRORE ${time}]</span> ${message}`;
+            } else if (type === 'success') {
+                p.innerHTML = `<span class="text-emerald-400 font-semibold">[SUCCESSO ${time}]</span> ${message}`;
+            } else if (type === 'warn') {
+                p.innerHTML = `<span class="text-amber-400 font-semibold">[ATTENZIONE ${time}]</span> ${message}`;
+            } else {
+                p.innerHTML = `<span class="text-gray-500">[${time}]</span> ${message}`;
+            }
+            
+            logContainer.appendChild(p);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 1. Carica Configurazione
+        async function checkConfiguration() {
+            try {
+                addLog("Caricamento configurazione server...");
+                const res = await fetch('/api/config');
+                if (!res.ok) {
+                    throw new Error("Impossibile recuperare i dettagli di configurazione dal server.");
+                }
+                const data = await res.json();
+                supabaseUrl = data.supabaseUrl;
+                supabaseAnonKey = data.supabaseAnonKey;
+
+                if (supabaseUrl && supabaseAnonKey) {
+                    isConfigLoaded = true;
+                    connectionDetails.innerHTML = `Supabase URL configurato correttamente:<br><code class="text-xs text-indigo-600 break-all">${supabaseUrl}</code>`;
+                    statusBadge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800";
+                    statusBadge.innerText = "Configurato";
+                    addLog("Configurazione Supabase caricata con successo dal server.");
+                } else {
+                    connectionDetails.innerHTML = `<span class="text-red-500 font-semibold">Credenziali Supabase mancanti!</span> Controlla il tuo file .env.example o la configurazione delle variabili d'ambiente.`;
+                    statusBadge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800";
+                    statusBadge.innerText = "Non Configurato";
+                    addLog("Errore: Variabili d'ambiente SUPABASE_URL o SUPABASE_ANON_KEY non trovate sul server.", 'error');
+                }
+                updateButtonState();
+            } catch (err) {
+                connectionDetails.innerText = "Errore durante il recupero dei dati.";
+                statusBadge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800";
+                statusBadge.innerText = "Errore";
+                addLog(`Incapace di caricare i dettagli: ${err.message}`, 'error');
+            }
+        }
+
+        // 2. Attendi caricamento iframe
+        iframe.onload = function() {
+            try {
+                // Verifica la disponibilità degli array di dati dell'iframe
+                const win = iframe.contentWindow;
+                if (win && win.databaseClub && win.databaseNazionali) {
+                    isIframeLoaded = true;
+                    addLog("Iframe di origine (index.html) caricato ed analizzato con successo. Dati pronti per l'importazione.");
+                } else {
+                    addLog("L'iframe è stato caricato, ma gli oggetti databaseClub o databaseNazionali non sono stati trovati.", 'warn');
+                }
+                updateButtonState();
+            } catch (err) {
+                addLog(`Impossibile accedere all'iframe (cross-origin o errore di caricamento): ${err.message}`, 'error');
+            }
+        };
+
+        function updateButtonState() {
+            if (isIframeLoaded && isConfigLoaded) {
+                btnSeed.removeAttribute('disabled');
+                addLog("Pronto per eseguire l'importazione. Premi il pulsante di attivazione.");
+            } else {
+                btnSeed.setAttribute('disabled', 'true');
+            }
+        }
+
+        // Avvio dei controlli
+        checkConfiguration();
+
+        // 3. Esegui il Seeding
+        btnSeed.addEventListener('click', async () => {
+            btnSeed.setAttribute('disabled', 'true');
+            btnSeed.innerText = "In corso...";
+            addLog("Inizio processo di importazione...");
+
+            try {
+                const win = iframe.contentWindow;
+                const databaseClub = win.databaseClub;
+                const databaseNazionali = win.databaseNazionali;
+                const generaDefaultProdottiSquadra = win.generaDefaultProdottiSquadra;
+                const ottieniPrezzoCategoria = win.ottieniPrezzoCategoria;
+
+                if (!databaseClub || !databaseNazionali || !generaDefaultProdottiSquadra || !ottieniPrezzoCategoria) {
+                    throw new Error("Librerie e funzioni necessarie non disponibili nell'iframe.");
+                }
+
+                addLog("Estrazione ed unificazione dei nomi delle squadre...");
+                const tutteLeSquadre = [];
+                databaseClub.forEach(c => {
+                    const nomeSquadra = c.nome.split(" - ")[0];
+                    if (!tutteLeSquadre.includes(nomeSquadra)) tutteLeSquadre.push(nomeSquadra);
+                });
+                databaseNazionali.forEach(n => {
+                    const nomeSquadra = n.nome.split(" - ")[0];
+                    if (!tutteLeSquadre.includes(nomeSquadra)) tutteLeSquadre.push(nomeSquadra);
+                });
+
+                addLog(`Trovate ${tutteLeSquadre.length} squadre uniche. Generazione varianti di prodotto...`);
+
+                const tempDatabase = [];
+                tutteLeSquadre.forEach(squadra => {
+                    const defaultProdotti = generaDefaultProdottiSquadra(squadra);
+                    defaultProdotti.forEach(defProd => {
+                        const esisteGia = tempDatabase.some(p => p.squadra === defProd.squadra && p.categoria === defProd.categoria && p.versione === defProd.versione);
+                        if (!esisteGia) {
+                            defProd.prezzo = ottieniPrezzoCategoria(defProd.categoria);
+                            tempDatabase.push(defProd);
+                        }
+                    });
+                });
+
+                addLog(`Generati ${tempDatabase.length} prodotti complessivi pronti per il caricamento.`);
+
+                // Controllo se la tabella contiene già elementi
+                addLog("Interrogazione endpoint di Supabase per verificare lo stato attuale della tabella 'products'...");
+                const checkRes = await fetch(`${supabaseUrl}/rest/v1/products?select=id&limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseAnonKey,
+                        'Authorization': `Bearer ${supabaseAnonKey}`
+                    }
+                });
+
+                if (!checkRes.ok) {
+                    const errText = await checkRes.text();
+                    throw new Error(`Impossibile interrogare Supabase: ${checkRes.status} ${checkRes.statusText}. Dettaglio: ${errText || 'nessuno'}`);
+                }
+
+                const existingProducts = await checkRes.json();
+                if (existingProducts && existingProducts.length > 0) {
+                    addLog("La tabella 'products' di Supabase contiene già dei prodotti. Il seeding è stato interrotto per evitare duplicazioni o sovrascritture accidentali.", 'warn');
+                    alert("La tabella 'products' contiene già elementi! Importazione bloccata per sicurezza.");
+                    btnSeed.innerText = "Seeding Ignorato";
+                    return;
+                }
+
+                addLog("La tabella è vuota. Trasmissione del payload di dati...");
+
+                const insertRes = await fetch(`${supabaseUrl}/rest/v1/products`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseAnonKey,
+                        'Authorization': `Bearer ${supabaseAnonKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(tempDatabase)
+                });
+
+                if (!insertRes.ok) {
+                    const errData = await insertRes.json().catch(() => ({}));
+                    throw new Error(errData.message || insertRes.statusText || "Errore sconosciuto durante la transazione REST.");
+                }
+
+                const insertedData = await insertRes.json();
+                addLog(`Seeding completato con successo! Inseriti correttamente ${insertedData.length} prodotti.`, 'success');
+                alert(`Successo! Caricati ${insertedData.length} prodotti nel database di Supabase.`);
+                btnSeed.innerText = "Seeding Completato";
+                btnSeed.className = "w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl shadow-md cursor-default";
+
+            } catch (err) {
+                addLog(`Fallimento critico durante l'importazione: ${err.message}`, 'error');
+                alert(`Errore: ${err.message}`);
+                btnSeed.removeAttribute('disabled');
+                btnSeed.innerText = "Riprova Seeding";
+            }
+        });
+    </script>
+</body>
+</html>

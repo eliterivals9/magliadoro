@@ -1,0 +1,354 @@
+/* admin/admin.css
+   ==========================================================================
+   Stili personalizzati integrativi per il Nuovo Pannello Amministratore
+   Abbinati al Design System Luxury del frontend Maglia d'Oro.
+   ========================================================================== */
+
+/* 1. VARIABILI & CONFIGURAZIONE MOOD LUXURY */
+:root {
+    --primary: #D6A43A; /* Luxury Gold */
+    --primary-hover: #aa7c1e;
+    --dark-bg: #0B0B0B;
+    --card-bg: #111111;
+    --surface-high: #1c1c1c;
+    --border-color: #222222;
+    --gold-glow: 0 0 20px rgba(214, 164, 58, 0.12);
+    --gold-glow-strong: 0 0 35px rgba(214, 164, 58, 0.35);
+    --gold-gradient: linear-gradient(135deg, #f3e7c4 0%, #D6A43A 50%, #aa7c1e 100%);
+    --ff-sans: "Inter", sans-serif;
+}
+
+/* 2. BODY, LAYOUT & BACKGROUND SCIENTIFICO */
+body {
+    background-color: var(--dark-bg) !important;
+    background-image: radial-gradient(circle at 50% 0%, rgba(214, 164, 58, 0.08) 0%, transparent 60%) !important;
+    color: #ffffff !important;
+    font-family: var(--ff-sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbars ultra-curate */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #0B0B0B;
+}
+::-webkit-scrollbar-thumb {
+    background: #D6A43A;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #aa7c1e;
+}
+
+/* 3. CORE OVERRIDES - ADATTAMENTO AUTOMATICO STRUTTURA EXISTENTE */
+
+/* Sfondi pannelli & card */
+.bg-white, .bg-brand-bgLight {
+    background-color: var(--card-bg) !important;
+}
+.bg-slate-50, .bg-zinc-50 {
+    background-color: var(--surface-high) !important;
+}
+.bg-slate-100, .bg-zinc-100 {
+    background-color: #1e1e1e !important;
+}
+.bg-slate-200, .bg-zinc-200, .bg-slate-200\/60 {
+    background-color: #262626 !important;
+}
+
+/* Sfondi semitrasparenti per righe e tabelle */
+.bg-slate-50\/70, .bg-slate-50\/50, .bg-slate-50\/40, .bg-emerald-50\/50, .bg-emerald-50\/40, .bg-blue-50\/40, .bg-amber-50\/40 {
+    background-color: rgba(28, 28, 28, 0.6) !important;
+}
+
+/* Bordi e divisori */
+.border, .border-slate-100, .border-slate-200, .border-slate-200\/80, .border-slate-200\/50, .border-slate-100\/80, .border-slate-100\/50, .border-slate-300 {
+    border-color: var(--border-color) !important;
+}
+.divide-slate-100 > * + *, .divide-zinc-100 > * + * {
+    border-color: var(--border-color) !important;
+}
+
+/* Colore dei testi */
+.text-slate-900, .text-zinc-900, .text-slate-800, .text-zinc-800, .text-gray-900, .text-slate-700, .text-zinc-700 {
+    color: #ffffff !important;
+}
+.text-slate-500, .text-zinc-500, .text-slate-400, .text-zinc-400, .text-slate-600, .text-zinc-600 {
+    color: #a3a3a3 !important;
+}
+
+/* 4. OVERRIDES SELETTIVE PER COMPONENTI D'ECCELLENZA */
+
+/* Sidebar */
+#sidebar {
+    background-color: #0b0b0b !important;
+    border-right: 1px solid var(--border-color) !important;
+}
+
+/* Header */
+header {
+    background-color: rgba(17, 17, 17, 0.85) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Nav Item Sidebar */
+.nav-item {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-item:hover {
+    color: #ffffff !important;
+    background-color: rgba(214, 164, 58, 0.08) !important;
+}
+
+/* Input, select, textarea */
+input, select, textarea {
+    background-color: var(--surface-high) !important;
+    border: 1px solid var(--border-color) !important;
+    color: #ffffff !important;
+    outline: none !important;
+    transition: all 0.2s ease-in-out;
+}
+input::placeholder, textarea::placeholder {
+    color: #555555 !important;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 10px rgba(214, 164, 58, 0.15) !important;
+    background-color: var(--surface-high) !important;
+}
+.focus\:bg-white:focus {
+    background-color: var(--surface-high) !important;
+}
+
+/* Tendine dei Select */
+option {
+    background-color: #111111 !important;
+    color: #ffffff !important;
+}
+
+/* Checkbox stile brand */
+input[type="checkbox"] {
+    accent-color: var(--primary) !important;
+}
+
+/* 5. PULSANTI IN ORO SATINATO (STILE SITO PUBBLICO) */
+
+/* Pulsante Primario (Gold Gradient) */
+.bg-brand-gold, .bg-brand-goldHover, .bg-brand-gold\/15 {
+    background-image: var(--gold-gradient) !important;
+    background-color: transparent !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border: none !important;
+    text-shadow: none !important;
+    box-shadow: 0 4px 15px rgba(214, 164, 58, 0.2) !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.bg-brand-gold:hover, .bg-brand-goldHover:hover {
+    box-shadow: var(--gold-glow-strong) !important;
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+
+/* Sconto o badge gold */
+.text-brand-gold {
+    color: var(--primary) !important;
+}
+
+/* Pulsanti secondari neri/scuri */
+.bg-slate-950, .bg-slate-900, .bg-slate-800 {
+    background-color: #1c1c1c !important;
+    color: #ffffff !important;
+    border: 1px solid var(--border-color) !important;
+    transition: all 0.2s ease;
+}
+.bg-slate-950:hover, .bg-slate-900:hover, .bg-slate-800:hover {
+    background-color: #262626 !important;
+}
+
+/* Pulsanti neutri chiari o grigi */
+.bg-slate-100:hover, .bg-slate-200:hover {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+/* Pulsanti distruttivi o d'errore */
+.bg-red-600, .bg-rose-600 {
+    background-image: none !important;
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    box-shadow: none !important;
+}
+.bg-red-600:hover, .bg-rose-600:hover {
+    background-color: rgba(239, 68, 68, 0.3) !important;
+    color: #ffffff !important;
+}
+
+/* 6. COLORE E STILE BADGES E STATI */
+
+/* Badge icone */
+.bg-blue-50, .bg-blue-50\/40 { background-color: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; }
+.bg-amber-50, .bg-amber-50\/40 { background-color: rgba(214, 164, 58, 0.1) !important; color: #D6A43A !important; }
+.bg-emerald-50, .bg-emerald-50\/40, .bg-emerald-50\/50 { background-color: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; }
+.bg-rose-50, .bg-rose-50\/40 { background-color: rgba(239, 68, 68, 0.1) !important; color: #f87171 !important; }
+.bg-pink-50, .bg-pink-50\/40 { background-color: rgba(236, 72, 153, 0.1) !important; color: #f472b6 !important; }
+.bg-purple-50, .bg-purple-50\/40 { background-color: rgba(139, 92, 246, 0.1) !important; color: #a78bfa !important; }
+.bg-indigo-50, .bg-indigo-50\/40 { background-color: rgba(99, 102, 241, 0.1) !important; color: #818cf8 !important; }
+.bg-cyan-50, .bg-cyan-50\/40 { background-color: rgba(6, 182, 212, 0.1) !important; color: #22d3ee !important; }
+
+/* Testi colorati nei badge */
+.text-emerald-600, .text-green-600, .text-emerald-700 {
+    color: #34d399 !important;
+}
+.text-rose-600, .text-red-600 {
+    color: #f87171 !important;
+}
+.text-blue-600, .text-cyan-600 {
+    color: #60a5fa !important;
+}
+.text-amber-600, .text-amber-700 {
+    color: #D6A43A !important;
+}
+
+/* 7. MODALI & FINESTRE DI DIALOGO */
+#add-product-modal, #site-product-preview-modal, #import-preview-modal, #import-results-modal, #import-progress-modal, #multi-import-results-modal, #translation-results-modal, #delete-unconfigured-confirm-modal, #lotto-details-modal, #delete-lotto-confirm-modal, #gestione-ordine-modal, #clienti-scheda-modal {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Contenitore Modale */
+#modal-container, #product-preview-container, #import-modal-container, #results-modal-container, #translation-modal-container, #delete-unconfigured-modal-container, #lotto-details-modal-container, #delete-lotto-modal-container, #gestione-ordine-modal-container, #clienti-scheda-modal-container, #multi-results-modal-container {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--gold-glow) !important;
+    color: #ffffff !important;
+}
+
+/* Modale Modifica/Aggiungi Prodotto - Layout Flessibile e Responsive */
+#modal-container {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 90vh !important;
+    max-height: 90dvh !important;
+    max-width: 64rem !important;
+    width: 95% !important;
+    margin: auto !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+#add-product-modal {
+    padding: 0.5rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Timeline verticali */
+.border-l-2, .border-l {
+    border-left-color: var(--border-color) !important;
+}
+
+/* 8. ANIMAZIONI DI ENTRATA FLUIDE */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.animate-fade-in {
+    animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 9. OTTIMIZZAZIONI RESPONSIVE PANNELLO ADMIN (MOBILE & TABLET) */
+@media (max-width: 1023px) {
+    /* Mobile Chat Responsiveness */
+    #section-chat {
+        height: auto;
+    }
+    #admin-chat-list-column, #admin-chat-active-column {
+        min-height: 420px;
+    }
+    #admin-chat-messaggi-stream {
+        max-height: calc(100vh - 380px);
+    }
+    #admin-chat-metadata-box {
+        font-size: 11px;
+    }
+    
+    /* Previene scrollbar orizzontali indesiderate nel layout */
+    main {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        overflow-x: hidden;
+    }
+
+    /* Modal responsiveness su schermi piccoli */
+    #product-preview-container, 
+    #import-modal-container, 
+    #results-modal-container, 
+    #translation-modal-container, 
+    #delete-unconfigured-modal-container, 
+    #lotto-details-modal-container, 
+    #delete-lotto-modal-container, 
+    #gestione-ordine-modal-container, 
+    #clienti-scheda-modal-container, 
+    #multi-results-modal-container,
+    #coupon-modal > div,
+    #edit-review-modal > div {
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+        width: 96% !important;
+        margin: auto !important;
+        padding: 1rem !important;
+    }
+
+    /* Tabelle scorrevoli con touch momentum */
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0.75rem;
+    }
+
+    /* Adattamento tabelle per iPhone SE e schermi stretti */
+    table th, table td {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        white-space: nowrap;
+    }
+
+    /* Header mobile adattivo */
+    header {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+}
+
+@media (max-width: 639px) {
+    /* Pulsanti touch-friendly e leggibili su iPhone SE e Android */
+    button, input, select {
+        min-height: 38px;
+    }
+
+    /* Adattamento testi lunghi nelle schedine ordini */
+    .ordini-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* Modali su schermi ultra-compatti */
+    .grid-cols-2 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+

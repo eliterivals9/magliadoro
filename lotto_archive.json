@@ -1,0 +1,32 @@
+[
+  {
+    "archived_at": "11/07/2026, 00:46:17",
+    "id": 2,
+    "numero_lotto": "Lotto #2",
+    "numero_ordini": 1,
+    "numero_articoli": 2,
+    "incasso_totale_eur": 0,
+    "costo_prodotti_usd": 0,
+    "costo_spedizione_usd": 4,
+    "costo_totale_usd": 4,
+    "costo_totale_eur": 3.68,
+    "profitto_eur": 0,
+    "margine_percentuale": 0,
+    "orders": []
+  },
+  {
+    "archived_at": "11/07/2026, 00:47:21",
+    "id": 3,
+    "numero_lotto": "Lotto #3",
+    "numero_ordini": 1,
+    "numero_articoli": 3,
+    "incasso_totale_eur": 0,
+    "costo_prodotti_usd": 0,
+    "costo_spedizione_usd": 4,
+    "costo_totale_usd": 4,
+    "costo_totale_eur": 3.68,
+    "profitto_eur": 0,
+    "margine_percentuale": 0,
+    "orders": []
+  }
+]

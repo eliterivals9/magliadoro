@@ -1,0 +1,147 @@
+-- ========================================================
+-- SUPABASE SQL MIGRATION SCRIPT - ELITE TOURNAMENT STORE
+-- ========================================================
+-- Istruzioni:
+-- 1. Accedi alla dashboard di Supabase (https://supabase.com).
+-- 2. Seleziona il tuo progetto.
+-- 3. Clicca su "SQL Editor" nel menu a sinistra.
+-- 4. Crea una nuova query, incolla questo script completo ed eseguilo.
+-- ========================================================
+
+-- --------------------------------------------------------
+-- 1. CREAZIONE DELLA COLONNA 'target'
+-- --------------------------------------------------------
+-- Aggiungiamo la colonna 'target' di tipo TEXT con valore predefinito 'Adulto'.
+-- Applichiamo anche un vincolo CHECK per consentire solo i valori 'Adulto' e 'Bambino'.
+
+ALTER TABLE products 
+ADD COLUMN IF NOT EXISTS target TEXT DEFAULT 'Adulto';
+
+-- Se il vincolo non esiste già, lo aggiungiamo per garantire l'integrità dei dati.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM pg_constraint 
+        WHERE conname = 'check_target_values'
+    ) THEN
+        ALTER TABLE products 
+        ADD CONSTRAINT check_target_values CHECK (target IN ('Adulto', 'Bambino'));
+    END IF;
+END $$;
+
+
+-- --------------------------------------------------------
+-- 2. MIGRAZIONE DEI DATI ESISTENTI (CLASSIFICAZIONE AUTOMATICA)
+-- --------------------------------------------------------
+-- Identifichiamo i prodotti per bambini analizzando UNICAMENTE la categoria o la versione.
+-- Se contengono parole chiave come "bambino", "kids", "child", "youth" o se la categoria originale
+-- è o contiene "Bambino", impostiamo il target a 'Bambino'.
+-- NON viene utilizzato il campo 'squadra' per evitare falsi positivi o classificazioni errate.
+
+-- Step A: Impostiamo inizialmente tutto a 'Adulto' per sicurezza e consistenza (se non già impostato)
+UPDATE products 
+SET target = 'Adulto' 
+WHERE target IS NULL;
+
+-- Step B: Aggiorniamo a 'Bambino' tutti i record che corrispondono alle regole di riconoscimento
+UPDATE products
+SET target = 'Bambino'
+WHERE 
+LOWER(COALESCE(categoria, '')) LIKE '%bambino%'
+OR LOWER(COALESCE(categoria, '')) LIKE '%kids%'
+OR LOWER(COALESCE(categoria, '')) LIKE '%child%'
+OR LOWER(COALESCE(categoria, '')) LIKE '%youth%'
+OR LOWER(COALESCE(versione, '')) LIKE '%bambino%'
+OR LOWER(COALESCE(versione, '')) LIKE '%kids%'
+OR LOWER(COALESCE(versione, '')) LIKE '%child%'
+OR LOWER(COALESCE(versione, '')) LIKE '%youth%';
+
+
+-- --------------------------------------------------------
+-- 3. PULIZIA DELLE CATEGORIE SENZA PERDITA DI INFORMAZIONI
+-- --------------------------------------------------------
+-- Per garantire coerenza, se la categoria contiene diciture relative ai bambini,
+-- separiamo l'informazione:
+-- - Riconosciamo il target come 'Bambino' (già fatto sopra).
+-- - Rimuoviamo la dicitura "Bambino" / "Kids" dal nome della categoria, conservando la categoria base corretta
+--   (es. "Tuta Bambino" -> "Tuta", "Kit Allenamento Bambino" -> "Kit Allenamento", "Player Bambino" -> "Player").
+-- - Se il risultato è vuoto o era "Kit Bambino", diventa semplicemente "Kit".
+
+-- Rimuoviamo in modo sicuro le parole chiave dalla categoria per lasciare solo la categoria base
+UPDATE products
+SET categoria = TRIM(REGEXP_REPLACE(categoria, '\s*(Bambino|bambino|Kids|kids|Child|child|Youth|youth)\s*', '', 'g'))
+WHERE 
+  LOWER(COALESCE(categoria, '')) LIKE '%bambino%'
+  OR LOWER(COALESCE(categoria, '')) LIKE '%kids%'
+  OR LOWER(COALESCE(categoria, '')) LIKE '%child%'
+  OR LOWER(COALESCE(categoria, '')) LIKE '%youth%';
+
+-- Se a seguito della pulizia la categoria è diventata vuota, nulla o era originariamente "Bambino" (senza specificare altro), la impostiamo a "Kit"
+UPDATE products
+SET categoria = 'Kit'
+WHERE categoria IS NULL OR TRIM(categoria) = '' OR LOWER(COALESCE(categoria, '')) = 'bambino';
+
+-- --------------------------------------------------------
+-- 4. CREAZIONE TABELLA PER REGOLE PREZZI (CATEGORIA + TARGET)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS price_rules (
+  categoria TEXT NOT NULL,
+  target TEXT NOT NULL,
+  prezzo NUMERIC NOT NULL,
+  PRIMARY KEY (categoria, target)
+);
+
+
+-- --------------------------------------------------------
+-- 5. STANDARDIZZAZIONE CATEGORIE (RETRO SENZA ACCENTO)
+-- --------------------------------------------------------
+-- Aggiorna tutte le categorie con accenti o varianti di scrittura in 'Retro'
+UPDATE products
+SET categoria = 'Retro'
+WHERE LOWER(COALESCE(categoria, '')) IN ('retro', 'retrò', 'vintage', 'storica', 'commemorativa');
+
+-- Aggiorna anche le regole di prezzo per la nuova categoria standardizzata
+UPDATE price_rules
+SET categoria = 'Retro'
+WHERE LOWER(categoria) IN ('retro', 'retrò');
+
+-- --------------------------------------------------------
+-- 6. CREAZIONE TABELLA PER IL CATALOGO SQUADRE CENTRALE
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS teams (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  categoria TEXT NOT NULL,
+  sezione TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- --------------------------------------------------------
+-- 7. CREAZIONE TABELLA PER IL SISTEMA RECENSIONI MAGLIA D'ORO
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reviews (
+  id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  customer_id UUID,
+  customer_name TEXT NOT NULL,
+  order_id BIGINT,
+  order_number TEXT,
+  product_id TEXT,
+  product_name TEXT,
+  product_image TEXT,
+  purchase_date TEXT,
+  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  title TEXT,
+  comment TEXT NOT NULL,
+  images TEXT[] DEFAULT '{}',
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Abilita Row Level Security (RLS) se necessario, ma permetti lettura pubblica
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Consenti lettura pubblica recensioni" ON reviews FOR SELECT USING (true);
+CREATE POLICY "Consenti inserimento pubblico recensioni" ON reviews FOR INSERT WITH CHECK (true);
+CREATE POLICY "Consenti gestione completa recensioni agli amministratori" ON reviews FOR ALL USING (true) WITH CHECK (true);
+
+

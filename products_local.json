@@ -1,0 +1,5591 @@
+[
+  {
+    "squadra": "Manchester United",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/409028f79772ce0a70759bcedd2f7dd1.png",
+    "id": 1
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Retrò Casual Nera Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260701/7250a7fdb9a4f4a84350373b9cf8cd11.png",
+    "id": 279
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Seconda Fuori Casa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260625/d1244ffa224609f210350abd43a119a1.png",
+    "id": 280
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Blu Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260622/c84874cbaddc41f3dbf4085bc81d3544.png",
+    "id": 281
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Portiere Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260622/2aee1cc118a62398bb7267b3f50e71ef.png",
+    "id": 282
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260616/54c3e29601f75369266b16fc0e1ca01c.png",
+    "id": 283
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260603/789e1a1c4f6c8f76e2b1f209a594acae.png",
+    "id": 284
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Bianca Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260525/29ac3fe08cf8da5c54e9a7f6f56692a1.png",
+    "id": 285
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Nera Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260525/f2a0ba0f1d8d7f0fc868b70d30ebc617.png",
+    "id": 286
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260525/2d84f3908295bad7d73ed9642cc3e2a4.png",
+    "id": 287
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester United Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/62709d2ddfeddaa004eba1ed5c960f10.png",
+    "id": 288
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Bianca Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260429/465e19b9292c4ab0e6a96c4615b00e04.png",
+    "id": 289
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Maglia Allenamento Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260428/9b810d77b820d4dec94a1420f6415048.png",
+    "id": 290
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Rossa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260126/e265068d9b26935448e0a989b2e3e81f.png",
+    "id": 294
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Nera Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260112/445fd308647890ce99894609b61ac0ae.png",
+    "id": 295
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Bianca Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260112/5c0274acee74d66b644cc33f1f6a5524.png",
+    "id": 296
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250820/6868f46a332a061561b1a5d4baefc62b.png",
+    "id": 297
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250811/e7ebbd07d662ba0925e5b9ebf641d544.jpg",
+    "id": 298
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250430/a160b3fa429b0aa2ac21150bf66acfed.png",
+    "id": 299
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United (Tessuto Jacquard)",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250428/35c8b7769540f03a6ffee48f6435a79c.jpeg",
+    "id": 300
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester United Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/31f24fae04cd2f3b8ebc76df14a98eba.jpg",
+    "id": 301
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/377d58299b03727fe8bb18b1efb7520f.jpg",
+    "id": 302
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/b3a45901868f5d0e3036c57424aad271.jpg",
+    "id": 303
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester United",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/41e026e6d4c28edaaa849c0847a5d969.jpeg",
+    "id": 304
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester United",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/4cef3c53df28bd05c32893b83cf5b3bd.jpeg",
+    "id": 305
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260421/f1cdd5aaaaa38d88f068f7bffd1d8ceb.png",
+    "id": 291
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester United",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/4cef3c53df28bd05c32893b83cf5b3bd.jpeg",
+    "id": 293
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Maglia Retrò Manchester United 2008",
+    "stagione": "07/08",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/ba8618306559d3ac26025c0619ff4fd4.jpg",
+    "id": 7
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester United Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260616/431b8290aff7278d83f86863f7ede1f7.png",
+    "id": 265
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260515/40a9e61c416da482a409507dc67b6fd4.png",
+    "id": 266
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260323/a169f1a02f1a25af4a50bbbdab7cd0a5.png",
+    "id": 267
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Retrò Bianco-Rosso Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260320/a8be2d1fcfe88916caa5bc578af59ff9.jpg",
+    "id": 268
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Stone Roses Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260211/8c48a2996c95b512cfec232b8d6390d9.png",
+    "id": 269
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Year of the Horse Manchester United",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260104/b444195dd319fefc2847e10ac93f3d27.png",
+    "id": 270
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester United Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/01c987a972a9eec022890c4b08f9f838.jpg",
+    "id": 271
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Manchester United Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/cba7fdc9c04c39803b50fe8de5819467.jpg",
+    "id": 272
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250418/e0ba6c8698ebcd52a12517ad6d2d519e.png",
+    "id": 273
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250321/f64a917ebc3dd2a4d46cf8944da4fffd.png",
+    "id": 274
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Seconda Fuori Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/3a4bbded610c976737ac2fd0d3a117de.jpg",
+    "id": 275
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Manchester United",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/d52d9c534f8346c157cd9a7ee823dae4.png",
+    "id": 276
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester United",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/233cf60d5edbf5461925d7fe80c35282.png",
+    "id": 277
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Fan",
+    "versione": "Versione Fan Seconda Fuori Casa Manchester United",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/df2917cf0b6e0c072ad6c69eac54bb71.jpg",
+    "id": 278
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Maglia Retrò Manchester United 2009/2010",
+    "stagione": "09/10",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/04a0aa121dc9ea292f36ca87a4d88c4c.jpg",
+    "id": 151
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Kit",
+    "versione": "edizione concept blu",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260508/7ce2bf2380c2970f07b3cd0b2159f91b.png",
+    "id": 152
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Kit",
+    "versione": "Edizione speciale Manchester United",
+    "stagione": "26/27",
+    "prezzo": 24.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260422/3b33e2b0b1efcb954de8cf195ca76c8e.png",
+    "id": 153
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Kit",
+    "versione": "Manchester United Fuori Casa",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250729/e08b2d45496bc8a123081373602d9d34.png",
+    "id": 154
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Kit",
+    "versione": "Manchester United Edizione Nera Portiere",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260603/25be5c6a093a08e4d4766ec273452542.png",
+    "id": 155
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Kit",
+    "versione": "Manchester United Concept Rosso",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260313/098f372207ac172b0f398e1d062a1684.png",
+    "id": 156
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2001/02 Centenaria Edizione Bianca",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260207/a524c44678c47504a4f80eb04f587615.png",
+    "id": 157
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2001/02 Centenaria Edizione Oro",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260207/8c2a76e85994727aeb14ef50d0994392.png",
+    "id": 158
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2011/12",
+    "stagione": "2011/12",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260130/234b56bf47749da5503e48997d60a022.png",
+    "id": 159
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2018/19 Fuori Casa",
+    "stagione": "2018/19",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260127/37d1b7073c2ec18d875c2ecedf9cba07.png",
+    "id": 160
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2019/20 Casa",
+    "stagione": "2019/20",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260116/37cb1cac47a888e392152b3c889934d4.png",
+    "id": 161
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1996/97 Fuori Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20251030/73705a2fa4a2d843f6e9554576218242.jpeg",
+    "id": 162
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1993/94",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250401/75c46112ceea3a4c530d9747610eef55.png",
+    "id": 163
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2003/04 Seconda Fuori Casa Maniche Lunghe",
+    "stagione": "2003/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250331/4c3f040e042082c883b06b4ddc58373f.jpeg",
+    "id": 164
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2002/03 Fuori Casa",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250327/5417c5258778b0c8aa2587220c5f4375.jpeg",
+    "id": 165
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2000/01 Fuori Casa Maniche Lunghe",
+    "stagione": "2000/01",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250327/d46906a1c66e78d3a7c96b3051bcea15.jpeg",
+    "id": 166
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2003/05 Fuori Casa Maniche Lunghe",
+    "stagione": "2003/05",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250327/d296f7c1fe5403be7503e6e42a289a1a.jpeg",
+    "id": 167
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998 Edizione Anniversario",
+    "stagione": "1998",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250326/4b6f983e9058c8288cc52e778c1053e5.jpeg",
+    "id": 168
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998 Edizione Anniversario Maniche Lunghe",
+    "stagione": "1998",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250326/a2f8f0e7a8f3a768c25bf9cdbd4e2345.jpeg",
+    "id": 169
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2019/20 Fuori Casa",
+    "stagione": "2019/20",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250326/b9939828d050d7c3a2f4992c215ccf1c.jpeg",
+    "id": 170
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2013/14 Nera Maniche Lunghe",
+    "stagione": "2013/14",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250326/d3c4ab8e2ae306017ddc1ed3954ad9a0.jpeg",
+    "id": 171
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1990/91 Fuori Casa",
+    "stagione": "1990/91",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/d2a22d9e58dabe28e0468e82ea2a74ee.jpg",
+    "id": 172
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1991/92 Casa",
+    "stagione": "1991/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/ef3e63dd8ded31cc0814926fede7e12f.jpg",
+    "id": 173
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1990/92 Fuori Casa Maniche Lunghe",
+    "stagione": "1990/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/5fdf67a912412c0312cba6be88ff89cb.jpg",
+    "id": 174
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United Nera",
+    "stagione": "",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/972365a01a539daf2d9573638a77092d.jpg",
+    "id": 175
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1999 Casa",
+    "stagione": "1999",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/4b40b83e6d21df57909aa017fc3c2c05.jpg",
+    "id": 176
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2016/17 Casa",
+    "stagione": "2016/17",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/f03356662b3c9f149a7a403011b7c38c.jpg",
+    "id": 177
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2003/04 Fuori Casa",
+    "stagione": "2003/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/44baf9ff0b628dc6aa6d6850662bd99f.jpg",
+    "id": 178
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2003/04 Fuori Casa Maniche Lunghe",
+    "stagione": "2003/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/2059ee85d2337dbe9a36c1de40aecbfc.jpg",
+    "id": 179
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2002/03 Casa Maniche Lunghe",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/010169cf6531825195f99f6c68abb3e5.jpg",
+    "id": 180
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2002/03 Casa",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/6941ff56fa4d945fed0e86c2cc333e3e.jpg",
+    "id": 181
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2003/05 Fuori Casa",
+    "stagione": "2003/05",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/0c56d65dcf84cbbe2d680bd1fda76593.png",
+    "id": 182
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1991/92 Fuori Casa Maniche Lunghe",
+    "stagione": "1991/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/7aac052d8170ab6ff8daaf067f100eaa.png",
+    "id": 183
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1982/83 Casa Maniche Lunghe",
+    "stagione": "1982/83",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/1937bbd64eab57fb6b68dd7d6f5d8a33.png",
+    "id": 184
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1982/83 Casa",
+    "stagione": "1982/83",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/d53c002f8fb79c80686a6b115be9f461.jpeg",
+    "id": 185
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1982/83 Fuori Casa Maniche Lunghe",
+    "stagione": "1982/83",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/2e641114d5f9f27f03adc9ea4fec591a.png",
+    "id": 186
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1982/83 Fuori Casa",
+    "stagione": "1982/83",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/9f61d7b2ab5dd9b049a2294b6ba11545.jpg",
+    "id": 187
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1982/83 Terza Maglia",
+    "stagione": "1982/83",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/b12f1632f9ee79572142501c772eced8.png",
+    "id": 188
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1982/83 Terza Maglia Maniche Lunghe",
+    "stagione": "1982/83",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/61a41cf83f3bf96f6c1cfdbe28458f14.png",
+    "id": 189
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Kit Retrò Manchester United Bambino 2007/08 Casa",
+    "stagione": "2007/08",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/96c2548c0fc647c195ec21252374f30a.jpeg",
+    "id": 190
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2021/22 Casa",
+    "stagione": "2021/22",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/1705f20a328622093c4869b2b9ec0bac.jpg",
+    "id": 191
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2021/22 Fuori Casa",
+    "stagione": "2021/22",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/aef12888197f6a09bceec501a3cf8257.jpeg",
+    "id": 192
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2021/22 Terza Maglia",
+    "stagione": "2021/22",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/68eda2b63399ee77b7c7fbeece4b8dd5.jpeg",
+    "id": 193
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2010/11 Casa Maniche Lunghe",
+    "stagione": "2010/11",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/b33dee8570f305fe426b2ba6a2b6075a.jpg",
+    "id": 194
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998/99 Portiere Maniche Lunghe",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/de29e9e9a4e837e14e30306186a18f2d.jpg",
+    "id": 195
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1996/97 Casa Maniche Lunghe",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/debc944cc09045db8c544e0bf1dc3978.jpg",
+    "id": 196
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1994/95 Casa Maniche Lunghe",
+    "stagione": "1994/95",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/78810350a155b7d53267661c20d0da37.jpg",
+    "id": 197
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1993/94 Fuori Casa Maniche Lunghe",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/bc200ef76dab82b44c8ba658d7c7272c.jpeg",
+    "id": 198
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1993 Fuori Casa Maniche Lunghe",
+    "stagione": "1993",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/50aa9b8cbe08caec0a37f52db2e8d991.png",
+    "id": 199
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1986/88 Casa Maniche Lunghe",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/16d5cb3c5903ed5b282cd2a216ad3c76.jpg",
+    "id": 200
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1999/00 Fuori Casa",
+    "stagione": "1999/00",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/0ff0098ac0dbc776e3931be8f3ff7ee4.png",
+    "id": 201
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1988/90 Casa",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/5305e258aac7ce10dfd9f0eeb28d77b0.jpg",
+    "id": 202
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1988/90 Fuori Casa",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/30c04d61e2275973357ea80c9b3445f6.jpg",
+    "id": 203
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1986/88 Casa",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/de009146f571fea12e62e262b82af608.png",
+    "id": 204
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1986/88 Fuori Casa",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/4cc25e2d596d10211537f04203aee86c.png",
+    "id": 205
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2012/13 Fuori Casa",
+    "stagione": "2012/13",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/44018434ff63dbb3215cdce75dc6a71c.png",
+    "id": 206
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2010/11 Casa",
+    "stagione": "2010/11",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/f14739d2b19469c61cebec80d4acec92.jpg",
+    "id": 207
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2000/01 Fuori Casa",
+    "stagione": "2000/01",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/cfc8ac81d569cdfd0170ffc07414abb6.jpg",
+    "id": 208
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2004/06 Casa Maniche Lunghe",
+    "stagione": "2004/06",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/dee93c0d0cdc65f5005e65a15f0017e6.jpg",
+    "id": 209
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2013/14 Casa Maniche Lunghe",
+    "stagione": "2013/14",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/bd19a324ac7612d48ac040424aa9baa3.jpg",
+    "id": 210
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998/99 Fuori Casa Maniche Lunghe",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/267d4bb1bb293d8664bb7a267019ae3d.jpg",
+    "id": 213
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1996/97 Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/993c16f15c26ec97642007cfe8767a03.jpg",
+    "id": 214
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1994/95 Casa",
+    "stagione": "1994/95",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/4c97d0d277fbaf2e68715f4b5d4d7fec.jpg",
+    "id": 215
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1992/94 Casa Maniche Lunghe",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/5a9d555c73cc919d46fef7910d79f803.jpg",
+    "id": 216
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1983 Fuori Casa",
+    "stagione": "1983",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/31c1d9a5dfc1e1f149a7310a043650f9.jpg",
+    "id": 217
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998 Casa Maniche Lunghe",
+    "stagione": "1998",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/fbc993699a3269453e761740290a1537.jpg",
+    "id": 218
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1986/88 Fuori Casa Maniche Lunghe",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/e3341dcf6f3cb1c95032e9fe159af45b.jpg",
+    "id": 219
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2008/09 Fuori Casa Maniche Lunghe",
+    "stagione": "2008/09",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/8a1a70a69071b5f596e206982a63ffd9.jpg",
+    "id": 220
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2008/09 Fuori Casa",
+    "stagione": "2008/09",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/388026183e1fec4e2b96bf375bb01cb5.jpg",
+    "id": 221
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2006/07 Casa Maniche Lunghe",
+    "stagione": "2006/07",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/be4a9f5e9185167dd531cbbf5032f424.jpg",
+    "id": 222
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2002/04 Casa Maniche Lunghe",
+    "stagione": "2002/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/fd5e3a4141abd15dd29228a446f10b21.jpg",
+    "id": 223
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2020/21 Terza Maglia",
+    "stagione": "2020/21",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/58cf9cb7f574775586d91b789d38c287.png",
+    "id": 224
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2003/04 Fuori Casa",
+    "stagione": "2003/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/634fe6edcbc6f71d3225a82b24793285.jpg",
+    "id": 225
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2007/08 Terza Maglia",
+    "stagione": "2007/08",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/d17ee4b9b29590d7a93fd6e0517b7b7e.jpg",
+    "id": 226
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1992/94 Fuori Casa Maniche Lunghe",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/f146490c91d7c48ffb68d360e112b2de.jpg",
+    "id": 227
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2008/09 Terza Maglia Maniche Lunghe",
+    "stagione": "2008/09",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/7f43c5f63d2f4355dec0092072008180.jpg",
+    "id": 228
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1999/00 Casa Maniche Lunghe",
+    "stagione": "1999/00",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250110/a17410853cd890b72b7ed2405f4dbf5c.jpg",
+    "id": 229
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2007/08 Casa Maniche Lunghe",
+    "stagione": "2007/08",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/84f8c451e2c33e77ac85ee46019590b0.jpg",
+    "id": 230
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1985 Terza Maglia",
+    "stagione": "1985",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/8193885555c10157d6656fa88fe35b9f.jpg",
+    "id": 231
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2013/14 Terza Maglia",
+    "stagione": "2013/14",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/7c7ed24cf7eb53fdfdcae2accd8a0e82.jpg",
+    "id": 232
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2007/08 Casa",
+    "stagione": "2007/08",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/caeed9852fe3d90987779622eb69444c.jpg",
+    "id": 233
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2010/11 Fuori Casa",
+    "stagione": "2010/11",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/1be765e0eb1558bcdb238caa3aad07ec.jpg",
+    "id": 234
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1996/98 Terza Maglia",
+    "stagione": "1996/98",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/f9f10a7025f0f43f71659aee7342bba3.jpg",
+    "id": 235
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1988/90 Terza Maglia",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/02321fa1ae5c64790674ef7653e1ca1d.jpg",
+    "id": 236
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1986/88 Fuori Casa",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/1a15dbb3baebdb324ae9bfdb33314d35.jpg",
+    "id": 237
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1975/80 Fuori Casa",
+    "stagione": "1975/80",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/6b4d529ff4e6f45d171baa0dd2bebd47.jpg",
+    "id": 238
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2005/06 Casa",
+    "stagione": "2005/06",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/e649782bdeae785bdf9c558ce6bf47be.jpg",
+    "id": 239
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2006/07 Fuori Casa",
+    "stagione": "2006/07",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/4529fd40eccd2a3311894770735d6aaf.jpg",
+    "id": 240
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1985 Casa",
+    "stagione": "1985",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/89f5f561ec9b8a3818ee3239feaa2816.jpg",
+    "id": 241
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2002/04 Casa",
+    "stagione": "2002/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/28b8927dd98dd8c38b30df983536d59e.png",
+    "id": 242
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2018/19 Casa",
+    "stagione": "2018/19",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/be9ce6d7986bb65ee69bc59d9292cf72.png",
+    "id": 243
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1996/97 Fuori Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/cf5e09872c8f87c7390127e4db09d4b3.jpg",
+    "id": 244
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2013/14 Casa",
+    "stagione": "2013/14",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/83ab645c04f9eac10ae16881d6d10eee.jpg",
+    "id": 245
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2009/10 Casa",
+    "stagione": "2009/10",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/84147dc024123daf98c463d9835b8c7e.jpg",
+    "id": 246
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2013/14 Fuori Casa",
+    "stagione": "2013/14",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/56b251276f1c2be9458f06ad2ebe9e8f.png",
+    "id": 247
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998/99 Casa",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/fad5b2834ec4fd1c80d2ad7dd9867dd5.jpg",
+    "id": 248
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1992 Fuori Casa",
+    "stagione": "1992",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/b52629c2eebd657d7a20cdf0c3102009.jpg",
+    "id": 249
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1994/96 Terza Maglia",
+    "stagione": "1994/96",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/4b55208cac19cc4a7610778a37cb7280.png",
+    "id": 250
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1993 Fuori Casa",
+    "stagione": "1993",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/196b9079b65b250f47a7ff37c9ed05f7.png",
+    "id": 251
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998/99 Terza Maglia",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/647a03ec55c0e18030f0523efd29483b.png",
+    "id": 252
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1992/94 Fuori Casa",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/707f4c6891ab08b08c6ee7a4312fd617.png",
+    "id": 253
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2000/02 Casa",
+    "stagione": "2000/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/f8ae9df32da798065b492f030ea6ecc9.png",
+    "id": 254
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1995/96 Fuori Casa",
+    "stagione": "1995/96",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/bb1fa81ca4c03e3ee296a63cc6e9e16e.png",
+    "id": 255
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2012/13 Casa",
+    "stagione": "2012/13",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/83d4e2669ab827b03080f698dfedaef2.png",
+    "id": 256
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1977 Casa",
+    "stagione": "1977",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/50e70f1b44af7b8c659dbb995a4c120f.png",
+    "id": 257
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998/99 Casa",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/58e3f0ac3eb0cdaadf9f190dba9751ba.png",
+    "id": 258
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2006/07 Casa",
+    "stagione": "2006/07",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250109/218c43b7d3710a77f507bb6321325578.png",
+    "id": 259
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 2007/08 Fuori Casa",
+    "stagione": "2007/08",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/382d13ab2d41193b57d9301636d1db6e.png",
+    "id": 260
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1993/94 Fuori Casa",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/84ff169b15698c9c985d12595ff679fc.png",
+    "id": 261
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1990/92 Casa",
+    "stagione": "1990/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/f20f5667caf729bd0879af0a77153d70.png",
+    "id": 262
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1992/94 Casa",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/5cc622c7956b744e732349041948dc7d.png",
+    "id": 263
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1991/92 Fuori Casa",
+    "stagione": "1991/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/d029cfd7fe6af135e91ca605d21b1dcb.png",
+    "id": 264
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester United 1998/99 Fuori Casa",
+    "stagione": "1998/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250108/181a00f8f6feecaaaff5aa3785da9b5e.png",
+    "id": 265
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Tuta",
+    "versione": "Tuta Manchester United Rappresentanza",
+    "stagione": "25/26",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260623/e2ea963cc7ce8423d3075aa7b2350970.png",
+    "id": 9
+  },
+  {
+    "squadra": "Manchester United",
+    "categoria": "Tuta",
+    "versione": "Tuta Manchester United Tracksuit Ufficiale",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/3bc23946aa3a898bf8c715b74b261372.png",
+    "id": 10
+  },
+    {
+    "squadra": "Arsenal F.C.",
+    "categoria": "kit training",
+    "versione": "Tuta Manchester United Tracksuit Ufficiale",
+    "stagione": "26/27",
+    "prezzo": 25.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260704/ed370dcab65f25ac6a8c8aa978fe6a12.png",
+    "id": 476
+  },
+  {
+  "id": 478,
+  "squadra": "Manchester United",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Bambino Rosso Manchester United",
+  "stagione": "26/27",
+  "prezzo": 22.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260526/9533641832369aec7118fb8d3e4e826a.png"
+},
+{
+  "id": 479,
+  "squadra": "Manchester United",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Rosso Manchester United",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260526/41fd4ddbca70d6c8a1584939fc8759ad.png"
+},
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Arancione Manchester City",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260608/ef27c1cc6ed43aa255ec4ccaa1d43a76.png",
+    "id": 306
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/9f508db227c86a957b319d02f14470c2.png",
+    "id": 307
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/f1ecd8ecafccea6c66be0d7d3441156e.png",
+    "id": 308
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/8bb8b83f9eaf1a70fbf3e996f955147e.jpg",
+    "id": 309
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250605/5851ba67801bc3a477108edb4197e8f6.jpg",
+    "id": 310
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250325/e471bb0e4256eac72b033e251086f9cb.png",
+    "id": 311
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250321/6970ef422c344130ac12e1e70d97a605.png",
+    "id": 312
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260704/0ed65c3601d33ce73dbd4ce3d4db3452.png",
+    "id": 316
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Seconda Fuori Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260702/2951495e8c10ac7744bc57de6e6c4ed5.png",
+    "id": 317
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Seconda Fuori Casa Manchester City Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260622/18d06874259954de9b43bd8d445c1d8a.png",
+    "id": 318
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester City Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260622/de1be570121ae2587fadaa0596e64a45.png",
+    "id": 319
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Maglia Allenamento Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260422/5dc3aab4d148c89d86e63257977c73da.png",
+    "id": 320
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260107/bb207c76106c4e6a45e8747ce3541207.png",
+    "id": 321
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester City Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/9218d4b7a06d3741678f5abbdd175236.jpg",
+    "id": 322
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250321/0f46ba3ab821e11071e4fca94cbd1661.png",
+    "id": 323
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250616/85196195f505bf316a3368da68ee647a.jpg",
+    "id": 324
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Manchester City",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240705/bd610e4b7f4a6e6024a32de3e2e12c47.jpg",
+    "id": 325
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Manchester City",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240705/f6f6a2465c91406c6c0de90cc96dcba5.jpg",
+    "id": 326
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260603/1ab0ae8d7ba6e6b523381cb0f35068ca.png",
+    "id": 327
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester City Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/b1af34f3e12bfb861c1ba1d635a76a8f.png",
+    "id": 328
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Seconda Fuori Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260414/ed3d5aaa6343965423193f3860d7f4b2.png",
+    "id": 329
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260112/d1e45078c5f43af763a22e1af2121851.png",
+    "id": 330
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250725/947d8781229716e855a54a6f80889865.png",
+    "id": 331
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250725/7ae4222ba696db7040df6aa2da2c0eba.png",
+    "id": 332
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester City Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250530/aee26033316e23aabe10b6f26ff9226d.jpeg",
+    "id": 333
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester City Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250508/4cae630b7ecbcd683f3798ac310d0977.jpeg",
+    "id": 334
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester City Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241127/65c485cb9a16b2790098c8d0062ad700.jpg",
+    "id": 335
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Manchester City",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/01bc39f38c21fae4528bfb40074a2095.jpg",
+    "id": 336
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Manchester City",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/c3063281ad32035098449ceb75548019.jpg",
+    "id": 337
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2015/16 Casa",
+    "stagione": "2015/16",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260127/25d837818bc3808e36ceac548439aace.png",
+    "id": 338
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2007 Casa Maniche Lunghe",
+    "stagione": "2007",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250415/266534312f55c9cabc1610a2fa7eabd6.png",
+    "id": 339
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2007 Casa",
+    "stagione": "2007",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250415/8f76a99e07516ffc3bded42dd29d6fcf.png",
+    "id": 340
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2019/20 Casa",
+    "stagione": "2019/20",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250326/8954942eb1821115e7af85e046f322f3.jpeg",
+    "id": 341
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2021/22 Casa",
+    "stagione": "2021/22",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241127/c4ffe59549f8b745682769b6199eb377.jpg",
+    "id": 342
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2013/14 Casa",
+    "stagione": "2013/14",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240807/166e27619d99e4bb2b42537c7cdf264d.jpeg",
+    "id": 343
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 2011/13 Casa",
+    "stagione": "2011/13",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240807/edc3cda3cea26f07298e8a53aa678133.jpeg",
+    "id": 344
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 1989 Casa",
+    "stagione": "1989",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/2eb233430b25bdbd338cd05aa4fdf2ab.jpeg",
+    "id": 345
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 1997/98 Fuori Casa",
+    "stagione": "1997/98",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/f43139fc581fa17c62187d5299052fb2.jpeg",
+    "id": 346
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 1998/99 Fuori Casa",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/55d09611365ef09053c4e02a7eeedffd.jpg",
+    "id": 347
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 1997/98 Casa",
+    "stagione": "1997/98",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/da9f992699eec49109e1ec650c13f9cf.jpg",
+    "id": 348
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 1999/01 Casa",
+    "stagione": "1999/01",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/bfd65b7ba2db777cfbc53861eae21da1.jpg",
+    "id": 349
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Manchester City 1972 Casa",
+    "stagione": "1972",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/c4943b47e144816b6d6f35f2001487c3.jpg",
+    "id": 350
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Tuta",
+    "versione": "Tuta Manchester City Beige Completa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260527/eb1692327ae611a011678801b51418aa.png",
+    "id": 351
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Tuta",
+    "versione": "Tuta Manchester City Beige Mezza Zip",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260509/baf550de8233b374b235dfc9bddcbfc0.png",
+    "id": 352
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Tuta",
+    "versione": "Tuta Manchester City Nera Completa (Ribbon Style)",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260203/2407c8e15c45db8512e85cb4aac092fb.png",
+    "id": 353
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241126/00349347818d0106d9d0f849d703808c.png",
+    "id": 313
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa Manchester City",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240831/53c6a94988df12688c355f8180cba3c1.jpg",
+    "id": 314
+  },
+  {
+    "squadra": "Manchester City",
+    "categoria": "Kit",
+    "versione": "Kit Casa Manchester City",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/6136a0160fa850c7b7cbb5a7c3cd7e7a.jpg",
+    "id": 315
+  },
+  {
+    "squadra": "AC Milan",
+    "categoria": "Kit",
+    "versione": "Kit Casa AC Milan",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "src/assets/images/milan_home_2627_1783613532937.jpg",
+    "id": 71
+  },
+  {
+    "squadra": "AC Milan",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa AC Milan",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "src/assets/images/milan_away_garage_1783535406975.jpg",
+    "id": 72
+  },
+  {
+    "squadra": "AC Milan",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa AC Milan",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "src/assets/images/milan_home_2627_1783613532937.jpg",
+    "id": 73
+  },
+  {
+    "squadra": "AC Milan",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa AC Milan",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "src/assets/images/milan_away_garage_1783535406975.jpg",
+    "id": 74
+  },
+  {
+    "squadra": "AC Milan",
+    "categoria": "Player",
+    "versione": "Versione Player Casa AC Milan",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "src/assets/images/milan_home_2627_1783613532937.jpg",
+    "id": 75
+  },
+  {
+    "squadra": "AC Milan",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa AC Milan",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "src/assets/images/milan_away_garage_1783535406975.jpg",
+    "id": 76
+  },
+  {
+    "squadra": "Italia",
+    "categoria": "Kit",
+    "versione": "Kit Casa Italia",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://thumblr.uniid.it/product/431339/bb3633d34ccc.jpg?width=1920&format=webp&q=75",
+    "id": 111
+  },
+  {
+    "squadra": "Italia",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Italia",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://thumblr.uniid.it/product/431339/bb3633d34ccc.jpg?width=1920&format=webp&q=75",
+    "id": 113
+  },
+  {
+    "squadra": "Italia",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Italia",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://thumblr.uniid.it/product/431339/bb3633d34ccc.jpg?width=1920&format=webp&q=75",
+    "id": 115
+  },
+  {
+    "squadra": "Germania",
+    "categoria": "Kit",
+    "versione": "Kit Casa Germania",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260704/a77dc59bccbd765e6133568631757c43.png",
+    "id": 131
+  },
+  {
+    "squadra": "Germania",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Germania",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260704/a77dc59bccbd765e6133568631757c43.png",
+    "id": 133
+  },
+  {
+    "squadra": "Germania",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Germania",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260704/a77dc59bccbd765e6133568631757c43.png",
+    "id": 135
+  },
+  {
+    "id": 354,
+    "squadra": "Manchester United",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Manchester United",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/409028f79772ce0a70759bcedd2f7dd1.png"
+  },
+  {
+    "id": 355,
+    "squadra": "Manchester United",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Manchester United",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250729/e08b2d45496bc8a123081373602d9d34.png"
+  },
+  {
+    "id": 356,
+    "squadra": "Manchester City",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Manchester City",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/9f508db227c86a957b319d02f14470c2.png"
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Nero Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260617/e611074cf9fff2db51f24e0788385810.png",
+    "id": 354
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Allenamento Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260615/bd4ceb32ebfabfc0d30c050cf7232beb.png",
+    "id": 355
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Verde Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/7a1586cb378e0a8d41c026b3709efdfa.png",
+    "id": 356
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Portiere King Color Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/4279144f00e1fde056811eec1a171a37.png",
+    "id": 357
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Arancione Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/d6727b16f23bc47982a703b4df3857ed.png",
+    "id": 358
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Grigio Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260604/e7631ff1e2f2f8cf52526f71eacee6c8.png",
+    "id": 359
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/a470db719b257ef9bb9259aa3ceb4e18.png",
+    "id": 360
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/fb095b921df095438ab3ca17c0ac8414.jpg",
+    "id": 361
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250725/85a1a92c722e3a901592eed777a4c75d.png",
+    "id": 362
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250528/b4d5420727c79f02202eec9e26be51e0.jpg",
+    "id": 363
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241126/420a3958599d3d7cc530dc9fd44d10f3.png",
+    "id": 364
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241126/cf59c290e12f8440e2df510f5a718cbc.png",
+    "id": 365
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/8b03e0ecc80dca4d10104e0dfaf9d32c.jpg",
+    "id": 366
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Seconda Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260702/ef90ed39d3eb99f8896bb929f6705bcd.png",
+    "id": 367
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal Donna",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260523/2a6028026238572b3ca56167a7ff91b2.png",
+    "id": 368
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal Donna",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260523/b9a302eec1af56ef3c42a509a96c3687.png",
+    "id": 369
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/06d603b99089ea8aa0978b9d2768d694.png",
+    "id": 370
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260506/8bef5827fd409863f5d7ef350c3e4f7c.png",
+    "id": 371
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260320/7e11e0c415610896d7b6b9e2cc1d5a32.jpg",
+    "id": 372
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260313/068c1ce553b88af9cffafb5c9493d211.png",
+    "id": 373
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Maglia Allenamento Arsenal Rosso e Blu",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260228/0ec8448d2942e02dc5d593c8a8030d40.png",
+    "id": 374
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale PO Blu Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260225/c8a6fdd13a6c3451097c5d4de8ca8717.jpg",
+    "id": 375
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260225/eaadc09750dbbf0b7a19364954f4d6a4.jpg",
+    "id": 376
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale POS Bianca Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260225/6ad89aeb3e4711adcdae9c27270ed55a.jpg",
+    "id": 377
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250618/cb81b1b964873a3007d8990871565427.png",
+    "id": 381
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240705/1242f0dfd56a8b2fdefbcf58de29fdc3.jpg",
+    "id": 382
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240708/825dd370cc1f1462888f8b3d4c4d146d.jpg",
+    "id": 383
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260708/2170d120f7e7a13aeb9d6443512464e3.png",
+    "id": 384
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260701/497ef7f8a90314d4f060571b440498c5.png",
+    "id": 385
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Portiere Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260622/ad6ed864fdb07e04bc14fa02093c79c9.png",
+    "id": 386
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Champions League Oro Carbonizzato Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260615/831e476539940b095d8b22e77fe2b062.png",
+    "id": 387
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260519/31b3416490a59db9f002fb4b2a725ddb.png",
+    "id": 388
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Seconda Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260518/8764329907119db8ce791711ea76a461.png",
+    "id": 389
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Seconda Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260518/bd2cacbcbae829a5c5776b57d04d872d.png",
+    "id": 390
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260421/b3816d50f408126908354a5ef4aa2b1d.png",
+    "id": 391
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Stile Retrò Trifoglio Rosso Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260421/0e8e13014f83ae3a2b7cb466159ed11b.png",
+    "id": 392
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260413/c3da66b8db25467827a36cc72d1d2904.png",
+    "id": 393
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Gialla Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260203/49de8dbc8da861fd23fd2e999520702c.png",
+    "id": 394
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Rossa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260203/ce500a27d18ed640f613d6df3afc0cf6.png",
+    "id": 395
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Bianca Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260113/027977713bab224749250eda65c2e6d2.png",
+    "id": 396
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Nera Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260113/47b0f3870721556f43d802c4d60f64e7.png",
+    "id": 397
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250731/2b4f2e8c6fd52f470e8079b3f5eaea0a.jpg",
+    "id": 398
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250613/6e6b5c1085be1ca727415b28c475b6f3.jpeg",
+    "id": 399
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250612/c9ac3b41493c2f02e511a087904ea76a.jpeg",
+    "id": 400
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250715/588cb51697a6fb318135539b0a11ff84.png",
+    "id": 401
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241121/7c23070158daf96efa1475b9004d6dac.jpg",
+    "id": 402
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241127/9a1104cb774bedee568d2d9616e29042.jpg",
+    "id": 403
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2006/07 Casa 3B Maniche Lunghe",
+    "stagione": "2006/07",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260710/acab20832383bb57b0db545599231a3e.png",
+    "id": 406
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1990/92 Fuori Casa Nera",
+    "stagione": "1990/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260710/5cb60221e061271f3421fbff405f9f12.png",
+    "id": 407
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2008/10 Casa 5A",
+    "stagione": "2008/10",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260709/5b8e8b8332a999f86a69766e32a1bcab.png",
+    "id": 408
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1992/94 Fuori Casa Nera",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260206/ade912b921c141c5e16f74b29b446b8c.png",
+    "id": 409
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2003/04 Fuori Casa Gialla",
+    "stagione": "2003/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260127/b57896cd82eac0d5e59680d39676d6ce.png",
+    "id": 410
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2016/17 Casa",
+    "stagione": "2016/17",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260127/b70fa2c9bb6f90b86aba02cc205bdf31.png",
+    "id": 411
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1994/95 Fuori Casa",
+    "stagione": "1994/95",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250331/3f27ea8851a93dd7eebf4629f2bd2639.jpeg",
+    "id": 412
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2011/12 Fuori Casa",
+    "stagione": "2011/12",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240807/09337848a2d959e0bcf95525b9ae57d6.jpeg",
+    "id": 413
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1997/99 Fuori Casa",
+    "stagione": "1997/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240426/587f8eb25e5f271a4bb8a4b362a04a83.jpg",
+    "id": 414
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1989/91 Fuori Casa Maniche Lunghe",
+    "stagione": "1989/91",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240426/ec4420a634ea4947259134cad6562cb5.jpg",
+    "id": 415
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1988/90 Casa Maniche Lunghe",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240426/a95ec3925875e79ddc349b4f940a7dbd.jpg",
+    "id": 416
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1991/93 Fuori Casa Maniche Lunghe",
+    "stagione": "1991/93",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240424/b948d85e5f4bc403c4c9b10d877e06ee.jpg",
+    "id": 417
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1986/88 Fuori Casa",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240424/0d74b6e37b60bcbb3d02f1f196ea54d7.jpg",
+    "id": 418
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2001/02 Casa Maniche Lunghe",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/d73d89d246642915eb911c1155cf7cab.jpeg",
+    "id": 419
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1971/79 Fuori Casa Maniche Lunghe",
+    "stagione": "1971/79",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/eae4521f2964eaf559ff2c24a9e9d2ce.jpg",
+    "id": 420
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1996/97 Fuori Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/5ea4db1f3a1164367762845aaaec4244.jpg",
+    "id": 421
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal Edizione Commemorativa 2014",
+    "stagione": "2014",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/7c121566ba5adadeea4505d6e0624d1a.jpg",
+    "id": 422
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2005/06 Casa Maniche Lunghe",
+    "stagione": "2005/06",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/6397600a7e1e19d390f4ae81a69c8c12.jpg",
+    "id": 423
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2004/05 Fuori Casa",
+    "stagione": "2004/05",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/d410af3aadc396b9b272dd65c6f2f173.jpg",
+    "id": 424
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2002/03 Casa Maniche Lunghe",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/82d29072bfd966104da7b2015efe014e.jpg",
+    "id": 425
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2001/02 Casa",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/c474fc35ef0ee99f8fe3a252f7c86c67.jpeg",
+    "id": 426
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2001/02 Fuori Casa",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/246cd92b3495a4819df7a00236e7cef7.jpg",
+    "id": 427
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1998/99 Casa Maniche Lunghe",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/dec5fe45fa44cabbeffe7ff671be23b6.jpeg",
+    "id": 428
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1996/97 Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/be4065566dcd360ed90787e029aa3293.jpg",
+    "id": 429
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1992/94 Casa Maniche Lunghe",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/70366be81e9107b8386e62af2db21ed1.jpg",
+    "id": 430
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1998/99 Casa",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/c456472d15d28b2adf281633a2ffc74c.jpeg",
+    "id": 431
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1995/96 Fuori Casa Maniche Lunghe",
+    "stagione": "1995/96",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/120630106b3339ed4da28cdba6222188.jpeg",
+    "id": 432
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1993/94 Casa Maniche Lunghe",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20231114/3fbf752631c75d6d03be9c67e5134d9e.jpg",
+    "id": 433
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1971/79 Fuori Casa",
+    "stagione": "1971/79",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/4b1499665c13b7d741645fb6219a1e35.jpg",
+    "id": 434
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1995/96 Fuori Casa",
+    "stagione": "1995/96",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/08b629b89e60d49503df994035d1b0a8.jpg",
+    "id": 435
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1983/86 Fuori Casa",
+    "stagione": "1983/86",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240424/953fc7c1af772ce3a355101a85a9c783.jpg",
+    "id": 436
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2004/05 Casa",
+    "stagione": "2004/05",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/11e80ab2630122fcdaf078f8d33f714e.jpeg",
+    "id": 437
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2002/04 Fuori Casa",
+    "stagione": "2002/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/0e3a615ab4431f7735fdeaeb99d5af79.jpg",
+    "id": 438
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1992/94 Casa",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/a2621d3ab335b250dd04c64067cad37e.jpg",
+    "id": 439
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1990/92 Casa",
+    "stagione": "1990/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/133b6cb5570ef3229bf07b64e8697be5.jpg",
+    "id": 440
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2005/06 Casa",
+    "stagione": "2005/06",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/bdf8475c4a9dded0213bb58c779594e6.jpg",
+    "id": 441
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1999/00 Fuori Casa",
+    "stagione": "1999/00",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/a183a4927ef0545e98586bc2b0a01847.jpg",
+    "id": 442
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1988/90 Casa",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250211/f49b28a2ed18328becba052c5268e8d1.jpg",
+    "id": 443
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1993/94 Fuori Casa",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/8053c83dd88a40d25ffcf126035112b2.jpg",
+    "id": 444
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1988/90 Fuori Casa",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/ae39cd8d6a87fde086230a63a8ef9492.jpg",
+    "id": 445
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2002/03 Casa",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/1427b1d750d047111f959256274bb470.jpg",
+    "id": 446
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1991/93 Fuori Casa",
+    "stagione": "1991/93",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/6a3c3331b05cc77af5c1a3be2cd69ccc.jpg",
+    "id": 447
+  },
+  {
+    "id": 448,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Nero Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260617/2fd10503ad546b4521e7855351a7005a.png"
+  },
+  {
+    "id": 449,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Allenamento Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260615/5a482b8ac79154c8a292b8f4100edccc.png"
+  },
+  {
+    "id": 450,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Verde Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/a3edfc058a7eefe1cc5e26678e7fbf44.png"
+  },
+  {
+    "id": 451,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere King Color Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/42815b00ffb470b62a151662c20df5bd.png"
+  },
+  {
+    "id": 452,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Arancione Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/ffdf7fc51f1561d46454b55f8dcf5c75.png"
+  },
+  {
+    "id": 453,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Grigio Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260604/3932c88a9b4235a0f37a13dda16ea9f3.png"
+  },
+  {
+    "id": 454,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260529/beaf492c64ef786f9a8cc4ff76f56954.png"
+  },
+  {
+    "id": 455,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260521/928a9916ea53ad3509cf965fe2d56ddb.png"
+  },
+  {
+    "id": 456,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250725/b564bfdd12a56b702973da80693e2cf4.png"
+  },
+  {
+    "id": 457,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250626/d25a3a2d7b54878d3b36c1dbe5304b19.jpg"
+  },
+  {
+    "id": 458,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240805/849663ec629a0e216c5642c1b442fe49.jpg"
+  },
+  {
+    "id": 459,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240709/abc983b769b1c72a31669095d4a36f2a.jpg"
+  },
+  {
+    "id": 460,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240708/2bcf6bd2fa3daf9279836b581d030a64.jpg"
+  },
+  {
+    "id": 461,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Rossa con Maniche Beige",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260703/9f4ff42023972ca09be8f6089d37d3b4.png"
+  },
+  {
+    "id": 462,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Zip Lunga Rossa con Maniche Bianche",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260617/1ef162c87d3f449e2584fdcd81d15dad.png"
+  },
+  {
+    "id": 463,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Nera Total Black",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260616/c08a0bf554fde3b4a8addd476f3e809b.png"
+  },
+  {
+    "id": 464,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Nera Total Black",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260616/cec1a19759859549ce6a33044b1f6860.png"
+  },
+  {
+    "id": 465,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Arancione",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260608/3f6125415c6c0d0c6decc3ab3db0b848.png"
+  },
+  {
+    "id": 466,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Arancione",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260608/c6c12621242dcbccd997b4da8f239b57.png"
+  },
+  {
+    "id": 467,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Zip Lunga Rossa con Maniche Bianche",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260604/838667cef184d5048a87d3b68d497268.png"
+  },
+  {
+    "id": 468,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/bf3b5c8b8fc9d0887974f40d3a727111.png"
+  },
+  {
+    "id": 469,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Rossa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/544f8967dbf02226fbc5f13051bcc7ed.png"
+  },
+  {
+    "id": 470,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/2a67449bc0bcb2540990311766ec1494.png"
+  },
+  {
+    "id": 471,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/689751d8c41b3b66a975d254e4cc3605.png"
+  },
+  {
+    "id": 472,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260511/11550335b8c837563e9365c70884f7c2.png"
+  },
+  {
+    "id": 473,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Rossa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260423/488b83216a10d3128a4bbc18dfa12084.png"
+  },
+  {
+  "id": 480,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Gilet Rosso Arsenal",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260704/a12560337999c64d0eb614eafe89289b.png"
+},
+{
+  "id": 481,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Gilet Nero Arsenal",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260704/ed370dcab65f25ac6a8c8aa978fe6a12.png"
+},
+{
+  "id": 482,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Rosso Arsenal",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260704/1585b03879a1c83b9655b137cce71c7a.png"
+},
+{
+  "id": 483,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Nero Arsenal",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260704/8f3628a91fa89b660c6a3e7bf4535c5e.png"
+},
+{
+  "id": 484,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Polo Rosso Arsenal con Pantaloni 3/4",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260617/fef2e946475d0a0e08f1e5b2b61ba08a.png"
+},
+{
+  "id": 485,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Polo Nero Arsenal con Pantaloni 3/4",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260617/73b4aa222960d145b1595636a57d5f4d.png"
+},
+{
+  "id": 486,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Bambino Arancione Arsenal",
+  "stagione": "26/27",
+  "prezzo": 22.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260602/af4a6ef482b4e24c4e0983c71b89829a.png"
+},
+{
+  "id": 487,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Arancione Arsenal",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260602/72a1a7cb1e9db0f218a97fc8420eb3ca.png"
+},
+{
+  "id": 490,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Portiere Verde Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260604/2fcb14f2964a6e07fa04065331de1800.png"
+},
+{
+  "id": 491,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Portiere Nero Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260603/8681608d8dffa58d1edc0c1a10201004.png"
+},
+{
+  "id": 492,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Casa Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260601/10e01e3d369e0b3ecc5d8d385aa9b0ac.png"
+},
+{
+  "id": 493,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Casa Liverpool Maniche Lunghe",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250930/149281d463be1c6f8e2a619b080b9539.jpg"
+},
+{
+  "id": 494,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Fuori Casa Liverpool Maniche Lunghe",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250930/9c23c246d185233575f7e9774587e99d.jpg"
+},
+{
+  "id": 495,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Fuori Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250904/bd99d3aa3afa4e2a89312d55afa11b3e.jpg"
+},
+{
+  "id": 496,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250325/d8b6dd03c6e54a177d43d37178d636fa.png"
+},
+{
+  "id": 510,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1998 Fuori Casa Bianca 8A",
+  "stagione": "1998",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260710/0be0f9a34c1f8fc1eee476eaeac10bd5.png"
+},
+{
+  "id": 511,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1998 Fuori Casa Bianca 3B Maniche Lunghe",
+  "stagione": "1998",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260709/a715ea5ecb39aec1165f46053ac87bf3.png"
+},
+{
+  "id": 512,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Edizione Speciale Nera Maniche Lunghe",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260508/2653f0593172b2efc39f554583d312c1.png"
+},
+{
+  "id": 513,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Maglia Verde",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260403/336a51844eea05b382764fc4ea14bf16.png"
+},
+{
+  "id": 514,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Edizione Speciale Nera",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260422/94b76d85548df3123b744d8f53cf1650.png"
+},
+{
+  "id": 515,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1996/97 Bianca",
+  "stagione": "1996/97",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260331/3a6480f2a1d5de1175fba589c36c95cb.png"
+},
+{
+  "id": 516,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Fuori Casa Maniche Lunghe",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260212/4b5676ef5ddd07077e918f5fa7999822.png"
+},
+{
+  "id": 517,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2013/14 Casa",
+  "stagione": "2013/14",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260206/b4dab170fa37b1050ebf23576a98c967.png"
+},
+{
+  "id": 518,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1999/00 Fuori Casa Verde",
+  "stagione": "1999/00",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260130/0679bd4f8c1c26d6cf7dd9461e52533a.png"
+},
+{
+  "id": 519,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2019/20 Casa",
+  "stagione": "2019/20",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260116/4531f1a1977e1c8c91ba1abe64e5c48c.png"
+},
+{
+  "id": 520,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1981/84 Casa",
+  "stagione": "1981/84",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20251027/95ccb8cb0b934abffd332775aaa306e1.png"
+},
+{
+  "id": 521,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1991/92 Casa",
+  "stagione": "1991/92",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250331/f27d2467c0c29d591212c5241012e9da.jpeg"
+},
+{
+  "id": 522,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1991/92 Fuori Casa",
+  "stagione": "1991/92",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250331/e445bbf1cd7e60254b1079fe79f949a2.jpeg"
+},
+{
+  "id": 523,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1992/93 Fuori Casa",
+  "stagione": "1992/93",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250327/fc9e1a6ea3381280ea626b2c7a97d080.jpeg"
+},
+{
+  "id": 524,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/86 Fuori Casa Maniche Lunghe",
+  "stagione": "1985/86",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20241126/130cea514dac76eb8d6f5aa0aa8ad3a2.jpeg"
+},
+{
+  "id": 525,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2006/07 Casa Maniche Lunghe",
+  "stagione": "2006/07",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20241126/4cef75d950b8b8164d8b09817414d889.jpg"
+},
+{
+  "id": 526,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1988/89 Casa",
+  "stagione": "1988/89",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/f511c2790f9adc45e74c9a41569203b3.jpg"
+},
+{
+  "id": 527,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1988/89 Casa",
+  "stagione": "1988/89",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/f511c2790f9adc45e74c9a41569203b3.jpg"
+},
+{
+  "id": 528,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1988/89 Fuori Casa",
+  "stagione": "1988/89",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/ff947b5a18a9b23f47fe0cd2bdbd692d.jpg"
+},
+{
+  "id": 529,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1988/89 Terza Maglia",
+  "stagione": "1988/89",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/a1de346e5ec77afc5e392d92be6e9d56.jpg"
+},
+{
+  "id": 530,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1987/88 Casa",
+  "stagione": "1987/88",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/da6cbe4049c7f9a4203567fa20beb341.jpg"
+},
+{
+  "id": 531,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1986 Terza Maglia Maniche Lunghe",
+  "stagione": "1986",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/625f46d0a919662138fd7fb33eae3938.jpg"
+},
+{
+  "id": 532,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/87 Casa Maniche Lunghe",
+  "stagione": "1985/87",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/f756f4bc4ea29532974287ccdeccd68f.jpg"
+},
+{
+  "id": 533,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/87 Casa",
+  "stagione": "1985/87",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/e9d7f3589206d41144252b5c6e1f5581.jpg"
+},
+{
+  "id": 534,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/87 Fuori Casa",
+  "stagione": "1985/87",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250922/ab73fb0e271b693eae987cc525e308ab.png"
+},
+{
+  "id": 535,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/86 Casa Maniche Lunghe",
+  "stagione": "1985/86",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/5f9cdc88eca1613482b754ab73da249b.jpg"
+},
+{
+  "id": 536,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1982/83 Casa Maniche Lunghe",
+  "stagione": "1982/83",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/d1daa5ef3715122f631ecbcb3696686a.jpg"
+},
+{
+  "id": 537,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1981 Casa",
+  "stagione": "1981",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/ac0502e54bd277b835ba378fe5c98853.jpg"
+},
+{
+  "id": 538,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1977 Casa",
+  "stagione": "1977",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240425/0c3fc57f8352ca4e4953259ce7246b44.jpg"
+},
+{
+  "id": 539,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2010/11 Terza Maglia",
+  "stagione": "2010/11",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240424/ac4bacac423d0f13172e3f8fe1364054.jpg"
+},
+{
+  "id": 540,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1986/87 Casa",
+  "stagione": "1986/87",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/9ae114b0ae57f8d5c12682a264aaf6bb.jpeg"
+},
+{
+  "id": 541,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1989 Terza Maglia",
+  "stagione": "1989",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/065ca962e1bdc9d0af3e9faea8394dec.jpeg"
+},
+{
+  "id": 542,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1983/84 Terza Maglia",
+  "stagione": "1983/84",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/568b564008a413f11225795093cd8a50.jpeg"
+},
+{
+  "id": 543,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2009 Fuori Casa Maniche Lunghe",
+  "stagione": "2009",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/bc3a34437e19f85cdfbe9da9c68b3831.jpg"
+},
+{
+  "id": 544,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2006/08 Casa Maniche Lunghe",
+  "stagione": "2006/08",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/085828c23853252eeccea26fef0fb3ec.jpg"
+},
+{
+  "id": 545,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2019/20 Casa",
+  "stagione": "2019/20",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/b8ead9906a154659c78aa19e8d1fcc63.jpeg"
+},
+{
+  "id": 546,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2004/05 Casa",
+  "stagione": "2004/05",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/27d3fbf8259f6531b830fe09a6d051b5.jpeg"
+},
+{
+  "id": 547,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Casa Maniche Lunghe",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/74aa9b7bab7623d273afc8b10e3a21a9.jpg"
+},
+{
+  "id": 548,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Casa",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/7296d0403ea444af02c8207793705adc.jpg"
+},
+{
+  "id": 549,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1993/95 Casa Maniche Lunghe",
+  "stagione": "1993/95",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/494e81702e4e20e5070ec45a9ed3d89e.jpeg"
+},
+{
+  "id": 550,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1989/91 Fuori Casa Maniche Lunghe",
+  "stagione": "1989/91",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/350cb364334a4f5c52fd1c2c83186d64.jpeg"
+},
+{
+  "id": 551,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1989/91 Casa Maniche Lunghe",
+  "stagione": "1989/91",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/fa7b8ea3b3d8c19e703c5b82b7c8d1d8.jpeg"
+},
+{
+  "id": 552,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/86 Terza Maglia",
+  "stagione": "1985/86",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/3b31860f1669688ff80e55ec63684716.jpeg"
+},
+{
+  "id": 553,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2021/22 Fuori Casa",
+  "stagione": "21/22",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20241125/564d2f6969b5ad0bbc483c14873d6e0a.jpg"
+},
+{
+  "id": 554,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/86 Casa",
+  "stagione": "1985/86",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/ae4d0499eecd2d4c2aa31ce51a63e3a8.jpeg"
+},
+{
+  "id": 555,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1989/91 Fuori Casa",
+  "stagione": "1989/91",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/bc238413ca719d5ee2fa622e0e43ea5a.jpeg"
+},
+{
+  "id": 556,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1985/86 Fuori Casa",
+  "stagione": "1985/86",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/2ce9393e57f63793be06a41b1281babc.jpeg"
+},
+{
+  "id": 557,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1989/91 Casa",
+  "stagione": "1989/91",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/cd3cdda741b60ebc053da382c05c425f.jpeg"
+},
+{
+  "id": 558,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1993/95 Fuori Casa",
+  "stagione": "1993/95",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/89866438de7d368478215c93e4f4143e.jpeg"
+},
+{
+  "id": 559,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1993/95 Casa",
+  "stagione": "1993/95",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/1a4197e867a04dfd3eb9ea69c786d410.jpeg"
+},
+{
+  "id": 560,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1982/83 Casa",
+  "stagione": "1982/83",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240426/0fc7318e97d49c35d149679e529af5ee.jpg"
+},
+{
+  "id": 561,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1992/93 Casa",
+  "stagione": "1992/93",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20241125/32e71a290bcef659556104aca2699c42.jpg"
+},
+{
+  "id": 562,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1994/96 Terza Maglia",
+  "stagione": "1994/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/36f599720fb77748696309f6dfe1d3fa.jpeg"
+},
+{
+  "id": 563,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1981/84 Casa",
+  "stagione": "1981/84",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20251230/5eadcd3a9a5a1dbe608f721a18772e02.jpg"
+},
+{
+  "id": 564,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1995/96 Fuori Casa",
+  "stagione": "1995/96",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20230804/5b00badb24cde0eb1e55ed6fd74dc19c.jpg"
+},
+{
+  "id": 565,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1996/97 Fuori Casa",
+  "stagione": "1996/97",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240119/5d3059d360d19d34159b47d9d558964f.jpg"
+},
+{
+  "id": 566,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1996/97 Casa",
+  "stagione": "1996/97",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/ff7ca956e8d2954242007cf711a98448.jpg"
+},
+{
+  "id": 567,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 1965 Casa",
+  "stagione": "1965",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20230804/cbbf1ac761df96458ba99dfa384f168e.jpg"
+},
+{
+  "id": 568,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2005/06 Casa",
+  "stagione": "2005/06",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240424/572542534f07a5806933eb52b1ea3955.jpg"
+},
+{
+  "id": 569,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2004/05 Fuori Casa",
+  "stagione": "2004/05",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20230804/a99c053ef7a88aef9098aa25f4fca3b4.png"
+},
+{
+  "id": 570,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2005 Finale UCL Casa",
+  "stagione": "2005",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20230804/427d0028db7031d90e8fe2c11202ae12.png"
+},
+{
+  "id": 571,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2005 Edizione Commemorativa",
+  "stagione": "2005",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20230804/69996f3f6badaa3b1ae0fc2f3212214d.png"
+},
+{
+  "id": 572,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2006/08 Fuori Casa",
+  "stagione": "2006/08",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/8f477d5b5df2caa7dfc634453d2a403a.jpeg"
+},
+{
+  "id": 573,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2006/08 Casa",
+  "stagione": "2006/08",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240413/2e9e8ff6b540af5a48d5c8d2e78cda6d.jpeg"
+},
+{
+  "id": 574,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2010 Casa Maniche Lunghe",
+  "stagione": "2010",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/a2c6c700cc1e78af8e062a37f08fbea2.jpg"
+},
+{
+  "id": 575,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Retro",
+  "versione": "Versione Retrò Liverpool 2010 Casa",
+  "stagione": "2010",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240415/50558b373457997117b2e18c071cfa1c.jpg"
+},
+{
+  "id": 497,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Casa Liverpool Maniche Lunghe",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20241126/c6efb7c38a0c07a778f8e1fe8a7e28a6.png"
+},
+{
+  "id": 498,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Fuori Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240914/39554a042c638c7d2044267f123b308c.png"
+},
+{
+  "id": 499,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit",
+  "versione": "Kit Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240313/f7943172cbb408e6e5aac1b7294fe831.jpeg"
+},
+{
+  "id": 488,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Bambino Nero Arsenal",
+  "stagione": "26/27",
+  "prezzo": 22.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260526/b0898d8e938f6f9731edf7088b1d5d17.png"
+},
+{
+  "id": 489,
+  "squadra": "Arsenal F.C.",
+  "categoria": "Kit Allenamento",
+  "versione": "Kit Allenamento Nero Arsenal",
+  "stagione": "26/27",
+  "prezzo": 25.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260526/266fdb6b29e766080f5802e0e81a59d8.png"
+},
+  {
+    "id": 474,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Zip Lunga Rossa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260324/de6b9cad8f2214aaf6709375111c6166.png"
+  },
+  {
+    "id": 475,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Zip Lunga Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260323/dbbb6171ecc4ad79379e740ca647fb79.png"
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241127/c0c2a47c2c223bc6bb5b758a96b33e66.jpg",
+    "id": 404
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/c8c95ee6a2e418c89095190e2e09fb7c.jpg",
+    "id": 405
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Tuta Allenamento Nera Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20251230/7b4e60127d866f0e5810f9e208e5d7e7.png",
+    "id": 378
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20251024/3e289b08175d25475aba1c86108385c8.jpg",
+    "id": 379
+  },
+  {
+    "squadra": "Arsenal F.C.",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/32116045e76676d0cda2ff34a6a4ff75.jpg",
+    "id": 380
+  },
+  {
+    "id": 357,
+    "squadra": "Manchester City",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Manchester City",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250325/e471bb0e4256eac72b033e251086f9cb.png"
+  },
+  {
+    "id": 358,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal F.C.",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 359,
+    "squadra": "Arsenal F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal F.C.",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 360,
+    "squadra": "Liverpool F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Liverpool F.C.",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 361,
+    "squadra": "Liverpool F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Liverpool F.C.",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 362,
+    "squadra": "Chelsea F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Chelsea F.C.",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 363,
+    "squadra": "Chelsea F.C.",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Chelsea F.C.",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 364,
+    "squadra": "Juventus",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Juventus",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 365,
+    "squadra": "Juventus",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Juventus",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 366,
+    "squadra": "Inter",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Inter",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 367,
+    "squadra": "Inter",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Inter",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 368,
+    "squadra": "AC Milan",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa AC Milan",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "src/assets/images/milan_home_2627_1783613532937.jpg"
+  },
+  {
+    "id": 369,
+    "squadra": "AC Milan",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa AC Milan",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "src/assets/images/milan_away_garage_1783535406975.jpg"
+  },
+  {
+    "id": 370,
+    "squadra": "Real Madrid",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Real Madrid",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 371,
+    "squadra": "Real Madrid",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Real Madrid",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 372,
+    "squadra": "Barcellona",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Barcellona",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 373,
+    "squadra": "Barcellona",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Barcellona",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 374,
+    "squadra": "Bayern Monaco",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Bayern Monaco",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 375,
+    "squadra": "Bayern Monaco",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Bayern Monaco",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 376,
+    "squadra": "Italia",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Italia",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://thumblr.uniid.it/product/431339/bb3633d34ccc.jpg?width=1920&format=webp&q=75"
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Nero Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260617/e611074cf9fff2db51f24e0788385810.png",
+    "id": 354
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Allenamento Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260615/bd4ceb32ebfabfc0d30c050cf7232beb.png",
+    "id": 355
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Verde Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/7a1586cb378e0a8d41c026b3709efdfa.png",
+    "id": 356
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Portiere King Color Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/4279144f00e1fde056811eec1a171a37.png",
+    "id": 357
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Arancione Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/d6727b16f23bc47982a703b4df3857ed.png",
+    "id": 358
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Portiere Grigio Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260604/e7631ff1e2f2f8cf52526f71eacee6c8.png",
+    "id": 359
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/a470db719b257ef9bb9259aa3ceb4e18.png",
+    "id": 360
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/fb095b921df095438ab3ca17c0ac8414.jpg",
+    "id": 361
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250725/85a1a92c722e3a901592eed777a4c75d.png",
+    "id": 362
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250528/b4d5420727c79f02202eec9e26be51e0.jpg",
+    "id": 363
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241126/420a3958599d3d7cc530dc9fd44d10f3.png",
+    "id": 364
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Seconda Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260702/ef90ed39d3eb99f8896bb929f6705bcd.png",
+    "id": 367
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal Donna",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260523/2a6028026238572b3ca56167a7ff91b2.png",
+    "id": 368
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal Donna",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260523/b9a302eec1af56ef3c42a509a96c3687.png",
+    "id": 369
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260520/06d603b99089ea8aa0978b9d2768d694.png",
+    "id": 370
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260506/8bef5827fd409863f5d7ef350c3e4f7c.png",
+    "id": 371
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260320/7e11e0c415610896d7b6b9e2cc1d5a32.jpg",
+    "id": 372
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260313/068c1ce553b88af9cffafb5c9493d211.png",
+    "id": 373
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Maglia Allenamento Arsenal Rosso e Blu",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260228/0ec8448d2942e02dc5d593c8a8030d40.png",
+    "id": 374
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale PO Blu Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260225/c8a6fdd13a6c3451097c5d4de8ca8717.jpg",
+    "id": 375
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260225/eaadc09750dbbf0b7a19364954f4d6a4.jpg",
+    "id": 376
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Edizione Speciale POS Bianca Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260225/6ad89aeb3e4711adcdae9c27270ed55a.jpg",
+    "id": 377
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Tuta Allenamento Nera Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20251230/7b4e60127d866f0e5810f9e208e5d7e7.png",
+    "id": 378
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20251024/3e289b08175d25475aba1c86108385c8.jpg",
+    "id": 379
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250930/32116045e76676d0cda2ff34a6a4ff75.jpg",
+    "id": 380
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250618/cb81b1b964873a3007d8990871565427.png",
+    "id": 381
+  },
+  {
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit Bambino",
+  "versione": "Tuta Mezza Zip Bambino Liverpool Rossa Mimetica",
+  "stagione": "26/27",
+  "prezzo": 40.00,
+  "immagine": "https://jerseys-catalog.com/upload/20260623/c1d9d06ccb71c500e2076ca032829f5e.png",
+  "id": 610
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Tuta",
+  "versione": "Tuta Mezza Zip Adulto Liverpool Rossa Mimetica",
+  "stagione": "26/27",
+  "prezzo": 44.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260623/3b083ad29eaf0a7a43d6142ebcb4d466.png",
+  "id": 611
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit Bambino",
+  "versione": "Tuta Mezza Zip Bambino Liverpool Rossa",
+  "stagione": "26/27",
+  "prezzo": 40.00,
+  "immagine": "https://jerseys-catalog.com/upload/20260617/6c322a5b31516868c5f4821fcb280ba9.png",
+  "id": 612
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Tuta",
+  "versione": "Giacca Lunga Liverpool Rossa",
+  "stagione": "26/27",
+  "prezzo": 44.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260617/fb1e1ff2521bb883c38a700df194472b.png",
+  "id": 613
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Tuta",
+  "versione": "Tuta Mezza Zip Adulto Liverpool Rossa",
+  "stagione": "26/27",
+  "prezzo": 44.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260612/d75700c6f68a4a4631cfd1a55d52acb5.png",
+  "id": 614
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit Bambino",
+  "versione": "Tuta Mezza Zip Bambino Liverpool Grigio Chiaro",
+  "stagione": "26/27",
+  "prezzo": 40.00,
+  "immagine": "https://jerseys-catalog.com/upload/20260602/7d97fd2b8a6bb1f6f6a4f15e32174367.png",
+  "id": 615
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Kit Bambino",
+  "versione": "Tuta Mezza Zip Bambino Liverpool Nera",
+  "stagione": "26/27",
+  "prezzo": 40.00,
+  "immagine": "https://jerseys-catalog.com/upload/20260602/9309484922aca258baf3b9aacd790475.png",
+  "id": 616
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Tuta",
+  "versione": "Tuta Mezza Zip Adulto Liverpool Grigio Chiaro",
+  "stagione": "26/27",
+  "prezzo": 44.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260602/3f82b036543408a4e9a95d1baeeff06a.png",
+  "id": 617
+},
+{
+  "squadra": "Liverpool F.C.",
+  "categoria": "Tuta",
+  "versione": "Tuta Mezza Zip Adulto Liverpool Nera",
+  "stagione": "26/27",
+  "prezzo": 44.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260602/bd1228eeae574bd5ba6034d7254f3229.png",
+  "id": 618
+},
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260708/2170d120f7e7a13aeb9d6443512464e3.png",
+    "id": 384
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260701/497ef7f8a90314d4f060571b440498c5.png",
+    "id": 385
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Portiere Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260622/ad6ed864fdb07e04bc14fa02093c79c9.png",
+    "id": 386
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Edizione Speciale Champions League Oro Carbonizzato Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260615/831e476539940b095d8b22e77fe2b062.png",
+    "id": 387
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260519/31b3416490a59db9f002fb4b2a725ddb.png",
+    "id": 388
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Seconda Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260518/8764329907119db8ce791711ea76a461.png",
+    "id": 389
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Seconda Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260518/bd2cacbcbae829a5c5776b57d04d872d.png",
+    "id": 390
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal Maniche Lunghe",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260421/b3816d50f408126908354a5ef4aa2b1d.png",
+    "id": 391
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Stile Retrò Trifoglio Rosso Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260421/0e8e13014f83ae3a2b7cb466159ed11b.png",
+    "id": 392
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260413/c3da66b8db25467827a36cc72d1d2904.png",
+    "id": 393
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Gialla Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260203/49de8dbc8da861fd23fd2e999520702c.png",
+    "id": 394
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Rossa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260203/ce500a27d18ed640f613d6df3afc0cf6.png",
+    "id": 395
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Bianca Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260113/027977713bab224749250eda65c2e6d2.png",
+    "id": 396
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Polo Nera Arsenal",
+    "stagione": "26/27",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260113/47b0f3870721556f43d802c4d60f64e7.png",
+    "id": 397
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250731/2b4f2e8c6fd52f470e8079b3f5eaea0a.jpg",
+    "id": 398
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal Maniche Lunghe",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250613/6e6b5c1085be1ca727415b28c475b6f3.jpeg",
+    "id": 399
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250612/c9ac3b41493c2f02e511a087904ea76a.jpeg",
+    "id": 400
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250715/588cb51697a6fb318135539b0a11ff84.png",
+    "id": 401
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241121/7c23070158daf96efa1475b9004d6dac.jpg",
+    "id": 402
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2006/07 Casa 3B Maniche Lunghe",
+    "stagione": "2006/07",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260710/acab20832383bb57b0db545599231a3e.png",
+    "id": 406
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1990/92 Fuori Casa Nera",
+    "stagione": "1990/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260710/5cb60221e061271f3421fbff405f9f12.png",
+    "id": 407
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2008/10 Casa 5A",
+    "stagione": "2008/10",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260709/5b8e8b8332a999f86a69766e32a1bcab.png",
+    "id": 408
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1992/94 Fuori Casa Nera",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260206/ade912b921c141c5e16f74b29b446b8c.png",
+    "id": 409
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2003/04 Fuori Casa Gialla",
+    "stagione": "2003/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260127/b57896cd82eac0d5e59680d39676d6ce.png",
+    "id": 410
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2016/17 Casa",
+    "stagione": "2016/17",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260127/b70fa2c9bb6f90b86aba02cc205bdf31.png",
+    "id": 411
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1994/95 Fuori Casa",
+    "stagione": "1994/95",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250331/3f27ea8851a93dd7eebf4629f2bd2639.jpeg",
+    "id": 412
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2011/12 Fuori Casa",
+    "stagione": "2011/12",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240807/09337848a2d959e0bcf95525b9ae57d6.jpeg",
+    "id": 413
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1997/99 Fuori Casa",
+    "stagione": "1997/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240426/587f8eb25e5f271a4bb8a4b362a04a83.jpg",
+    "id": 414
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1989/91 Fuori Casa Maniche Lunghe",
+    "stagione": "1989/91",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240426/ec4420a634ea4947259134cad6562cb5.jpg",
+    "id": 415
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1988/90 Casa Maniche Lunghe",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240426/a95ec3925875e79ddc349b4f940a7dbd.jpg",
+    "id": 416
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1991/93 Fuori Casa Maniche Lunghe",
+    "stagione": "1991/93",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240424/b948d85e5f4bc403c4c9b10d877e06ee.jpg",
+    "id": 417
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1996/97 Fuori Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/5ea4db1f3a1164367762845aaaec4244.jpg",
+    "id": 421
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal Edizione Commemorativa 2014",
+    "stagione": "2014",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/7c121566ba5adadeea4505d6e0624d1a.jpg",
+    "id": 422
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2005/06 Casa Maniche Lunghe",
+    "stagione": "2005/06",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/6397600a7e1e19d390f4ae81a69c8c12.jpg",
+    "id": 423
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2004/05 Fuori Casa",
+    "stagione": "2004/05",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/d410af3aadc396b9b272dd65c6f2f173.jpg",
+    "id": 424
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2002/03 Casa Maniche Lunghe",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/82d29072bfd966104da7b2015efe014e.jpg",
+    "id": 425
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2001/02 Casa",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/c474fc35ef0ee99f8fe3a252f7c86c67.jpeg",
+    "id": 426
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2001/02 Fuori Casa",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/246cd92b3495a4819df7a00236e7cef7.jpg",
+    "id": 427
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1998/99 Casa Maniche Lunghe",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/dec5fe45fa44cabbeffe7ff671be23b6.jpeg",
+    "id": 428
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1996/97 Casa",
+    "stagione": "1996/97",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/be4065566dcd360ed90787e029aa3293.jpg",
+    "id": 429
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1992/94 Casa Maniche Lunghe",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/70366be81e9107b8386e62af2db21ed1.jpg",
+    "id": 430
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1998/99 Casa",
+    "stagione": "1998/99",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/c456472d15d28b2adf281633a2ffc74c.jpeg",
+    "id": 431
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1995/96 Fuori Casa Maniche Lunghe",
+    "stagione": "1995/96",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240413/120630106b3339ed4da28cdba6222188.jpeg",
+    "id": 432
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1983/86 Fuori Casa",
+    "stagione": "1983/86",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240424/953fc7c1af772ce3a355101a85a9c783.jpg",
+    "id": 436
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2004/05 Casa",
+    "stagione": "2004/05",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/11e80ab2630122fcdaf078f8d33f714e.jpeg",
+    "id": 437
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2002/04 Fuori Casa",
+    "stagione": "2002/04",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/0e3a615ab4431f7735fdeaeb99d5af79.jpg",
+    "id": 438
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1992/94 Casa",
+    "stagione": "1992/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/a2621d3ab335b250dd04c64067cad37e.jpg",
+    "id": 439
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1990/92 Casa",
+    "stagione": "1990/92",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/133b6cb5570ef3229bf07b64e8697be5.jpg",
+    "id": 440
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2005/06 Casa",
+    "stagione": "2005/06",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/bdf8475c4a9dded0213bb58c779594e6.jpg",
+    "id": 441
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1999/00 Fuori Casa",
+    "stagione": "1999/00",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/a183a4927ef0545e98586bc2b0a01847.jpg",
+    "id": 442
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1988/90 Casa",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250211/f49b28a2ed18328becba052c5268e8d1.jpg",
+    "id": 443
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1993/94 Fuori Casa",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/8053c83dd88a40d25ffcf126035112b2.jpg",
+    "id": 444
+  },
+  {
+    "id": 448,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Nero Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260617/2fd10503ad546b4521e7855351a7005a.png"
+  },
+  {
+    "id": 449,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Allenamento Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260615/5a482b8ac79154c8a292b8f4100edccc.png"
+  },
+  {
+    "id": 450,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Verde Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/a3edfc058a7eefe1cc5e26678e7fbf44.png"
+  },
+  {
+    "id": 451,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere King Color Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/42815b00ffb470b62a151662c20df5bd.png"
+  },
+  {
+    "id": 452,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Arancione Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260605/ffdf7fc51f1561d46454b55f8dcf5c75.png"
+  },
+  {
+    "id": 453,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Portiere Grigio Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260604/3932c88a9b4235a0f37a13dda16ea9f3.png"
+  },
+  {
+    "id": 454,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260529/beaf492c64ef786f9a8cc4ff76f56954.png"
+  },
+  {
+    "id": 455,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260521/928a9916ea53ad3509cf965fe2d56ddb.png"
+  },
+  {
+    "id": 456,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250725/b564bfdd12a56b702973da80693e2cf4.png"
+  },
+  {
+    "id": 457,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20250626/d25a3a2d7b54878d3b36c1dbe5304b19.jpg"
+  },
+  {
+    "id": 461,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Rossa con Maniche Beige",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260703/9f4ff42023972ca09be8f6089d37d3b4.png"
+  },
+  {
+    "id": 462,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Zip Lunga Rossa con Maniche Bianche",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260617/1ef162c87d3f449e2584fdcd81d15dad.png"
+  },
+  {
+    "id": 463,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Nera Total Black",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260616/c08a0bf554fde3b4a8addd476f3e809b.png"
+  },
+  {
+    "id": 464,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Nera Total Black",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260616/cec1a19759859549ce6a33044b1f6860.png"
+  },
+  {
+    "id": 465,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Arancione",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260608/3f6125415c6c0d0c6decc3ab3db0b848.png"
+  },
+  {
+    "id": 466,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Arancione",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260608/c6c12621242dcbccd997b4da8f239b57.png"
+  },
+  {
+    "id": 467,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Zip Lunga Rossa con Maniche Bianche",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260604/838667cef184d5048a87d3b68d497268.png"
+  },
+  {
+    "id": 468,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/bf3b5c8b8fc9d0887974f40d3a727111.png"
+  },
+  {
+    "id": 469,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Rossa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/544f8967dbf02226fbc5f13051bcc7ed.png"
+  },
+  {
+    "id": 470,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Bambino Arsenal Mezza Zip Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/2a67449bc0bcb2540990311766ec1494.png"
+  },
+  {
+    "id": 471,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260602/689751d8c41b3b66a975d254e4cc3605.png"
+  },
+  {
+    "id": 472,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260511/11550335b8c837563e9365c70884f7c2.png"
+  },
+  {
+    "id": 473,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Mezza Zip Rossa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260423/488b83216a10d3128a4bbc18dfa12084.png"
+  },
+  {
+    "id": 474,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Zip Lunga Rossa",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260324/de6b9cad8f2214aaf6709375111c6166.png"
+  },
+  {
+    "id": 475,
+    "squadra": "Arsenal",
+    "categoria": "Tuta",
+    "versione": "Tuta Arsenal Zip Lunga Nera",
+    "stagione": "26/27",
+    "prezzo": 44.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260323/dbbb6171ecc4ad79379e740ca647fb79.png"
+  },
+  {
+    "id": 458,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240805/849663ec629a0e216c5642c1b442fe49.jpg"
+  },
+  {
+    "id": 459,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240709/abc983b769b1c72a31669095d4a36f2a.jpg"
+  },
+  {
+    "id": 460,
+    "squadra": "Arsenal",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240708/2bcf6bd2fa3daf9279836b581d030a64.jpg"
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1988/90 Fuori Casa",
+    "stagione": "1988/90",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/ae39cd8d6a87fde086230a63a8ef9492.jpg",
+    "id": 445
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2002/03 Casa",
+    "stagione": "2002/03",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/1427b1d750d047111f959256274bb470.jpg",
+    "id": 446
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1991/93 Fuori Casa",
+    "stagione": "1991/93",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/6a3c3331b05cc77af5c1a3be2cd69ccc.jpg",
+    "id": 447
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1993/94 Casa Maniche Lunghe",
+    "stagione": "1993/94",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20231114/3fbf752631c75d6d03be9c67e5134d9e.jpg",
+    "id": 433
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1971/79 Fuori Casa",
+    "stagione": "1971/79",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/4b1499665c13b7d741645fb6219a1e35.jpg",
+    "id": 434
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1995/96 Fuori Casa",
+    "stagione": "1995/96",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20230803/08b629b89e60d49503df994035d1b0a8.jpg",
+    "id": 435
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1986/88 Fuori Casa",
+    "stagione": "1986/88",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240424/0d74b6e37b60bcbb3d02f1f196ea54d7.jpg",
+    "id": 418
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 2001/02 Casa Maniche Lunghe",
+    "stagione": "2001/02",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/d73d89d246642915eb911c1155cf7cab.jpeg",
+    "id": 419
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Retro",
+    "versione": "Versione Retrò Arsenal 1971/79 Fuori Casa Maniche Lunghe",
+    "stagione": "1971/79",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240415/eae4521f2964eaf559ff2c24a9e9d2ce.jpg",
+    "id": 420
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241127/9a1104cb774bedee568d2d9616e29042.jpg",
+    "id": 403
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241127/c0c2a47c2c223bc6bb5b758a96b33e66.jpg",
+    "id": 404
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Player",
+    "versione": "Versione Player Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/c8c95ee6a2e418c89095190e2e09fb7c.jpg",
+    "id": 405
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240705/1242f0dfd56a8b2fdefbcf58de29fdc3.jpg",
+    "id": 382
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Fan",
+    "versione": "Versione Fan Fuori Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 22.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240708/825dd370cc1f1462888f8b3d4c4d146d.jpg",
+    "id": 383
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Fuori Casa Arsenal Maniche Lunghe",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20241126/cf59c290e12f8440e2df510f5a718cbc.png",
+    "id": 365
+  },
+  {
+    "squadra": "Arsenal",
+    "categoria": "Kit",
+    "versione": "Kit Casa Arsenal",
+    "stagione": "24/25",
+    "prezzo": 23.99,
+    "immagine": "https://jerseys-catalog.com/upload/20240716/8b03e0ecc80dca4d10104e0dfaf9d32c.jpg",
+    "id": 366
+  },
+  {
+    "id": 377,
+    "squadra": "Italia",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Italia",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+  "id": 576,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Donna Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260616/01f94d8ff99d9c4a3143682bf76279a7.png"
+},
+{
+  "id": 577,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Portiere Verde Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260615/9b7460a72a214fcb223c75a26568afd7.png"
+},
+{
+  "id": 578,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Fuori Casa Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260603/274b0be4c9f18765ef558b0cd5f61f89.png"
+},
+{
+  "id": 579,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool Maniche Lunghe",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260515/61d919806ea2e1736297358f82799e86.png"
+},
+{
+  "id": 580,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260117/eb33599461e2bc3d6021445aaa272499.png"
+},
+{
+  "id": 581,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool Maniche Lunghe",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250930/63e8f76384600c8c46337f97bcd2d5c3.jpg"
+},
+{
+  "id": 582,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250731/a28887f9b1e3e720236b4dfbd4d0bd17.png"
+},
+{
+  "id": 583,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240806/67f62225d10d830d8430ae95c7a4d96c.jpg"
+},
+{
+  "id": 584,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Fuori Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250826/fe4ffb1cb1b9a18f0525e297a17db4c2.png"
+},
+{
+  "id": 585,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250305/a2d842d7a465ebb29cc6ba4ec56ce7d2.png"
+},
+{
+  "id": 586,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240806/67f62225d10d830d8430ae95c7a4d96c.jpg"
+},
+{
+  "id": 587,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool Maniche Lunghe",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240729/d214f76a843112a82e69455f1eea3f64.jpg"
+},
+{
+  "id": 590,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Fuori Casa Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260615/1589b2b7d1a24086c95cffb20ccb7dea.png"
+},
+{
+  "id": 591,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Portiere Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260613/a740958f91915cdd2dfdf43782454bb1.png"
+},
+{
+  "id": 592,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool Maniche Lunghe",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260527/c1ab6367bab4eb9ad716e27bcc8e0c4e.png"
+},
+{
+  "id": 593,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Fuori Casa Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260323/f43b772bba2e6992417d61870d973f45.png"
+},
+{
+  "id": 594,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Polo Nera Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260112/5a17588342ded7a96e2a7e4b82023db1.png"
+},
+{
+  "id": 595,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Polo Bianca Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20260112/5fa9b963d6df67578d16be72b17570fb.png"
+},
+{
+  "id": 596,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool",
+  "stagione": "26/27",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20251220/2942b401c3a5fb8f390fecd8efda7eca.png"
+},
+{
+  "id": 597,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Fuori Casa Liverpool Maniche Lunghe",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250827/0d893d973ee8043c8f7cb1c6e0da6e79.png"
+},
+{
+  "id": 598,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Fuori Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250731/9fc5004b4d1e7c772ad4f84afc7b4588.png"
+},
+{
+  "id": 599,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Pantaloncini Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250710/aa91beda8bf3e3f1b7b4b716886d85a0.jpg"
+},
+{
+  "id": 600,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Pantaloncini Fuori Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250820/7f2fa667bb4b74cb1697d7ac6b3b069f.png"
+},
+{
+  "id": 601,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool Maniche Lunghe",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250327/626c95f604fcdd034bee285b6887c44c.png"
+},
+{
+  "id": 602,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool Maniche Lunghe",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250118/d770173cb68a29b96fd9475dea544956.jpg"
+},
+{
+  "id": 603,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Fuori Casa Liverpool Maniche Lunghe",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20241127/303ca5eccdd3ae5e0190aa7eb099d76b.jpg"
+},
+{
+  "id": 604,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool",
+  "stagione": "25/26",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20250711/1e991f93353910312879ccb5431dd68c.png"
+},
+{
+  "id": 605,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Fuori Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240717/a034a9006cac4c625bce2a16fbe743ce.jpg"
+},
+{
+  "id": 606,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240604/48f97d29676bb5445d249b00a4d38def.jpg"
+},
+{
+  "id": 607,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Player",
+  "versione": "Player Version Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240730/5b6abf91b6bd1aa3ca4041c0df4eac0e.jpg"
+},
+{
+  "id": 588,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Fuori Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240702/f02f0949b33493ee9f09654a9bd2f33c.jpg"
+},
+{
+  "id": 589,
+  "squadra": "Liverpool F.C.",
+  "categoria": "Fan",
+  "versione": "Fan Version Casa Liverpool",
+  "stagione": "24/25",
+  "prezzo": 23.99,
+  "immagine": "https://jerseys-catalog.com/upload/20240702/00db507a5f0d627428e123ad3d00326c.jpg"
+},
+  {
+    "id": 378,
+    "squadra": "Francia",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Francia",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 379,
+    "squadra": "Francia",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Francia",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 380,
+    "squadra": "Germania",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Germania",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://jerseys-catalog.com/upload/20260704/a77dc59bccbd765e6133568631757c43.png"
+  },
+  {
+    "id": 381,
+    "squadra": "Germania",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Germania",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  },
+  {
+    "id": 382,
+    "squadra": "Spagna",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Casa Spagna",
+    "stagione": "25/26",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Casa"
+  },
+  {
+    "id": 383,
+    "squadra": "Spagna",
+    "categoria": "Kit Bambino",
+    "versione": "Kit Bambino Fuori Casa Spagna",
+    "stagione": "26/27",
+    "prezzo": 19.99,
+    "immagine": "https://placehold.co/360x360/eaeef3/1e293b?text=Kit+Bambino+Fuori"
+  }
+]

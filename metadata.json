@@ -1,0 +1,8 @@
+{
+  "name": "Elite Tournament Store",
+  "description": "Elite Tournament | Store Premium Ufficiale - Scegli i kit ufficiali delle migliori squadre al mondo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
