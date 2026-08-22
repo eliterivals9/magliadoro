@@ -972,7 +972,10 @@ async function caricaDati() {
             prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null && p.prezzo_fornitore !== "" ? Number(p.prezzo_fornitore) : null,
             immagine: p.immagine || '',
             target: p.target || 'Adulto',
-            nome: p.nome || ''
+            nome: p.nome || '',
+            filtro_catalogo: p.filtro_catalogo || '',
+            tag: p.tag || '',
+            tipo: p.tipo || ''
         }));
         console.log("Prodotti salvati nell'array locale:", prodotti.length);
     } catch (err) {
@@ -3438,6 +3441,7 @@ async function salvaProdotto() {
             // Ricarica i dati per sincronizzarsi al 100% con la sorgente dati reale
             await caricaDati();
             sincronizzaReportDuplicati();
+            if (typeof sincronizzaReportSenzaFiltro === 'function') sincronizzaReportSenzaFiltro();
         } else {
             showToast("Errore durante il salvataggio: " + resultError.message, "error");
         }
@@ -3705,7 +3709,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     // Sezioni disponibili
     const sections = [
         'dashboard', 'prodotti', 'ordini', 'lotto', 
-        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'marketing', 'recensioni', 'coupon', 'suddivisione-conti', 'chat'
+        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'revisione-riclassificazione', 'marketing', 'recensioni', 'coupon', 'suddivisione-conti', 'chat'
     ];
     
     // Mappa dei titoli dell'header
@@ -3718,6 +3722,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'tracking': 'Tracking Spedizioni',
         'impostazioni': 'Impostazioni',
         'gestione-catalogo': 'Gestione Catalogo',
+        'revisione-riclassificazione': 'Revisione & Riclassificazione Prodotti',
         'marketing': 'Gestione Promo Home',
         'recensioni': 'Moderazione Recensioni',
         'coupon': 'Gestione Coupon Sconto',
@@ -3767,6 +3772,10 @@ function switchTab(tabId, preserveSelectionMode = false) {
         }
     } else if (tabId === 'gestione-ordini') {
         caricaGestioneOrdini();
+    } else if (tabId === 'revisione-riclassificazione') {
+        if (typeof caricaRevisioneRiclassificazione === 'function') {
+            caricaRevisioneRiclassificazione();
+        }
     } else if (tabId === 'marketing') {
         loadMarketingPromo();
     } else if (tabId === 'recensioni') {
@@ -13037,6 +13046,1537 @@ window.chiudiModalModificaSuddivisione = chiudiModalModificaSuddivisione;
 window.onSelectOrdineModifica = onSelectOrdineModifica;
 window.salvaModificaSuddivisione = salvaModificaSuddivisione;
 window.eliminaModificaSuddivisione = eliminaModificaSuddivisione;
+
+// =========================================================================
+// MODULO REVISIONE E RICLASSIFICAZIONE PRODOTTI (FASE 1)
+// =========================================================================
+
+let reclassState = {
+    items: [],
+    metrics: { total: 0, pending: 0, approved: 0, needs_check: 0 },
+    available_teams: [],
+    available_sections: [],
+    available_categories: []
+};
+let currentReclassFilter = 'all';
+let currentReclassSearch = '';
+
+/**
+ * Aggiorna il badge del contatore nella sidebar
+ */
+async function aggiornaBadgeRevisioneRiclassificazione() {
+    try {
+        const res = await fetch('/api/reclassification/items');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.success && data.metrics) {
+            const badge = document.getElementById('admin-reclass-badge');
+            if (badge) {
+                const count = data.metrics.pending || 0;
+                badge.innerText = count;
+                if (count > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("⚠️ Impossibile aggiornare badge revisione:", e.message);
+    }
+}
+
+/**
+ * Carica tutti i prodotti in stato di revisione dal backend
+ */
+async function caricaRevisioneRiclassificazione() {
+    const container = document.getElementById('reclass-items-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-400">
+                <span class="text-3xl block mb-2 animate-spin">🔄</span>
+                <p class="text-sm font-semibold">Caricamento prodotti in revisione in corso...</p>
+            </div>
+        `;
+    }
+
+    try {
+        const res = await fetch('/api/reclassification/items');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (data.success) {
+            reclassState.items = data.items || [];
+            reclassState.metrics = data.metrics || { total: 0, pending: 0, approved: 0, needs_check: 0 };
+            reclassState.available_teams = data.available_teams || [];
+            reclassState.available_sections = data.available_sections || [];
+            reclassState.available_categories = data.available_categories || [];
+
+            // Aggiorna metriche numeriche
+            const totalEl = document.getElementById('reclass-metric-total');
+            const pendingEl = document.getElementById('reclass-metric-pending');
+            const approvedEl = document.getElementById('reclass-metric-approved');
+            const needsCheckEl = document.getElementById('reclass-metric-needs-check');
+
+            if (totalEl) totalEl.innerText = reclassState.metrics.total;
+            if (pendingEl) pendingEl.innerText = reclassState.metrics.pending;
+            if (approvedEl) approvedEl.innerText = reclassState.metrics.approved;
+            if (needsCheckEl) needsCheckEl.innerText = reclassState.metrics.needs_check;
+
+            // Aggiorna badge sidebar
+            const badge = document.getElementById('admin-reclass-badge');
+            if (badge) {
+                badge.innerText = reclassState.metrics.pending;
+                if (reclassState.metrics.pending > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            // Popola opzioni del select sezione
+            popolaSelectSezioniReclass();
+
+            // Renderizza gli elementi
+            renderizzaProdottiReclass();
+        } else {
+            throw new Error(data.error || "Errore sconosciuto nel caricamento");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore caricaRevisioneRiclassificazione:", err);
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-12 bg-white rounded-2xl border border-red-200 text-red-500">
+                    <span class="text-3xl block mb-2">⚠️</span>
+                    <p class="text-sm font-bold">Errore durante il caricamento dei dati di revisione</p>
+                    <p class="text-xs text-slate-500 mt-1">${err.message}</p>
+                    <button onclick="caricaRevisioneRiclassificazione()" class="mt-4 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800">
+                        Riprova
+                    </button>
+                </div>
+            `;
+        }
+    }
+}
+
+/**
+ * Popola il menu a tendina delle sezioni nel modal di modifica
+ */
+function popolaSelectSezioniReclass() {
+    const select = document.getElementById('reclass-edit-sezione');
+    if (!select) return;
+
+    const sezioniDefault = [
+        "USA MLS", "Serie A", "Premier League", "La Liga", "Bundesliga", "Ligue 1",
+        "Saudi Pro League", "Brasileiro Serie A", "Japan Series", "Altri Club Europei",
+        "Altri Club Mondo", "Nazionali Europa", "Nazionali Sud America", "Nazionali Mondo"
+    ];
+
+    const sezioniMerge = Array.from(new Set([...sezioniDefault, ...(reclassState.available_sections || [])]))
+        .filter(s => s && !s.toUpperCase().includes('NBA'));
+
+    select.innerHTML = sezioniMerge.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+/**
+ * Filtra per stato (all, pending_reclassification, approved, needs_manual_check)
+ */
+function filtraStatoReclass(status) {
+    currentReclassFilter = status;
+
+    // Aggiorna stile bottoni filtri
+    const buttons = {
+        'all': document.getElementById('btn-reclass-filter-all'),
+        'pending_reclassification': document.getElementById('btn-reclass-filter-pending'),
+        'approved': document.getElementById('btn-reclass-filter-approved'),
+        'needs_manual_check': document.getElementById('btn-reclass-filter-needs-check')
+    };
+
+    Object.entries(buttons).forEach(([key, btn]) => {
+        if (!btn) return;
+        if (key === status) {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-xs";
+        } else {
+            btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-900";
+        }
+    });
+
+    renderizzaProdottiReclass();
+}
+
+/**
+ * Filtra per testo di ricerca
+ */
+function filtraTestoReclass(text) {
+    currentReclassSearch = (text || '').toLowerCase().trim();
+    renderizzaProdottiReclass();
+}
+
+/**
+ * Renderizza i prodotti in revisione con card comparative avanzate
+ */
+function renderizzaProdottiReclass() {
+    const container = document.getElementById('reclass-items-container');
+    if (!container) return;
+
+    let items = reclassState.items || [];
+
+    // Filtro per stato
+    if (currentReclassFilter !== 'all') {
+        items = items.filter(it => it.status === currentReclassFilter);
+    }
+
+    // Filtro per ricerca testuale
+    if (currentReclassSearch) {
+        items = items.filter(it => {
+            const sqOrig = (it.squadra_originale || '').toLowerCase();
+            const sqProp = (it.proposta && it.proposta.squadra_proposta ? it.proposta.squadra_proposta : '').toLowerCase();
+            const ver = (it.versione || '').toLowerCase();
+            const nome = (it.nome_finale || it.nome || '').toLowerCase();
+            const legId = String(it.legacy_id || '');
+            const pId = String(it.product_id || '').toLowerCase();
+            return sqOrig.includes(currentReclassSearch) ||
+                   sqProp.includes(currentReclassSearch) ||
+                   ver.includes(currentReclassSearch) ||
+                   nome.includes(currentReclassSearch) ||
+                   legId.includes(currentReclassSearch) ||
+                   pId.includes(currentReclassSearch);
+        });
+    }
+
+    if (items.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-400">
+                <span class="text-4xl block mb-2">✨</span>
+                <p class="text-sm font-bold text-slate-700">Nessun prodotto trovato</p>
+                <p class="text-xs text-slate-400 mt-1">Nessun elemento corrisponde ai filtri o ai criteri di ricerca selezionati.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = items.map(item => {
+        const isApproved = item.status === 'approved';
+        const isNeedsCheck = item.status === 'needs_manual_check';
+        const isPending = item.status === 'pending_reclassification';
+
+        let statusBadgeHtml = '';
+        if (isApproved) {
+            statusBadgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold">
+                    <span>✅</span> Approvato & Riclassificato
+                </span>
+            `;
+        } else if (isNeedsCheck) {
+            statusBadgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 border border-rose-300 text-rose-800 text-xs font-bold">
+                    <span>⚠️</span> Da Verificare Manualmente
+                </span>
+            `;
+        } else {
+            statusBadgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold">
+                    <span>⏳</span> In Attesa di Revisione
+                </span>
+            `;
+        }
+
+        const prop = item.proposta || {};
+        const safeImg = item.immagine || 'https://via.placeholder.com/300x300?text=No+Image';
+
+        return `
+            <div class="bg-white border ${isApproved ? 'border-emerald-300 ring-1 ring-emerald-300/50' : (isNeedsCheck ? 'border-rose-300' : 'border-slate-200')} rounded-2xl p-5 md:p-6 shadow-sm hover:shadow-md transition-all space-y-5">
+                <!-- Header Card: Info Prodotto & Status -->
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div class="flex items-start gap-4">
+                        <div class="relative group shrink-0">
+                            <img src="${safeImg}" alt="Prodotto" class="w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover bg-slate-50 border border-slate-200">
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-800 text-[11px] font-mono font-bold rounded-md">
+                                    ID: #${item.legacy_id || item.product_id}
+                                </span>
+                                <span class="px-2 py-0.5 bg-brand-gold/15 text-brand-gold text-[11px] font-bold rounded-md">
+                                    ${item.target || 'Adulto'}
+                                </span>
+                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[11px] font-semibold rounded-md">
+                                    ${item.stagione || '2026/2027'}
+                                </span>
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-md font-mono">
+                                    € ${(Number(item.prezzo) || 0).toFixed(2)}
+                                </span>
+                            </div>
+                            <h3 class="text-sm md:text-base font-black text-slate-900">
+                                ${item.nome_finale || item.nome || (item.squadra_originale + ' - ' + item.versione)}
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium truncate max-w-xl">
+                                Versione: ${item.versione || 'Standard'}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex md:flex-col items-end justify-between md:justify-center gap-2 shrink-0">
+                        ${statusBadgeHtml}
+                        <span class="text-[10px] text-slate-400 font-medium">
+                            Aggiornato: ${new Date(item.ultimo_aggiornamento || item.creato_il).toLocaleDateString('it-IT')}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Confronto Dati: Originale vs Proposto -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Box 1: Dati Attuali (Originali) -->
+                    <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                            <span class="text-[11px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>🔒</span> Classificazione Attuale (Dati Originali)
+                            </span>
+                            <span class="px-2 py-0.5 bg-slate-200 text-slate-700 text-[9px] font-bold rounded-md uppercase">Originale</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5 text-xs">
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Squadra:</span>
+                                <span class="font-bold text-slate-900">${item.squadra_originale || 'Nessuna'}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Categoria:</span>
+                                <span class="font-semibold text-slate-800">${item.categoria_originale || 'Nessuna'}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Sezione / Lega:</span>
+                                <span class="font-semibold text-slate-800">${item.sezione_originale || item.lega_originale || 'NBA'}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Paese:</span>
+                                <span class="font-semibold text-slate-800">${item.paese_originale || 'USA'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Box 2: Dati Proposti (Nuova Riclassificazione) -->
+                    <div class="bg-amber-50/40 border border-amber-200/90 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+                            <span class="text-[11px] font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>✨</span> Classificazione Proposta (Non Applicata)
+                            </span>
+                            <span class="px-2 py-0.5 bg-amber-200 text-amber-900 text-[9px] font-bold rounded-md uppercase">Verificata</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5 text-xs">
+                            <div>
+                                <span class="block text-[10px] font-bold text-amber-700 uppercase">Squadra Proposta:</span>
+                                <span class="font-black text-amber-950">${prop.squadra_proposta || 'Da Configurare'}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-amber-700 uppercase">Categoria Proposta:</span>
+                                <span class="font-bold text-amber-950">${prop.categoria_proposta || 'Club'}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-amber-700 uppercase">Sezione Proposta:</span>
+                                <span class="font-bold text-amber-950">${prop.sezione_proposta || 'USA MLS'}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-amber-700 uppercase">Paese / Campionato:</span>
+                                <span class="font-bold text-amber-950">${prop.paese_proposto || 'USA'} - ${prop.campionato_proposto || 'MLS'}</span>
+                            </div>
+                        </div>
+                        ${prop.motivo ? `
+                            <div class="pt-2 border-t border-amber-200/60 text-[11px] text-amber-800 flex items-start gap-1.5">
+                                <span class="shrink-0">💡</span>
+                                <span><strong>Motivo:</strong> ${prop.motivo}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                ${item.note_verifica ? `
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
+                        <span class="shrink-0 font-bold">⚠️ Nota Operatore:</span>
+                        <span>${item.note_verifica}</span>
+                    </div>
+                ` : ''}
+
+                <!-- Action Controls Bar -->
+                <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+                    <button onclick="apriModalVerifyReclass('${item.product_id}', '${item.legacy_id}')" class="px-3.5 py-2 bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                        <span>⚠️</span> Da Verificare
+                    </button>
+                    <button onclick="apriModalEditReclass('${item.product_id}', '${item.legacy_id}')" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                        <span>✏️</span> Modifica Manuale
+                    </button>
+                    <button onclick="approvaPropostaReclass('${item.product_id}', '${item.legacy_id}')" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-md">
+                        <span>✅</span> Approva e Riclassifica
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Approva la proposta automatica per un prodotto
+ */
+async function approvaPropostaReclass(productId, legacyId) {
+    const item = reclassState.items.find(x => x.product_id === productId || String(x.legacy_id) === String(legacyId));
+    if (!item) return;
+
+    const prop = item.proposta || {};
+    const confirmMsg = `Confermi l'approvazione della riclassificazione per il prodotto #${item.legacy_id || item.product_id}?\n\n` +
+                       `• Squadra Destinazione: ${prop.squadra_proposta}\n` +
+                       `• Categoria: ${prop.categoria_proposta || 'Club'}\n` +
+                       `• Sezione: ${prop.sezione_proposta || 'USA MLS'}\n\n` +
+                       `Un backup di sicurezza snapshot verrà registrato automaticamente.`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+        const res = await fetch('/api/reclassification/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId, legacy_id: legacyId })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            showToast(`✅ Prodotto #${item.legacy_id || item.product_id} riclassificato con successo! Backup #${data.backup_id} creato.`, "success");
+            await caricaRevisioneRiclassificazione();
+        } else {
+            showToast(`Errore: ${data.error || "Impossibile approvare"}`, "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore approvaPropostaReclass:", err);
+        showToast("Errore di connessione al server.", "error");
+    }
+}
+
+/**
+ * Apre il modal di modifica manuale con suggerimenti e controllo collisioni
+ */
+function apriModalEditReclass(productId, legacyId) {
+    const item = reclassState.items.find(x => x.product_id === productId || String(x.legacy_id) === String(legacyId));
+    if (!item) return;
+
+    const prop = item.proposta || {};
+
+    // Popola preview
+    const imgEl = document.getElementById('reclass-edit-img');
+    const idBadge = document.getElementById('reclass-edit-id-badge');
+    const targetBadge = document.getElementById('reclass-edit-target-badge');
+    const titleEl = document.getElementById('reclass-edit-title');
+    const versEl = document.getElementById('reclass-edit-versione');
+
+    if (imgEl) imgEl.src = item.immagine || 'https://via.placeholder.com/300x300?text=No+Image';
+    if (idBadge) idBadge.innerText = `ID: #${item.legacy_id || item.product_id}`;
+    if (targetBadge) targetBadge.innerText = item.target || 'Adulto';
+    if (titleEl) titleEl.innerText = item.nome_finale || item.nome || item.squadra_originale;
+    if (versEl) versEl.innerText = item.versione || 'Standard';
+
+    // Popola campi form
+    document.getElementById('reclass-edit-product-id').value = item.product_id;
+    document.getElementById('reclass-edit-legacy-id').value = item.legacy_id || '';
+    document.getElementById('reclass-edit-squadra').value = prop.squadra_proposta || item.squadra_originale || '';
+    document.getElementById('reclass-edit-categoria').value = prop.categoria_proposta || 'Club';
+    
+    // Sezione
+    const sezSelect = document.getElementById('reclass-edit-sezione');
+    if (sezSelect) {
+        sezSelect.value = prop.sezione_proposta || 'USA MLS';
+    }
+
+    document.getElementById('reclass-edit-paese').value = prop.paese_proposto || item.paese_originale || 'USA';
+    document.getElementById('reclass-edit-campionato').value = prop.campionato_proposto || 'MLS';
+    document.getElementById('reclass-edit-note').value = item.note_verifica || '';
+
+    // Controlla collisione iniziale
+    gestisciAutocompleteSquadraReclass(document.getElementById('reclass-edit-squadra').value);
+
+    // Mostra modal
+    const modal = document.getElementById('modal-reclass-edit');
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude il modal di modifica manuale
+ */
+function chiudiModalEditReclass() {
+    const modal = document.getElementById('modal-reclass-edit');
+    if (modal) modal.classList.add('hidden');
+    const dropdown = document.getElementById('reclass-squadra-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+}
+
+/**
+ * Gestisce l'autocomplete in tempo reale con controllo collisioni e duplicati
+ */
+function gestisciAutocompleteSquadraReclass(query) {
+    const dropdown = document.getElementById('reclass-squadra-dropdown');
+    const warningEl = document.getElementById('reclass-duplicate-warning');
+    const warningText = document.getElementById('reclass-duplicate-warning-text');
+    if (!dropdown) return;
+
+    const val = (query || '').trim().toLowerCase();
+
+    if (!val) {
+        dropdown.classList.add('hidden');
+        if (warningEl) warningEl.classList.add('hidden');
+        return;
+    }
+
+    const matches = (reclassState.available_teams || []).filter(t => {
+        return (t.name || '').toLowerCase().includes(val);
+    }).slice(0, 8);
+
+    if (matches.length > 0) {
+        dropdown.innerHTML = matches.map(t => `
+            <div onclick="selezionaSquadraReclassDropdown('${t.name.replace(/'/g, "\\'")}', '${t.categoria || 'Club'}', '${t.sezione || 'USA MLS'}')" class="p-2.5 hover:bg-amber-50 cursor-pointer flex items-center justify-between text-xs transition-colors">
+                <span class="font-bold text-slate-800">${t.name}</span>
+                <span class="text-[10px] text-slate-400 font-medium">${t.sezione || t.categoria || 'Club'}</span>
+            </div>
+        `).join('');
+        dropdown.classList.remove('hidden');
+    } else {
+        dropdown.classList.add('hidden');
+    }
+
+    // Controllo collisioni (es. se digita 'Inter' mentre esiste 'Inter Miami' o viceversa)
+    if (warningEl && warningText) {
+        const exactMatch = (reclassState.available_teams || []).find(t => t.name.toLowerCase() === val);
+        const collisionMatches = (reclassState.available_teams || []).filter(t => {
+            const tLow = t.name.toLowerCase();
+            return (tLow !== val && (tLow.includes(val) || val.includes(tLow)));
+        });
+
+        if (exactMatch) {
+            warningEl.className = "mt-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800 flex items-center gap-2";
+            warningText.innerHTML = `<span>✅ Squadra esistente nel catalogo: <strong>${exactMatch.name}</strong></span>`;
+            warningEl.classList.remove('hidden');
+        } else if (collisionMatches.length > 0) {
+            warningEl.className = "mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-center gap-2";
+            const names = collisionMatches.map(m => m.name).slice(0, 3).join(', ');
+            warningText.innerHTML = `<span>⚠️ Attenzione: rilevate squadre simili nel catalogo (<strong>${names}</strong>). Verifica di non creare un duplicato involontario.</span>`;
+            warningEl.classList.remove('hidden');
+        } else {
+            warningEl.className = "mt-2 p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-[11px] text-blue-800 flex items-center gap-2";
+            warningText.innerHTML = `<span>ℹ️ Nuova squadra da creare nel catalogo: <strong>${query}</strong></span>`;
+            warningEl.classList.remove('hidden');
+        }
+    }
+}
+
+/**
+ * Seleziona una squadra dal dropdown di autocomplete
+ */
+function selezionaSquadraReclassDropdown(name, categoria, sezione) {
+    const input = document.getElementById('reclass-edit-squadra');
+    if (input) input.value = name;
+
+    const catSelect = document.getElementById('reclass-edit-categoria');
+    if (catSelect && categoria) catSelect.value = categoria;
+
+    const sezSelect = document.getElementById('reclass-edit-sezione');
+    if (sezSelect && sezione) {
+        sezSelect.value = sezione;
+        aggiornaCampiPaeseLegaDaSezione(sezione);
+    }
+
+    const dropdown = document.getElementById('reclass-squadra-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    gestisciAutocompleteSquadraReclass(name);
+}
+
+/**
+ * Aggiorna paese e campionato in base alla sezione selezionata
+ */
+function aggiornaCampiPaeseLegaDaSezione(sezione) {
+    const paeseInput = document.getElementById('reclass-edit-paese');
+    const campInput = document.getElementById('reclass-edit-campionato');
+    if (!sezione || !paeseInput || !campInput) return;
+
+    if (sezione.includes('MLS')) {
+        paeseInput.value = 'USA';
+        campInput.value = 'MLS';
+    } else if (sezione.includes('Serie A')) {
+        paeseInput.value = 'Italia';
+        campInput.value = 'Serie A';
+    } else if (sezione.includes('Premier League')) {
+        paeseInput.value = 'Inghilterra';
+        campInput.value = 'Premier League';
+    } else if (sezione.includes('La Liga')) {
+        paeseInput.value = 'Spagna';
+        campInput.value = 'La Liga';
+    } else if (sezione.includes('Bundesliga')) {
+        paeseInput.value = 'Germania';
+        campInput.value = 'Bundesliga';
+    } else if (sezione.includes('Ligue 1')) {
+        paeseInput.value = 'Francia';
+        campInput.value = 'Ligue 1';
+    } else if (sezione.includes('Saudi')) {
+        paeseInput.value = 'Arabia Saudita';
+        campInput.value = 'Saudi Pro League';
+    } else if (sezione.includes('Brasile')) {
+        paeseInput.value = 'Brasile';
+        campInput.value = 'Brasileiro';
+    }
+}
+
+/**
+ * Salva la modifica manuale con snapshot automatico
+ */
+async function salvaModificaManualeReclass() {
+    const productId = document.getElementById('reclass-edit-product-id').value;
+    const legacyId = document.getElementById('reclass-edit-legacy-id').value;
+    const squadra = (document.getElementById('reclass-edit-squadra').value || '').trim();
+    const categoria = document.getElementById('reclass-edit-categoria').value;
+    const sezione = document.getElementById('reclass-edit-sezione').value;
+    const paese = (document.getElementById('reclass-edit-paese').value || '').trim();
+    const campionato = (document.getElementById('reclass-edit-campionato').value || '').trim();
+    const note = (document.getElementById('reclass-edit-note').value || '').trim();
+
+    if (!squadra) {
+        alert("Inserisci il nome della squadra di destinazione.");
+        return;
+    }
+
+    const payload = {
+        product_id: productId,
+        legacy_id: legacyId,
+        squadra: squadra,
+        categoria: categoria,
+        sezione: sezione,
+        paese: paese,
+        campionato: campionato,
+        note: note
+    };
+
+    try {
+        const res = await fetch('/api/reclassification/manual-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            chiudiModalEditReclass();
+            showToast(`✅ Riclassificazione manuale applicata con successo! Snapshot backup #${data.backup_id} registrato.`, "success");
+            await caricaRevisioneRiclassificazione();
+        } else {
+            showToast(`Errore: ${data.error || "Impossibile salvare"}`, "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore salvaModificaManualeReclass:", err);
+        showToast("Errore di connessione al server.", "error");
+    }
+}
+
+/**
+ * Apre il modal per contrassegnare come "Da Verificare"
+ */
+function apriModalVerifyReclass(productId, legacyId) {
+    document.getElementById('reclass-verify-product-id').value = productId;
+    document.getElementById('reclass-verify-legacy-id').value = legacyId || '';
+    document.getElementById('reclass-verify-motivo').value = '';
+
+    const modal = document.getElementById('modal-reclass-verify');
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude il modal "Da Verificare"
+ */
+function chiudiModalVerifyReclass() {
+    const modal = document.getElementById('modal-reclass-verify');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Conferma la segnalazione come "Da Verificare"
+ */
+async function confermaSegnalaDaVerificare() {
+    const productId = document.getElementById('reclass-verify-product-id').value;
+    const legacyId = document.getElementById('reclass-verify-legacy-id').value;
+    const note = (document.getElementById('reclass-verify-motivo').value || '').trim();
+
+    if (!note) {
+        alert("Inserisci il motivo della segnalazione o note per la verifica.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/reclassification/mark-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId, legacy_id: legacyId, note: note })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            chiudiModalVerifyReclass();
+            showToast(`⚠️ Prodotto #${legacyId || productId} contrassegnato per verifica manuale.`, "success");
+            await caricaRevisioneRiclassificazione();
+        } else {
+            showToast(`Errore: ${data.error || "Impossibile registrare segnalazione"}`, "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore confermaSegnalaDaVerificare:", err);
+        showToast("Errore di connessione al server.", "error");
+    }
+}
+
+/**
+ * Apre il modal dello storico dei backup & snapshot
+ */
+async function apriModalBackupsReclass() {
+    const modal = document.getElementById('modal-reclass-backups');
+    const container = document.getElementById('reclass-backups-container');
+    if (modal) modal.classList.remove('hidden');
+
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400">
+                <span class="animate-spin text-2xl block mb-2">🔄</span>
+                <p class="text-xs font-semibold">Caricamento storico snapshot...</p>
+            </div>
+        `;
+    }
+
+    try {
+        const res = await fetch('/api/reclassification/backups');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.backups) && data.backups.length > 0) {
+            container.innerHTML = data.backups.map(bk => {
+                const orig = bk.original_data || {};
+                const applied = bk.applied_data || {};
+                return `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 bg-slate-200 text-slate-800 text-[10px] font-mono font-bold rounded-md">
+                                    Snapshot #${bk.id}
+                                </span>
+                                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-md uppercase">
+                                    ${bk.action_type || 'Modifica'}
+                                </span>
+                                <span class="text-xs font-bold text-slate-800">
+                                    Prodotto #${bk.legacy_id || bk.product_id}
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-medium">
+                                ${new Date(bk.timestamp).toLocaleString('it-IT')}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white p-3 rounded-lg border border-slate-100">
+                            <div>
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase">Valori Originali:</span>
+                                <p class="font-bold text-slate-700">Squadra: <span class="text-slate-900">${orig.squadra || '-'}</span></p>
+                                <p class="text-slate-500">Categoria: ${orig.categoria || '-'}</p>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-emerald-600 uppercase">Valori Applicati:</span>
+                                <p class="font-bold text-emerald-700">Squadra: <span class="text-slate-900">${applied.squadra || '-'}</span></p>
+                                <p class="text-slate-500">Categoria: ${applied.categoria || '-'}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-[10px] text-slate-500 italic truncate max-w-md">
+                                ${bk.note || 'Nessuna nota aggiuntiva'}
+                            </span>
+                            <button onclick="ripristinaBackupReclass('${bk.id}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1">
+                                <span>🔄</span> Ripristina Originale
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-8 bg-slate-50 rounded-xl border border-slate-200 text-slate-400">
+                    <span class="text-2xl block mb-1">📋</span>
+                    <p class="text-xs font-bold text-slate-700">Nessuno snapshot registrato</p>
+                    <p class="text-[11px] text-slate-400">Gli snapshot verranno creati automaticamente ogni volta che approvi o modifichi un prodotto in revisione.</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error("⚠️ Errore apriModalBackupsReclass:", err);
+        container.innerHTML = `
+            <div class="text-center py-6 text-red-500 text-xs font-bold">
+                Errore durante il caricamento dello storico backup: ${err.message}
+            </div>
+        `;
+    }
+}
+
+/**
+ * Chiude il modal dello storico backup
+ */
+function chiudiModalBackupsReclass() {
+    const modal = document.getElementById('modal-reclass-backups');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Ripristina un prodotto ai valori originali registrati in un backup snapshot
+ */
+async function ripristinaBackupReclass(backupId) {
+    if (!confirm(`Sei sicuro di voler ripristinare il prodotto ai valori originali salvati nello snapshot #${backupId}?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/reclassification/restore-backup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ backup_id: backupId })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            showToast(`✅ ${data.message}`, "success");
+            await caricaRevisioneRiclassificazione();
+            await apriModalBackupsReclass();
+        } else {
+            showToast(`Errore: ${data.error || "Impossibile ripristinare"}`, "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore ripristinaBackupReclass:", err);
+        showToast("Errore di connessione al server.", "error");
+    }
+}
+
+// Esporta tutte le funzioni su window per interazione con HTML
+window.aggiornaBadgeRevisioneRiclassificazione = aggiornaBadgeRevisioneRiclassificazione;
+window.caricaRevisioneRiclassificazione = caricaRevisioneRiclassificazione;
+window.filtraStatoReclass = filtraStatoReclass;
+window.filtraTestoReclass = filtraTestoReclass;
+window.approvaPropostaReclass = approvaPropostaReclass;
+window.apriModalEditReclass = apriModalEditReclass;
+window.chiudiModalEditReclass = chiudiModalEditReclass;
+window.gestisciAutocompleteSquadraReclass = gestisciAutocompleteSquadraReclass;
+window.selezionaSquadraReclassDropdown = selezionaSquadraReclassDropdown;
+window.aggiornaCampiPaeseLegaDaSezione = aggiornaCampiPaeseLegaDaSezione;
+window.salvaModificaManualeReclass = salvaModificaManualeReclass;
+window.apriModalVerifyReclass = apriModalVerifyReclass;
+window.chiudiModalVerifyReclass = chiudiModalVerifyReclass;
+window.confermaSegnalaDaVerificare = confermaSegnalaDaVerificare;
+window.apriModalBackupsReclass = apriModalBackupsReclass;
+window.chiudiModalBackupsReclass = chiudiModalBackupsReclass;
+window.ripristinaBackupReclass = ripristinaBackupReclass;
+
+// =========================================================================
+// STRUMENTO DIAGNOSTICA: ARTICOLI SENZA FILTRO CATALOGO
+// =========================================================================
+
+let reportSenzaFiltroDati = null;
+let sfCurrentFilteredList = [];
+let sfCurrentPage = 1;
+let sfPageSize = 50;
+let sfSelectedIds = new Set();
+let sfActiveTeamFilter = '';
+let sfActiveCategoryFilter = '';
+
+/**
+ * Avvia la scansione completa di tutti i prodotti del catalogo per individuare quelli senza Filtro Catalogo
+ */
+async function avviaScansioneSenzaFiltro() {
+    const loadingModal = document.getElementById('modal-loading-scansione-senza-filtro');
+    const reportModal = document.getElementById('modal-senza-filtro-report');
+    
+    // Mostra il modal di caricamento
+    if (loadingModal) {
+        loadingModal.classList.remove('hidden');
+    }
+    if (reportModal) {
+        reportModal.classList.add('hidden');
+    }
+
+    const setStep = (stepNum, state) => {
+        const stepEl = document.getElementById(`scan-sf-step-${stepNum}`);
+        const iconEl = document.getElementById(`scan-sf-step-${stepNum}-icon`);
+        if (!stepEl || !iconEl) return;
+        if (state === 'active') {
+            stepEl.className = 'flex items-center gap-2 text-amber-600 font-bold';
+            iconEl.innerText = '⏳';
+        } else if (state === 'done') {
+            stepEl.className = 'flex items-center gap-2 text-emerald-600 font-bold';
+            iconEl.innerText = '✓';
+        } else {
+            stepEl.className = 'flex items-center gap-2 text-slate-400';
+            iconEl.innerText = '⏳';
+        }
+    };
+
+    const updateProgressBar = (current, total) => {
+        const bar = document.getElementById('scan-sf-progress-bar');
+        const countText = document.getElementById('scan-sf-progress-count');
+        if (bar) {
+            const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+            bar.style.width = `${pct}%`;
+        }
+        if (countText) {
+            countText.innerText = `${current} / ${total}`;
+        }
+    };
+
+    setStep(1, 'active');
+    setStep(2, 'idle');
+    setStep(3, 'idle');
+    setStep(4, 'idle');
+    updateProgressBar(0, 0);
+
+    try {
+        // Step 1: Chiamata diagnostica API
+        const response = await fetch('/api/catalog/no-filter-audit');
+        if (!response.ok) {
+            throw new Error(`Errore API HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || "Errore sconosciuto durante la scansione");
+        }
+
+        setStep(1, 'done');
+        setStep(2, 'active');
+        updateProgressBar(Math.round(data.total_products * 0.5), data.total_products);
+        await new Promise(r => setTimeout(r, 200));
+
+        setStep(2, 'done');
+        setStep(3, 'active');
+        updateProgressBar(Math.round(data.total_products * 0.85), data.total_products);
+        await new Promise(r => setTimeout(r, 200));
+
+        setStep(3, 'done');
+        setStep(4, 'active');
+        updateProgressBar(data.total_products, data.total_products);
+
+        // Memorizza i dati
+        reportSenzaFiltroDati = data;
+        sfSelectedIds.clear();
+        sfActiveTeamFilter = '';
+        sfActiveCategoryFilter = '';
+        sfCurrentPage = 1;
+
+        // Popola i componenti del report
+        popolaMetriceReportSenzaFiltro(data);
+        popolaBreakdownSquadreECategorieSenzaFiltro(data);
+        popolaFiltriDropdownSenzaFiltro(data);
+        filtraTabellaSenzaFiltro();
+
+        await new Promise(r => setTimeout(r, 250));
+        setStep(4, 'done');
+
+        // Nasconde loading e apre il report
+        if (loadingModal) loadingModal.classList.add('hidden');
+        if (reportModal) reportModal.classList.remove('hidden');
+
+    } catch (err) {
+        console.error("🔴 Errore durante la scansione senza filtro:", err);
+        if (loadingModal) loadingModal.classList.add('hidden');
+        showToast("Errore durante la scansione del catalogo: " + err.message, "error");
+    }
+}
+
+/**
+ * Chiude il modal del report senza filtro
+ */
+function chiudiModalReportSenzaFiltro() {
+    const reportModal = document.getElementById('modal-senza-filtro-report');
+    if (reportModal) reportModal.classList.add('hidden');
+}
+
+/**
+ * Popola le 4 card metriche in cima al report
+ */
+function popolaMetriceReportSenzaFiltro(data) {
+    const elTotali = document.getElementById('stat-sf-totali-analizzati');
+    const elSenzaFiltro = document.getElementById('stat-sf-totali-senza-filtro');
+    const elSquadre = document.getElementById('stat-sf-squadre-totali');
+    const elCategorie = document.getElementById('stat-sf-categorie-totali');
+
+    if (elTotali) elTotali.innerText = (data.total_products || 0).toLocaleString('it-IT');
+    if (elSenzaFiltro) elSenzaFiltro.innerText = (data.total_without_filter || 0).toLocaleString('it-IT');
+    if (elSquadre) elSquadre.innerText = (data.teams_count || 0).toLocaleString('it-IT');
+    if (elCategorie) elCategorie.innerText = (data.categories_count || 0).toLocaleString('it-IT');
+}
+
+/**
+ * Popola i badge/pulsanti rapidi per Squadra e Categoria
+ */
+function popolaBreakdownSquadreECategorieSenzaFiltro(data) {
+    const squadreContainer = document.getElementById('sf-squadre-breakdown');
+    const categorieContainer = document.getElementById('sf-categorie-breakdown');
+
+    // Squadre ordinate per numero decrescente di prodotti
+    if (squadreContainer) {
+        const teamsSorted = Object.entries(data.by_team || {}).sort((a, b) => b[1] - a[1]);
+        if (teamsSorted.length === 0) {
+            squadreContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Nessun prodotto senza filtro</span>';
+        } else {
+            squadreContainer.innerHTML = teamsSorted.map(([team, count]) => {
+                const isActive = sfActiveTeamFilter === team;
+                const activeClasses = isActive 
+                    ? 'bg-amber-600 text-white font-black shadow-sm' 
+                    : 'bg-slate-100 hover:bg-amber-100 text-slate-800 hover:text-amber-900 border border-slate-200';
+                return `
+                    <button type="button" onclick="selezionaFiltroSquadraRapido('${escapeHtml(team)}')" class="px-2.5 py-1 rounded-lg text-xs transition-all flex items-center gap-1.5 ${activeClasses}">
+                        <span class="font-bold">${escapeHtml(team)}</span>
+                        <span class="px-1.5 py-0.2 bg-black/10 rounded-full text-[10px] font-black">${count}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+    }
+
+    // Categorie ordinate per numero decrescente
+    if (categorieContainer) {
+        const catSorted = Object.entries(data.by_category || {}).sort((a, b) => b[1] - a[1]);
+        if (catSorted.length === 0) {
+            categorieContainer.innerHTML = '<span class="text-xs text-slate-400 italic">Nessuna categoria</span>';
+        } else {
+            categorieContainer.innerHTML = catSorted.map(([cat, count]) => {
+                const isActive = sfActiveCategoryFilter === cat;
+                const activeClasses = isActive
+                    ? 'bg-blue-600 text-white font-black shadow-sm'
+                    : 'bg-slate-100 hover:bg-blue-100 text-slate-800 hover:text-blue-900 border border-slate-200';
+                return `
+                    <button type="button" onclick="selezionaFiltroCategoriaRapido('${escapeHtml(cat)}')" class="px-2.5 py-1 rounded-lg text-xs transition-all flex items-center gap-1.5 ${activeClasses}">
+                        <span class="font-bold">${escapeHtml(cat)}</span>
+                        <span class="px-1.5 py-0.2 bg-black/10 rounded-full text-[10px] font-black">${count}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+    }
+}
+
+/**
+ * Click rapido su una squadra
+ */
+function selezionaFiltroSquadraRapido(teamName) {
+    if (sfActiveTeamFilter === teamName) {
+        sfActiveTeamFilter = '';
+    } else {
+        sfActiveTeamFilter = teamName;
+    }
+    const searchInput = document.getElementById('sf-search-input');
+    if (searchInput) searchInput.value = sfActiveTeamFilter;
+    filtraTabellaSenzaFiltro();
+    if (reportSenzaFiltroDati) popolaBreakdownSquadreECategorieSenzaFiltro(reportSenzaFiltroDati);
+}
+
+/**
+ * Click rapido su una categoria
+ */
+function selezionaFiltroCategoriaRapido(catName) {
+    const selCat = document.getElementById('sf-filter-categoria');
+    if (selCat) {
+        if (selCat.value === catName) {
+            selCat.value = '';
+            sfActiveCategoryFilter = '';
+        } else {
+            selCat.value = catName;
+            sfActiveCategoryFilter = catName;
+        }
+    }
+    filtraTabellaSenzaFiltro();
+    if (reportSenzaFiltroDati) popolaBreakdownSquadreECategorieSenzaFiltro(reportSenzaFiltroDati);
+}
+
+/**
+ * Popola i dropdown di filtro (Categoria, Stagione, Target)
+ */
+function popolaFiltriDropdownSenzaFiltro(data) {
+    const selCat = document.getElementById('sf-filter-categoria');
+    const selStag = document.getElementById('sf-filter-stagione');
+    const selTgt = document.getElementById('sf-filter-target');
+
+    const items = data.items || [];
+    
+    // Categorie univoche
+    if (selCat) {
+        const currentVal = selCat.value;
+        const cats = [...new Set(items.map(p => p.categoria).filter(Boolean))].sort();
+        selCat.innerHTML = '<option value="">Tutte le categorie (' + cats.length + ')</option>' +
+            cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        if (currentVal) selCat.value = currentVal;
+    }
+
+    // Stagioni univoche
+    if (selStag) {
+        const currentVal = selStag.value;
+        const stagioni = [...new Set(items.map(p => p.stagione).filter(Boolean))].sort().reverse();
+        selStag.innerHTML = '<option value="">Tutte le stagioni (' + stagioni.length + ')</option>' +
+            stagioni.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+        if (currentVal) selStag.value = currentVal;
+    }
+
+    // Target / Versione univoche
+    if (selTgt) {
+        const currentVal = selTgt.value;
+        const targets = [...new Set(items.map(p => p.target || p.versione).filter(Boolean))].sort();
+        selTgt.innerHTML = '<option value="">Tutti i target</option>' +
+            targets.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+        if (currentVal) selTgt.value = currentVal;
+    }
+}
+
+/**
+ * Filtra la tabella in base ai filtri impostati
+ */
+function filtraTabellaSenzaFiltro() {
+    if (!reportSenzaFiltroDati || !Array.isArray(reportSenzaFiltroDati.items)) {
+        sfCurrentFilteredList = [];
+        renderTabellaSenzaFiltro();
+        return;
+    }
+
+    const searchInput = document.getElementById('sf-search-input');
+    const selCat = document.getElementById('sf-filter-categoria');
+    const selStag = document.getElementById('sf-filter-stagione');
+    const selTgt = document.getElementById('sf-filter-target');
+
+    const query = (searchInput?.value || '').trim().toLowerCase();
+    const catFilter = (selCat?.value || '').trim().toLowerCase();
+    const stagFilter = (selStag?.value || '').trim().toLowerCase();
+    const tgtFilter = (selTgt?.value || '').trim().toLowerCase();
+
+    const hasActiveFilters = Boolean(query || catFilter || stagFilter || tgtFilter);
+    const badgeFiltro = document.getElementById('sf-filtro-attivo-badge');
+    if (badgeFiltro) {
+        if (hasActiveFilters) badgeFiltro.classList.remove('hidden');
+        else badgeFiltro.classList.add('hidden');
+    }
+
+    sfCurrentFilteredList = reportSenzaFiltroDati.items.filter(item => {
+        if (query) {
+            const sq = (item.squadra || '').toLowerCase();
+            const nm = (item.nome || '').toLowerCase();
+            const vr = (item.versione || '').toLowerCase();
+            const idStr = String(item.id || '').toLowerCase();
+            const legIdStr = String(item.legacy_id || '').toLowerCase();
+            const matchQuery = sq.includes(query) || nm.includes(query) || vr.includes(query) || idStr.includes(query) || legIdStr.includes(query);
+            if (!matchQuery) return false;
+        }
+
+        if (catFilter) {
+            const c = (item.categoria || '').toLowerCase();
+            if (c !== catFilter) return false;
+        }
+
+        if (stagFilter) {
+            const s = (item.stagione || '').toLowerCase();
+            if (s !== stagFilter) return false;
+        }
+
+        if (tgtFilter) {
+            const t = (item.target || '').toLowerCase();
+            const v = (item.versione || '').toLowerCase();
+            if (t !== tgtFilter && v !== tgtFilter) return false;
+        }
+
+        return true;
+    });
+
+    sfCurrentPage = 1;
+    renderTabellaSenzaFiltro();
+}
+
+/**
+ * Resetta tutti i filtri di ricerca
+ */
+function resetFiltriSenzaFiltro() {
+    const searchInput = document.getElementById('sf-search-input');
+    const selCat = document.getElementById('sf-filter-categoria');
+    const selStag = document.getElementById('sf-filter-stagione');
+    const selTgt = document.getElementById('sf-filter-target');
+
+    if (searchInput) searchInput.value = '';
+    if (selCat) selCat.value = '';
+    if (selStag) selStag.value = '';
+    if (selTgt) selTgt.value = '';
+
+    sfActiveTeamFilter = '';
+    sfActiveCategoryFilter = '';
+    
+    if (reportSenzaFiltroDati) {
+        popolaBreakdownSquadreECategorieSenzaFiltro(reportSenzaFiltroDati);
+    }
+    filtraTabellaSenzaFiltro();
+}
+
+/**
+ * Cambia pagina nella tabella
+ */
+function cambiaPaginaSenzaFiltro(newPage) {
+    const pageSizeEl = document.getElementById('sf-page-size');
+    sfPageSize = pageSizeEl ? parseInt(pageSizeEl.value, 10) || 50 : 50;
+
+    const totalPages = Math.ceil(sfCurrentFilteredList.length / sfPageSize) || 1;
+    if (newPage < 1) newPage = 1;
+    if (newPage > totalPages) newPage = totalPages;
+
+    sfCurrentPage = newPage;
+    renderTabellaSenzaFiltro();
+}
+
+/**
+ * Renderizza la tabella dei prodotti senza filtro catalogo
+ */
+function renderTabellaSenzaFiltro() {
+    const tbody = document.getElementById('sf-table-body');
+    const countVisualizzati = document.getElementById('sf-count-visualizzati');
+    const countTotale = document.getElementById('sf-count-totale-tabella');
+    const pageInfo = document.getElementById('sf-page-info');
+    const pageButtons = document.getElementById('sf-page-buttons');
+    const checkAll = document.getElementById('sf-check-all');
+
+    const totalFiltered = sfCurrentFilteredList.length;
+    const totalAll = reportSenzaFiltroDati ? reportSenzaFiltroDati.items.length : 0;
+
+    if (countVisualizzati) countVisualizzati.innerText = totalFiltered.toLocaleString('it-IT');
+    if (countTotale) countTotale.innerText = totalAll.toLocaleString('it-IT');
+
+    if (!tbody) return;
+
+    if (totalFiltered === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="py-12 text-center text-slate-400">
+                    <div class="text-3xl mb-2">🎉</div>
+                    <div class="font-bold text-sm text-slate-700">Nessun prodotto trovato</div>
+                    <div class="text-xs text-slate-500 mt-1">Tutti i prodotti corrispondono ai criteri di filtro impostati o hanno già un Filtro Catalogo valido.</div>
+                </td>
+            </tr>
+        `;
+        if (pageInfo) pageInfo.innerText = "Pagina 1 di 1";
+        if (pageButtons) pageButtons.innerHTML = "";
+        if (checkAll) { checkAll.checked = false; checkAll.indeterminate = false; }
+        return;
+    }
+
+    const pageSizeEl = document.getElementById('sf-page-size');
+    sfPageSize = pageSizeEl ? parseInt(pageSizeEl.value, 10) || 50 : 50;
+    const totalPages = Math.ceil(totalFiltered / sfPageSize) || 1;
+    if (sfCurrentPage > totalPages) sfCurrentPage = totalPages;
+
+    const startIndex = (sfCurrentPage - 1) * sfPageSize;
+    const endIndex = Math.min(startIndex + sfPageSize, totalFiltered);
+    const pageItems = sfCurrentFilteredList.slice(startIndex, endIndex);
+
+    // Aggiorna stato checkbox All
+    if (checkAll) {
+        const allPageSelected = pageItems.length > 0 && pageItems.every(p => sfSelectedIds.has(String(p.id)));
+        const somePageSelected = pageItems.some(p => sfSelectedIds.has(String(p.id)));
+        checkAll.checked = allPageSelected;
+        checkAll.indeterminate = !allPageSelected && somePageSelected;
+    }
+
+    // Badge suggerimento colore
+    const getSuggestedBadge = (sugg) => {
+        if (!sugg || sugg === 'Da verificare') {
+            return `<span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full font-bold text-[10px]">Da verificare</span>`;
+        }
+        if (sugg === 'Player') return `<span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-black text-[10px]">⚡ Player</span>`;
+        if (sugg === 'Fan') return `<span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-black text-[10px]">👕 Fan</span>`;
+        if (sugg === 'Retro') return `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full font-black text-[10px]">🕰️ Retro</span>`;
+        if (sugg === 'Kit' || sugg === 'Kit Allenamento') return `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-black text-[10px]">📦 ${escapeHtml(sugg)}</span>`;
+        if (sugg === 'Tuta') return `<span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full font-black text-[10px]">🧥 Tuta</span>`;
+        if (sugg === 'Maniche Lunghe') return `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full font-black text-[10px]">🧤 Maniche Lunghe</span>`;
+        return `<span class="px-2 py-0.5 bg-teal-100 text-teal-800 rounded-full font-bold text-[10px]">${escapeHtml(sugg)}</span>`;
+    };
+
+    tbody.innerHTML = pageItems.map(item => {
+        const itemId = String(item.id);
+        const isSelected = sfSelectedIds.has(itemId);
+        const displayId = item.legacy_id !== undefined && item.legacy_id !== null ? item.legacy_id : item.id;
+        const imgUrl = (item.immagine || '').trim();
+        const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='1.5'%3E%3Crect width='18' height='18' x='3' y='3' rx='2' ry='2'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'/%3E%3C/svg%3E";
+
+        return `
+            <tr class="hover:bg-amber-50/40 transition-colors ${isSelected ? 'bg-amber-50/70' : ''}">
+                <!-- Checkbox -->
+                <td class="py-2.5 px-3 text-center">
+                    <input type="checkbox" onchange="toggleSelectRowSenzaFiltro('${escapeHtml(itemId)}')" ${isSelected ? 'checked' : ''} class="rounded border-slate-300 text-amber-500 focus:ring-amber-500">
+                </td>
+
+                <!-- Thumbnail Immagine -->
+                <td class="py-2 px-3 text-center">
+                    <div class="w-10 h-10 bg-slate-100 border border-slate-200 rounded-lg overflow-hidden flex items-center justify-center mx-auto">
+                        <img src="${escapeHtml(imgUrl || placeholderImg)}" alt="${escapeHtml(item.squadra)}" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='${placeholderImg}';">
+                    </div>
+                </td>
+
+                <!-- ID -->
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-700 text-center">
+                    #${escapeHtml(String(displayId))}
+                </td>
+
+                <!-- Squadra -->
+                <td class="py-2.5 px-4 font-bold text-slate-900">
+                    <div class="flex items-center gap-1.5">
+                        <span>🛡️</span>
+                        <span>${escapeHtml(item.squadra || 'Senza Squadra')}</span>
+                    </div>
+                </td>
+
+                <!-- Nome / Versione -->
+                <td class="py-2.5 px-4 font-medium text-slate-800">
+                    <div class="truncate max-w-xs" title="${escapeHtml(item.nome || item.versione)}">
+                        ${escapeHtml(item.nome || item.versione || '—')}
+                    </div>
+                </td>
+
+                <!-- Categoria -->
+                <td class="py-2.5 px-3 text-center">
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md font-semibold text-[11px] border border-slate-200">
+                        ${escapeHtml(item.categoria || '—')}
+                    </span>
+                </td>
+
+                <!-- Target / Versione -->
+                <td class="py-2.5 px-3 text-center text-slate-600 font-medium">
+                    ${escapeHtml(item.target || item.versione || 'Adulto')}
+                </td>
+
+                <!-- Stagione -->
+                <td class="py-2.5 px-3 text-center font-mono text-slate-600">
+                    ${escapeHtml(item.stagione || '—')}
+                </td>
+
+                <!-- Filtro Attuale -->
+                <td class="py-2.5 px-3 text-center">
+                    <span class="px-2 py-0.5 bg-red-50 text-red-600 border border-red-200 rounded-full font-bold text-[10px]">
+                        ${escapeHtml(item.filtro_catalogo || 'Nessuno')}
+                    </span>
+                </td>
+
+                <!-- Filtro Suggerito -->
+                <td class="py-2.5 px-3 text-center">
+                    ${getSuggestedBadge(item.filtro_suggerito)}
+                </td>
+
+                <!-- Azioni -->
+                <td class="py-2.5 px-4 text-center">
+                    <button type="button" onclick="apriModificaDaSenzaFiltro('${escapeHtml(itemId)}')" class="px-3 py-1.5 bg-slate-900 hover:bg-brand-gold text-white hover:text-slate-900 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1 mx-auto">
+                        <span>✏️</span> Modifica
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Pagination Info & Buttons
+    if (pageInfo) {
+        pageInfo.innerText = `Pagina ${sfCurrentPage} di ${totalPages} (${startIndex + 1}-${endIndex} di ${totalFiltered.toLocaleString('it-IT')})`;
+    }
+
+    if (pageButtons) {
+        let buttonsHtml = '';
+        buttonsHtml += `
+            <button type="button" onclick="cambiaPaginaSenzaFiltro(1)" ${sfCurrentPage === 1 ? 'disabled class="px-2 py-1 bg-slate-100 text-slate-400 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"'}>
+                «
+            </button>
+            <button type="button" onclick="cambiaPaginaSenzaFiltro(${sfCurrentPage - 1})" ${sfCurrentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"'}>
+                ‹ Prec
+            </button>
+        `;
+
+        const maxVisible = 5;
+        let startP = Math.max(1, sfCurrentPage - Math.floor(maxVisible / 2));
+        let endP = Math.min(totalPages, startP + maxVisible - 1);
+        if (endP - startP < maxVisible - 1) {
+            startP = Math.max(1, endP - maxVisible + 1);
+        }
+
+        for (let p = startP; p <= endP; p++) {
+            if (p === sfCurrentPage) {
+                buttonsHtml += `<button type="button" class="px-3 py-1 bg-amber-600 text-white rounded-lg text-xs font-black shadow-sm">${p}</button>`;
+            } else {
+                buttonsHtml += `<button type="button" onclick="cambiaPaginaSenzaFiltro(${p})" class="px-3 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors">${p}</button>`;
+            }
+        }
+
+        buttonsHtml += `
+            <button type="button" onclick="cambiaPaginaSenzaFiltro(${sfCurrentPage + 1})" ${sfCurrentPage === totalPages ? 'disabled class="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"'}>
+                Succ ›
+            </button>
+            <button type="button" onclick="cambiaPaginaSenzaFiltro(${totalPages})" ${sfCurrentPage === totalPages ? 'disabled class="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 transition-colors"'}>
+                »
+            </button>
+        `;
+        pageButtons.innerHTML = buttonsHtml;
+    }
+}
+
+/**
+ * Toggle selezione per riga singola
+ */
+function toggleSelectRowSenzaFiltro(itemId) {
+    if (sfSelectedIds.has(itemId)) {
+        sfSelectedIds.delete(itemId);
+    } else {
+        sfSelectedIds.add(itemId);
+    }
+    renderTabellaSenzaFiltro();
+}
+
+/**
+ * Toggle seleziona tutto nella pagina corrente
+ */
+function toggleSelectAllSenzaFiltro() {
+    const checkAll = document.getElementById('sf-check-all');
+    const isChecked = checkAll ? checkAll.checked : false;
+
+    const pageSizeEl = document.getElementById('sf-page-size');
+    const pSize = pageSizeEl ? parseInt(pageSizeEl.value, 10) || 50 : 50;
+    const startIndex = (sfCurrentPage - 1) * pSize;
+    const pageItems = sfCurrentFilteredList.slice(startIndex, startIndex + pSize);
+
+    if (isChecked) {
+        pageItems.forEach(p => sfSelectedIds.add(String(p.id)));
+    } else {
+        pageItems.forEach(p => sfSelectedIds.delete(String(p.id)));
+    }
+    renderTabellaSenzaFiltro();
+}
+
+/**
+ * Apre il modal standard di modifica prodotto dal report senza filtro
+ */
+function apriModificaDaSenzaFiltro(productId) {
+    if (typeof preparaModificaProdotto === 'function') {
+        preparaModificaProdotto(productId);
+    } else {
+        showToast("Funzione preparaModificaProdotto non trovata.", "error");
+    }
+}
+
+/**
+ * Sincronizza il report quando un prodotto viene salvato
+ */
+function sincronizzaReportSenzaFiltro() {
+    if (!reportSenzaFiltroDati || !Array.isArray(reportSenzaFiltroDati.items)) return;
+    
+    // Controlla tutti gli item rispetto a `prodotti` in memoria
+    const updatedItems = [];
+    const teamCount = {};
+    const categoryCount = {};
+
+    for (const item of reportSenzaFiltroDati.items) {
+        const prod = trovaProdottoPerId(item.id);
+        if (prod) {
+            const f = (prod.filtro_catalogo || '').trim();
+            const isWithout = !f || f.toLowerCase() === 'nessuno' || f.toLowerCase() === 'nessun filtro';
+            if (isWithout) {
+                updatedItems.push(item);
+                const sq = (item.squadra || 'Senza Squadra').trim();
+                const cat = (item.categoria || 'Altro').trim();
+                teamCount[sq] = (teamCount[sq] || 0) + 1;
+                categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+            }
+        }
+    }
+
+    reportSenzaFiltroDati.items = updatedItems;
+    reportSenzaFiltroDati.total_without_filter = updatedItems.length;
+    reportSenzaFiltroDati.teams_count = Object.keys(teamCount).length;
+    reportSenzaFiltroDati.categories_count = Object.keys(categoryCount).length;
+    reportSenzaFiltroDati.by_team = teamCount;
+    reportSenzaFiltroDati.by_category = categoryCount;
+
+    popolaMetriceReportSenzaFiltro(reportSenzaFiltroDati);
+    popolaBreakdownSquadreECategorieSenzaFiltro(reportSenzaFiltroDati);
+    filtraTabellaSenzaFiltro();
+}
+
+/**
+ * Copia i risultati filtrati o selezionati negli appunti
+ */
+function copiaRisultatiSenzaFiltro() {
+    const itemsToExport = sfSelectedIds.size > 0 
+        ? sfCurrentFilteredList.filter(p => sfSelectedIds.has(String(p.id)))
+        : sfCurrentFilteredList;
+
+    if (itemsToExport.length === 0) {
+        showToast("Nessun elemento da copiare.", "warning");
+        return;
+    }
+
+    let text = `=== ARTICOLI SENZA FILTRO CATALOGO (${itemsToExport.length} elementi) ===\n\n`;
+    itemsToExport.forEach((p, idx) => {
+        const idDisp = p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id;
+        text += `${idx + 1}. [ID: #${idDisp}] ${p.squadra} | ${p.nome || p.versione} | Categoria: ${p.categoria} | Filtro Attuale: ${p.filtro_catalogo} | Suggerito: ${p.filtro_suggerito}\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(`Copiati ${itemsToExport.length} articoli negli appunti!`, "success");
+    }).catch(err => {
+        console.error("Errore copia appunti:", err);
+        showToast("Impossibile copiare negli appunti.", "error");
+    });
+}
+
+/**
+ * Esporta i risultati in formato CSV
+ */
+function esportaReportSenzaFiltroCSV() {
+    const itemsToExport = sfSelectedIds.size > 0 
+        ? sfCurrentFilteredList.filter(p => sfSelectedIds.has(String(p.id)))
+        : sfCurrentFilteredList;
+
+    if (itemsToExport.length === 0) {
+        showToast("Nessun dato da esportare.", "warning");
+        return;
+    }
+
+    const headers = ["ID", "Legacy ID", "Squadra", "Nome Prodotto", "Categoria", "Target", "Stagione", "Filtro Attuale", "Filtro Suggerito", "Prezzo", "URL Immagine"];
+    const rows = itemsToExport.map(p => [
+        `"${p.id}"`,
+        `"${p.legacy_id || ''}"`,
+        `"${(p.squadra || '').replace(/"/g, '""')}"`,
+        `"${(p.nome || p.versione || '').replace(/"/g, '""')}"`,
+        `"${(p.categoria || '').replace(/"/g, '""')}"`,
+        `"${(p.target || '').replace(/"/g, '""')}"`,
+        `"${(p.stagione || '').replace(/"/g, '""')}"`,
+        `"${(p.filtro_catalogo || 'Nessuno').replace(/"/g, '""')}"`,
+        `"${(p.filtro_suggerito || '').replace(/"/g, '""')}"`,
+        `"${p.prezzo || 23.99}"`,
+        `"${(p.immagine || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `articoli_senza_filtro_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast(`File CSV con ${itemsToExport.length} articoli generato con successo!`, "success");
+}
+
+// Esporta funzioni diagnostica senza filtro su window
+window.avviaScansioneSenzaFiltro = avviaScansioneSenzaFiltro;
+window.chiudiModalReportSenzaFiltro = chiudiModalReportSenzaFiltro;
+window.filtraTabellaSenzaFiltro = filtraTabellaSenzaFiltro;
+window.resetFiltriSenzaFiltro = resetFiltriSenzaFiltro;
+window.cambiaPaginaSenzaFiltro = cambiaPaginaSenzaFiltro;
+window.toggleSelectRowSenzaFiltro = toggleSelectRowSenzaFiltro;
+window.toggleSelectAllSenzaFiltro = toggleSelectAllSenzaFiltro;
+window.apriModificaDaSenzaFiltro = apriModificaDaSenzaFiltro;
+window.sincronizzaReportSenzaFiltro = sincronizzaReportSenzaFiltro;
+window.copiaRisultatiSenzaFiltro = copiaRisultatiSenzaFiltro;
+window.esportaReportSenzaFiltroCSV = esportaReportSenzaFiltroCSV;
+window.selezionaFiltroSquadraRapido = selezionaFiltroSquadraRapido;
+window.selezionaFiltroCategoriaRapido = selezionaFiltroCategoriaRapido;
+
 
 
 

@@ -65,6 +65,12 @@
             <a href="#" onclick="switchTab('gestione-catalogo')" id="nav-gestione-catalogo" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
                 <span>📦</span> Gestione Catalogo
             </a>
+            <a href="#" onclick="switchTab('revisione-riclassificazione')" id="nav-revisione-riclassificazione" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-3">
+                    <span>🔍</span> Revisione Riclassificazione
+                </span>
+                <span id="admin-reclass-badge" class="hidden px-1.5 py-0.5 bg-amber-500 text-slate-950 font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none">0</span>
+            </a>
             <a href="#" onclick="switchTab('marketing')" id="nav-marketing" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
                 <span>📢</span> Promo Home
             </a>
@@ -1234,14 +1240,19 @@
                                     <span>🔍</span> Scansiona Catalogo
                                 </button>
                             </div>
-                            <!-- Module 2: Sincronizzazione Catalogo -->
-                            <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-brand-gold/50 transition-all">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-lg">🔄</span>
-                                    <span class="px-2 py-0.5 bg-slate-100 text-slate-600 font-bold text-[9px] rounded-full uppercase">Pronto</span>
+                            <!-- Module 2: Trova Articoli Senza Filtro -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden group hover:border-brand-gold/50 transition-all flex flex-col justify-between" id="card-modulo-senza-filtro">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xl">🔍</span>
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[9px] rounded-full uppercase">Diagnostica</span>
+                                    </div>
+                                    <h4 class="text-xs font-bold text-slate-900">Trova Articoli Senza Filtro</h4>
+                                    <p class="text-[10px] text-slate-500">Scansiona tutti i prodotti del catalogo e individua quelli che non hanno un Filtro Catalogo assegnato.</p>
                                 </div>
-                                <h4 class="text-xs font-bold text-slate-900">Sincronizzazione Catalogo</h4>
-                                <p class="text-[10px] text-slate-500">Sincronizza stock, prezzi e immagini da sorgenti esterne.</p>
+                                <button id="btn-scansiona-senza-filtro" onclick="avviaScansioneSenzaFiltro()" type="button" class="w-full mt-2 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5">
+                                    <span>🔍</span> Trova Articoli Senza Filtro
+                                </button>
                             </div>
                             <!-- Module 3: Pulizia Catalogo -->
                             <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-brand-gold/50 transition-all">
@@ -1993,6 +2004,123 @@
                                 <!-- Righe inserite dinamicamente -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: REVISIONE RICLASSIFICAZIONE (FASE 1) -->
+            <section id="section-revisione-riclassificazione" class="tab-content hidden space-y-6">
+                <!-- Header Banner -->
+                <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950/80 rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-xl relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="space-y-2.5">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                                🔍 Sistema Temporaneo di Controllo & Revisione (Fase 1)
+                            </div>
+                            <h2 class="text-xl md:text-2xl font-black tracking-tight flex items-center gap-2.5">
+                                <span>Revisione Riclassificazione Prodotti</span>
+                            </h2>
+                            <p class="text-slate-300 text-xs md:text-sm max-w-3xl font-medium leading-relaxed">
+                                Modulo di verifica controllata per i prodotti associati alle squadre precedentemente contrassegnate NBA.
+                                <strong class="text-amber-300">Nessuna modifica viene applicata in automatico senza la tua esplicita approvazione</strong>. Ogni operazione crea uno snapshot di backup per garantire la reversibilità totale.
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5 self-start md:self-center shrink-0">
+                            <button onclick="apriModalBackupsReclass()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700 transition-all flex items-center gap-2 shadow-sm">
+                                <span>📋</span> Storico Snapshot Backup
+                            </button>
+                            <button onclick="caricaRevisioneRiclassificazione()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-all flex items-center gap-2 shadow-md">
+                                <span>🔄</span> Ricarica Dati
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute right-0 bottom-0 opacity-10 text-[180px] pointer-events-none select-none font-bold -mr-8 -mb-16 text-amber-400">
+                        🔍
+                    </div>
+                </div>
+
+                <!-- Metrics Dashboard Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                    <!-- Totale in Revisione -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Totale Prodotti</span>
+                            <span class="p-1.5 bg-slate-100 text-slate-700 rounded-xl text-base">📦</span>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 id="reclass-metric-total" class="text-2xl font-black text-slate-900">0</h4>
+                            <p class="text-[11px] text-slate-400 font-medium">Prodotti sottoposti a revisione</p>
+                        </div>
+                    </div>
+
+                    <!-- In Attesa di Revisione -->
+                    <div class="bg-white border border-amber-200/80 bg-amber-50/20 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">In Attesa</span>
+                            <span class="p-1.5 bg-amber-100 text-amber-800 rounded-xl text-base">⏳</span>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 id="reclass-metric-pending" class="text-2xl font-black text-amber-600">0</h4>
+                            <p class="text-[11px] text-amber-600/80 font-medium">Richiedono approvazione manuale</p>
+                        </div>
+                    </div>
+
+                    <!-- Approvati e Riclassificati -->
+                    <div class="bg-white border border-emerald-200/80 bg-emerald-50/20 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Approvati</span>
+                            <span class="p-1.5 bg-emerald-100 text-emerald-800 rounded-xl text-base">✅</span>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 id="reclass-metric-approved" class="text-2xl font-black text-emerald-600">0</h4>
+                            <p class="text-[11px] text-emerald-600/80 font-medium">Riclassificati e verificati</p>
+                        </div>
+                    </div>
+
+                    <!-- Da Verificare -->
+                    <div class="bg-white border border-rose-200/80 bg-rose-50/20 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Da Verificare</span>
+                            <span class="p-1.5 bg-rose-100 text-rose-800 rounded-xl text-base">⚠️</span>
+                        </div>
+                        <div class="space-y-1">
+                            <h4 id="reclass-metric-needs-check" class="text-2xl font-black text-rose-600">0</h4>
+                            <p class="text-[11px] text-rose-600/80 font-medium">Segnalati per analisi speciale</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters Toolbar -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <!-- Status Filter Tabs -->
+                    <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+                        <button onclick="filtraStatoReclass('all')" id="btn-reclass-filter-all" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-xs">
+                            Tutti
+                        </button>
+                        <button onclick="filtraStatoReclass('pending_reclassification')" id="btn-reclass-filter-pending" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-900">
+                            In Attesa ⏳
+                        </button>
+                        <button onclick="filtraStatoReclass('approved')" id="btn-reclass-filter-approved" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-900">
+                            Approvati ✅
+                        </button>
+                        <button onclick="filtraStatoReclass('needs_manual_check')" id="btn-reclass-filter-needs-check" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-500 hover:text-slate-900">
+                            Da Verificare ⚠️
+                        </button>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">🔍</span>
+                        <input type="text" id="reclass-search-input" oninput="filtraTestoReclass(this.value)" placeholder="Cerca squadra, versione, ID..." class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <!-- Products Review List / Cards -->
+                <div id="reclass-items-container" class="space-y-4">
+                    <!-- Cards renderizzate dinamicamente da admin.js -->
+                    <div class="text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-400">
+                        <span class="text-3xl block mb-2">⏳</span>
+                        <p class="text-sm font-semibold">Caricamento prodotti in revisione...</p>
                     </div>
                 </div>
             </section>
@@ -3676,6 +3804,246 @@
         </div>
     </div>
 
+    <!-- MODAL LOADING SCANSIONE SENZA FILTRO (DIAGNOSTICA CATALOGO) -->
+    <div id="modal-loading-scansione-senza-filtro" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-6 text-center pointer-events-auto">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mx-auto animate-pulse">
+                🔍
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900">Scansione Catalogo in corso...</h3>
+                <p class="text-xs text-slate-500 mt-1" id="scan-sf-status-text">Analisi di tutti i prodotti del catalogo per Filtro Catalogo.</p>
+            </div>
+
+            <!-- Steps list -->
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-2.5 text-xs font-semibold">
+                <div id="scan-sf-step-1" class="flex items-center gap-2 text-slate-400">
+                    <span id="scan-sf-step-1-icon">⏳</span> <span>Caricamento prodotti completi (Supabase)...</span>
+                </div>
+                <div id="scan-sf-step-2" class="flex items-center gap-2 text-slate-400">
+                    <span id="scan-sf-step-2-icon">⏳</span> <span>Verifica campo Filtro Catalogo...</span>
+                </div>
+                <div id="scan-sf-step-3" class="flex items-center gap-2 text-slate-400">
+                    <span id="scan-sf-step-3-icon">⏳</span> <span>Elaborazione suggerimenti intelligenti...</span>
+                </div>
+                <div id="scan-sf-step-4" class="flex items-center gap-2 text-slate-400">
+                    <span id="scan-sf-step-4-icon">⏳</span> <span>Generazione tabella diagnostica...</span>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-bold text-slate-600">
+                    <span>Prodotti analizzati</span>
+                    <span id="scan-sf-progress-count">0 / 0</span>
+                </div>
+                <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+                    <div id="scan-sf-progress-bar" class="bg-amber-500 h-full w-0 transition-all duration-200 rounded-full"></div>
+                </div>
+            </div>
+
+            <p class="text-xs text-amber-600 font-bold animate-pulse">
+                ⏳ Attendere, scansione di tutti i prodotti in corso...
+            </p>
+        </div>
+    </div>
+
+    <!-- MODAL REPORT ARTICOLI SENZA FILTRO CATALOGO -->
+    <div id="modal-senza-filtro-report" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9990] flex items-center justify-center p-2 sm:p-4 hidden overflow-hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-7xl shadow-2xl overflow-hidden flex flex-col h-[95vh] max-h-[95vh]">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl p-2 bg-slate-800 rounded-xl">🔍</span>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-black tracking-tight">Articoli Senza Filtro Catalogo</h3>
+                            <span class="px-2.5 py-0.5 bg-amber-500/20 text-amber-300 font-bold text-[10px] rounded-full uppercase border border-amber-500/30">Diagnostica Catalogo</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Scansione diagnostica completa: verifica e controllo manuale dei prodotti privi di Filtro Catalogo.</p>
+                    </div>
+                </div>
+                <div class="flex items-center flex-wrap gap-2 self-end sm:self-auto">
+                    <button onclick="copiaRisultatiSenzaFiltro()" type="button" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+                        <span>📋</span> Copia Risultati
+                    </button>
+                    <button onclick="esportaReportSenzaFiltroCSV()" type="button" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5">
+                        <span>📥</span> Esporta CSV
+                    </button>
+                    <button onclick="avviaScansioneSenzaFiltro()" type="button" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5">
+                        <span>🔄</span> Nuova Scansione
+                    </button>
+                    <button onclick="chiudiModalReportSenzaFiltro()" type="button" class="text-slate-400 hover:text-white p-2 text-xl font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Summary Metric Stats -->
+            <div class="px-6 py-3 bg-slate-50 border-b border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-lg">📦</div>
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Prodotti Analizzati</div>
+                        <div id="stat-sf-totali-analizzati" class="text-xl font-black text-slate-900">0</div>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">⚠️</div>
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Senza Filtro Catalogo</div>
+                        <div id="stat-sf-totali-senza-filtro" class="text-xl font-black text-red-600">0</div>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-lg">🛡️</div>
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Squadre Coinvolte</div>
+                        <div id="stat-sf-squadre-totali" class="text-xl font-black text-amber-600">0</div>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">🏷️</div>
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Categorie Coinvolte</div>
+                        <div id="stat-sf-categorie-totali" class="text-xl font-black text-blue-600">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Area: Scrollable with Breakdown Cards & Table -->
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 bg-slate-100/60">
+                
+                <!-- Quick Filter Summaries (Squadre & Categorie) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    
+                    <!-- Riepilogo per Squadra -->
+                    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>🛡️</span> Prodotti senza filtro per squadra
+                            </h4>
+                            <span class="text-[10px] text-slate-400">Clicca su una squadra per filtrare istantaneamente</span>
+                        </div>
+                        <div id="sf-squadre-breakdown" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                            <!-- Populated dynamically: badges with count -->
+                        </div>
+                    </div>
+
+                    <!-- Riepilogo per Categoria -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>🏷️</span> Per Categoria
+                            </h4>
+                            <span class="text-[10px] text-slate-400">Clicca per filtrare</span>
+                        </div>
+                        <div id="sf-categorie-breakdown" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters Toolbar -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                        <!-- Search Box -->
+                        <div class="sm:col-span-2 lg:col-span-2 relative">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Cerca</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">🔍</span>
+                                <input type="text" id="sf-search-input" oninput="filtraTabellaSenzaFiltro()" placeholder="Cerca squadra, nome, ID... (Es. Inter Miami)" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Categoria Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Categoria</label>
+                            <select id="sf-filter-categoria" onchange="filtraTabellaSenzaFiltro()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                                <option value="">Tutte le categorie</option>
+                            </select>
+                        </div>
+
+                        <!-- Stagione Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Stagione</label>
+                            <select id="sf-filter-stagione" onchange="filtraTabellaSenzaFiltro()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                                <option value="">Tutte le stagioni</option>
+                            </select>
+                        </div>
+
+                        <!-- Versione / Target Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Target / Versione</label>
+                            <select id="sf-filter-target" onchange="filtraTabellaSenzaFiltro()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                                <option value="">Tutti i target</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Filter summary bar & Reset -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                        <div class="text-slate-600 font-medium flex items-center gap-2">
+                            <span>Articoli visualizzati: <strong id="sf-count-visualizzati" class="text-slate-900 font-bold">0</strong> su <span id="sf-count-totale-tabella">0</span> senza filtro</span>
+                            <span id="sf-filtro-attivo-badge" class="hidden px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full font-bold text-[10px]">Filtro attivo</span>
+                        </div>
+                        <button onclick="resetFiltriSenzaFiltro()" type="button" class="text-slate-500 hover:text-slate-900 font-bold text-xs underline transition-colors">
+                            Azzera tutti i filtri
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table of Products Without Filter -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-900 text-white uppercase text-[10px] tracking-wider border-b border-slate-800">
+                                    <th class="py-3 px-3 text-center w-10">
+                                        <input type="checkbox" id="sf-check-all" onchange="toggleSelectAllSenzaFiltro()" class="rounded border-slate-700 text-amber-500 focus:ring-amber-500">
+                                    </th>
+                                    <th class="py-3 px-3 text-center w-14">Immagine</th>
+                                    <th class="py-3 px-3 w-16 text-center">ID</th>
+                                    <th class="py-3 px-4">Squadra</th>
+                                    <th class="py-3 px-4">Nome / Versione Prodotto</th>
+                                    <th class="py-3 px-3 text-center">Categoria</th>
+                                    <th class="py-3 px-3 text-center">Target / Versione</th>
+                                    <th class="py-3 px-3 text-center">Stagione</th>
+                                    <th class="py-3 px-3 text-center">Filtro Attuale</th>
+                                    <th class="py-3 px-3 text-center">Filtro Suggerito</th>
+                                    <th class="py-3 px-4 text-center w-28">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sf-table-body" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div id="sf-pagination-container" class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-500">Righe per pagina:</span>
+                            <select id="sf-page-size" onchange="cambiaPaginaSenzaFiltro(1)" class="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold">
+                                <option value="50" selected>50</option>
+                                <option value="100">100</option>
+                                <option value="250">250</option>
+                                <option value="500">500</option>
+                            </select>
+                            <span id="sf-page-info" class="text-slate-600 font-medium ml-2">Pagina 1 di 1</span>
+                        </div>
+                        <div class="flex items-center gap-1.5" id="sf-page-buttons">
+                            <!-- Page buttons populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
     <!-- MODAL INGRANDIMENTO IMMAGINE ORDINE -->
     <div id="modal-anteprima-immagine-ordine" class="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden transition-opacity duration-200">
         <div id="modal-anteprima-immagine-ordine-container" class="bg-[#111111] border border-[rgba(255,255,255,0.12)] rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl transform scale-95 opacity-0 transition-all duration-300 ease-out">
@@ -3838,6 +4206,195 @@
                 </button>
                 <button id="btn-salva-modifica" onclick="salvaModificaSuddivisione()" type="button" disabled class="px-5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5">
                     <span>💾</span> Salva Modifica
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECLASSIFICAZIONE: MODIFICA MANUALE -->
+    <div id="modal-reclass-edit" class="fixed inset-0 z-[10020] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md hidden overflow-hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto">
+            <!-- Modal Header -->
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">✏️</span>
+                    <h3 class="text-base font-extrabold text-slate-900">Modifica Manuale Riclassificazione</h3>
+                </div>
+                <button onclick="chiudiModalEditReclass()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <!-- Product Preview Card -->
+                <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 flex items-center gap-4">
+                    <img id="reclass-edit-img" src="" alt="Prodotto" class="w-14 h-14 rounded-xl object-cover bg-white border border-slate-200 shrink-0">
+                    <div class="space-y-1 min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span id="reclass-edit-id-badge" class="px-2 py-0.5 bg-slate-200 text-slate-800 text-[10px] font-mono font-bold rounded-md">ID: -</span>
+                            <span id="reclass-edit-target-badge" class="px-2 py-0.5 bg-brand-gold/15 text-brand-gold text-[10px] font-bold rounded-md">Adulto</span>
+                        </div>
+                        <h4 id="reclass-edit-title" class="text-xs font-bold text-slate-900 truncate">Nome Prodotto</h4>
+                        <p id="reclass-edit-versione" class="text-[11px] text-slate-500 truncate">Versione...</p>
+                    </div>
+                </div>
+
+                <!-- Form Controls -->
+                <div class="space-y-3.5">
+                    <input type="hidden" id="reclass-edit-product-id">
+                    <input type="hidden" id="reclass-edit-legacy-id">
+
+                    <!-- Squadra Input with Autocomplete & Duplicate Check -->
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                Squadra Destinazione *
+                            </label>
+                            <span class="text-[10px] text-slate-400 font-medium">Seleziona o digita</span>
+                        </div>
+                        <input type="text" id="reclass-edit-squadra" oninput="gestisciAutocompleteSquadraReclass(this.value)" placeholder="Es. Los Angeles FC (LAFC) o Inter Miami" autocomplete="off" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                        
+                        <!-- Dropdown Suggerimenti Squadre Esistenti -->
+                        <div id="reclass-squadra-dropdown" class="hidden absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl z-50 divide-y divide-slate-100">
+                            <!-- Popolato dinamicamente -->
+                        </div>
+
+                        <!-- Duplicate / Collision Warning Banner -->
+                        <div id="reclass-duplicate-warning" class="hidden mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800 flex items-center gap-2">
+                            <span>⚠️</span>
+                            <span id="reclass-duplicate-warning-text">Attenzione: squadra simile rilevata nel catalogo.</span>
+                        </div>
+                    </div>
+
+                    <!-- Categoria e Sezione Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Categoria *
+                            </label>
+                            <select id="reclass-edit-categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                                <option value="Club">Club</option>
+                                <option value="Nazionali">Nazionali</option>
+                                <option value="Mondiali">Mondiali</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Sezione / Lega *
+                            </label>
+                            <select id="reclass-edit-sezione" onchange="aggiornaCampiPaeseLegaDaSezione(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                                <!-- Popolato dinamicamente -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Paese e Campionato Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Paese
+                            </label>
+                            <input type="text" id="reclass-edit-paese" placeholder="Es. USA, Italia, Spagna..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                                Campionato / Lega
+                            </label>
+                            <input type="text" id="reclass-edit-campionato" placeholder="Es. MLS, Serie A..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Note Operatore -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Note Revisione (Opzionale)
+                        </label>
+                        <textarea id="reclass-edit-note" rows="2" placeholder="Es. Corretto nome squadra MLS e rimosso riferimento NBA..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-amber-500 focus:bg-white transition-all"></textarea>
+                    </div>
+
+                    <!-- Backup Notice -->
+                    <div class="p-3 bg-blue-50 border border-blue-200/80 rounded-xl flex items-start gap-2.5 text-[11px] text-blue-800">
+                        <span class="text-base shrink-0">🛡️</span>
+                        <span>
+                            <strong>Backup di sicurezza automatico</strong>: prima di salvare, verrà creato uno snapshot dei dati originali per consentire il rollback immediato in qualsiasi momento.
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+                <button onclick="chiudiModalEditReclass()" type="button" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                    Annulla
+                </button>
+                <button id="btn-salva-reclass-edit" onclick="salvaModificaManualeReclass()" type="button" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                    <span>💾</span> Salva e Applica Riclassificazione
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECLASSIFICAZIONE: DA VERIFICARE -->
+    <div id="modal-reclass-verify" class="fixed inset-0 z-[10020] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md hidden overflow-hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col my-auto">
+            <div class="px-5 sm:px-6 py-4 bg-rose-50 border-b border-rose-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2 text-rose-800">
+                    <span class="text-xl">⚠️</span>
+                    <h3 class="text-base font-extrabold">Segna 'Da Verificare'</h3>
+                </div>
+                <button onclick="chiudiModalVerifyReclass()" class="text-rose-400 hover:text-rose-600 focus:outline-none p-1 rounded-lg hover:bg-rose-200/50 transition-colors">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+            <div class="p-5 sm:p-6 space-y-4">
+                <input type="hidden" id="reclass-verify-product-id">
+                <input type="hidden" id="reclass-verify-legacy-id">
+                <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                    Questo prodotto rimarrà nello stato di revisione con contrassegno speciale. <strong class="text-slate-900">Nessuna modifica verrà apportata ai dati originali.</strong>
+                </p>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Motivo Segnalazione / Note *
+                    </label>
+                    <textarea id="reclass-verify-motivo" rows="3" placeholder="Es. Verificare se appartiene a LAFC o LA Galaxy..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-rose-500 focus:bg-white transition-all"></textarea>
+                </div>
+            </div>
+            <div class="px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+                <button onclick="chiudiModalVerifyReclass()" type="button" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                    Annulla
+                </button>
+                <button onclick="confermaSegnalaDaVerificare()" type="button" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                    <span>⚠️</span> Conferma Segnalazione
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RECLASSIFICAZIONE: STORICO BACKUP & SNAPSHOT -->
+    <div id="modal-reclass-backups" class="fixed inset-0 z-[10020] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md hidden overflow-hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto">
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📋</span>
+                    <h3 class="text-base font-extrabold text-slate-900">Storico Snapshot & Backup di Sicurezza</h3>
+                </div>
+                <button onclick="chiudiModalBackupsReclass()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+            <div class="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
+                <p class="text-xs text-slate-500">
+                    Ogni operazione di approvazione o modifica manuale registra uno snapshot completo dei dati originali. Puoi ripristinare qualsiasi prodotto allo stato precedente con un clic.
+                </p>
+                <div id="reclass-backups-container" class="space-y-3">
+                    <!-- Popolato dinamicamente -->
+                    <p class="text-center py-8 text-xs text-slate-400">Nessuno snapshot registrato finora.</p>
+                </div>
+            </div>
+            <div class="px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end shrink-0">
+                <button onclick="chiudiModalBackupsReclass()" type="button" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all">
+                    Chiudi
                 </button>
             </div>
         </div>

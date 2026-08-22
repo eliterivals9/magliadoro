@@ -9619,6 +9619,608 @@ app.post('/api/admin/chat/update-status', async (req, res) => {
 });
 
 
+// =========================================================================
+// SISTEMA TEMPORANEO DI REVISIONE E RICLASSIFICAZIONE PRODOTTI (FASE 1)
+// =========================================================================
+const RECLASSIFICATION_STATE_FILE = 'reclassification_state.json';
+const RECLASSIFICATION_BACKUPS_FILE = 'reclassification_backups.json';
+
+function getReclassificationBackups() {
+  try {
+    if (fs.existsSync(RECLASSIFICATION_BACKUPS_FILE)) {
+      return JSON.parse(fs.readFileSync(RECLASSIFICATION_BACKUPS_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.error("⚠️ Errore lettura reclassification_backups.json:", err.message);
+  }
+  return [];
+}
+
+function saveReclassificationBackups(backups) {
+  try {
+    fs.writeFileSync(RECLASSIFICATION_BACKUPS_FILE, JSON.stringify(backups, null, 2), 'utf8');
+  } catch (err) {
+    console.error("⚠️ Errore scrittura reclassification_backups.json:", err.message);
+  }
+}
+
+function getReclassificationState() {
+  try {
+    if (fs.existsSync(RECLASSIFICATION_STATE_FILE)) {
+      return JSON.parse(fs.readFileSync(RECLASSIFICATION_STATE_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.error("⚠️ Errore lettura reclassification_state.json:", err.message);
+  }
+  return [];
+}
+
+function saveReclassificationState(state) {
+  try {
+    fs.writeFileSync(RECLASSIFICATION_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+  } catch (err) {
+    console.error("⚠️ Errore scrittura reclassification_state.json:", err.message);
+  }
+}
+
+async function initReclassificationState() {
+  try {
+    let currentState = getReclassificationState();
+    const existingIds = new Set(currentState.map(item => String(item.product_id || item.legacy_id)));
+
+    const supabase = getSupabaseClient();
+    let allProducts = [];
+    if (supabase) {
+      try {
+        allProducts = await getAllProductsFromSupabase(supabase);
+      } catch (err) {
+        console.warn("⚠️ [RECLASS] Errore fetch prodotti Supabase:", err.message);
+      }
+    }
+    if (allProducts.length === 0 && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      allProducts = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+    }
+
+    const nbaTeamNames = [
+      "los angeles clippers", "boston celtics", "milwaukee bucks", "philadelphia 76ers",
+      "miami heat", "new york knicks", "cleveland cavaliers", "los angeles lakers",
+      "golden state warriors", "phoenix suns", "denver nuggets", "dallas mavericks"
+    ];
+
+    const nbaProducts = allProducts.filter(p => {
+      const sqLower = (p.squadra || "").toLowerCase().trim();
+      const catLower = (p.categoria || "").toLowerCase().trim();
+      return catLower === "nba" || nbaTeamNames.includes(sqLower);
+    });
+
+    let stateUpdated = false;
+    for (const prod of nbaProducts) {
+      const prodId = String(prod.id || prod.legacy_id);
+      if (!existingIds.has(prodId)) {
+        const v = (prod.versione || "").trim();
+        const s = (prod.squadra || "").trim();
+        let proposedTeam = s;
+        let proposedCategory = "Club";
+        let proposedSection = "USA MLS";
+        let proposedCountry = "USA";
+        let proposedLeague = "MLS";
+        let reasoning = "";
+
+        if (/los angeles fc|lafc/i.test(v)) {
+          proposedTeam = "Los Angeles FC (LAFC)";
+          proposedSection = "USA MLS";
+          proposedCategory = "Club";
+          proposedCountry = "USA";
+          proposedLeague = "MLS";
+          reasoning = "Versione prodotto specifica espressamente 'Los Angeles FC'. Squadra corrispondente individuata nel catalogo: Los Angeles FC (LAFC).";
+        } else if (/los angeles/i.test(v) && /clippers/i.test(s)) {
+          proposedTeam = "Los Angeles FC (LAFC)";
+          proposedSection = "USA MLS";
+          proposedCategory = "Club";
+          proposedCountry = "USA";
+          proposedLeague = "MLS";
+          reasoning = "Dicitura 'Los Angeles Casa' su kit MLS. Proposta associazione a 'Los Angeles FC (LAFC)'.";
+        } else {
+          reasoning = "Prodotto con associazione squadra NBA. Da verificare manualmente.";
+        }
+
+        currentState.push({
+          product_id: prod.id,
+          legacy_id: prod.legacy_id,
+          nome: prod.nome || null,
+          nome_finale: prod.nome_finale || `${prod.squadra} - ${prod.versione || ''}`,
+          squadra_originale: prod.squadra,
+          categoria_originale: prod.categoria,
+          versione: prod.versione || "",
+          stagione: prod.stagione || "",
+          target: prod.target || "Adulto",
+          prezzo: prod.prezzo || 0,
+          immagine: prod.immagine || "",
+          paese_originale: "USA",
+          lega_originale: "NBA",
+          sezione_originale: "Western Conference (NBA)",
+          status: "pending_reclassification",
+          note_verifica: "",
+          proposta: {
+            squadra_proposta: proposedTeam,
+            categoria_proposta: proposedCategory,
+            sezione_proposta: proposedSection,
+            paese_proposto: proposedCountry,
+            campionato_proposto: proposedLeague,
+            motivo: reasoning
+          },
+          creato_il: new Date().toISOString(),
+          ultimo_aggiornamento: new Date().toISOString()
+        });
+        stateUpdated = true;
+      }
+    }
+
+    if (stateUpdated || !fs.existsSync(RECLASSIFICATION_STATE_FILE)) {
+      saveReclassificationState(currentState);
+      console.log(`✅ [RECLASS] Stato revisione inizializzato con ${currentState.length} prodotti.`);
+    }
+  } catch (err) {
+    console.error("⚠️ [RECLASS] Errore inizializzazione stato revisione:", err.message);
+  }
+}
+
+// GET /api/reclassification/items - Ottieni tutti gli elementi in revisione con metadati e squadre catalogo
+app.get('/api/reclassification/items', async (req, res) => {
+  try {
+    let state = getReclassificationState();
+    if (state.length === 0) {
+      await initReclassificationState();
+      state = getReclassificationState();
+    }
+
+    // Carica squadre dal catalogo teams per dropdown controllato senza duplicati
+    const supabase = getSupabaseClient();
+    let teams = [];
+    if (supabase) {
+      try {
+        const { data: tData } = await supabase.from('teams').select('*').order('name', { ascending: true });
+        if (tData) teams = tData;
+      } catch (err) {}
+    }
+    if (teams.length === 0) {
+      teams = getLocalTeams();
+    }
+
+    const availableSections = [
+      'Serie A', 'Serie B', 'Premier League', 'La Liga', 'Bundesliga', 'Ligue 1',
+      'USA MLS', 'Saudi Pro League', 'Brasileiro Serie A', 'Japan Series',
+      'Altri Club Europei', 'Altri Club Mondo', 'Europa', 'Sud America', 'Nord America', 'Africa', 'Asia', 'Oceania'
+    ];
+
+    const availableCategories = ['Club', 'Nazionali', 'Mondiali'];
+
+    const metrics = {
+      total: state.length,
+      pending: state.filter(s => s.status === 'pending_reclassification').length,
+      approved: state.filter(s => s.status === 'approved' || s.status === 'approved_manual').length,
+      needs_check: state.filter(s => s.status === 'needs_manual_check').length
+    };
+
+    res.json({
+      success: true,
+      metrics,
+      items: state,
+      available_teams: teams,
+      available_sections: availableSections,
+      available_categories: availableCategories
+    });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/reclassification/items:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/reclassification/approve - Approva e applica la proposta di riclassificazione con snapshot di backup
+app.post('/api/reclassification/approve', async (req, res) => {
+  try {
+    const { product_id, legacy_id, note, operatore } = req.body;
+    if (!product_id && !legacy_id) {
+      return res.status(400).json({ success: false, error: "Specificare product_id o legacy_id" });
+    }
+
+    const state = getReclassificationState();
+    const itemIndex = state.findIndex(x => (product_id && x.product_id === product_id) || (legacy_id && x.legacy_id === legacy_id));
+    if (itemIndex === -1) {
+      return res.status(404).json({ success: false, error: "Elemento di revisione non trovato." });
+    }
+
+    const item = state[itemIndex];
+    const proposed = item.proposta;
+
+    // 1. CREAZIONE SNAPSHOT / BACKUP PRIMA DI MODIFICARE
+    const backups = getReclassificationBackups();
+    const snapshot = {
+      backup_id: 'bk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      product_id: item.product_id,
+      legacy_id: item.legacy_id,
+      timestamp: new Date().toISOString(),
+      operatore: operatore || 'Admin',
+      tipo_operazione: 'APPROVE_PROPOSAL',
+      note: note || '',
+      dati_originali: {
+        squadra: item.squadra_originale,
+        categoria: item.categoria_originale,
+        versione: item.versione,
+        stagione: item.stagione,
+        sezione: item.sezione_originale,
+        paese: item.paese_originale,
+        lega: item.lega_originale,
+        target: item.target,
+        prezzo: item.prezzo
+      },
+      dati_applicati: {
+        squadra: proposed.squadra_proposta,
+        categoria: item.categoria_originale, // preserva categoria prodotto (Kit/Fan/Player/ecc) o aggiorna squadra
+        sezione: proposed.sezione_proposta,
+        paese: proposed.paese_proposto,
+        campionato: proposed.campionato_proposto
+      }
+    };
+    backups.unshift(snapshot);
+    saveReclassificationBackups(backups);
+
+    // 2. APPLICAZIONE MODIFICA A SUPABASE
+    const supabase = getSupabaseClient();
+    if (supabase && item.product_id) {
+      const { error: updateErr } = await supabase
+        .from('products')
+        .update({
+          squadra: proposed.squadra_proposta
+        })
+        .eq('id', item.product_id);
+
+      if (updateErr) {
+        console.error("⚠️ Errore update prodotto su Supabase:", updateErr.message);
+        throw updateErr;
+      }
+    }
+
+    // Aggiorna anche local cache se presente
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        const lIdx = localProds.findIndex(p => (item.product_id && p.id === item.product_id) || (item.legacy_id && p.legacy_id === item.legacy_id));
+        if (lIdx !== -1) {
+          localProds[lIdx].squadra = proposed.squadra_proposta;
+          fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+        }
+      } catch (lErr) {}
+    }
+
+    // 3. AGGIORNA STATO REVISIONE
+    item.status = 'approved';
+    item.ultimo_aggiornamento = new Date().toISOString();
+    item.note_verifica = note || 'Approvato con proposta automatica.';
+    item.dati_finali_applicati = snapshot.dati_applicati;
+    saveReclassificationState(state);
+
+    res.json({
+      success: true,
+      message: `Prodotto #${item.legacy_id || item.product_id} riclassificato con successo in "${proposed.squadra_proposta}"! Snapshot di backup salvato.`,
+      backup_id: snapshot.backup_id,
+      item
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/reclassification/approve:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/reclassification/manual-update - Modifica manuale controllata con selezione da catalogo e backup
+app.post('/api/reclassification/manual-update', async (req, res) => {
+  try {
+    const { product_id, legacy_id, squadra, categoria, sezione, paese, campionato, note, operatore } = req.body;
+    if (!product_id && !legacy_id) {
+      return res.status(400).json({ success: false, error: "Specificare product_id o legacy_id" });
+    }
+    if (!squadra || !squadra.trim()) {
+      return res.status(400).json({ success: false, error: "Il nome della squadra è obbligatorio." });
+    }
+
+    const state = getReclassificationState();
+    const itemIndex = state.findIndex(x => (product_id && x.product_id === product_id) || (legacy_id && x.legacy_id === legacy_id));
+    if (itemIndex === -1) {
+      return res.status(404).json({ success: false, error: "Elemento di revisione non trovato." });
+    }
+
+    const item = state[itemIndex];
+    const squadraClean = squadra.trim();
+
+    // 1. CREAZIONE SNAPSHOT / BACKUP
+    const backups = getReclassificationBackups();
+    const snapshot = {
+      backup_id: 'bk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      product_id: item.product_id,
+      legacy_id: item.legacy_id,
+      timestamp: new Date().toISOString(),
+      operatore: operatore || 'Admin',
+      tipo_operazione: 'MANUAL_UPDATE',
+      note: note || '',
+      dati_originali: {
+        squadra: item.squadra_originale,
+        categoria: item.categoria_originale,
+        versione: item.versione,
+        stagione: item.stagione,
+        sezione: item.sezione_originale,
+        paese: item.paese_originale,
+        lega: item.lega_originale,
+        target: item.target,
+        prezzo: item.prezzo
+      },
+      dati_applicati: {
+        squadra: squadraClean,
+        categoria: categoria || item.categoria_originale,
+        sezione: sezione || item.sezione_originale,
+        paese: paese || '',
+        campionato: campionato || ''
+      }
+    };
+    backups.unshift(snapshot);
+    saveReclassificationBackups(backups);
+
+    // 2. APPLICAZIONE MODIFICA A SUPABASE
+    const supabase = getSupabaseClient();
+    if (supabase && item.product_id) {
+      const updatePayload = { squadra: squadraClean };
+      if (categoria && categoria.trim()) {
+        updatePayload.categoria = categoria.trim();
+      }
+
+      const { error: updateErr } = await supabase
+        .from('products')
+        .update(updatePayload)
+        .eq('id', item.product_id);
+
+      if (updateErr) {
+        console.error("⚠️ Errore update manuale prodotto su Supabase:", updateErr.message);
+        throw updateErr;
+      }
+    }
+
+    // Aggiorna local cache se presente
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        const lIdx = localProds.findIndex(p => (item.product_id && p.id === item.product_id) || (item.legacy_id && p.legacy_id === item.legacy_id));
+        if (lIdx !== -1) {
+          localProds[lIdx].squadra = squadraClean;
+          if (categoria && categoria.trim()) localProds[lIdx].categoria = categoria.trim();
+          fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+        }
+      } catch (lErr) {}
+    }
+
+    // 3. AGGIORNA STATO REVISIONE
+    item.status = 'approved_manual';
+    item.ultimo_aggiornamento = new Date().toISOString();
+    item.note_verifica = note || 'Modificato manualmente e approvato.';
+    item.dati_finali_applicati = snapshot.dati_applicati;
+    saveReclassificationState(state);
+
+    res.json({
+      success: true,
+      message: `Prodotto #${item.legacy_id || item.product_id} aggiornato con successo a "${squadraClean}"! Snapshot di backup registrato.`,
+      backup_id: snapshot.backup_id,
+      item
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/reclassification/manual-update:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/reclassification/mark-verify - Segna l'elemento come "Da Verificare" con motivazione
+app.post('/api/reclassification/mark-verify', async (req, res) => {
+  try {
+    const { product_id, legacy_id, motivo, operatore } = req.body;
+    if (!product_id && !legacy_id) {
+      return res.status(400).json({ success: false, error: "Specificare product_id o legacy_id" });
+    }
+
+    const state = getReclassificationState();
+    const itemIndex = state.findIndex(x => (product_id && x.product_id === product_id) || (legacy_id && x.legacy_id === legacy_id));
+    if (itemIndex === -1) {
+      return res.status(404).json({ success: false, error: "Elemento di revisione non trovato." });
+    }
+
+    const item = state[itemIndex];
+    item.status = 'needs_manual_check';
+    item.note_verifica = motivo || 'Segnalato per ulteriore controllo manuale.';
+    item.ultimo_aggiornamento = new Date().toISOString();
+    saveReclassificationState(state);
+
+    res.json({
+      success: true,
+      message: `Prodotto #${item.legacy_id || item.product_id} contrassegnato come 'Da Verificare'. Nessuna modifica apportata ai dati.`,
+      item
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/reclassification/mark-verify:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/reclassification/backups - Elenco di tutti gli snapshot di backup per audit e rollback
+app.get('/api/reclassification/backups', (req, res) => {
+  try {
+    const backups = getReclassificationBackups();
+    res.json({
+      success: true,
+      total: backups.length,
+      backups
+    });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/reclassification/backups:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/reclassification/restore-backup - Ripristina un prodotto ai valori originali salvati nello snapshot
+app.post('/api/reclassification/restore-backup', async (req, res) => {
+  try {
+    const { backup_id } = req.body;
+    if (!backup_id) {
+      return res.status(400).json({ success: false, error: "Specificare backup_id" });
+    }
+
+    const backups = getReclassificationBackups();
+    const bk = backups.find(b => b.backup_id === backup_id);
+    if (!bk) {
+      return res.status(404).json({ success: false, error: "Snapshot di backup non trovato." });
+    }
+
+    const orig = bk.dati_originali;
+    const supabase = getSupabaseClient();
+    if (supabase && bk.product_id) {
+      const { error: updateErr } = await supabase
+        .from('products')
+        .update({
+          squadra: orig.squadra,
+          categoria: orig.categoria
+        })
+        .eq('id', bk.product_id);
+
+      if (updateErr) throw updateErr;
+    }
+
+    // Aggiorna stato revisione
+    const state = getReclassificationState();
+    const item = state.find(x => x.product_id === bk.product_id);
+    if (item) {
+      item.status = 'pending_reclassification';
+      item.note_verifica = `Ripristinato dal backup ${backup_id} ai valori originali.`;
+      item.ultimo_aggiornamento = new Date().toISOString();
+      delete item.dati_finali_applicati;
+      saveReclassificationState(state);
+    }
+
+    res.json({
+      success: true,
+      message: `Prodotto #${bk.legacy_id || bk.product_id} ripristinato con successo ai valori originali (Squadra: ${orig.squadra}).`,
+      restored_data: orig
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/reclassification/restore-backup:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =========================================================================
+// STRUMENTO DIAGNOSTICA: ARTICOLI SENZA FILTRO CATALOGO
+// =========================================================================
+app.get('/api/catalog/no-filter-audit', async (req, res) => {
+  try {
+    const supabase = getSupabaseClient();
+    let allProducts = [];
+    if (supabase) {
+      try {
+        allProducts = await getAllProductsFromSupabase(supabase);
+      } catch (err) {
+        console.warn("⚠️ [NO-FILTER-AUDIT] Errore fetch prodotti Supabase:", err.message);
+      }
+    }
+    if (allProducts.length === 0 && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      allProducts = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+    }
+
+    const settings = getSettings();
+    const filtriCatalogo = (settings && settings.filtriCatalogo) || [];
+    const validFiltriNomi = filtriCatalogo
+      .filter(f => (f.stato === 'attivo' || f.attivo !== false) && f.nome && f.nome.toLowerCase() !== 'tutti')
+      .map(f => f.nome.trim());
+
+    function getSuggestedFilter(p) {
+      const cat = (p.categoria || "").trim().toLowerCase();
+      const ver = (p.versione || "").trim().toLowerCase();
+      const nome = (p.nome || "").trim().toLowerCase();
+      const target = (p.target || "").trim().toLowerCase();
+      const full = `${cat} ${ver} ${nome} ${target}`;
+
+      if (cat === "player" || full.includes("versione player") || full.includes("player version")) return "Player";
+      if (cat === "fan" || full.includes("fans version") || full.includes("versione fan") || full.includes("fan version")) return "Fan";
+      if (cat === "retro" || full.includes("retro") || full.includes("vintage")) return "Retro";
+      if (cat === "kit allenamento" || full.includes("allenamento") || full.includes("training")) return "Kit Allenamento";
+      if (cat === "tuta" || full.includes("tuta") || full.includes("tracksuit") || full.includes("jackets sets")) return "Tuta";
+      if (cat === "maniche lunghe" || full.includes("maniche lunghe") || full.includes("manica lunga") || full.includes("long sleeve")) return "Maniche Lunghe";
+      if (cat === "smanicato" || cat === "smanicati" || full.includes("smanicato") || full.includes("smanicati") || full.includes("vest")) return "Smanicati";
+      if (cat === "polo" || full.includes("polo")) return "Polo";
+      if (cat === "kit" || cat === "kit bambino" || full.includes("kit") || target === "bambino") return "Kit";
+
+      return "Da verificare";
+    }
+
+    function isProductWithoutFilter(p) {
+      if (!p) return true;
+      const f = p.filtro_catalogo;
+      if (f === null || f === undefined) return true;
+      if (Array.isArray(f) && f.length === 0) return true;
+      const str = String(f).trim();
+      if (str === '' || str.toLowerCase() === 'nessuno' || str.toLowerCase() === 'nessun filtro' || str.toLowerCase() === 'null' || str.toLowerCase() === 'undefined') {
+        return true;
+      }
+      if (validFiltriNomi.length > 0) {
+        const match = validFiltriNomi.some(v => v.toLowerCase() === str.toLowerCase());
+        if (!match) return true;
+      }
+      return false;
+    }
+
+    const withoutFilterItems = [];
+    const teamCount = {};
+    const categoryCount = {};
+    const suggestedCount = {};
+
+    for (const p of allProducts) {
+      if (isProductWithoutFilter(p)) {
+        const suggested = getSuggestedFilter(p);
+        const sq = (p.squadra || "Senza Squadra").trim();
+        const cat = (p.categoria || "Altro").trim();
+
+        teamCount[sq] = (teamCount[sq] || 0) + 1;
+        categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+        suggestedCount[suggested] = (suggestedCount[suggested] || 0) + 1;
+
+        withoutFilterItems.push({
+          id: p.id,
+          legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+          squadra: p.squadra || '',
+          categoria: p.categoria || '',
+          versione: p.versione || '',
+          nome: p.nome || p.versione || '',
+          stagione: p.stagione || '',
+          target: p.target || 'Adulto',
+          prezzo: p.prezzo !== undefined ? Number(p.prezzo) : 23.99,
+          immagine: p.immagine || '',
+          filtro_catalogo: p.filtro_catalogo ? String(p.filtro_catalogo).trim() : 'Nessuno',
+          filtro_suggerito: suggested
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      total_products: allProducts.length,
+      total_without_filter: withoutFilterItems.length,
+      total_with_filter: allProducts.length - withoutFilterItems.length,
+      teams_count: Object.keys(teamCount).length,
+      categories_count: Object.keys(categoryCount).length,
+      by_team: teamCount,
+      by_category: categoryCount,
+      by_suggested: suggestedCount,
+      items: withoutFilterItems
+    });
+  } catch (err) {
+    console.error("🔴 [NO-FILTER-AUDIT] Errore:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Fallback all routes to index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -9693,6 +10295,13 @@ app.listen(PORT, '0.0.0.0', () => {
       console.log("=== COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===");
     } catch (err) {
       console.error("⚠️ Errore durante la standardizzazione automatica del database:", err.message);
+    }
+
+    // Inizializza il sistema di revisione e riclassificazione prodotti (FASE 1)
+    try {
+      await initReclassificationState();
+    } catch (rErr) {
+      console.error("⚠️ Errore inizializzazione modulo revisione riclassificazione:", rErr.message);
     }
   }, 3000);
 });

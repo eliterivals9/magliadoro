@@ -1711,6 +1711,11 @@ body {
                 height: 150px !important;
                 padding: 4px !important;
             }
+            .foto-maglia {
+                transform: scale(1.10) translate3d(0, 0, 0) !important;
+                object-fit: contain !important;
+                object-position: center !important;
+            }
             .info-maglia {
                 padding: 10px !important;
                 gap: 6px !important;
@@ -6474,7 +6479,6 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                 <ul class="footer-links">
                     <li><a href="javascript:void(0)" onclick="selezionaEFiltraClub('tutti')">Club Ufficiali</a></li>
                     <li><a href="javascript:void(0)" onclick="selezionaEFiltraNazionali('tutte')">Nazionali di Calcio</a></li>
-                    <li><a id="footer-link-nba" href="javascript:void(0)" onclick="selezionaEFiltraCustomCategoria('NBA', 'tutti')">Maglie NBA</a></li>
                     <li><a href="javascript:void(0)" onclick="selezionaEFiltraRetro()">Edizioni Storiche Retro</a></li>
                     <li><a href="javascript:void(0)" onclick="selezionaEFiltraTute()">Completi & Tute</a></li>
                 </ul>
@@ -7108,25 +7112,6 @@ function chiudiZoomImmagine(){
         const costoNome = 1.50;
         const costoNumero = 1.50;
         const costoPatch = 1.00;
-        
-        // FLAG DISABILITAZIONE TEMPORANEA CATEGORIA NBA
-        const NBA_ENABLED = false;
-        window.NBA_ENABLED = NBA_ENABLED;
-
-        function isProductNBA(p) {
-            if (!p) return false;
-            const catUpper = (p.categoria || '').toUpperCase();
-            if (catUpper === 'NBA') return true;
-            const sqLower = (p.squadra || '').toLowerCase();
-            if (typeof publicTeams !== 'undefined' && Array.isArray(publicTeams)) {
-                const team = publicTeams.find(t => t && t.name && t.name.toLowerCase() === sqLower);
-                if (team && (team.categoria === 'NBA' || team.sezione === 'NBA')) return true;
-            }
-            const nbaTeams = ['lakers', 'bulls', 'celtics', 'warriors', 'miami', 'knicks', 'nets', 'bucks', 'suns', 'mavericks', 'clippers', 'nuggets', '76ers', 'sixers', 'raptors', 'spurs', 'hornets', 'hawks', 'cavaliers', 'pistons', 'pacers', 'magic', 'wizards', 'grizzlies', 'pelicans', 'rockets', 'thunder', 'timberwolves', 'blazers', 'jazz', 'kings'];
-            if (nbaTeams.some(t => sqLower.includes(t))) return true;
-            return false;
-        }
-        window.isProductNBA = isProductNBA;
 
         let squadraInConfigurazione = '';
         let urlImmagineInConfigurazione = '';
@@ -7556,7 +7541,7 @@ function chiudiZoomImmagine(){
             publicTeams.forEach(t => {
                 const cat = t.categoria || "Club";
                 const sez = t.sezione || "Generale";
-                if (typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED && (cat.toUpperCase() === "NBA" || sez.toUpperCase() === "NBA")) {
+                if (cat.toUpperCase() === "NBA" || sez.toUpperCase() === "NBA") {
                     return;
                 }
                 if (!hierarchy[cat]) {
@@ -7567,12 +7552,6 @@ function chiudiZoomImmagine(){
                 }
                 hierarchy[cat][sez].push(t.name);
             });
-
-            // Gestione visibilità footer link NBA
-            const footerNba = document.getElementById('footer-link-nba');
-            if (footerNba && footerNba.parentElement) {
-                footerNba.parentElement.style.display = (typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED) ? 'none' : '';
-            }
 
             console.log("Sezioni Club:", Object.keys(hierarchy["Club"] || {}));
             
@@ -7656,13 +7635,10 @@ for (const cat in hierarchy) {
                 </div>
             `;
 
-            // Always ensure at least "Club", "Nazionali" (and "NBA" if enabled) categories exist in this order
+            // Always ensure at least "Club", "Nazionali" categories exist in this order
             const targetCategories = ["Club", "Nazionali"];
-            if (typeof NBA_ENABLED !== 'undefined' && NBA_ENABLED) {
-                targetCategories.push("NBA");
-            }
             Object.keys(hierarchy).forEach(cat => {
-                if (!targetCategories.includes(cat) && (typeof NBA_ENABLED === 'undefined' || NBA_ENABLED || cat.toUpperCase() !== "NBA")) {
+                if (!targetCategories.includes(cat) && cat.toUpperCase() !== "NBA") {
                     targetCategories.push(cat);
                 }
             });
@@ -7760,10 +7736,6 @@ for (const cat in hierarchy) {
         }
 
         function selezionaEFiltraCustomCategoria(categoria, valore) {
-            if (categoria === 'NBA' && typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED) {
-                mostraSezioneCompleta('home');
-                return;
-            }
             mostraSezioneCompleta('club');
             squadraSelezionata = '';
             const containerFiltriClub = document.getElementById('filtri-squadra-container');
@@ -8523,12 +8495,6 @@ console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
                 });
             });
 
-            if (typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED) {
-                const temp = matching.filter(p => !isProductNBA(p));
-                matching.length = 0;
-                matching.push(...temp);
-            }
-
             // Aggiorna titolo e sottotitolo con il numero di risultati trovati
             const titoloRicerca = document.getElementById('titolo-ricerca');
             if (titoloRicerca) {
@@ -8907,14 +8873,7 @@ console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
                     .filter(t => t.categoria && t.categoria.toLowerCase() === catName.toLowerCase())
                     .map(t => t.name.toLowerCase());
                 
-                if (squadreDellaCategoria.length === 0 && catName.toUpperCase() === 'NBA') {
-                    filtrati = databaseProdotti.filter(p => {
-                        const sqLower = (p.squadra || '').toLowerCase();
-                        return sqLower.includes('lakers') || sqLower.includes('bulls') || sqLower.includes('celtics') || sqLower.includes('warriors') || sqLower.includes('miami') || sqLower.includes('knicks');
-                    });
-                } else {
-                    filtrati = databaseProdotti.filter(p => p.squadra && squadreDellaCategoria.includes(p.squadra.toLowerCase()));
-                }
+                filtrati = databaseProdotti.filter(p => p.squadra && squadreDellaCategoria.includes(p.squadra.toLowerCase()));
             } else if (nomeSquadra.startsWith('lega_')) {
                 const valoreLega = nomeSquadra.replace('lega_', '');
                 const mappaLegaASezione = {
@@ -8983,10 +8942,6 @@ if (valoreLega === 'tutti') {
                 }
             } else {
                 filtrati = databaseProdotti.filter(p => p.squadra === nomeSquadra);
-            }
-            
-            if (typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED) {
-                filtrati = filtrati.filter(p => !isProductNBA(p));
             }
             
             // Applica il prezzo corretto SOLO SE mancante o non valido
@@ -9484,10 +9439,6 @@ if (valoreLega === 'tutti') {
         window.selezionaEFiltraTute = selezionaEFiltraTute;
 
         function selezionaEFiltraCustomCategoria(categoria, valore) {
-            if (categoria === 'NBA' && typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED) {
-                mostraSezioneCompleta('home');
-                return;
-            }
             mostraSezioneCompleta('club');
             paginaCorrenteCatalogo = 1;
             squadraSelezionata = 'categoria-custom_' + categoria;
@@ -9731,7 +9682,7 @@ if (valoreLega === 'tutti') {
                     ${htmlBadgeTipo}
                     ${heartButtonHtml}
                     <div class="contenitore-foto" onclick="apriLightbox(event, '${immagineDaUsare.replace(/'/g, "\\'")}', '${nome.replace(/'/g, "\\'")}')" style="cursor: pointer; overflow: hidden; position: relative;">
-                        <img src="${proxyImmagine(immagineDaUsare)}" alt="${nome}" class="foto-maglia" loading="${lazyLoad ? 'lazy' : 'eager'}" ${lazyLoad ? '' : 'fetchpriority="high"'} style=" transform:translate3d(${transform.x}%,${transform.y}%,0) scale(${transform.zoom}); width:100%; height:100%; object-fit:cover"; onerror="this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Kit+Calcio'">
+                        <img src="${proxyImmagine(immagineDaUsare)}" alt="${nome}" class="foto-maglia" loading="${lazyLoad ? 'lazy' : 'eager'}" ${lazyLoad ? '' : 'fetchpriority="high"'} style="transform:translate3d(${transform.x}%,${transform.y}%,0) scale(${transform.zoom}); width:100%; height:100%; object-fit:cover;" onerror="this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Kit+Calcio'">
                     </div>
                     <div class="info-maglia">
                         <div>
@@ -14282,7 +14233,6 @@ items.forEach((item, index) => {
             if (!window.databaseProdotti || window.databaseProdotti.length === 0) return [];
             return window.databaseProdotti.filter(p => {
                 if (!p || (!p.squadra && !p.nome && !p.versione)) return false;
-                if (typeof NBA_ENABLED !== 'undefined' && !NBA_ENABLED && typeof isProductNBA === 'function' && isProductNBA(p)) return false;
                 return true;
             });
         }
