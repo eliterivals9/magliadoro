@@ -1020,6 +1020,7 @@ async function caricaLotto() {
             const result = await response.json();
             if (result && result.success && result.lotto) {
                 const lotto = result.lotto;
+                window.currentLottoData = lotto;
                 
                 // Aggiorna dashboard card
                 const statsLotto = document.getElementById('stats-lotto-corrente');
@@ -1029,7 +1030,7 @@ async function caricaLotto() {
 
                 const statsLottoCosto = document.getElementById('stats-lotto-costo');
                 if (statsLottoCosto) {
-                    const costComplessivo = Number(lotto.costo_complessivo_lotto_usd || 0);
+                    const costComplessivo = Number(lotto.costo_fornitore_usd || lotto.costo_complessivo_lotto_usd || 0);
                     statsLottoCosto.innerText = `$ ${costComplessivo.toFixed(2)}`;
                 }
 
@@ -1038,17 +1039,31 @@ async function caricaLotto() {
                 const elCostoProd = document.getElementById('lotto-costo-prodotti');
                 const elSpedizione = document.getElementById('lotto-spedizione');
                 const elCostoPers = document.getElementById('lotto-costo-personalizzazioni');
+                const elCostoFornitoreUsd = document.getElementById('lotto-costo-fornitore-usd');
+                const elAlibabaFeeUsd = document.getElementById('lotto-alibaba-fee-usd');
                 const elCostoTotale = document.getElementById('lotto-costo-totale');
 
                 if (elArticoli) elArticoli.innerText = lotto.numero_totale_articoli || 0;
                 const costPers = Number(lotto.costo_totale_personalizzazioni_usd || 0);
                 const costProdCombined = Number(lotto.costo_totale_prodotti_usd || 0);
                 const costCompletiniOnly = Math.max(0, costProdCombined - costPers);
+                const costoFornitoreUsd = Number(lotto.costo_fornitore_usd || lotto.costo_complessivo_lotto_usd || 0);
+                const alibabaFeeUsd = Number(lotto.alibaba_fee_usd !== undefined ? lotto.alibaba_fee_usd : (costoFornitoreUsd * 0.03));
+                const costoTotaleRealeUsd = Number(lotto.costo_totale_reale_lotto_usd || (costoFornitoreUsd + alibabaFeeUsd));
                 
                 if (elCostoProd) elCostoProd.innerText = `$ ${costCompletiniOnly.toFixed(2)}`;
                 if (elSpedizione) elSpedizione.innerText = `$ ${Number(lotto.spedizione_corrente_usd || 0).toFixed(2)}`;
                 if (elCostoPers) elCostoPers.innerText = `$ ${costPers.toFixed(2)}`;
-                if (elCostoTotale) elCostoTotale.innerText = `$ ${Number(lotto.costo_complessivo_lotto_usd || 0).toFixed(2)}`;
+                if (elCostoFornitoreUsd) elCostoFornitoreUsd.innerText = `$ ${costoFornitoreUsd.toFixed(2)}`;
+                if (elAlibabaFeeUsd) elAlibabaFeeUsd.innerText = `$ ${alibabaFeeUsd.toFixed(2)}`;
+                if (elCostoTotale) elCostoTotale.innerText = `$ ${costoTotaleRealeUsd.toFixed(2)}`;
+
+                if (typeof aggiornaStatisticheDashboard === 'function') {
+                    aggiornaStatisticheDashboard();
+                }
+                if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                    aggiornaStatisticheLottoCorrente();
+                }
             }
         }
     } catch (err) {
@@ -1329,10 +1344,14 @@ window.apriDettaglioLotto = function(id) {
     const incassoEl = document.getElementById('detail-lotto-incasso');
     const costoProdEl = document.getElementById('detail-lotto-costo-prodotti');
     const costoSpedEl = document.getElementById('detail-lotto-costo-spedizione');
+    const alibabaFeeEl = document.getElementById('detail-lotto-alibaba-fee');
     const costoTotEl = document.getElementById('detail-lotto-costo-totale');
     const profittoEl = document.getElementById('detail-lotto-profitto');
     const margineEl = document.getElementById('detail-lotto-margine');
     const ordersContainer = document.getElementById('lotto-orders-cards-container');
+
+    const feeUsd = Number(lotto.alibaba_fee_usd !== undefined ? lotto.alibaba_fee_usd : ((Number(lotto.costo_prodotti_usd || 0) + Number(lotto.costo_spedizione_usd || 0)) * 0.03));
+    const feeEur = Number(lotto.alibaba_fee_eur || 0);
 
     if (titleEl) titleEl.innerText = lotto.numero_lotto || `Lotto #${lotto.id}`;
     if (dateEl) dateEl.innerText = `Chiuso il: ${lotto.archived_at || ''}`;
@@ -1341,7 +1360,22 @@ window.apriDettaglioLotto = function(id) {
     if (incassoEl) incassoEl.innerText = `€ ${Number(lotto.incasso_totale_eur || 0).toFixed(2).replace('.', ',')}`;
     if (costoProdEl) costoProdEl.innerText = `$ ${Number(lotto.costo_prodotti_usd || 0).toFixed(2).replace('.', ',')}`;
     if (costoSpedEl) costoSpedEl.innerText = `$ ${Number(lotto.costo_spedizione_usd || 0).toFixed(2).replace('.', ',')}`;
-    if (costoTotEl) costoTotEl.innerText = `$ ${Number(lotto.costo_totale_usd || 0).toFixed(2).replace('.', ',')}`;
+    if (alibabaFeeEl) {
+        if (feeEur > 0) {
+            alibabaFeeEl.innerText = `$ ${feeUsd.toFixed(2).replace('.', ',')} (€ ${feeEur.toFixed(2).replace('.', ',')})`;
+        } else {
+            alibabaFeeEl.innerText = `$ ${feeUsd.toFixed(2).replace('.', ',')}`;
+        }
+    }
+    if (costoTotEl) {
+        const cTotUsd = Number(lotto.costo_totale_usd || 0);
+        const cTotEur = Number(lotto.costo_totale_eur || 0);
+        if (cTotEur > 0) {
+            costoTotEl.innerText = `$ ${cTotUsd.toFixed(2).replace('.', ',')} (€ ${cTotEur.toFixed(2).replace('.', ',')})`;
+        } else {
+            costoTotEl.innerText = `$ ${cTotUsd.toFixed(2).replace('.', ',')}`;
+        }
+    }
     if (profittoEl) profittoEl.innerText = `€ ${Number(lotto.profitto_eur || 0).toFixed(2).replace('.', ',')}`;
     if (margineEl) margineEl.innerText = `${Number(lotto.margine_percentuale || 0).toFixed(2).replace('.', ',')}%`;
 
@@ -1708,26 +1742,43 @@ function aggiornaStatisticheDashboard() {
 
     // Financial Metrics per il LOTTO CORRENTE ATTIVO
     let incassoLottoCorrente = 0;
-    let costoTotaleProdottiLotto = 0;
-    let profittoTotaleLotto = 0;
+    let costoFornitoreLottoEur = 0;
+    let profittoOrdiniLottoEur = 0;
     let articoliLottoCorrente = 0;
 
     activeOrders.forEach(o => {
         incassoLottoCorrente += parseFlexibleDecimal(o.totale || '');
         
         const costoStr = o["Costo totale (EUR)"] || o.costo_totale_eur || '0';
-        costoTotaleProdottiLotto += parseFlexibleDecimal(costoStr);
+        costoFornitoreLottoEur += parseFlexibleDecimal(costoStr);
 
         const profittoStr = o["Profitto (EUR)"] || o.profitto_eur || '0';
-        profittoTotaleLotto += parseFlexibleDecimal(profittoStr);
+        profittoOrdiniLottoEur += parseFlexibleDecimal(profittoStr);
 
         articoliLottoCorrente += estraiNumeroArticoli(o);
     });
+
+    // Alibaba Payment Fee (3% del costo fornitore in USD convertito in EUR)
+    let alibabaFeeUsd = 0;
+    let alibabaFeeEur = 0;
+    if (window.currentLottoData) {
+        alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd || 0);
+        alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur || 0);
+    }
+    if (alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.costo_fornitore_usd) {
+        alibabaFeeUsd = Number(window.currentLottoData.costo_fornitore_usd) * 0.03;
+        const tasso = (window.cachedSettings && window.cachedSettings.exchangeRate) ? Number(window.cachedSettings.exchangeRate) : 1.05;
+        alibabaFeeEur = alibabaFeeUsd / tasso;
+    }
+
+    const costoTotaleLottoEur = costoFornitoreLottoEur + alibabaFeeEur;
+    const profittoRealeLotto = Math.max(-999999, incassoLottoCorrente - costoTotaleLottoEur);
 
     // Calcolo Incasso Effettivo integrato con Suddivisione Profitto
     const cashflow = calcolaIncassoEffettivo(incassoLottoCorrente);
     const incassoDaMostrare = cashflow.incasso_effettivo;
 
+    // 1. Incasso Totale Clienti
     const incassoTotaleEl = document.getElementById('stats-incasso-totale');
     if (incassoTotaleEl) {
         incassoTotaleEl.innerText = `€ ${incassoDaMostrare.toFixed(2).replace('.', ',')}`;
@@ -1738,20 +1789,38 @@ function aggiornaStatisticheDashboard() {
         }
     }
 
+    // 2. Costo Fornitore
     const costoTotaleProdottiEl = document.getElementById('stats-costo-totale-prodotti');
     if (costoTotaleProdottiEl) {
-        costoTotaleProdottiEl.innerText = `€ ${costoTotaleProdottiLotto.toFixed(2).replace('.', ',')}`;
+        costoTotaleProdottiEl.innerText = `€ ${costoFornitoreLottoEur.toFixed(2).replace('.', ',')}`;
     }
 
+    // 3. Alibaba Payment Fee
+    const alibabaFeeEl = document.getElementById('stats-alibaba-fee');
+    const alibabaFeeUsdEl = document.getElementById('stats-alibaba-fee-usd');
+    if (alibabaFeeEl) {
+        alibabaFeeEl.innerText = `€ ${alibabaFeeEur.toFixed(2).replace('.', ',')}`;
+    }
+    if (alibabaFeeUsdEl) {
+        alibabaFeeUsdEl.innerText = `$ ${alibabaFeeUsd.toFixed(2).replace('.', ',')}`;
+    }
+
+    // 4. Costo Totale Lotto
+    const costoTotaleLottoEl = document.getElementById('stats-costo-totale-lotto-eur');
+    if (costoTotaleLottoEl) {
+        costoTotaleLottoEl.innerText = `€ ${costoTotaleLottoEur.toFixed(2).replace('.', ',')}`;
+    }
+
+    // 5. Profitto Reale
     const profittoTotaleEl = document.getElementById('stats-profitto-totale');
     if (profittoTotaleEl) {
-        profittoTotaleEl.innerText = `€ ${profittoTotaleLotto.toFixed(2).replace('.', ',')}`;
+        profittoTotaleEl.innerText = `€ ${profittoRealeLotto.toFixed(2).replace('.', ',')}`;
     }
 
-    // Margine Medio Lotto Corrente (%)
+    // Margine Reale Lotto Corrente (%)
     const margineMedioEl = document.getElementById('stats-margine-medio');
     if (margineMedioEl) {
-        const margine = incassoDaMostrare > 0 ? (profittoTotaleLotto / incassoDaMostrare) * 100 : (incassoLottoCorrente > 0 ? (profittoTotaleLotto / incassoLottoCorrente) * 100 : 0);
+        const margine = incassoDaMostrare > 0 ? (profittoRealeLotto / incassoDaMostrare) * 100 : (incassoLottoCorrente > 0 ? (profittoRealeLotto / incassoLottoCorrente) * 100 : 0);
         margineMedioEl.innerText = `${margine.toFixed(2).replace('.', ',')}%`;
     }
 
@@ -1782,7 +1851,7 @@ function aggiornaStatisticheDashboard() {
     // Profitto Stimato Lotto Corrente
     const lottoProfittoEl = document.getElementById('stats-lotto-profitto');
     if (lottoProfittoEl) {
-        lottoProfittoEl.innerText = `€ ${profittoTotaleLotto.toFixed(2).replace('.', ',')}`;
+        lottoProfittoEl.innerText = `€ ${profittoRealeLotto.toFixed(2).replace('.', ',')}`;
     }
 }
 
@@ -1792,13 +1861,28 @@ function aggiornaStatisticheDashboard() {
 function aggiornaStatisticheLottoCorrente() {
     const activeOrders = ordini.filter(isOrderActive);
     let incassoPrevisto = 0;
-    let profittoPrevisto = 0;
+    let costoFornitoreEur = 0;
 
     activeOrders.forEach(o => {
         incassoPrevisto += parseFlexibleDecimal(o.totale || '');
-        const pStr = o["Profitto (EUR)"] || o.profitto_eur || '0';
-        profittoPrevisto += parseFlexibleDecimal(pStr);
+        const cStr = o["Costo totale (EUR)"] || o.costo_totale_eur || '0';
+        costoFornitoreEur += parseFlexibleDecimal(cStr);
     });
+
+    let alibabaFeeUsd = 0;
+    let alibabaFeeEur = 0;
+    if (window.currentLottoData) {
+        alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd || 0);
+        alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur || 0);
+    }
+    if (alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.costo_fornitore_usd) {
+        alibabaFeeUsd = Number(window.currentLottoData.costo_fornitore_usd) * 0.03;
+        const tasso = (window.cachedSettings && window.cachedSettings.exchangeRate) ? Number(window.cachedSettings.exchangeRate) : 1.05;
+        alibabaFeeEur = alibabaFeeUsd / tasso;
+    }
+
+    const costoTotaleEur = costoFornitoreEur + alibabaFeeEur;
+    const profittoPrevisto = incassoPrevisto - costoTotaleEur;
 
     const cashflowLotto = calcolaIncassoEffettivo(incassoPrevisto);
     const incassoPrevistoEffettivo = cashflowLotto.incasso_effettivo;
@@ -1812,6 +1896,21 @@ function aggiornaStatisticheLottoCorrente() {
         } else {
             incassoPrevistoEl.title = `Incasso Previsto dai clienti: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')}`;
         }
+    }
+
+    const costoFornitoreEurEl = document.getElementById('lotto-costo-fornitore-eur');
+    if (costoFornitoreEurEl) {
+        costoFornitoreEurEl.innerText = `€ ${costoFornitoreEur.toFixed(2).replace('.', ',')}`;
+    }
+
+    const alibabaFeeEurEl = document.getElementById('lotto-alibaba-fee-eur');
+    if (alibabaFeeEurEl) {
+        alibabaFeeEurEl.innerText = `€ ${alibabaFeeEur.toFixed(2).replace('.', ',')}`;
+    }
+
+    const costoTotaleEurEl = document.getElementById('lotto-costo-totale-eur');
+    if (costoTotaleEurEl) {
+        costoTotaleEurEl.innerText = `€ ${costoTotaleEur.toFixed(2).replace('.', ',')}`;
     }
 
     const profittoPrevistoEl = document.getElementById('lotto-profitto-previsto');
@@ -9907,6 +10006,40 @@ window.gestioneEliminaProdotto = function(idx) {
     }
 };
 
+function extractShippingTiersClient(spedizioneLotto) {
+    if (!spedizioneLotto || typeof spedizioneLotto !== 'object') {
+        return [{ min: 1, max: Infinity, cost: 4.0 }];
+    }
+    const tiers = [];
+    for (let i = 1; i <= 20; i++) {
+        const minVal = spedizioneLotto[`range${i}_min`];
+        const maxVal = spedizioneLotto[`range${i}_max`];
+        const costVal = spedizioneLotto[`range${i}_cost`];
+        if (costVal !== undefined && costVal !== null && String(costVal).trim() !== '') {
+            const min = (minVal !== undefined && minVal !== null && String(minVal).trim() !== '') ? parseInt(minVal, 10) : 1;
+            const max = (maxVal !== undefined && maxVal !== null && String(maxVal).trim() !== '') ? parseInt(maxVal, 10) : Infinity;
+            const cost = parseFloat(costVal) || 0.0;
+            tiers.push({ min: isNaN(min) ? 1 : min, max: isNaN(max) ? Infinity : max, cost: isNaN(cost) ? 0.0 : cost });
+        }
+    }
+    if (tiers.length === 0) {
+        return [{ min: 1, max: Infinity, cost: 4.0 }];
+    }
+    tiers.sort((a, b) => a.min - b.min);
+    return tiers;
+}
+
+function getShippingRateByQuantityClient(quantity, settings) {
+    const qty = Math.max(0, parseInt(quantity, 10) || 0);
+    const tiers = extractShippingTiersClient(settings?.spedizioneLotto);
+    for (const tier of tiers) {
+        if (qty >= tier.min && qty <= tier.max) {
+            return tier.cost;
+        }
+    }
+    return tiers[0]?.cost !== undefined ? tiers[0].cost : 4.0;
+}
+
 async function calcolaESituazioneEconomica() {
     let totArticoli = 0;
     let costoProdUSD = 0;
@@ -9916,6 +10049,26 @@ async function calcolaESituazioneEconomica() {
     let costoTotaleUSD = 0;
     let costoTotaleEUR = 0;
     let profittoEUR = 0;
+
+    let appSettings = window.appSettings || {};
+    try {
+        if (!appSettings || !appSettings.cambioValuta) {
+            const resSettings = await fetch('/api/settings');
+            const setJson = await resSettings.json();
+            if (setJson && setJson.success && setJson.settings) {
+                appSettings = setJson.settings;
+                window.appSettings = appSettings;
+            }
+        }
+    } catch (e) {
+        console.warn("Utilizzo parametri locali per calcolo economico:", e);
+    }
+
+    if (appSettings?.cambioValuta?.mode === 'manual') {
+        exchangeRate = parseFloat(appSettings.cambioValuta.manual_rate) || 0.86;
+    } else {
+        exchangeRate = parseFloat(appSettings?.cambio_usd_eur) || parseFloat(appSettings?.cambioValuta?.manual_rate) || 0.92;
+    }
 
     let usaDatiOriginali = false;
     if (window.currentGestioneOrderId) {
@@ -9968,7 +10121,7 @@ async function calcolaESituazioneEconomica() {
                 
                 const parseVal = (v) => {
                     if (v === undefined || v === null) return 0;
-                    let s = String(v).replace('€', '').replace(/\s+/g, '').trim();
+                    let s = String(v).replace('€', '').replace('$', '').replace(/\s+/g, '').trim();
                     if (s.includes(',') && s.includes('.')) {
                         s = s.replace(/\./g, '').replace(',', '.');
                     } else if (s.includes(',')) {
@@ -9980,8 +10133,8 @@ async function calcolaESituazioneEconomica() {
                 costoProdUSD = parseVal(ord.costo_prodotti_usd || ord["Costo prodotti (USD)"]);
                 costoSpedizioneUSD = parseVal(ord.costo_spedizione_usd || ord["Costo spedizione (USD)"]);
                 costoTotaleUSD = parseVal(ord.costo_totale_usd || ord["Costo totale (USD)"]);
-                exchangeRate = parseVal(ord.cambio_usd_eur || ord["Cambio USD/EUR"]) || 0.92;
-                costoTotaleEUR = parseVal(ord.costo_totale_eur || ord["Costo totale (EUR)"]);
+                exchangeRate = parseVal(ord.cambio_usd_eur || ord["Cambio USD/EUR"]) || exchangeRate;
+                costoTotaleEUR = parseVal(ord.costo_totale_eur || ord["Costo totale (EUR)"] || ord["Costo Fornitore (EUR)"]);
                 profittoEUR = parseVal(ord.profitto_eur || ord["Profitto (EUR)"]);
                 totaleOrdineEUR = parseVal(ord.totale);
                 
@@ -10002,37 +10155,16 @@ async function calcolaESituazioneEconomica() {
             totaleOrdineEUR += (pEUR * q);
         });
 
-        // Carica impostazioni di conversione e spedizione
-        let rules = { range1_min: 1, range1_max: 30, range1_cost: 4.0, range2_min: 31, range2_max: 60, range2_cost: 4.0, range3_min: 61, range3_cost: 4.0 };
-        try {
-            const resSettings = await fetch('/api/settings');
-            const setJson = await resSettings.json();
-            if (setJson && setJson.success && setJson.settings) {
-                if (setJson.settings.cambioValuta && setJson.settings.cambioValuta.mode === 'manual') {
-                    exchangeRate = parseFloat(setJson.settings.cambioValuta.manual_rate) || 0.86;
-                }
-                if (setJson.settings.spedizioneLotto) {
-                    rules = setJson.settings.spedizioneLotto;
-                }
-            }
-        } catch (e) {
-            console.warn("Utilizzo parametri di default per calcolo economico:", e);
-        }
+        // Calcolo spedizione unitaria dinamica per articolo basata sulla quantità totale del lotto corrente
+        const activeOrders = Array.isArray(ordini) ? ordini.filter(isOrderActive) : [];
+        let totalLotArticles = activeOrders.reduce((sum, o) => sum + estraiNumeroArticoli(o), 0);
+        if (totalLotArticles <= 0) totalLotArticles = totArticoli;
+        const spedizioneUnitaria = getShippingRateByQuantityClient(totalLotArticles, appSettings);
 
-        // Calcolo spedizione unitaria per articolo nel lotto
-        let spedizioneUnitaria = 4.0;
-        if (totArticoli >= rules.range1_min && totArticoli <= rules.range1_max) {
-            spedizioneUnitaria = parseFloat(rules.range1_cost);
-        } else if (totArticoli >= rules.range2_min && totArticoli <= rules.range2_max) {
-            spedizioneUnitaria = parseFloat(rules.range2_cost);
-        } else if (totArticoli >= rules.range3_min) {
-            spedizioneUnitaria = parseFloat(rules.range3_cost);
-        }
-
-        costoSpedizioneUSD = totArticoli * spedizioneUnitaria;
-        costoTotaleUSD = costoProdUSD + costoSpedizioneUSD;
-        costoTotaleEUR = costoTotaleUSD * exchangeRate;
-        profittoEUR = totaleOrdineEUR - costoTotaleEUR;
+        costoSpedizioneUSD = Number((totArticoli * spedizioneUnitaria).toFixed(2));
+        costoTotaleUSD = Number((costoProdUSD + costoSpedizioneUSD).toFixed(2));
+        costoTotaleEUR = Number((costoTotaleUSD * exchangeRate).toFixed(2));
+        profittoEUR = Number((totaleOrdineEUR - costoTotaleEUR).toFixed(2));
     }
 
     // Aggiorna elementi dell'interfaccia
@@ -12387,6 +12519,8 @@ async function caricaSuddivisioneConti() {
             // Aggiorna KPI Dashboard
             const summary = data.summary || {};
             const totalProfitEl = document.getElementById('split-total-profit');
+            const ordersProfitEl = document.getElementById('split-orders-profit');
+            const alibabaFeeEl = document.getElementById('split-alibaba-fee');
             const totalOrdersCountEl = document.getElementById('split-total-orders-count');
             const sergioInitialEl = document.getElementById('split-sergio-initial');
             const sergioWithdEl = document.getElementById('split-sergio-withdrawals');
@@ -12402,7 +12536,12 @@ async function caricaSuddivisioneConti() {
             const totalNetStatusEl = document.getElementById('split-total-net-status');
 
             const totProfit = Number(summary.total_profit) || 0;
+            const ordersProfit = Number(summary.orders_profit_total !== undefined ? summary.orders_profit_total : totProfit) || 0;
+            const alibabaFeeEur = Number(summary.alibaba_fee_eur) || 0;
+
             if (totalProfitEl) totalProfitEl.textContent = `€ ${formatValutaEuro(totProfit)}`;
+            if (ordersProfitEl) ordersProfitEl.textContent = `€ ${formatValutaEuro(ordersProfit)}`;
+            if (alibabaFeeEl) alibabaFeeEl.textContent = `-€ ${formatValutaEuro(alibabaFeeEur)}`;
             if (totalOrdersCountEl) totalOrdersCountEl.textContent = summary.total_orders || 0;
 
             // Dati Sergio

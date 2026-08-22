@@ -981,38 +981,161 @@ function calcolaCostoFornitoreProdotto(prezzoBaseUSD, infoPerso, item = {}) {
   return Number((base + details.customizationCostUSD).toFixed(2));
 }
 
-function getSupplierShippingCost(totalQuantityPcs, currentSettings = null) {
-  const settings = currentSettings || getSettings();
-  const rules = (settings && settings.spedizioneLotto) || {
-    range1_min: 1, range1_max: 10, range1_cost: 4.0,
-    range2_min: 11, range2_max: 20, range2_cost: 3.0,
-    range3_min: 21, range3_cost: 2.0
-  };
+/**
+ * Estrae dinamicamente e ordina tutte le fasce di spedizione configurate in settings.spedizioneLotto.
+ * Supporta qualsiasi numero di fasce (1, 2, 3, 4, 5, ... o formato array).
+ */
+function extractShippingTiers(settings = null) {
+  const currentSettings = settings || getSettings();
+  const rules = (currentSettings && currentSettings.spedizioneLotto) || {};
 
-  const r1_min = parseInt(rules.range1_min) || 1;
-  const r1_max = parseInt(rules.range1_max) || 10;
-  const r1_cost = parseFloat(rules.range1_cost) || 4.0;
-
-  const r2_min = parseInt(rules.range2_min) || 11;
-  const r2_max = parseInt(rules.range2_max) || 20;
-  const r2_cost = parseFloat(rules.range2_cost) || 3.0;
-
-  const r3_min = parseInt(rules.range3_min) || 21;
-  const r3_cost = parseFloat(rules.range3_cost) || 2.0;
-
-  let unitShipping = r1_cost;
-  if (totalQuantityPcs >= r1_min && totalQuantityPcs <= r1_max) {
-    unitShipping = r1_cost;
-  } else if (totalQuantityPcs >= r2_min && totalQuantityPcs <= r2_max) {
-    unitShipping = r2_cost;
-  } else if (totalQuantityPcs >= r3_min) {
-    unitShipping = r3_cost;
-  } else if (rules.range1_cost) {
-    unitShipping = r1_cost;
+  if (Array.isArray(rules.tiers) && rules.tiers.length > 0) {
+    return rules.tiers.map(t => ({
+      min: parseInt(t.min, 10) || 1,
+      max: (t.max !== undefined && t.max !== null && t.max !== '' && t.max !== Infinity) ? parseInt(t.max, 10) : null,
+      cost: parseFloat(t.cost) || 0
+    })).sort((a, b) => a.min - b.min);
   }
 
-  const totalShipping = Number((totalQuantityPcs * unitShipping).toFixed(2));
+  const tierMap = new Map();
+  Object.keys(rules).forEach(key => {
+    const match = key.match(/^range(\d+)_(min|max|cost)$/i);
+    if (match) {
+      const idx = parseInt(match[1], 10);
+      if (!tierMap.has(idx)) {
+        tierMap.set(idx, { index: idx, min: null, max: null, cost: null });
+      }
+      const item = tierMap.get(idx);
+      const prop = match[2].toLowerCase();
+      if (prop === 'min') item.min = parseInt(rules[key], 10);
+      else if (prop === 'max') item.max = parseInt(rules[key], 10);
+      else if (prop === 'cost') item.cost = parseFloat(rules[key]);
+    }
+  });
+
+  const tiers = Array.from(tierMap.values()).sort((a, b) => a.index - b.index);
+
+  if (tiers.length > 0) {
+    let prevMax = 0;
+    tiers.forEach((t) => {
+      if (t.min === null || isNaN(t.min)) {
+        t.min = prevMax + 1;
+      }
+      if (t.cost === null || isNaN(t.cost)) {
+        t.cost = 4.0;
+      }
+      if (t.max !== null && !isNaN(t.max)) {
+        prevMax = t.max;
+      } else {
+        t.max = null;
+      }
+    });
+    return tiers;
+  }
+
+  return [
+    { min: 1, max: 20, cost: 4.0 },
+    { min: 21, max: 40, cost: 3.0 },
+    { min: 41, max: null, cost: 2.0 }
+  ];
+}
+
+/**
+ * Calcola la tariffa di spedizione unitaria per pezzo (in USD) in base al numero totale di pezzi del lotto.
+ * Legge tutte le fasce disponibili e restituisce automaticamente quella corretta in modo generico.
+ */
+function getShippingRateByQuantity(totalQuantity, settings = null) {
+  const qty = Math.max(0, parseInt(totalQuantity, 10) || 0);
+  const tiers = extractShippingTiers(settings);
+  if (!tiers || tiers.length === 0) {
+    return 4.0;
+  }
+
+  const effectiveQty = qty > 0 ? qty : 1;
+
+  for (const tier of tiers) {
+    const min = tier.min !== null && !isNaN(tier.min) ? tier.min : 1;
+    const max = tier.max !== null && !isNaN(tier.max) ? tier.max : Infinity;
+    if (effectiveQty >= min && effectiveQty <= max) {
+      return Number(tier.cost);
+    }
+  }
+
+  const lastTier = tiers[tiers.length - 1];
+  return Number(lastTier.cost);
+}
+
+function getSupplierShippingCost(totalQuantityPcs, currentSettings = null) {
+  const settings = currentSettings || getSettings();
+  const qty = Math.max(0, parseInt(totalQuantityPcs, 10) || 0);
+  const unitShipping = getShippingRateByQuantity(qty, settings);
+  const totalShipping = Number((qty * unitShipping).toFixed(2));
   return { unitShipping, totalShipping };
+}
+
+function getCentralizedExchangeRate(settings = null) {
+  const currentSettings = settings || getSettings();
+  const valuta = (currentSettings && currentSettings.cambioValuta) || {};
+  if (valuta.mode === 'manual' && valuta.manual_rate !== undefined && valuta.manual_rate !== null && valuta.manual_rate !== '') {
+    return parseFloat(valuta.manual_rate) || 0.856;
+  }
+  if (currentSettings && currentSettings.cambio_usd_eur !== undefined && currentSettings.cambio_usd_eur !== null && currentSettings.cambio_usd_eur !== '') {
+    return parseFloat(currentSettings.cambio_usd_eur) || 0.856;
+  }
+  return 0.856;
+}
+
+async function getLiveOrSettingsExchangeRate(settings = null) {
+  const currentSettings = settings || getSettings();
+  const valuta = (currentSettings && currentSettings.cambioValuta) || {};
+  if (valuta.mode === 'manual' && valuta.manual_rate !== undefined && valuta.manual_rate !== null && valuta.manual_rate !== '') {
+    return parseFloat(valuta.manual_rate) || 0.856;
+  }
+  try {
+    const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
+    if (rateRes.ok) {
+      const rateData = await rateRes.json();
+      if (rateData && rateData.rates && rateData.rates.EUR) {
+        return Number(rateData.rates.EUR);
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ Live exchange rate fetch failed, using configured fallback:", err.message);
+  }
+  if (valuta.manual_rate !== undefined && valuta.manual_rate !== null && valuta.manual_rate !== '') {
+    return parseFloat(valuta.manual_rate) || 0.856;
+  }
+  if (currentSettings && currentSettings.cambio_usd_eur !== undefined && currentSettings.cambio_usd_eur !== null && currentSettings.cambio_usd_eur !== '') {
+    return parseFloat(currentSettings.cambio_usd_eur) || 0.856;
+  }
+  return 0.856;
+}
+
+function convertUsdToEur(amountUsd, rate = null, sourceFunction = 'convertUsdToEur') {
+  const numUsd = Number(amountUsd) || 0;
+  const numRate = Number(rate) > 0 ? Number(rate) : getCentralizedExchangeRate();
+  const convertedEur = Number((numUsd * numRate).toFixed(2));
+
+  console.log(`[USD EUR CONVERSION DEBUG]
+originalUSD: ${numUsd}
+conversionRate: ${numRate}
+convertedEUR: ${convertedEur}
+sourceFunction: ${sourceFunction}`);
+
+  return convertedEur;
+}
+
+function getOrderEffectiveExchangeRate(order, settings = null) {
+  if (order) {
+    const rawRate = order["Cambio USD/EUR"] || order.cambio_usd_eur || order.exchange_rate;
+    if (rawRate !== undefined && rawRate !== null && rawRate !== '') {
+      const parsed = parseItalianFloat(String(rawRate));
+      if (!isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+  }
+  return getCentralizedExchangeRate(settings);
 }
 
 function isTechnicalShippingOrServiceLine(name) {
@@ -2076,6 +2199,9 @@ const DEFAULT_SETTINGS = {
     "mode": "auto",
     "manual_rate": 0.86
   },
+  alibabaFee: {
+    "percentage": 3.0
+  },
   contatti: {
     "whatsapp_number": "393282218320",
     "support_email": "assistenza@elitetournamentstore.com"
@@ -2168,6 +2294,7 @@ async function loadSettingsFromSupabase() {
     regolePrezzi: { ...DEFAULT_SETTINGS.regolePrezzi },
     spedizioneLotto: { ...DEFAULT_SETTINGS.spedizioneLotto },
     cambioValuta: { ...DEFAULT_SETTINGS.cambioValuta },
+    alibabaFee: { ...DEFAULT_SETTINGS.alibabaFee },
     contatti: { ...DEFAULT_SETTINGS.contatti },
     valoriPredefiniti: { ...DEFAULT_SETTINGS.valoriPredefiniti },
     sicurezza: { ...DEFAULT_SETTINGS.sicurezza },
@@ -2299,6 +2426,7 @@ function getSettings() {
         regolePrezzi: { ...DEFAULT_SETTINGS.regolePrezzi, ...(data.regolePrezzi || {}) },
         spedizioneLotto: { ...DEFAULT_SETTINGS.spedizioneLotto, ...(data.spedizioneLotto || {}) },
         cambioValuta: { ...DEFAULT_SETTINGS.cambioValuta, ...(data.cambioValuta || {}) },
+        alibabaFee: { ...DEFAULT_SETTINGS.alibabaFee, ...(data.alibabaFee || {}) },
         contatti: { ...DEFAULT_SETTINGS.contatti, ...(data.contatti || {}) },
         valoriPredefiniti: { ...DEFAULT_SETTINGS.valoriPredefiniti, ...(data.valoriPredefiniti || {}) },
         sicurezza: { ...DEFAULT_SETTINGS.sicurezza, ...(data.sicurezza || {}) },
@@ -2801,6 +2929,13 @@ app.post('/api/settings', async (req, res) => {
     }
 
     console.log("<<< USCITA POST /api/settings con successo");
+    // Ricalcola il lotto e tutti gli ordini attivi con le nuove impostazioni (cambio valuta o fasce spedizione)
+    try {
+      await recalculateCurrentLotto();
+    } catch (lottoErr) {
+      console.warn("⚠️ Errore ricalcolo lotto dopo aggiornamento settings:", lottoErr.message);
+    }
+
     // Ritorniamo i settings più aggiornati possibili (compresi quelli da DB se letti)
     const finalSettings = getSettings();
     if (supabase) {
@@ -4588,6 +4723,15 @@ function isOrderActiveForLotto(order) {
   return true;
 }
 
+function parseOrderTotalCustomerPaid(order) {
+  if (!order) return 0;
+  const raw = order.totale !== undefined ? order.totale : (order.totale_ordine !== undefined ? order.totale_ordine : (order.total !== undefined ? order.total : 0));
+  if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
+  const str = String(raw).trim().replace('€', '').replace(/\s/g, '');
+  const parsed = parseFloat(str.replace(/\./g, '').replace(',', '.'));
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 function calculateLottoTotals(orders, settings) {
   if (!settings) {
     settings = getSettings();
@@ -4622,43 +4766,32 @@ function calculateLottoTotals(orders, settings) {
     costo_totale_prodotti_usd += parseItalianFloat(String(rawCost));
   });
 
-  let spedizione_unitaria = 4.0;
-  const rules = settings.spedizioneLotto || {
-    range1_min: 1, range1_max: 10, range1_cost: "4.00",
-    range2_min: 11, range2_max: 30, range2_cost: "3.50",
-    range3_min: 31, range3_cost: "3.00"
-  };
+  const spedizione_unitaria = getShippingRateByQuantity(numero_totale_articoli, settings);
+  const spedizione_corrente_usd = Number((numero_totale_articoli * spedizione_unitaria).toFixed(2));
+  const costo_fornitore_usd = Number((costo_totale_prodotti_usd + spedizione_corrente_usd).toFixed(2));
+  const costo_complessivo_lotto_usd = costo_fornitore_usd;
 
-  const r1_min = parseInt(rules.range1_min) || 1;
-  const r1_max = parseInt(rules.range1_max) || 10;
-  const r2_min = parseInt(rules.range2_min) || 11;
-  const r2_max = parseInt(rules.range2_max) || 30;
-  const r3_min = parseInt(rules.range3_min) || 31;
-
-  const r1_cost = parseFloat(rules.range1_cost) || 4.0;
-  const r2_cost = parseFloat(rules.range2_cost) || 3.5;
-  const r3_cost = parseFloat(rules.range3_cost) || 3.0;
-
-  if (numero_totale_articoli >= r1_min && numero_totale_articoli <= r1_max) {
-    spedizione_unitaria = r1_cost;
-  } else if (numero_totale_articoli >= r2_min && numero_totale_articoli <= r2_max) {
-    spedizione_unitaria = r2_cost;
-  } else if (numero_totale_articoli >= r3_min) {
-    spedizione_unitaria = r3_cost;
-  } else {
-    spedizione_unitaria = r1_cost;
-  }
-
-  const spedizione_corrente_usd = numero_totale_articoli * spedizione_unitaria;
-  const costo_complessivo_lotto_usd = costo_totale_prodotti_usd + spedizione_corrente_usd;
+  // Alibaba Payment Processing Fee (3% sul totale ordine fornitore in USD)
+  const alibaba_fee_percent = (settings?.alibabaFee?.percentage !== undefined && settings?.alibabaFee?.percentage !== null)
+    ? Number(settings.alibabaFee.percentage)
+    : 3.0;
+  const alibaba_fee_usd = Number((costo_complessivo_lotto_usd * (alibaba_fee_percent / 100)).toFixed(2));
+  const exchangeRate = getOrderEffectiveExchangeRate({}, settings);
+  const alibaba_fee_eur = convertUsdToEur(alibaba_fee_usd, exchangeRate, 'calculateLottoTotals');
+  const costo_totale_reale_lotto_usd = Number((costo_complessivo_lotto_usd + alibaba_fee_usd).toFixed(2));
 
   return {
     numero_totale_articoli,
-    costo_totale_prodotti_usd,
+    costo_totale_prodotti_usd: Number(costo_totale_prodotti_usd.toFixed(2)),
     spedizione_corrente_usd,
+    costo_fornitore_usd,
     costo_complessivo_lotto_usd,
     spedizione_unitaria,
-    costo_totale_personalizzazioni_usd
+    costo_totale_personalizzazioni_usd: Number(costo_totale_personalizzazioni_usd.toFixed(2)),
+    alibaba_fee_percent,
+    alibaba_fee_usd,
+    alibaba_fee_eur,
+    costo_totale_reale_lotto_usd
   };
 }
 
@@ -4692,10 +4825,11 @@ async function recalculateCurrentLottoInternal() {
   let settings = getSettings();
   let activeOrders = [];
   let currentLottoId = 1;
+  let allOrders = [];
   try {
     const archive = await getDbLotti();
-    const orders = await getDbOrders();
-    const unarchivedOrders = orders.filter(o => !o.is_archived && isOrderActiveForLotto(o));
+    allOrders = await getDbOrders();
+    const unarchivedOrders = allOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o));
     
     // Controlla se gli ordini non archiviati appartengono a un lotto_id esplicito (es. lotto ripristinato)
     const explicitLottoId = unarchivedOrders.find(o => o.lotto_id !== null && o.lotto_id !== undefined)?.lotto_id;
@@ -4730,6 +4864,82 @@ async function recalculateCurrentLottoInternal() {
   }
 
   const totals = calculateLottoTotals(activeOrders, settings);
+  const currentUnitShippingRate = totals.spedizione_unitaria;
+
+  // Sincronizza dinamicamente la tariffa di spedizione e tutti i calcoli economici di TUTTI gli ordini attivi del lotto
+  if (activeOrders.length > 0) {
+    let hasOrderChanges = false;
+    const supabase = getSupabaseClient();
+
+    for (const ord of activeOrders) {
+      let cartItems = ord.carrello;
+      if (!Array.isArray(cartItems) || cartItems.length === 0) {
+        cartItems = ricostruisciCarrelloDaStringhe(ord);
+      }
+
+      let orderItemCount = 0;
+      cartItems.forEach(item => {
+        const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+        if (!isSpedizioneCliente) {
+          orderItemCount += parseInt(item.quantita) || 1;
+        }
+      });
+
+      const rawProdCostUSD = parseItalianFloat(String(ord["Costo prodotti (USD)"] || ord.costo_prodotti_usd || '0'));
+      const newShippingUSD = Number((orderItemCount * currentUnitShippingRate).toFixed(2));
+      const newTotalCostUSD = Number((rawProdCostUSD + newShippingUSD).toFixed(2));
+      const orderRate = getOrderEffectiveExchangeRate(ord, settings);
+      const newTotalCostEUR = convertUsdToEur(newTotalCostUSD, orderRate, 'recalculateCurrentLottoInternal');
+      const totalPaidCliente = parseOrderTotalCustomerPaid(ord);
+      const newProfitEUR = Number((totalPaidCliente - newTotalCostEUR).toFixed(2));
+
+      const prevShippingStr = String(ord["Costo spedizione (USD)"] || ord.costo_spedizione_usd || '');
+      const newShippingStr = newShippingUSD.toFixed(2).replace('.', ',');
+
+      if (prevShippingStr !== newShippingStr || !ord.costo_totale_eur || ord.costo_spedizione_usd !== newShippingStr) {
+        hasOrderChanges = true;
+      }
+
+      ord["Costo spedizione (USD)"] = newShippingStr;
+      ord["osto spedizione (USD)"] = newShippingStr;
+      ord["Costo totale (USD)"] = newTotalCostUSD.toFixed(2).replace('.', ',');
+      ord["Costo totale (EUR)"] = newTotalCostEUR.toFixed(2).replace('.', ',');
+      ord["Profitto (EUR)"] = newProfitEUR.toFixed(2).replace('.', ',');
+
+      ord.costo_spedizione_usd = newShippingStr;
+      ord.costo_totale_usd = newTotalCostUSD.toFixed(2).replace('.', ',');
+      ord.costo_totale_eur = newTotalCostEUR.toFixed(2).replace('.', ',');
+      ord.profitto_eur = newProfitEUR.toFixed(2).replace('.', ',');
+
+      if (supabase && ord.id) {
+        try {
+          await supabase.from('orders').update({
+            costo_spedizione_usd: newShippingStr,
+            costo_totale_usd: newTotalCostUSD.toFixed(2).replace('.', ','),
+            costo_totale_eur: newTotalCostEUR.toFixed(2).replace('.', ','),
+            profitto_eur: newProfitEUR.toFixed(2).replace('.', ',')
+          }).eq('id', ord.id);
+        } catch (supErr) {
+          console.warn(`⚠️ Errore aggiornamento ordine ${ord.id} su Supabase durante ricalcolo lotto:`, supErr.message);
+        }
+      }
+    }
+
+    try {
+      const localOrders = getLocalOrders();
+      activeOrders.forEach(ao => {
+        const idx = localOrders.findIndex(lo => (lo.id && String(lo.id) === String(ao.id)) || (lo.data && lo.data === ao.data));
+        if (idx !== -1) {
+          localOrders[idx] = { ...localOrders[idx], ...ao };
+        }
+      });
+      fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+    } catch (errLocal) {
+      console.warn("⚠️ Errore salvataggio local orders durante ricalcolo lotto:", errLocal.message);
+    }
+  }
+
+  console.log(`[GLOBAL SHIPPING RECALC DEBUG]\nlottoId: ${currentLottoId}\ntotalQuantity: ${totals.numero_totale_articoli}\nshippingRate: ${currentUnitShippingRate}\nordersAffected: ${activeOrders.length}\ntotalShipping: ${totals.spedizione_corrente_usd}`);
 
   const updatedLotto = {
     id: currentLottoId,
@@ -4737,8 +4947,13 @@ async function recalculateCurrentLottoInternal() {
     numero_totale_articoli: totals.numero_totale_articoli,
     costo_totale_prodotti_usd: totals.costo_totale_prodotti_usd,
     spedizione_corrente_usd: totals.spedizione_corrente_usd,
+    costo_fornitore_usd: totals.costo_fornitore_usd,
     costo_complessivo_lotto_usd: totals.costo_complessivo_lotto_usd,
-    costo_totale_personalizzazioni_usd: totals.costo_totale_personalizzazioni_usd
+    costo_totale_personalizzazioni_usd: totals.costo_totale_personalizzazioni_usd,
+    alibaba_fee_percent: totals.alibaba_fee_percent,
+    alibaba_fee_usd: totals.alibaba_fee_usd,
+    alibaba_fee_eur: totals.alibaba_fee_eur,
+    costo_totale_reale_lotto_usd: totals.costo_totale_reale_lotto_usd
   };
 
   try {
@@ -4802,16 +5017,19 @@ app.post('/api/lotto/archive', async (req, res) => {
       let incassoTotaleEur = 0;
       let costoProdottiUsd = totals.costo_totale_prodotti_usd;
       let costoSpedizioneUsd = totals.spedizione_corrente_usd;
-      let costoTotaleUsd = totals.costo_complessivo_lotto_usd;
-      let costoTotaleEur = 0;
-      let profittoEur = 0;
+      let costoFornitoreUsd = totals.costo_complessivo_lotto_usd;
+      let alibabaFeeUsd = totals.alibaba_fee_usd;
+      let alibabaFeeEur = totals.alibaba_fee_eur;
+      let costoTotaleUsd = totals.costo_totale_reale_lotto_usd;
+      let costoFornitoreEur = 0;
 
       activeOrders.forEach(o => {
         incassoTotaleEur += parseItalianFloat(o.totale || '');
-        costoTotaleEur += parseItalianFloat(o["Costo totale (EUR)"] || o.costo_totale_eur || '0');
-        profittoEur += parseItalianFloat(o["Profitto (EUR)"] || o.profitto_eur || '0');
+        costoFornitoreEur += parseItalianFloat(o["Costo totale (EUR)"] || o.costo_totale_eur || '0');
       });
 
+      const costoTotaleEur = Number((costoFornitoreEur + alibabaFeeEur).toFixed(2));
+      const profittoEur = Number((incassoTotaleEur - costoTotaleEur).toFixed(2));
       const marginePercentuale = incassoTotaleEur > 0 ? (profittoEur / incassoTotaleEur) * 100 : 0;
 
       // 5. Genera automaticamente l'Excel del fornitore compilato ad alta fedeltà
@@ -4830,13 +5048,17 @@ app.post('/api/lotto/archive', async (req, res) => {
         archived_at: new Date().toLocaleString('it-IT'),
         numero_ordini: totaleNumeroOrdini,
         numero_articoli: totaleNumeroArticoli,
-        incasso_totale_eur: incassoTotaleEur,
+        incasso_totale_eur: Number(incassoTotaleEur.toFixed(2)),
         costo_prodotti_usd: costoProdottiUsd,
         costo_spedizione_usd: costoSpedizioneUsd,
+        costo_fornitore_usd: costoFornitoreUsd,
         costo_totale_usd: costoTotaleUsd,
+        alibaba_fee_usd: alibabaFeeUsd,
+        alibaba_fee_eur: alibabaFeeEur,
+        costo_fornitore_eur: Number(costoFornitoreEur.toFixed(2)),
         costo_totale_eur: costoTotaleEur,
         profitto_eur: profittoEur,
-        margine_percentuale: marginePercentuale,
+        margine_percentuale: Number(marginePercentuale.toFixed(2)),
         excel_url: excelUrl,
         orders: activeOrders
       };
@@ -5767,6 +5989,7 @@ app.delete('/api/reviews/:id', async (req, res) => {
 // GET /api/orders - Ottieni tutti gli ordini registrati con cache locale resiliente
 app.get('/api/orders', async (req, res) => {
   try {
+    await recalculateCurrentLotto();
     const orders = await getDbOrders();
     // Determina dinamicamente le chiavi archiviate dalle proprietà degli ordini, con fallback locale
     let archivedKeys = orders.filter(o => o.is_archived === true).map(o => o.data);
@@ -6511,12 +6734,14 @@ function parseOrderProfitValue(order) {
 
 function parseOrderCostEUR(order) {
   if (!order) return 0;
-  const raw = order["Costo (EUR)"] !== undefined ? order["Costo (EUR)"]
+  const raw = order["Costo totale (EUR)"] !== undefined ? order["Costo totale (EUR)"]
+    : (order["Costo (EUR)"] !== undefined ? order["Costo (EUR)"]
     : (order["Costo Fornitore (EUR)"] !== undefined ? order["Costo Fornitore (EUR)"]
     : (order["Costo Totale Fornitore (EUR)"] !== undefined ? order["Costo Totale Fornitore (EUR)"]
+    : (order.costo_totale_eur !== undefined ? order.costo_totale_eur
     : (order.costo_eur !== undefined ? order.costo_eur
     : (order.costo !== undefined ? order.costo
-    : (order.costo_fornitore_eur !== undefined ? order.costo_fornitore_eur : undefined)))));
+    : (order.costo_fornitore_eur !== undefined ? order.costo_fornitore_eur : undefined)))))));
   if (raw === undefined || raw === null) return 0;
   if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
   const str = String(raw).trim().replace('€', '').replace('$', '').replace(/\s/g, '');
@@ -6525,7 +6750,7 @@ function parseOrderCostEUR(order) {
 }
 
 // Recupera tutti gli articoli di un ordine e calcola dettagliatamente il costo fornitore in USD (Base + Personalizzazioni + Spedizione)
-async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, currentSettings = null) {
+async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, currentSettings = null, unitShippingOverride = null) {
   if (!order) return [];
   
   if (!allDbProducts) {
@@ -6565,7 +6790,11 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
   }
 
   const settings = currentSettings || getSettings();
-  const { unitShipping } = getSupplierShippingCost(1, settings);
+  const shippingUnitUSD = (unitShippingOverride !== null && unitShippingOverride !== undefined)
+    ? Number(unitShippingOverride)
+    : getShippingRateByQuantity(1, settings);
+
+  const orderExchangeRate = getOrderEffectiveExchangeRate(order, settings);
 
   const items = [];
   (cartItems || []).forEach((item, idx) => {
@@ -6611,12 +6840,12 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
     const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
     const customDetails = parseCustomizationDetails(rawInfoPerso, item);
     const supplierCustomizationPriceUSD = customDetails.customizationCostUSD;
-    
-    // Spedizione fornitore per pezzo in USD
-    const shippingUnitUSD = Number(unitShipping || 4.0);
 
     const unitTotalCostUSD = Number((basePriceUSD + supplierCustomizationPriceUSD + shippingUnitUSD).toFixed(2));
     const totalPriceUSD = Number((unitTotalCostUSD * q).toFixed(2));
+
+    const unitTotalCostEUR = convertUsdToEur(unitTotalCostUSD, orderExchangeRate, 'getOrderItemsDetailedSupplierCosts');
+    const totalPriceEUR = Number((unitTotalCostEUR * q).toFixed(2));
 
     const titleItalian = matchedProd ? matchedProd.versione.trim() : (item.versione || item.squadra || "").trim();
     const squadra = matchedProd ? matchedProd.squadra.trim() : (item.squadra || "").trim();
@@ -6636,8 +6865,10 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
       shipping_unit_usd: Number(shippingUnitUSD.toFixed(2)),
       unit_total_cost_usd: unitTotalCostUSD,
       total_cost_usd: totalPriceUSD,
+      unit_total_cost_eur: unitTotalCostEUR,
+      total_cost_eur: totalPriceEUR,
       image_url: imageUrl,
-      label: `${titleItalian || squadra} (Taglia: ${item.taglia || '-'}) — $ ${unitTotalCostUSD.toFixed(2)} USD`
+      label: `${titleItalian || squadra} (Taglia: ${item.taglia || '-'}) — $ ${unitTotalCostUSD.toFixed(2)} USD (€ ${unitTotalCostEUR.toFixed(2)})`
     });
   });
 
@@ -6670,7 +6901,8 @@ app.get('/api/profit-splits', async (req, res) => {
     } catch (e) {}
     const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
     const settings = getSettings();
-    const exchangeRate = Number(settings?.cambio_usd_eur) || 0.92;
+    const lotTotals = calculateLottoTotals(orders, settings);
+    const currentLotShippingRate = lotTotals.spedizione_unitaria;
 
     let totalProfit = 0;
     let sergioTotalWithdrawals = 0;
@@ -6685,18 +6917,19 @@ app.get('/api/profit-splits', async (req, res) => {
       const orderNumber = o["Numero Ordine"] || o.order_number || (o.id ? `#${o.id}` : dataKey);
       const customerName = o.nome || 'Cliente';
       const orderDate = o.data || o.created_at || '';
+      const orderExchangeRate = getOrderEffectiveExchangeRate(o, settings);
       
       // Profitto originale dell'ordine
       const profitTotal = parseOrderProfitValue(o);
       totalProfit += profitTotal;
 
-      // Calcola articoli dell'ordine con costi fornitore automatici
-      const orderItems = await getOrderItemsDetailedSupplierCosts(o, allDbProducts, settings);
+      // Calcola articoli dell'ordine con costi fornitore automatici e tariffa lotto corretta
+      const orderItems = await getOrderItemsDetailedSupplierCosts(o, allDbProducts, settings, currentLotShippingRate);
       
-      // Costo dell'acquisto (in EUR)
+      // Costo dell'acquisto (in EUR) coerente con Ordini Prodotti
       const eurDirect = parseOrderCostEUR(o);
       const itemsUsd = orderItems.reduce((s, it) => s + (Number(it.total_cost_usd) || 0), 0);
-      const calculatedEur = itemsUsd > 0 ? (itemsUsd * exchangeRate) : 0;
+      const calculatedEur = itemsUsd > 0 ? convertUsdToEur(itemsUsd, orderExchangeRate, '/api/profit-splits') : 0;
       const orderCostEur = eurDirect > 0 ? eurDirect : (calculatedEur > 0 ? calculatedEur : (itemsUsd > 0 ? itemsUsd : 0));
       const finalCostEur = Number(orderCostEur.toFixed(2));
 
@@ -6767,8 +7000,15 @@ app.get('/api/profit-splits', async (req, res) => {
       });
     }
 
-    const sergioTotalInitial = Number((totalProfit / 2).toFixed(2));
-    const riccardoTotalInitial = Number((totalProfit / 2).toFixed(2));
+    // Alibaba Payment Fee (3% sul totale fornitore del lotto in USD convertito in EUR)
+    const alibabaFeeUsd = lotTotals.alibaba_fee_usd;
+    const alibabaFeeEur = lotTotals.alibaba_fee_eur;
+    const ordersProfitTotal = Number(totalProfit.toFixed(2));
+    // Il profitto netto disponibile per i soci è il profitto complessivo degli ordini al netto della Alibaba Payment Fee
+    const netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
+
+    const sergioTotalInitial = Number((netTotalProfit / 2).toFixed(2));
+    const riccardoTotalInitial = Number((netTotalProfit / 2).toFixed(2));
     const sergioTotalNet = Number((sergioTotalInitial - sergioTotalWithdrawals).toFixed(2));
     const riccardoTotalNet = Number((riccardoTotalInitial - riccardoTotalWithdrawals).toFixed(2));
     const totalNetBalance = Number((sergioTotalNet + riccardoTotalNet).toFixed(2));
@@ -6777,7 +7017,10 @@ app.get('/api/profit-splits', async (req, res) => {
       success: true,
       summary: {
         total_orders: orders.length,
-        total_profit: Number(totalProfit.toFixed(2)),
+        orders_profit_total: ordersProfitTotal,
+        alibaba_fee_usd: alibabaFeeUsd,
+        alibaba_fee_eur: alibabaFeeEur,
+        total_profit: netTotalProfit,
         total_modifications: modificationsList.length,
         total_net: totalNetBalance,
         sergio: {
@@ -7238,22 +7481,7 @@ app.post('/api/orders', async (req, res) => {
             discount_eur = Math.min(parseFloat(c.value), subtotal_eur + shipping_cost_eur);
           } else if (c.type === 'fornitore') {
             const settings = getSettings();
-            let exRate = 0.92;
-            if (settings.cambioValuta.mode === 'manual') {
-              exRate = parseFloat(settings.cambioValuta.manual_rate) || 0.86;
-            } else {
-              try {
-                const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
-                if (rateRes.ok) {
-                  const rateData = await rateRes.json();
-                  if (rateData && rateData.rates && rateData.rates.EUR) {
-                    exRate = rateData.rates.EUR;
-                  }
-                }
-              } catch (err) {
-                exRate = parseFloat(settings.cambioValuta.manual_rate) || 0.92;
-              }
-            }
+            const exRate = await getLiveOrSettingsExchangeRate(settings);
             supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts);
             isSupplierCoupon = true;
           }
@@ -7272,25 +7500,9 @@ app.post('/api/orders', async (req, res) => {
 
     // 1. Recupera tasso di cambio USD/EUR live o manuale da settings
     const settings = getSettings();
-    let exchangeRate = 0.92;
-    if (settings.cambioValuta.mode === 'manual') {
-      exchangeRate = parseFloat(settings.cambioValuta.manual_rate) || 0.86;
-    } else {
-      try {
-        const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
-        if (rateRes.ok) {
-          const rateData = await rateRes.json();
-          if (rateData && rateData.rates && rateData.rates.EUR) {
-            exchangeRate = rateData.rates.EUR;
-          }
-        }
-      } catch (err) {
-        console.warn("⚠️ Impossibile recuperare il cambio EUR/USD live, utilizzo fallback:", err.message);
-        exchangeRate = parseFloat(settings.cambioValuta.manual_rate) || 0.92;
-      }
-    }
+    const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
 
-    // 2. Carica e aggiorna Lotto Corrente persistente
+    // 2. Carica e calcola Lotto Corrente persistente
     const lottoFile = path.join(__dirname, 'lotto.json');
     let lotto = {
       numero_totale_articoli: 0,
@@ -7305,21 +7517,11 @@ app.post('/api/orders', async (req, res) => {
     const nuovo_numero_totale_articoli = lotto.numero_totale_articoli + quantita_totale_articoli;
     const nuovo_costo_totale_prodotti_usd = lotto.costo_totale_prodotti_usd + costo_prodotti_usd;
 
-    // Regola spedizione automatica in base agli articoli totali nel lotto da settings:
-    let spedizione_unitaria = 4.0;
-    const rules = settings.spedizioneLotto;
-    if (nuovo_numero_totale_articoli >= rules.range1_min && nuovo_numero_totale_articoli <= rules.range1_max) {
-      spedizione_unitaria = parseFloat(rules.range1_cost);
-    } else if (nuovo_numero_totale_articoli >= rules.range2_min && nuovo_numero_totale_articoli <= rules.range2_max) {
-      spedizione_unitaria = parseFloat(rules.range2_cost);
-    } else if (nuovo_numero_totale_articoli >= rules.range3_min) {
-      spedizione_unitaria = parseFloat(rules.range3_cost);
-    } else {
-      spedizione_unitaria = parseFloat(rules.range1_cost);
-    }
+    // Regola spedizione automatica dinamica su TUTTE le fasce del fornitore:
+    const spedizione_unitaria = getShippingRateByQuantity(nuovo_numero_totale_articoli, settings);
 
-    const spedizione_totale_lotto = nuovo_numero_totale_articoli * spedizione_unitaria;
-    const nuovo_costo_complessivo_lotto_usd = nuovo_costo_totale_prodotti_usd + spedizione_totale_lotto;
+    const spedizione_totale_lotto = Number((nuovo_numero_totale_articoli * spedizione_unitaria).toFixed(2));
+    const nuovo_costo_complessivo_lotto_usd = Number((nuovo_costo_totale_prodotti_usd + spedizione_totale_lotto).toFixed(2));
 
     const updatedLotto = {
       numero_totale_articoli: nuovo_numero_totale_articoli,
@@ -7329,10 +7531,10 @@ app.post('/api/orders', async (req, res) => {
     };
 
     // 3. Prepara riga ordine per foglio "Ordini"
-    const order_shipping_usd = quantita_totale_articoli * spedizione_unitaria; // La spedizione applicata a questo ordine nel lotto (costo per articolo)
-    const costo_totale_usd = costo_prodotti_usd + order_shipping_usd;
-    const costo_totale_eur = costo_totale_usd * exchangeRate;
-    const profitto_eur = totale_pagato_cliente - costo_totale_eur;
+    const order_shipping_usd = Number((quantita_totale_articoli * spedizione_unitaria).toFixed(2));
+    const costo_totale_usd = Number((costo_prodotti_usd + order_shipping_usd).toFixed(2));
+    const costo_totale_eur = convertUsdToEur(costo_totale_usd, exchangeRate, 'POST /api/orders');
+    const profitto_eur = Number((totale_pagato_cliente - costo_totale_eur).toFixed(2));
 
     console.log("=== OVERALL CALCULATIONS & VALUES ===");
     console.log(`- totale_pagato_cliente:`, totale_pagato_cliente);
@@ -7551,26 +7753,65 @@ console.log("=================================");
 // GET /api/customer/order-lotto/:id - Recupera l'ID del lotto partendo dall'ordine del cliente
 app.get('/api/customer/order-lotto/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      return res.status(500).json({ success: false, error: "Database non configurato." });
-    }
-    
-    // Recupera l'ordine da Supabase (tabella orders)
-    const { data: ord, error } = await supabase
-      .from('orders')
-      .select('lotto_id')
-      .eq('id', id)
-      .single();
-      
-    if (error || !ord) {
+    const rawId = req.params.id;
+    if (!rawId || rawId === 'undefined' || rawId === 'null') {
       return res.json({ success: true, lotto_id: null });
     }
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return res.json({ success: true, lotto_id: null });
+    }
+
+    const cleanId = String(rawId).trim();
+    const isNumeric = /^\d+$/.test(cleanId);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+
+    if (isNumeric) {
+      const { data: ord } = await supabase
+        .from('orders')
+        .select('lotto_id')
+        .eq('id', Number(cleanId))
+        .maybeSingle();
+
+      if (ord && ord.lotto_id) {
+        return res.json({ success: true, lotto_id: ord.lotto_id });
+      }
+    } else if (isUuid) {
+      const { data: custOrd } = await supabase
+        .from('customer_orders')
+        .select('admin_order_id')
+        .eq('id', cleanId)
+        .maybeSingle();
+
+      if (custOrd && custOrd.admin_order_id && /^\d+$/.test(String(custOrd.admin_order_id))) {
+        const { data: ord } = await supabase
+          .from('orders')
+          .select('lotto_id')
+          .eq('id', Number(custOrd.admin_order_id))
+          .maybeSingle();
+
+        if (ord && ord.lotto_id) {
+          return res.json({ success: true, lotto_id: ord.lotto_id });
+        }
+      }
+    } else {
+      const numPart = cleanId.replace(/^ORD-?/i, '');
+      if (/^\d+$/.test(numPart)) {
+        const { data: ord } = await supabase
+          .from('orders')
+          .select('lotto_id')
+          .eq('id', Number(numPart))
+          .maybeSingle();
+
+        if (ord && ord.lotto_id) {
+          return res.json({ success: true, lotto_id: ord.lotto_id });
+        }
+      }
+    }
     
-    return res.json({ success: true, lotto_id: ord.lotto_id });
+    return res.json({ success: true, lotto_id: null });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return res.json({ success: true, lotto_id: null });
   }
 });
 
@@ -7688,16 +7929,7 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
     const diffQty = newQty - prevQty;
     const nuovo_numero_totale_articoli = Math.max(0, lotto.numero_totale_articoli + diffQty);
 
-    let spedizione_unitaria = 4.0;
-    if (nuovo_numero_totale_articoli >= rules.range1_min && nuovo_numero_totale_articoli <= rules.range1_max) {
-      spedizione_unitaria = parseFloat(rules.range1_cost);
-    } else if (nuovo_numero_totale_articoli >= rules.range2_min && nuovo_numero_totale_articoli <= rules.range2_max) {
-      spedizione_unitaria = parseFloat(rules.range2_cost);
-    } else if (nuovo_numero_totale_articoli >= rules.range3_min) {
-      spedizione_unitaria = parseFloat(rules.range3_cost);
-    } else {
-      spedizione_unitaria = parseFloat(rules.range1_cost);
-    }
+    const spedizione_unitaria = getShippingRateByQuantity(nuovo_numero_totale_articoli, settings);
 
     carrello.forEach(item => {
       const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
@@ -7739,27 +7971,12 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
     const total = subtotal + shipping;
 
     // Cambio valuta
-    let exchangeRate = 0.92;
-    if (settings.cambioValuta.mode === 'manual') {
-      exchangeRate = parseFloat(settings.cambioValuta.manual_rate) || 0.86;
-    } else {
-      try {
-        const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
-        if (rateRes.ok) {
-          const rateData = await rateRes.json();
-          if (rateData && rateData.rates && rateData.rates.EUR) {
-            exchangeRate = rateData.rates.EUR;
-          }
-        }
-      } catch (err) {
-        console.warn("⚠️ Cambio USD/EUR fallback:", err.message);
-      }
-    }
+    const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
 
-    const order_shipping_usd = quantita_totale_articoli * spedizione_unitaria;
-    const costo_totale_usd = costo_prodotti_usd + order_shipping_usd;
-    const costo_totale_eur = costo_totale_usd * exchangeRate;
-    const profitto_eur = total - costo_totale_eur;
+    const order_shipping_usd = Number((quantita_totale_articoli * spedizione_unitaria).toFixed(2));
+    const costo_totale_usd = Number((costo_prodotti_usd + order_shipping_usd).toFixed(2));
+    const costo_totale_eur = convertUsdToEur(costo_totale_usd, exchangeRate, 'update-customer-order');
+    const profitto_eur = Number((total - costo_totale_eur).toFixed(2));
 
     // 1. Aggiorna tabella customer_orders
     const { error: updateOrderErr } = await supabase
@@ -8548,23 +8765,40 @@ app.post('/api/admin/lotto/save-tracking', async (req, res) => {
 
 app.get('/api/customer/order-tracking-info/:adminOrderId', async (req, res) => {
   try {
-    const adminOrderId = req.params.adminOrderId;
-    if (!adminOrderId) {
-      return res.status(400).json({ success: false, error: "ID ordine mancante." });
+    const rawId = req.params.adminOrderId;
+    if (!rawId || rawId === 'undefined' || rawId === 'null') {
+      return res.json({
+        success: true,
+        has_lotto: false,
+        shipping_status: "In preparazione",
+        status: "In preparazione",
+        tracking_code: "",
+        tracking_url: "",
+        message: "Nessun ID fornito."
+      });
     }
     
     const supabase = getSupabaseClient();
     if (!supabase) {
-      return res.status(500).json({ success: false, error: "Database non configurato." });
+      return res.json({
+        success: true,
+        has_lotto: false,
+        shipping_status: "In preparazione",
+        status: "In preparazione",
+        tracking_code: "",
+        tracking_url: ""
+      });
     }
     
     let order = null;
     let fallbackStatus = "In preparazione";
     
-    const isNumeric = /^\d+$/.test(String(adminOrderId));
+    const cleanId = String(rawId).trim();
+    const isNumeric = /^\d+$/.test(cleanId);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
     
     if (isNumeric) {
-      const numericId = Number(adminOrderId);
+      const numericId = Number(cleanId);
       // 1. Cerca nella tabella admin 'orders'
       const { data, error } = await supabase
         .from('orders')
@@ -8575,45 +8809,79 @@ app.get('/api/customer/order-tracking-info/:adminOrderId', async (req, res) => {
       if (!error && data) {
         order = data;
       } else {
-        // Fallback: cerca in customer_orders per admin_order_id
-        const { data: custOrder, error: custErr } = await supabase
+        // Fallback: cerca in customer_orders per admin_order_id o order_number
+        const { data: custOrder } = await supabase
           .from('customer_orders')
-          .select('status')
-          .eq('admin_order_id', numericId)
+          .select('*')
+          .or(`admin_order_id.eq.${numericId},order_number.eq.ORD-${numericId},order_number.eq.${numericId}`)
           .maybeSingle();
           
-        if (!custErr && custOrder) {
+        if (custOrder) {
           fallbackStatus = custOrder.status || "In preparazione";
+          if (custOrder.admin_order_id && /^\d+$/.test(String(custOrder.admin_order_id))) {
+            const { data: ord } = await supabase
+              .from('orders')
+              .select('*')
+              .eq('id', Number(custOrder.admin_order_id))
+              .maybeSingle();
+            if (ord) order = ord;
+          }
         }
       }
-    } else {
+    } else if (isUuid) {
       // adminOrderId è un UUID, quindi probabilmente l'id di customer_orders
-      const { data: custOrder, error: custErr } = await supabase
+      const { data: custOrder } = await supabase
         .from('customer_orders')
         .select('*')
-        .eq('id', adminOrderId)
+        .eq('id', cleanId)
         .maybeSingle();
         
-      if (!custErr && custOrder) {
+      if (custOrder) {
         fallbackStatus = custOrder.status || "In preparazione";
         const linkedAdminId = custOrder.admin_order_id;
         if (linkedAdminId && /^\d+$/.test(String(linkedAdminId))) {
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from('orders')
             .select('*')
             .eq('id', Number(linkedAdminId))
             .maybeSingle();
-          if (!error && data) {
+          if (data) {
             order = data;
+          }
+        }
+      }
+    } else {
+      // Stringa generica tipo "ORD-4829" o altro
+      const numPart = cleanId.replace(/^ORD-?/i, '');
+      if (/^\d+$/.test(numPart)) {
+        const { data: ord } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', Number(numPart))
+          .maybeSingle();
+        if (ord) order = ord;
+      }
+      if (!order) {
+        const { data: custOrder } = await supabase
+          .from('customer_orders')
+          .select('*')
+          .or(`order_number.eq.${cleanId},order_number.eq.ORD-${cleanId}`)
+          .maybeSingle();
+        if (custOrder) {
+          fallbackStatus = custOrder.status || "In preparazione";
+          if (custOrder.admin_order_id && /^\d+$/.test(String(custOrder.admin_order_id))) {
+            const { data: ord } = await supabase
+              .from('orders')
+              .select('*')
+              .eq('id', Number(custOrder.admin_order_id))
+              .maybeSingle();
+            if (ord) order = ord;
           }
         }
       }
     }
     
     if (!order) {
-      // Se non abbiamo trovato l'ordine admin originale in 'orders' (es. riga rimossa o non sincronizzata),
-      // restituiamo comunque un successo con il fallbackStatus, così l'utente vede il tracciamento
-      // sincronizzato con lo stato memorizzato in customer_orders!
       return res.json({
         success: true,
         has_lotto: false,
@@ -8621,7 +8889,7 @@ app.get('/api/customer/order-tracking-info/:adminOrderId', async (req, res) => {
         status: fallbackStatus,
         tracking_code: "",
         tracking_url: "",
-        message: "Informazioni di spedizione non ancora collegate."
+        message: "Informazioni di spedizione collegate."
       });
     }
     
@@ -8631,8 +8899,8 @@ app.get('/api/customer/order-tracking-info/:adminOrderId', async (req, res) => {
       return res.json({
         success: true,
         has_lotto: false,
-        shipping_status: fallbackStatus || "In preparazione",
-        status: fallbackStatus || "In preparazione",
+        shipping_status: fallbackStatus || order.stato || "In preparazione",
+        status: fallbackStatus || order.stato || "In preparazione",
         message: "In attesa di associazione a un lotto di spedizione."
       });
     }
@@ -8643,8 +8911,8 @@ app.get('/api/customer/order-tracking-info/:adminOrderId', async (req, res) => {
       return res.json({
         success: true,
         has_lotto: false,
-        shipping_status: fallbackStatus || "In preparazione",
-        status: fallbackStatus || "In preparazione",
+        shipping_status: fallbackStatus || order.stato || "In preparazione",
+        status: fallbackStatus || order.stato || "In preparazione",
         message: "Lotto associato non ancora archiviato o pronto."
       });
     }
@@ -8659,8 +8927,14 @@ app.get('/api/customer/order-tracking-info/:adminOrderId', async (req, res) => {
       tracking_url: tracking.tracking_url || ""
     });
   } catch (err) {
-    console.error("⚠️ Errore GET /api/customer/order-tracking-info:", err.message);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.json({
+      success: true,
+      has_lotto: false,
+      shipping_status: "In preparazione",
+      status: "In preparazione",
+      tracking_code: "",
+      tracking_url: ""
+    });
   }
 });
 

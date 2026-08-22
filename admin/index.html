@@ -188,46 +188,61 @@
 
                     <!-- Gruppo 2: Performance Finanziarie -->
                     <div>
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Performance Finanziarie (EUR)</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <!-- Incasso Totale -->
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Performance Finanziarie Lotto Corrente (EUR)</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-5">
+                            <!-- 1. Incasso Totale Clienti -->
                             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                                 <div class="space-y-1">
-                                    <p class="text-xs font-semibold text-slate-500">Incasso Totale</p>
-                                    <h4 id="stats-incasso-totale" class="text-2xl font-black text-slate-900 font-mono">--</h4>
+                                    <p class="text-xs font-semibold text-slate-500">Incasso Clienti</p>
+                                    <h4 id="stats-incasso-totale" class="text-xl lg:text-2xl font-black text-slate-900 font-mono">--</h4>
                                 </div>
-                                <div class="h-10 w-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-lg shadow-inner">
+                                <div class="h-10 w-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-lg shadow-inner shrink-0">
                                     💶
                                 </div>
                             </div>
-                            <!-- Costo Totale Prodotti -->
+                            <!-- 2. Costo Fornitore -->
                             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                                 <div class="space-y-1">
-                                    <p class="text-xs font-semibold text-slate-500">Costo Totale Prodotti</p>
-                                    <h4 id="stats-costo-totale-prodotti" class="text-2xl font-black text-slate-900 font-mono">--</h4>
+                                    <p class="text-xs font-semibold text-slate-500">Costo Fornitore</p>
+                                    <h4 id="stats-costo-totale-prodotti" class="text-xl lg:text-2xl font-black text-slate-900 font-mono">--</h4>
                                 </div>
-                                <div class="h-10 w-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-lg shadow-inner">
-                                    💸
+                                <div class="h-10 w-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-lg shadow-inner shrink-0">
+                                    📦
                                 </div>
                             </div>
-                            <!-- Profitto Totale -->
-                            <div class="bg-white border border-brand-gold/20 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                            <!-- 3. Alibaba Payment Fee -->
+                            <div class="bg-white border border-amber-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                                 <div class="space-y-1">
-                                    <p class="text-xs font-semibold text-brand-gold">Profitto Totale</p>
-                                    <h4 id="stats-profitto-totale" class="text-2xl font-black text-emerald-600 font-mono">--</h4>
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-xs font-semibold text-amber-700">Alibaba Fee</p>
+                                        <span class="px-1.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-800 rounded">3%</span>
+                                    </div>
+                                    <h4 id="stats-alibaba-fee" class="text-xl lg:text-2xl font-black text-amber-800 font-mono">--</h4>
+                                    <p id="stats-alibaba-fee-usd" class="text-[10px] text-amber-600 font-medium font-mono">$ --</p>
                                 </div>
-                                <div class="h-10 w-10 bg-amber-500/10 text-brand-gold rounded-xl flex items-center justify-center text-lg shadow-inner">
+                                <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-lg shadow-inner shrink-0">
+                                    💳
+                                </div>
+                            </div>
+                            <!-- 4. Costo Totale Lotto -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <p class="text-xs font-semibold text-slate-500">Costo Totale Lotto</p>
+                                    <h4 id="stats-costo-totale-lotto-eur" class="text-xl lg:text-2xl font-black text-slate-900 font-mono">--</h4>
+                                    <p class="text-[10px] text-slate-400 font-medium">Fornitore + Alibaba Fee</p>
+                                </div>
+                                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg shadow-inner shrink-0">
+                                    📊
+                                </div>
+                            </div>
+                            <!-- 5. Profitto Reale -->
+                            <div class="bg-white border border-brand-gold/30 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <p class="text-xs font-semibold text-brand-gold">Profitto Reale</p>
+                                    <h4 id="stats-profitto-totale" class="text-xl lg:text-2xl font-black text-emerald-600 font-mono">--</h4>
+                                </div>
+                                <div class="h-10 w-10 bg-amber-500/10 text-brand-gold rounded-xl flex items-center justify-center text-lg shadow-inner shrink-0">
                                     🏆
-                                </div>
-                            </div>
-                            <!-- Margine Medio -->
-                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div class="space-y-1">
-                                    <p class="text-xs font-semibold text-slate-500">Margine Medio</p>
-                                    <h4 id="stats-margine-medio" class="text-2xl font-black text-slate-900 font-mono">--</h4>
-                                </div>
-                                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg shadow-inner">
-                                    📈
                                 </div>
                             </div>
                         </div>
@@ -236,7 +251,7 @@
                     <!-- Gruppo 3: Lotto & Dettagli Lotto Corrente -->
                     <div>
                         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Lotto Corrente & Vendite</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <!-- Articoli Venduti -->
                             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                                 <div class="space-y-1">
@@ -247,6 +262,29 @@
                                     🛍️
                                 </div>
                             </div>
+                            <!-- Margine Medio -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <p class="text-xs font-semibold text-slate-500">Margine Reale</p>
+                                    <h4 id="stats-margine-medio" class="text-2xl font-black text-slate-900 font-mono">--</h4>
+                                </div>
+                                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg shadow-inner">
+                                    📈
+                                </div>
+                            </div>
+                            <!-- Costo Lotto Corrente (USD) -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+                                <div class="space-y-1">
+                                    <p class="text-xs font-semibold text-slate-500">Costo Lotto (USD)</p>
+                                    <div class="flex items-baseline gap-1">
+                                        <h4 id="stats-lotto-costo" class="text-xl font-black text-slate-900 font-mono">--</h4>
+                                        <span id="stats-lotto-corrente" class="text-[10px] text-slate-400 font-mono font-bold">(-- art.)</span>
+                                    </div>
+                                </div>
+                                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg shadow-inner">
+                                    🚚
+                                </div>
+                            </div>
                             <!-- Ultimo Ordine -->
                             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between col-span-1">
                                 <div class="space-y-1 min-w-0">
@@ -255,19 +293,6 @@
                                 </div>
                                 <div class="h-10 w-10 bg-cyan-50 text-cyan-600 rounded-xl flex flex-shrink-0 items-center justify-center text-lg shadow-inner">
                                     🔔
-                                </div>
-                            </div>
-                            <!-- Costo Lotto Corrente (USD) -->
-                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                                <div class="space-y-1">
-                                    <p class="text-xs font-semibold text-slate-500">Costo Lotto Corrente</p>
-                                    <div class="flex items-baseline gap-1">
-                                        <h4 id="stats-lotto-costo" class="text-xl font-black text-slate-900 font-mono">--</h4>
-                                        <span id="stats-lotto-corrente" class="text-[10px] text-slate-400 font-mono font-bold">(-- art.)</span>
-                                    </div>
-                                </div>
-                                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg shadow-inner">
-                                    🚚
                                 </div>
                             </div>
                         </div>
@@ -503,7 +528,7 @@
 
                     <!-- Metrics Grid inside Lotto Card -->
                     <div class="space-y-4">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Costi di Acquisto (Fornitore - USD)</h4>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Costi di Acquisto Fornitore (USD)</h4>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Articoli nel lotto</span>
@@ -521,24 +546,50 @@
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo totale personalizzazioni (USD)</span>
                                 <span id="lotto-costo-personalizzazioni" class="text-xl font-extrabold text-slate-900 font-mono">$ --</span>
                             </div>
-                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80 col-span-2">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Totale Lotto incluso spedizione (USD)</span>
-                                <span id="lotto-costo-totale" class="text-xl font-extrabold text-slate-900 font-mono text-brand-gold">$ --</span>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Totale Fornitore (USD)</span>
+                                <span id="lotto-costo-fornitore-usd" class="text-xl font-extrabold text-slate-900 font-mono">$ --</span>
+                            </div>
+                            <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Alibaba Payment Fee (3%)</span>
+                                    <span class="px-1.5 py-0.2 text-[9px] font-bold bg-amber-200/70 text-amber-900 rounded font-mono">USD</span>
+                                </div>
+                                <span id="lotto-alibaba-fee-usd" class="text-xl font-extrabold text-amber-800 font-mono block mt-1">$ --</span>
+                            </div>
+                            <div class="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 col-span-2 shadow-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Costo Totale Reale Lotto (USD)</span>
+                                    <span class="text-[10px] text-slate-400">Fornitore + Alibaba Fee (3%)</span>
+                                </div>
+                                <span id="lotto-costo-totale" class="text-2xl font-black text-white font-mono mt-1 block">$ --</span>
                             </div>
                         </div>
 
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider pt-2">Rendimento Attivo Previsto (Vendite - EUR)</h4>
-                        <div class="grid grid-cols-3 gap-4">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider pt-2">Rendimento & Costi Reali Lotto (EUR)</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Incasso Previsto dai clienti</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Incasso Clienti</span>
                                 <span id="lotto-incasso-previsto" class="text-base font-extrabold text-slate-900 font-mono">--</span>
                             </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Fornitore (EUR)</span>
+                                <span id="lotto-costo-fornitore-eur" class="text-base font-extrabold text-slate-900 font-mono">--</span>
+                            </div>
+                            <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80">
+                                <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Alibaba Fee (3% EUR)</span>
+                                <span id="lotto-alibaba-fee-eur" class="text-base font-extrabold text-amber-800 font-mono">--</span>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Totale Lotto</span>
+                                <span id="lotto-costo-totale-eur" class="text-base font-extrabold text-purple-700 font-mono">--</span>
+                            </div>
                             <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
-                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Profitto Previsto</span>
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Profitto Reale</span>
                                 <span id="lotto-profitto-previsto" class="text-base font-extrabold text-emerald-600 font-mono">--</span>
                             </div>
                             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Margine Previsto</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Margine Reale</span>
                                 <span id="lotto-margine-previsto" class="text-base font-extrabold text-slate-900 font-mono">--</span>
                             </div>
                         </div>
@@ -1803,12 +1854,22 @@
                     <!-- 1. Totale Profitto Lotto -->
                     <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Profitto Lotto</span>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Profitto Disponibile</span>
                             <span class="p-1.5 bg-blue-50 text-blue-600 rounded-xl text-base">💰</span>
                         </div>
-                        <div class="space-y-1">
+                        <div class="space-y-1.5">
                             <h3 id="split-total-profit" class="text-2xl font-black text-slate-900 font-mono">€ 0,00</h3>
-                            <p class="text-[11px] text-slate-400 font-medium"><span id="split-total-orders-count">0</span> ordini attivi nel lotto</p>
+                            <div class="space-y-0.5 pt-1 border-t border-slate-100 text-[11px] text-slate-500">
+                                <div class="flex justify-between">
+                                    <span>Profitto ordini:</span>
+                                    <span id="split-orders-profit" class="font-mono font-semibold text-slate-700">€ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-amber-700">
+                                    <span>Alibaba Fee (3%):</span>
+                                    <span id="split-alibaba-fee" class="font-mono font-semibold">-€ 0,00</span>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-medium pt-0.5"><span id="split-total-orders-count">0</span> ordini attivi nel lotto</p>
                         </div>
                     </div>
 
@@ -2512,7 +2573,7 @@
                 <!-- Informazioni generali / Economic summary cards -->
                 <div>
                     <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Riepilogo Economico</h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Ordini Totali</span>
                             <span id="detail-lotto-ordini" class="text-lg font-extrabold text-slate-900 font-mono">--</span>
@@ -2521,8 +2582,8 @@
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Articoli Totali</span>
                             <span id="detail-lotto-articoli" class="text-lg font-extrabold text-slate-900 font-mono">--</span>
                         </div>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80 col-span-2 sm:col-span-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Incasso Totale</span>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Incasso Clienti</span>
                             <span id="detail-lotto-incasso" class="text-lg font-extrabold text-emerald-600 font-mono">--</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
@@ -2533,16 +2594,20 @@
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Spedizione (USD)</span>
                             <span id="detail-lotto-costo-spedizione" class="text-lg font-extrabold text-slate-900 font-mono">--</span>
                         </div>
+                        <div class="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80">
+                            <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Alibaba Payment Fee (3%)</span>
+                            <span id="detail-lotto-alibaba-fee" class="text-lg font-extrabold text-amber-800 font-mono">--</span>
+                        </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Totale (USD)</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Costo Totale Lotto</span>
                             <span id="detail-lotto-costo-totale" class="text-lg font-extrabold text-slate-900 font-mono">--</span>
                         </div>
-                        <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 col-span-2 lg:col-span-1">
-                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Profitto Effettivo</span>
+                        <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Profitto Reale</span>
                             <span id="detail-lotto-profitto" class="text-lg font-extrabold text-emerald-600 font-mono">--</span>
                         </div>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80 col-span-2 lg:col-span-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Margine Effettivo</span>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Margine Reale</span>
                             <span id="detail-lotto-margine" class="text-lg font-extrabold text-slate-900 font-mono">--</span>
                         </div>
                     </div>

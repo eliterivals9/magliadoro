@@ -7319,63 +7319,58 @@ function chiudiZoomImmagine(){
 
             caricaProdottiPromise = (async () => {
                 isCaricamentoCatalogoInCorso = true;
-                const urlChiamato = window.location.origin + '/api/products';
-                console.log("=== INIZIO CARICAMENTO PRODOTTI ===");
-                console.log("URL chiamato:", urlChiamato);
-                console.log("Endpoint utilizzato: GET /api/products");
-                try {
-                    const response = await fetch('/api/products');
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result && result.success && Array.isArray(result.products) && result.products.length > 0) {
-                            databaseProdotti.length = 0;
-                            result.products.forEach(p => {
-                                p.categoria = normalizzaCategoria(p.categoria);
-                                databaseProdotti.push(p);
-                            });
-                            window.databaseProdotti = databaseProdotti;
-                            databaseInizializzato = true;
-                            isCaricamentoCatalogoInCorso = false;
+                const maxTentativi = 3;
+                let attempt = 0;
+                let caricamentoRiuscito = false;
 
-                            console.log("\n=================================================");
-                            console.log("LOG CARICAMENTO CATALOGO PUBBLICO");
-                            console.log("=================================================");
-                            console.log("- Endpoint utilizzato: GET /api/products");
-                            console.log("- URL completo chiamato:", urlChiamato);
-                            console.log("- Conferma provenienza dati: " + (result.source === 'local' ? "Local Resilience Database (File JSON Fallback)" : "Supabase Database (tramite API backend)"));
-                            console.log("- Numero prodotti caricati:", databaseProdotti.length);
-                            console.log("=================================================\n");
+                while (attempt < maxTentativi && !caricamentoRiuscito) {
+                    attempt++;
+                    try {
+                        const response = await fetch('/api/products');
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result && result.success && Array.isArray(result.products) && result.products.length > 0) {
+                                databaseProdotti.length = 0;
+                                result.products.forEach(p => {
+                                    p.categoria = normalizzaCategoria(p.categoria);
+                                    databaseProdotti.push(p);
+                                });
+                                window.databaseProdotti = databaseProdotti;
+                                databaseInizializzato = true;
+                                isCaricamentoCatalogoInCorso = false;
+                                caricamentoRiuscito = true;
 
-                            // AGGIORNAMENTO E RENDERING AUTOMATICO INTERFACCIA APPENA DISPONIBILE
-                            if (typeof inizializzaCarouselNuoviArrivi === 'function') {
-                                inizializzaCarouselNuoviArrivi();
-                            }
-
-                            if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
-                                const paginaClub = document.getElementById('pagina-club');
-                                const paginaMondiali = document.getElementById('pagina-mondiali');
-                                if (paginaClub && paginaClub.classList.contains('attiva') && (!squadraSelezionata || squadraSelezionata === '')) {
-                                    squadraSelezionata = 'lega_tutti';
-                                } else if (paginaMondiali && paginaMondiali.classList.contains('attiva') && (!squadraSelezionata || squadraSelezionata === '')) {
-                                    squadraSelezionata = 'continent_tutte';
+                                // AGGIORNAMENTO E RENDERING AUTOMATICO INTERFACCIA APPENA DISPONIBILE
+                                if (typeof inizializzaCarouselNuoviArrivi === 'function') {
+                                    inizializzaCarouselNuoviArrivi();
                                 }
-                                renderizzaProdottiSquadraConFiltri();
-                            }
 
-                            return databaseProdotti;
+                                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
+                                    const paginaClub = document.getElementById('pagina-club');
+                                    const paginaMondiali = document.getElementById('pagina-mondiali');
+                                    if (paginaClub && paginaClub.classList.contains('attiva') && (!squadraSelezionata || squadraSelezionata === '')) {
+                                        squadraSelezionata = 'lega_tutti';
+                                    } else if (paginaMondiali && paginaMondiali.classList.contains('attiva') && (!squadraSelezionata || squadraSelezionata === '')) {
+                                        squadraSelezionata = 'continent_tutte';
+                                    }
+                                    renderizzaProdottiSquadraConFiltri();
+                                }
+
+                                return databaseProdotti;
+                            }
                         }
-                    } else {
-                        console.warn("Risposta non OK per /api/products (es. 404)");
+                    } catch (err) {
+                        if (attempt < maxTentativi) {
+                            await new Promise(r => setTimeout(r, 400 * attempt));
+                        }
                     }
-                } catch (err) {
-                    console.warn("Chiamata a /api/products non riuscita o backend non disponibile.", err);
-                } finally {
-                    isCaricamentoCatalogoInCorso = false;
                 }
 
-                // Se arriviamo qui, il caricamento dal DB e' fallito o non ha restituito prodotti
-                console.error("ERRORE: Impossibile caricare i prodotti reali da Supabase! Attivazione prodotti di fallback.");
+                isCaricamentoCatalogoInCorso = false;
+
+                // Se arriviamo qui dopo i tentativi, attiviamo la modalità di resilienza locale
                 if (databaseProdotti.length === 0) {
+                    console.warn("Attivazione catalogo prodotti locale di resilienza.");
                     inizializzaDatabaseProdotti();
                     databaseInizializzato = true;
                 }
@@ -7488,16 +7483,23 @@ function chiudiZoomImmagine(){
         let publicTeams = [];
 
         async function caricaNavigazioneDinamica() {
-            try {
-                const res = await fetch('/api/teams');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.success && Array.isArray(data.teams)) {
-                        publicTeams = data.teams;
+            let attempt = 0;
+            while (attempt < 3 && publicTeams.length === 0) {
+                attempt++;
+                try {
+                    const res = await fetch('/api/teams');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.success && Array.isArray(data.teams) && data.teams.length > 0) {
+                            publicTeams = data.teams;
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    if (attempt < 3) {
+                        await new Promise(r => setTimeout(r, 400 * attempt));
                     }
                 }
-            } catch (e) {
-                console.error("Errore caricamento squadre per navigazione:", e);
             }
 
             // Fallback se fallisce o vuoto, genera una lista base dai databaseClub/databaseNazionali
@@ -9656,19 +9658,23 @@ if (valoreLega === 'tutti') {
         }
 
         function proxyImmagine(url) {
-            if (!url) return "";
-            if (url.startsWith("http://") || url.startsWith("https://")) {
-                if (url.includes("/api/proxy-image") || url.includes("placehold.co") || url.includes("images.unsplash.com")) {
-                    return url;
+            if (!url || typeof url !== 'string') return "";
+            const trimmed = url.trim();
+            if (trimmed.startsWith("data:") || trimmed.startsWith("blob:") || trimmed.startsWith("/")) {
+                return trimmed;
+            }
+            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                if (trimmed.includes("/api/proxy-image") || trimmed.includes("placehold.co") || trimmed.includes("images.unsplash.com")) {
+                    return trimmed;
                 }
                 try {
-                    const b64 = btoa(url);
+                    const b64 = btoa(unescape(encodeURIComponent(trimmed)));
                     return `/api/proxy-image?url=${encodeURIComponent(b64)}`;
                 } catch (e) {
-                    return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+                    return `/api/proxy-image?url=${encodeURIComponent(trimmed)}`;
                 }
             }
-            return url;
+            return trimmed;
         }
 
         function renderizzaCardHTML(nome, img, tag, prezzoInput = 23.99, mostraScontoInput = false, testoBadgeInput = "", categoria = "", idProdotto = "", legacyIdProdotto = "", targetProdotto = "", lazyLoad = true) {
@@ -10730,47 +10736,71 @@ if (valoreLega === 'tutti') {
             clientSupabasePromise = (async () => {
                 try {
                     const res = await fetch('/api/config');
-                    if (!res.ok) throw new Error("Impossibile recuperare configurazione da /api/config");
+                    if (!res.ok) return null;
                     const config = await res.json();
-                    if (config.supabaseUrl && config.supabaseAnonKey && window.supabase) {
+                    if (config.supabaseUrl && config.supabaseAnonKey && window.supabase && typeof window.supabase.createClient === 'function') {
                         const customCustomerStorage = {
                             getItem: (key) => {
-                                const isRemember = localStorage.getItem('elite_remember_me') !== 'false';
-                                if (isRemember) {
-                                    return localStorage.getItem(key) || sessionStorage.getItem(key);
-                                } else {
-                                    return sessionStorage.getItem(key);
+                                try {
+                                    const isRemember = localStorage.getItem('elite_remember_me') !== 'false';
+                                    if (isRemember) {
+                                        return localStorage.getItem(key) || sessionStorage.getItem(key);
+                                    } else {
+                                        return sessionStorage.getItem(key);
+                                    }
+                                } catch (e) {
+                                    return null;
                                 }
                             },
                             setItem: (key, value) => {
-                                const isRemember = localStorage.getItem('elite_remember_me') !== 'false';
-                                if (isRemember) {
-                                    localStorage.setItem(key, value);
-                                    sessionStorage.removeItem(key);
-                                } else {
-                                    sessionStorage.setItem(key, value);
-                                    localStorage.removeItem(key);
-                                }
+                                try {
+                                    const isRemember = localStorage.getItem('elite_remember_me') !== 'false';
+                                    if (isRemember) {
+                                        localStorage.setItem(key, value);
+                                        sessionStorage.removeItem(key);
+                                    } else {
+                                        sessionStorage.setItem(key, value);
+                                        localStorage.removeItem(key);
+                                    }
+                                } catch (e) {}
                             },
                             removeItem: (key) => {
-                                localStorage.removeItem(key);
-                                sessionStorage.removeItem(key);
+                                try {
+                                    localStorage.removeItem(key);
+                                    sessionStorage.removeItem(key);
+                                } catch (e) {}
                             }
                         };
 
-                        clientSupabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
-                            auth: {
-                                storageKey: 'sb-customer-auth-token',
-                                storage: customCustomerStorage,
-                                autoRefreshToken: true,
-                                persistSession: true,
-                                detectSessionInUrl: true
+                        try {
+                            clientSupabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+                                auth: {
+                                    storageKey: 'sb-customer-auth-token',
+                                    storage: customCustomerStorage,
+                                    autoRefreshToken: true,
+                                    persistSession: true,
+                                    detectSessionInUrl: false
+                                }
+                            });
+                            return clientSupabase;
+                        } catch (initErr) {
+                            console.warn("Inizializzazione Supabase client standard:", initErr.message || initErr);
+                            try {
+                                clientSupabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+                                    auth: {
+                                        persistSession: false,
+                                        autoRefreshToken: false,
+                                        detectSessionInUrl: false
+                                    }
+                                });
+                                return clientSupabase;
+                            } catch (fallbackErr) {
+                                console.warn("Supabase auth non disponibile in modalità client:", fallbackErr.message || fallbackErr);
                             }
-                        });
-                        return clientSupabase;
+                        }
                     }
                 } catch (e) {
-                    console.error("Errore inizializzazione Supabase Cliente:", e);
+                    console.warn("Configurazione Supabase non disponibile:", e.message || e);
                     clientSupabasePromise = null;
                 }
                 return null;
@@ -12494,7 +12524,7 @@ if (pagTopEl) {
 
             const ordineReale = window.utenteOrdiniReali ? window.utenteOrdiniReali.find(o => String(o.id) === String(ordineId)) : null;
             if (!ordineReale) {
-                if (typeof window.aggiornaTimelineTracking === 'function' && acDemoTracking[ordineId]) {
+                if (typeof window.aggiornaTimelineTracking === 'function' && acDemoTracking && acDemoTracking[ordineId]) {
                     const trackingSteps = acDemoTracking[ordineId];
                     const trackingLabel = document.getElementById('tracking-id-label');
                     if (trackingLabel) trackingLabel.innerText = ordineId;
@@ -12508,125 +12538,114 @@ if (pagTopEl) {
             }
 
             const trackingLabel = document.getElementById('tracking-id-label');
-            if (trackingLabel) trackingLabel.innerText = ordineReale.order_number;
+            if (trackingLabel) trackingLabel.innerText = ordineReale.order_number || ('ORD-' + ordineReale.id);
 
-            const timelineContainer = document.getElementById('tracking-timeline-content');
-            if (timelineContainer) {
-                timelineContainer.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; gap: 10px; color: rgba(255,255,255,0.5);">
-                        <span class="material-icons animate-spin" style="font-size: 32px; color: var(--primary);">sync</span>
-                        <p style="font-size: 13px; margin: 0;">Recupero informazioni tracciamento in corso...</p>
-                    </div>
-                `;
-            }
+            const dataOrdine = new Date(ordineReale.created_at || Date.now());
+            const dataOrdineStr = dataOrdine.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) + `, ${String(dataOrdine.getHours()).padStart(2, '0')}:${String(dataOrdine.getMinutes()).padStart(2, '0')}`;
+
+            const costrusciTimelineDaStato = (status, trackingCode) => {
+                const statusNormalized = (status || ordineReale.status || "In preparazione").toLowerCase();
+                const progress = {
+                    "ordine ricevuto": 1,
+                    "in preparazione": 2,
+                    "spedito": 3,
+                    "in consegna": 4,
+                    "consegnato": 5
+                };
+                const livello = progress[statusNormalized] || 2;
+
+                return [
+                    {
+                        titolo: "Ordine Ricevuto",
+                        desc: "Il tuo ordine è stato registrato correttamente nei nostri sistemi.",
+                        data: dataOrdineStr,
+                        stato: livello === 1 ? "active" : "done"
+                    },
+                    {
+                        titolo: "In Preparazione",
+                        desc: "Stiamo preparando e controllando il tuo ordine premium.",
+                        data: livello === 2 ? "In corso" : (livello > 2 ? "Completato" : "In attesa"),
+                        stato: livello === 2 ? "active" : (livello > 2 ? "done" : "pending")
+                    },
+                    {
+                        titolo: "Spedito",
+                        desc: trackingCode ? `Il pacco è stato affidato al corriere.` : "Il pacco è in fase di spedizione.",
+                        data: livello === 3 ? "In corso" : (livello > 3 ? "Spedito" : "In attesa"),
+                        stato: livello === 3 ? "active" : (livello > 3 ? "done" : "pending")
+                    },
+                    {
+                        titolo: "In Consegna",
+                        desc: "Il corriere ha preso in carico la consegna verso il tuo indirizzo.",
+                        data: livello === 4 ? "In corso" : (livello > 4 ? "Completato" : "In attesa"),
+                        stato: livello === 4 ? "active" : (livello > 4 ? "done" : "pending")
+                    },
+                    {
+                        titolo: "Consegnato",
+                        desc: "Il tuo ordine premium è stato consegnato.",
+                        data: livello >= 5 ? "Consegnato" : "In attesa",
+                        stato: livello >= 5 ? "done" : "pending"
+                    }
+                ];
+            };
+
+            // Render iniziale immediato dai dati reali dell'ordine per UX senza attese
+            renderTimelineUI(costrusciTimelineDaStato(ordineReale.status, ''));
+
+            const targetId = ordineReale.admin_order_id || (ordineReale.order_number ? ordineReale.order_number.replace('ORD-', '') : ordineReale.id) || ordineReale.id;
+            if (!targetId) return;
 
             try {
-                const res = await fetch(`/api/customer/order-tracking-info/${ordineReale.admin_order_id}`);
-                const data = await res.json();
-                
-                if (data.success) {
-                    const metaBox = document.getElementById('ac-tracking-meta-box');
-                    if (metaBox) {
-                        metaBox.style.display = 'grid';
-                        
-                        const trackingCodeVal = data.tracking_code || '';
-                        const codeEl = document.getElementById('ac-meta-tracking-code');
-                        const copyBtn = document.querySelector('.ac-btn-copy');
-                        
-                        if (codeEl) {
-                            codeEl.innerText = trackingCodeVal || 'In attesa di spedizione';
-                        }
-                        if (copyBtn) {
-                            copyBtn.style.display = trackingCodeVal ? 'inline-flex' : 'none';
-                        }
-                        
-                        const statusEl = document.getElementById('ac-meta-tracking-status');
-                        const status = data.shipping_status || data.status || 'In preparazione';
-                        if (statusEl) {
-                            statusEl.innerText = status;
-                            if (status.toLowerCase() === 'consegnato') {
-                                statusEl.style.color = '#10b981';
-                            } else if (status.toLowerCase() === 'in consegna') {
-                                statusEl.style.color = '#38bdf8';
-                            } else if (status.toLowerCase() === 'spedito') {
-                                statusEl.style.color = '#fbbf24';
-                            } else {
-                                statusEl.style.color = '#94a3b8';
+                const res = await fetch(`/api/customer/order-tracking-info/${encodeURIComponent(targetId)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.success) {
+                        const metaBox = document.getElementById('ac-tracking-meta-box');
+                        if (metaBox) {
+                            metaBox.style.display = 'grid';
+                            
+                            const trackingCodeVal = data.tracking_code || '';
+                            const codeEl = document.getElementById('ac-meta-tracking-code');
+                            const copyBtn = document.querySelector('.ac-btn-copy');
+                            
+                            if (codeEl) {
+                                codeEl.innerText = trackingCodeVal || 'In attesa di spedizione';
+                            }
+                            if (copyBtn) {
+                                copyBtn.style.display = trackingCodeVal ? 'inline-flex' : 'none';
+                            }
+                            
+                            const statusEl = document.getElementById('ac-meta-tracking-status');
+                            const status = data.shipping_status || data.status || ordineReale.status || 'In preparazione';
+                            if (statusEl) {
+                                statusEl.innerText = status;
+                                if (status.toLowerCase() === 'consegnato') {
+                                    statusEl.style.color = '#10b981';
+                                } else if (status.toLowerCase() === 'in consegna') {
+                                    statusEl.style.color = '#38bdf8';
+                                } else if (status.toLowerCase() === 'spedito') {
+                                    statusEl.style.color = '#fbbf24';
+                                } else {
+                                    statusEl.style.color = '#94a3b8';
+                                }
+                            }
+
+                            const trackingLink = document.getElementById('ac-meta-tracking-link');
+                            if (trackingLink) {
+                                if (data.tracking_url) {
+                                    trackingLink.href = data.tracking_url;
+                                    trackingLink.style.display = 'inline-flex';
+                                } else {
+                                    trackingLink.style.display = 'none';
+                                }
                             }
                         }
 
-                        const trackingLink = document.getElementById('ac-meta-tracking-link');
-                        if (trackingLink) {
-                            if (data.tracking_url) {
-                                trackingLink.href = data.tracking_url;
-                                trackingLink.style.display = 'inline-flex';
-                            } else {
-                                trackingLink.style.display = 'none';
-                            }
-                        }
+                        renderTimelineUI(costrusciTimelineDaStato(data.shipping_status || data.status, data.tracking_code));
                     }
-
-                    const dataOrdine = new Date(ordineReale.created_at);
-                    const dataOrdineStr = dataOrdine.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) + `, ${String(dataOrdine.getHours()).padStart(2, '0')}:${String(dataOrdine.getMinutes()).padStart(2, '0')}`;
-                    
-                    const status = data.shipping_status || data.status || "In preparazione";
-                    const statusNormalized = status.toLowerCase();
-                    const progress = {
-                        "ordine ricevuto": 1,
-                        "in preparazione": 2,
-                        "spedito": 3,
-                        "in consegna": 4,
-                        "consegnato": 5
-                    };
-                    const livello = progress[statusNormalized] || 2;
-
-                    const timelineSteps = [
-                        {
-                            titolo: "Ordine Ricevuto",
-                            desc: "Il tuo ordine è stato registrato correttamente nei nostri sistemi.",
-                            data: dataOrdineStr,
-                            stato: livello === 1 ? "active" : "done"
-                        },
-                        {
-                            titolo: "In Preparazione",
-                            desc: "Stiamo preparando e controllando il tuo ordine premium.",
-                            data: livello === 2 ? "In corso" : (livello > 2 ? "Completato" : "In attesa"),
-                            stato: livello === 2 ? "active" : (livello > 2 ? "done" : "pending")
-                        },
-                        {
-                            titolo: "Spedito",
-                            desc: data.tracking_code ? `Il pacco è stato affidato al corriere.` : "Il pacco è in fase di spedizione.",
-                            data: livello === 3 ? "In corso" : (livello > 3 ? "Spedito" : "In attesa"),
-                            stato: livello === 3 ? "active" : (livello > 3 ? "done" : "pending")
-                        },
-                        {
-                            titolo: "In Consegna",
-                            desc: "Il corriere ha preso in carico la consegna verso il tuo indirizzo.",
-                            data: livello === 4 ? "In corso" : (livello > 4 ? "Completato" : "In attesa"),
-                            stato: livello === 4 ? "active" : (livello > 4 ? "done" : "pending")
-                        },
-                        {
-                            titolo: "Consegnato",
-                            desc: "Il tuo ordine premium è stato consegnato.",
-                            data: livello >= 5 ? "Consegnato" : "In attesa",
-                            stato: livello >= 5 ? "done" : "pending"
-                        }
-                    ];
-
-                    renderTimelineUI(timelineSteps);
-                } else {
-                    throw new Error(data.error || 'Impossibile recuperare i dati');
                 }
             } catch (err) {
-                console.error("❌ Errore aggiornamento timeline tracciamento reale:", err);
-                if (timelineContainer) {
-                    timelineContainer.innerHTML = `
-                        <div style="text-align: center; color: #ef4444; padding: 30px;">
-                            <span class="material-icons" style="font-size: 32px; margin-bottom: 10px;">error_outline</span>
-                            <p style="font-size: 13px; margin: 0;">Impossibile recuperare il tracciamento in questo momento. Riprova più tardi.</p>
-                        </div>
-                    `;
-                }
+                // Fallback silenzioso: la timeline è già visualizzata in modo consistente con i dati reali dell'ordine
+                console.warn("Info aggiuntive tracciamento corriere non disponibili al momento:", err.message || err);
             }
         }
 
@@ -13647,11 +13666,39 @@ items.forEach((item, index) => {
             if (event) {
                 event.stopPropagation();
             }
-            immaginiLightbox = Array.isArray(allImagesList) ? allImagesList.filter(url => url && url.trim() !== "") : [imgUrl];
+            immaginiLightbox = Array.isArray(allImagesList) ? allImagesList.filter(url => url && typeof url === 'string' && url.trim() !== "") : (imgUrl ? [imgUrl] : []);
             indiceAttivoLightbox = immaginiLightbox.indexOf(imgUrl);
             if (indiceAttivoLightbox === -1) {
                 indiceAttivoLightbox = 0;
             }
+            if (typeof window.aggiornaLightboxVisualizzazione === 'function') {
+                window.aggiornaLightboxVisualizzazione();
+            } else if (typeof aggiornaLightboxVisualizzazione === 'function') {
+                aggiornaLightboxVisualizzazione();
+            }
+            const lb = document.getElementById('custom-lightbox');
+            if (lb) {
+                lb.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function apriLightboxRecensioneIndex(recIdOrIndex, imgIdx, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const rec = (window.allPublicReviews || []).find((r, idx) => String(r.id) === String(recIdOrIndex) || idx === Number(recIdOrIndex));
+            if (!rec) return;
+            const imgList = Array.isArray(rec.images) ? rec.images : (rec.images ? [rec.images] : []);
+            const mapped = imgList.map(img => {
+                if (!img) return '';
+                if (typeof img === 'string') return img;
+                return img.full || img.thumb || '';
+            }).filter(u => typeof u === 'string' && u.trim() !== '');
+
+            if (mapped.length === 0) return;
+            immaginiLightbox = mapped;
+            indiceAttivoLightbox = (imgIdx >= 0 && imgIdx < mapped.length) ? imgIdx : 0;
             if (typeof window.aggiornaLightboxVisualizzazione === 'function') {
                 window.aggiornaLightboxVisualizzazione();
             } else if (typeof aggiornaLightboxVisualizzazione === 'function') {
@@ -13707,7 +13754,8 @@ items.forEach((item, index) => {
             const sortedReviews = [...filtered].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
             
             let html = '';
-            sortedReviews.forEach(rec => {
+            sortedReviews.forEach((rec, recIdx) => {
+                const recIdentifier = rec.id !== undefined && rec.id !== null ? rec.id : recIdx;
                 const ratingVal = typeof rec.rating === 'number' ? rec.rating : parseInt(rec.rating) || 5;
                 const stelleStr = '⭐'.repeat(ratingVal);
                 
@@ -13734,22 +13782,26 @@ items.forEach((item, index) => {
                 
                 if (mappedImgs.length === 1) {
                     const singleImg = mappedImgs[0];
+                    const safeThumb = proxyImmagine(singleImg.thumb);
                     imagesHtml = `
                         <div style="margin-top: 16px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 280px; aspect-ratio: 4 / 3; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.3s ease, border-color 0.3s ease;" 
                              class="hover:scale-102 hover:border-amber-500/50"
-                             onclick="apriLightboxRecensione(event, '${singleImg.full}', ${JSON.stringify(mappedImgs.map(x => x.full)).replace(/"/g, '&quot;')})">
-                            <img src="${singleImg.thumb}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="Foto Recensione">
+                             onclick="apriLightboxRecensioneIndex('${recIdentifier}', 0, event)">
+                            <img src="${safeThumb}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="Foto Recensione">
                         </div>
                     `;
                 } else if (mappedImgs.length > 1) {
-                    const carouselId = `carousel-rec-${rec.id || Math.random().toString(36).substr(2, 9)}`;
-                    let carouselItems = mappedImgs.map(img => `
+                    const carouselId = `carousel-rec-${recIdentifier}`;
+                    let carouselItems = mappedImgs.map((img, imgIdx) => {
+                        const safeThumb = proxyImmagine(img.thumb);
+                        return `
                         <div style="flex: 0 0 160px; height: 120px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: border-color 0.2s; flex-shrink: 0;"
                              class="hover:border-amber-500/50"
-                             onclick="apriLightboxRecensione(event, '${img.full}', ${JSON.stringify(mappedImgs.map(x => x.full)).replace(/"/g, '&quot;')})">
-                            <img src="${img.thumb}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="Foto Recensione">
+                             onclick="apriLightboxRecensioneIndex('${recIdentifier}', ${imgIdx}, event)">
+                            <img src="${safeThumb}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="Foto Recensione">
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                     
                     imagesHtml = `
                         <div style="position: relative; width: 100%; margin-top: 16px; display: flex; align-items: center; padding: 0 5px;">
@@ -13833,42 +13885,53 @@ items.forEach((item, index) => {
                 </div>
             `;
             
-            try {
-                const res = await fetch('/api/reviews');
-                const data = await res.json();
-                if (data && data.success) {
-                    renderRecensioniPubbliche(data.reviews || []);
-                    
-                    // Preload intelligente delle prime 5 immagini visibili per caricamento istantaneo
-                    let preloadCount = 0;
-                    for (const rec of (data.reviews || [])) {
-                        const imgList = Array.isArray(rec.images) ? rec.images : (rec.images ? [rec.images] : []);
-                        for (const img of imgList) {
-                            if (!img) continue;
-                            const thumbUrl = typeof img === 'string' ? img : (img.thumb || img.full || '');
-                            if (thumbUrl && preloadCount < 5) {
-                                const tempImg = new Image();
-                                tempImg.src = thumbUrl;
-                                preloadCount++;
-                            }
+            let attempt = 0;
+            while (attempt < 3) {
+                attempt++;
+                try {
+                    const res = await fetch('/api/reviews');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.success) {
+                            renderRecensioniPubbliche(data.reviews || []);
+                            
+                            // Preload sicuro delle prime immagini
+                            try {
+                                let preloadCount = 0;
+                                for (const rec of (data.reviews || [])) {
+                                    const imgList = Array.isArray(rec.images) ? rec.images : (rec.images ? [rec.images] : []);
+                                    for (const img of imgList) {
+                                        if (!img) continue;
+                                        const thumbUrl = typeof img === 'string' ? img : (img.thumb || img.full || '');
+                                        if (thumbUrl && preloadCount < 5 && !thumbUrl.startsWith('data:')) {
+                                            const tempImg = new Image();
+                                            tempImg.src = proxyImmagine(thumbUrl);
+                                            preloadCount++;
+                                        }
+                                    }
+                                    if (preloadCount >= 5) break;
+                                }
+                            } catch (e) {}
+                            return;
                         }
-                        if (preloadCount >= 5) break;
                     }
-                } else {
-                    throw new Error(data.error || "Errore sconosciuto");
+                } catch (err) {
+                    if (attempt < 3) {
+                        await new Promise(r => setTimeout(r, 400 * attempt));
+                    }
                 }
-            } catch (err) {
-                console.error("Errore caricamento recensioni:", err);
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 30px; background: rgba(255,77,79,0.05); border: 1px solid rgba(255,77,79,0.15); border-radius: var(--radius-xl); color: #ff4d4f;">
-                        <span class="material-icons" style="font-size: 32px; margin-bottom: 8px;">error_outline</span>
-                        <p style="font-size: 14px; margin: 0;">Impossibile caricare le recensioni al momento. Riprova più tardi.</p>
-                    </div>
-                `;
             }
+
+            container.innerHTML = `
+                <div style="text-align: center; padding: 30px; background: rgba(255,77,79,0.05); border: 1px solid rgba(255,77,79,0.15); border-radius: var(--radius-xl); color: #ff4d4f;">
+                    <span class="material-icons" style="font-size: 32px; margin-bottom: 8px;">error_outline</span>
+                    <p style="font-size: 14px; margin: 0;">Impossibile caricare le recensioni al momento. Riprova più tardi.</p>
+                </div>
+            `;
         }
 
         window.apriLightboxRecensione = apriLightboxRecensione;
+        window.apriLightboxRecensioneIndex = apriLightboxRecensioneIndex;
         window.caricaRecensioniPubbliche = caricaRecensioniPubbliche;
         window.impostaFiltroRecensioniPubbliche = impostaFiltroRecensioniPubbliche;
 
