@@ -1768,6 +1768,42 @@ body {
                 font-size: 11.5px !important;
             }
 
+            /* Filtri catalogo squadra/nazionali su mobile: wrap su più righe, tutti visibili, no scroll orizzontale */
+            #filtri-squadra-container,
+            #filtri-nazionali-container {
+                padding: 12px 10px !important;
+                overflow: visible !important;
+                margin-bottom: 20px !important;
+            }
+            #filtri-squadra-container > div,
+            #filtri-nazionali-container > div,
+            .bar-filtri-categorie-scroll {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+                white-space: normal !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .btn-filtro-categoria,
+            .btn-filtro-stagione {
+                flex: 0 1 auto !important;
+                flex-shrink: 0 !important;
+                white-space: nowrap !important;
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                padding: 8px 14px !important;
+                border-radius: var(--radius-m) !important;
+                text-align: center !important;
+                line-height: 1.2 !important;
+                max-width: 100% !important;
+            }
+
             /* Customizer section on home */
             .sezione-personalizzazione-home {
                 padding: 24px 16px !important;
@@ -2360,50 +2396,6 @@ body {
                 font-size: 28px;
             }
 
-            /* SCROLL ORIZZONTALE CATEGORIE MOBILE (Nativo, con Inerzia e senza scrollbar) */
-            #filtri-squadra-container,
-            #filtri-nazionali-container {
-                padding: 10px 8px !important;
-                overflow: hidden !important;
-            }
-
-            #filtri-squadra-container > div,
-            #filtri-nazionali-container > div,
-            .bar-filtri-categorie-scroll {
-                display: flex !important;
-                flex-wrap: nowrap !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                white-space: nowrap !important;
-                justify-content: flex-start !important;
-                align-items: center !important;
-                gap: 8px !important;
-                padding: 4px 2px !important;
-                -webkit-overflow-scrolling: touch !important;
-                touch-action: pan-x pan-y !important;
-                scrollbar-width: none !important;
-                -ms-overflow-style: none !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-
-            #filtri-squadra-container > div::-webkit-scrollbar,
-            #filtri-nazionali-container > div::-webkit-scrollbar,
-            .bar-filtri-categorie-scroll::-webkit-scrollbar {
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
-            }
-
-            .btn-filtro-categoria,
-            .btn-filtro-stagione {
-                flex: 0 0 auto !important;
-                flex-shrink: 0 !important;
-                white-space: nowrap !important;
-                font-size: 13px !important;
-                padding: 8px 16px !important;
-            }
-
             nav#navbar-principale,
             .nav-container nav {
                 display: flex !important;
@@ -2454,6 +2446,52 @@ body {
                 display: none !important;
                 width: 0 !important;
                 height: 0 !important;
+            }
+        }
+
+        /* SCROLL ORIZZONTALE CATEGORIE TABLET (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            #filtri-squadra-container,
+            #filtri-nazionali-container {
+                padding: 10px 8px !important;
+                overflow: hidden !important;
+            }
+
+            #filtri-squadra-container > div,
+            #filtri-nazionali-container > div,
+            .bar-filtri-categorie-scroll {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                white-space: nowrap !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 4px 2px !important;
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: pan-x pan-y !important;
+                scrollbar-width: none !important;
+                -ms-overflow-style: none !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #filtri-squadra-container > div::-webkit-scrollbar,
+            #filtri-nazionali-container > div::-webkit-scrollbar,
+            .bar-filtri-categorie-scroll::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+
+            .btn-filtro-categoria,
+            .btn-filtro-stagione {
+                flex: 0 0 auto !important;
+                flex-shrink: 0 !important;
+                white-space: nowrap !important;
+                font-size: 13px !important;
+                padding: 8px 16px !important;
             }
         }
 
