@@ -6925,6 +6925,7 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         var databaseInizializzato = false;
         var isCaricamentoCatalogoInCorso = true;
         var databaseCaricamentoErrore = false;
+        var caricaProdottiPromise = null;
         var sessioneUtente = null;
         window.sessioneUtente = null;
 
@@ -7327,8 +7328,6 @@ function chiudiZoomImmagine(){
             { confederazione: "africa", nome: "Senegal - Casa", img: "" },
             { confederazione: "africa", nome: "Senegal - Fuori Casa", img: "" }
         ];
-
-        let caricaProdottiPromise = null;
 
         function reRenderizzaSezioneAttiva() {
             const paginaClub = document.getElementById('pagina-club');

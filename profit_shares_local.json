@@ -113,5 +113,52 @@
       "division_label": "100% Sergio",
       "order_data_key": "21/08/2026, 11:19:10"
     }
-  }
+  },
+  "lot_percentages": {
+    "1": {
+      "lotto_id": "1",
+      "split_mode": "manual",
+      "updated_at": "2026-08-23T23:18:44.381Z",
+      "sergio_percentage": 50,
+      "riccardo_percentage": 50
+    }
+  },
+  "extra_expenses": [
+    {
+      "id": "extra_1787526710544_qhkyli",
+      "notes": "",
+      "lotto_id": 1,
+      "quantity": 1,
+      "total_eur": 2.57,
+      "total_usd": 3,
+      "created_at": "2026-08-23T23:11:50.575Z",
+      "sergio_eur": 0,
+      "updated_at": "2026-08-23T23:11:50.575Z",
+      "assigned_to": "riccardo",
+      "description": "Calzettoni",
+      "riccardo_eur": 2.57,
+      "exchange_rate": 0.856,
+      "assigned_label": "100% Riccardo",
+      "unit_price_eur": 2.57,
+      "unit_price_usd": 3
+    },
+    {
+      "id": "extra_1787526735917_9u6yyg",
+      "notes": "",
+      "lotto_id": 1,
+      "quantity": 1,
+      "total_eur": 2.57,
+      "total_usd": 3,
+      "created_at": "2026-08-23T23:12:15.974Z",
+      "sergio_eur": 0,
+      "updated_at": "2026-08-23T23:12:15.974Z",
+      "assigned_to": "riccardo",
+      "description": "Calze",
+      "riccardo_eur": 2.57,
+      "exchange_rate": 0.856,
+      "assigned_label": "100% Riccardo",
+      "unit_price_eur": 2.57,
+      "unit_price_usd": 3
+    }
+  ]
 }

@@ -12508,11 +12508,537 @@ let profitSplitData = {
     lot_orders: []
 };
 let selectedModificaOrder = null;
+let profitSplitMode = 'manual'; // 'manual' | 'by_expenses'
+let lotProfitPercentageSergio = 50;
+let lotProfitPercentageRiccardo = 50;
+let manualSavedSergioPct = 50;
+let manualSavedRiccardoPct = 50;
+let autoCalculatedSergioPct = 50;
+let autoCalculatedRiccardoPct = 50;
+let currentProfitSplitLottoId = 1;
+let saveProfitSplitDebounceTimer = null;
 
 function formatValutaEuro(num) {
     const val = Number(num) || 0;
     return val.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+/**
+ * Cambia la modalità di suddivisione del profitto tra 'manual' e 'by_expenses'
+ */
+function cambiaModalitaSuddivisione(newMode) {
+    if (newMode !== 'manual' && newMode !== 'by_expenses') return;
+    profitSplitMode = newMode;
+
+    if (profitSplitMode === 'by_expenses') {
+        lotProfitPercentageSergio = autoCalculatedSergioPct;
+        lotProfitPercentageRiccardo = autoCalculatedRiccardoPct;
+    } else {
+        lotProfitPercentageSergio = manualSavedSergioPct;
+        lotProfitPercentageRiccardo = manualSavedRiccardoPct;
+    }
+
+    aggiornaSuddivisioneProfittoLive();
+    salvaSuddivisioneProfitto();
+}
+
+/**
+ * Aggiorna in tempo reale la visualizzazione della suddivisione profitto residuo,
+ * del riepilogo finale e delle KPI card superiori senza ricaricare la pagina
+ */
+function aggiornaSuddivisioneProfittoLive() {
+    const summary = (profitSplitData && profitSplitData.summary) ? profitSplitData.summary : {};
+
+    const netTotalProfit = Number(summary.total_profit !== undefined ? summary.total_profit : summary.profitto_lotto) || 0;
+    const ordersProfit = Number(summary.orders_profit_total !== undefined ? summary.orders_profit_total : netTotalProfit) || 0;
+    const alibabaFeeEur = Number(summary.alibaba_fee_eur) || 0;
+
+    const speseSergio = Number(summary.spese_sergio !== undefined ? summary.spese_sergio : (summary.sergio?.total_withdrawals || 0)) || 0;
+    const speseRiccardo = Number(summary.spese_riccardo !== undefined ? summary.spese_riccardo : (summary.riccardo?.total_withdrawals || 0)) || 0;
+    const speseTotali = Number((speseSergio + speseRiccardo).toFixed(2));
+
+    // Profitto Residuo = Profitto del lotto - Spese personali
+    const profittoResiduo = Number((netTotalProfit - speseSergio - speseRiccardo).toFixed(2));
+
+    // Crediti residui di ciascun socio dopo gli acquisti personali:
+    // Credito residuo = Profitto disponibile - Spese personali del socio
+    const creditoResiduoSergio = Number((netTotalProfit - speseSergio).toFixed(2));
+    const creditoResiduoRiccardo = Number((netTotalProfit - speseRiccardo).toFixed(2));
+    const sommaCreditiResidui = Number((creditoResiduoSergio + creditoResiduoRiccardo).toFixed(2));
+
+    // Calcolo automatico percentuali in base ai crediti residui
+    if (sommaCreditiResidui > 0) {
+        autoCalculatedSergioPct = Number(((creditoResiduoSergio / sommaCreditiResidui) * 100).toFixed(2));
+        autoCalculatedRiccardoPct = Number((100 - autoCalculatedSergioPct).toFixed(2));
+    } else if (sommaCreditiResidui < 0) {
+        if (creditoResiduoSergio === creditoResiduoRiccardo) {
+            autoCalculatedSergioPct = 50;
+            autoCalculatedRiccardoPct = 50;
+        } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
+            autoCalculatedSergioPct = 100;
+            autoCalculatedRiccardoPct = 0;
+        } else {
+            autoCalculatedSergioPct = 0;
+            autoCalculatedRiccardoPct = 100;
+        }
+    } else {
+        if (creditoResiduoSergio === creditoResiduoRiccardo) {
+            autoCalculatedSergioPct = 50;
+            autoCalculatedRiccardoPct = 50;
+        } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
+            autoCalculatedSergioPct = 100;
+            autoCalculatedRiccardoPct = 0;
+        } else {
+            autoCalculatedSergioPct = 0;
+            autoCalculatedRiccardoPct = 100;
+        }
+    }
+
+    // Determina le percentuali effettive da applicare
+    let sPct = (profitSplitMode === 'by_expenses') ? autoCalculatedSergioPct : lotProfitPercentageSergio;
+    let rPct = (profitSplitMode === 'by_expenses') ? autoCalculatedRiccardoPct : lotProfitPercentageRiccardo;
+
+    if (isNaN(sPct)) sPct = 50;
+    if (isNaN(rPct)) rPct = 50;
+
+    // Calcolo quote spettanti sul profitto lordo disponibile del lotto (Gross shares)
+    let sergioGrossShare = 0;
+    let riccardoGrossShare = 0;
+
+    if (sPct === 100) {
+        sergioGrossShare = netTotalProfit;
+        riccardoGrossShare = 0;
+    } else if (rPct === 100) {
+        sergioGrossShare = 0;
+        riccardoGrossShare = netTotalProfit;
+    } else {
+        sergioGrossShare = Number(((netTotalProfit * sPct) / 100).toFixed(2));
+        riccardoGrossShare = Number((netTotalProfit - sergioGrossShare).toFixed(2));
+    }
+
+    // Saldo/Credito netto residuo spettante a ciascun socio: Quota lorda - Acquisti personali del socio
+    const sergioResidualShare = Number((sergioGrossShare - speseSergio).toFixed(2));
+    const riccardoResidualShare = Number((riccardoGrossShare - speseRiccardo).toFixed(2));
+    const totaleAssegnato = Number((sergioResidualShare + riccardoResidualShare).toFixed(2));
+
+    const sergioNet = sergioResidualShare;
+    const riccardoNet = riccardoResidualShare;
+    const sergioInitial = sergioGrossShare;
+    const riccardoInitial = riccardoGrossShare;
+    const totalNet = profittoResiduo;
+
+    // Aggiorna Selettore Modalità UI
+    const btnManual = document.getElementById('btn-mode-manual');
+    const btnByExpenses = document.getElementById('btn-mode-by-expenses');
+    const bannerExpenses = document.getElementById('by-expenses-info-banner');
+    const sliderContainer = document.getElementById('profit-split-slider-container');
+    const presetsContainer = document.getElementById('profit-split-presets-container');
+    const sergioBadgeMode = document.getElementById('sergio-badge-mode');
+    const riccardoBadgeMode = document.getElementById('riccardo-badge-mode');
+    const riepilogoModeBadge = document.getElementById('riepilogo-mode-badge');
+
+    if (profitSplitMode === 'by_expenses') {
+        if (btnManual) {
+            btnManual.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 cursor-pointer";
+        }
+        if (btnByExpenses) {
+            btnByExpenses.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm bg-brand-gold text-white";
+        }
+        if (bannerExpenses) bannerExpenses.classList.remove('hidden');
+        if (sliderContainer) sliderContainer.classList.add('hidden');
+        if (presetsContainer) presetsContainer.classList.add('hidden');
+        if (sergioBadgeMode) {
+            sergioBadgeMode.textContent = "⚡ Auto (Spese)";
+            sergioBadgeMode.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900";
+        }
+        if (riccardoBadgeMode) {
+            riccardoBadgeMode.textContent = "⚡ Auto (Spese)";
+            riccardoBadgeMode.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-200 text-blue-900";
+        }
+        if (riepilogoModeBadge) {
+            riepilogoModeBadge.textContent = "🛒 In base alle spese";
+            riepilogoModeBadge.className = "text-[10px] font-bold text-amber-400 bg-amber-950/80 border border-amber-800 px-2 py-0.5 rounded-full";
+        }
+    } else {
+        if (btnManual) {
+            btnManual.className = "flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm bg-white text-slate-900 border border-slate-200/60";
+        }
+        if (btnByExpenses) {
+            btnByExpenses.className = "flex-1 py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 cursor-pointer";
+        }
+        if (bannerExpenses) bannerExpenses.classList.add('hidden');
+        if (sliderContainer) sliderContainer.classList.remove('hidden');
+        if (presetsContainer) presetsContainer.classList.remove('hidden');
+        if (sergioBadgeMode) {
+            sergioBadgeMode.textContent = "Socio";
+            sergioBadgeMode.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100/80 text-brand-gold";
+        }
+        if (riccardoBadgeMode) {
+            riccardoBadgeMode.textContent = "Socio";
+            riccardoBadgeMode.className = "text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100/80 text-blue-700";
+        }
+        if (riepilogoModeBadge) {
+            riepilogoModeBadge.textContent = "✏️ Percentuale manuale";
+            riepilogoModeBadge.className = "text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded-full";
+        }
+    }
+
+    // 1. Aggiorna Input & Slider
+    const sergioInput = document.getElementById('profit-split-sergio-input');
+    const riccardoInput = document.getElementById('profit-split-riccardo-input');
+    const slider = document.getElementById('profit-split-slider');
+    const lottoBadge = document.getElementById('profit-split-lotto-badge');
+
+    if (sergioInput) {
+        sergioInput.value = sPct;
+        sergioInput.disabled = (profitSplitMode === 'by_expenses');
+        if (profitSplitMode === 'by_expenses') {
+            sergioInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-600');
+        } else {
+            sergioInput.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-600');
+        }
+    }
+    if (riccardoInput) {
+        riccardoInput.value = rPct;
+        riccardoInput.disabled = (profitSplitMode === 'by_expenses');
+        if (profitSplitMode === 'by_expenses') {
+            riccardoInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-600');
+        } else {
+            riccardoInput.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-600');
+        }
+    }
+    if (slider && Number(slider.value) !== Math.round(sPct)) slider.value = Math.round(sPct);
+    if (lottoBadge) lottoBadge.textContent = `Lotto #${currentProfitSplitLottoId}`;
+
+    // Aggiorna Crediti Residui nelle card socio
+    const splitSergioCredito = document.getElementById('split-sergio-credito-residuo');
+    const splitRiccardoCredito = document.getElementById('split-riccardo-credito-residuo');
+    if (splitSergioCredito) splitSergioCredito.textContent = `€ ${formatValutaEuro(creditoResiduoSergio)}`;
+    if (splitRiccardoCredito) splitRiccardoCredito.textContent = `€ ${formatValutaEuro(creditoResiduoRiccardo)}`;
+
+    // 2. Aggiorna Quadro 4 Dati Chiave
+    const cardProfitto = document.getElementById('card-profitto-disponibile');
+    const cardSpeseSergio = document.getElementById('card-spese-sergio');
+    const cardSpeseRiccardo = document.getElementById('card-spese-riccardo');
+    const cardCreditoSergio = document.getElementById('card-credito-sergio');
+    const cardCreditoRiccardo = document.getElementById('card-credito-riccardo');
+    const cardQuotaSergio = document.getElementById('card-quota-sergio-brief');
+    const cardQuotaRiccardo = document.getElementById('card-quota-riccardo-brief');
+
+    if (cardProfitto) cardProfitto.textContent = `€ ${formatValutaEuro(netTotalProfit)}`;
+    if (cardSpeseSergio) cardSpeseSergio.textContent = `€ ${formatValutaEuro(speseSergio)}`;
+    if (cardSpeseRiccardo) cardSpeseRiccardo.textContent = `€ ${formatValutaEuro(speseRiccardo)}`;
+    if (cardCreditoSergio) cardCreditoSergio.textContent = `€ ${formatValutaEuro(creditoResiduoSergio)}`;
+    if (cardCreditoRiccardo) cardCreditoRiccardo.textContent = `€ ${formatValutaEuro(creditoResiduoRiccardo)}`;
+    if (cardQuotaSergio) cardQuotaSergio.textContent = `${sPct}% (€ ${formatValutaEuro(sergioResidualShare)})`;
+    if (cardQuotaRiccardo) cardQuotaRiccardo.textContent = `${rPct}% (€ ${formatValutaEuro(riccardoResidualShare)})`;
+
+    // 3. Aggiorna anteprime quote accanto agli input
+    const sergioPreview = document.getElementById('split-sergio-share-preview');
+    const riccardoPreview = document.getElementById('split-riccardo-share-preview');
+    if (sergioPreview) {
+        if (sergioResidualShare < 0) {
+            sergioPreview.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResidualShare))}`;
+            sergioPreview.className = 'text-base font-black text-rose-600 font-mono';
+        } else {
+            sergioPreview.textContent = `€ ${formatValutaEuro(sergioResidualShare)}`;
+            sergioPreview.className = 'text-base font-black text-brand-gold font-mono';
+        }
+    }
+    if (riccardoPreview) {
+        if (riccardoResidualShare < 0) {
+            riccardoPreview.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResidualShare))}`;
+            riccardoPreview.className = 'text-base font-black text-rose-600 font-mono';
+        } else {
+            riccardoPreview.textContent = `€ ${formatValutaEuro(riccardoResidualShare)}`;
+            riccardoPreview.className = 'text-base font-black text-blue-700 font-mono';
+        }
+    }
+
+    // 4. Aggiorna Riepilogo Finale Conti Lotto
+    const rProfittoLotto = document.getElementById('riepilogo-profitto-lotto');
+    const rSpeseSergio = document.getElementById('riepilogo-spese-sergio');
+    const rSpeseRiccardo = document.getElementById('riepilogo-spese-riccardo');
+    const rCreditoSergio = document.getElementById('riepilogo-credito-sergio');
+    const rCreditoRiccardo = document.getElementById('riepilogo-credito-riccardo');
+    const rProfittoResiduo = document.getElementById('riepilogo-profitto-residuo');
+    const rSergioPct = document.getElementById('riepilogo-sergio-pct');
+    const rSergioQuota = document.getElementById('riepilogo-sergio-quota');
+    const rRiccardoPct = document.getElementById('riepilogo-riccardo-pct');
+    const rRiccardoQuota = document.getElementById('riepilogo-riccardo-quota');
+    const rTotaleAssegnato = document.getElementById('riepilogo-totale-assegnato');
+
+    if (rProfittoLotto) rProfittoLotto.textContent = `€ ${formatValutaEuro(netTotalProfit)}`;
+    if (rSpeseSergio) rSpeseSergio.textContent = `-€ ${formatValutaEuro(speseSergio)}`;
+    if (rSpeseRiccardo) rSpeseRiccardo.textContent = `-€ ${formatValutaEuro(speseRiccardo)}`;
+    if (rCreditoSergio) rCreditoSergio.textContent = `€ ${formatValutaEuro(creditoResiduoSergio)}`;
+    if (rCreditoRiccardo) rCreditoRiccardo.textContent = `€ ${formatValutaEuro(creditoResiduoRiccardo)}`;
+
+    if (rProfittoResiduo) {
+        if (profittoResiduo < 0) {
+            rProfittoResiduo.textContent = `-€ ${formatValutaEuro(Math.abs(profittoResiduo))}`;
+            rProfittoResiduo.className = 'text-lg font-black text-rose-400 font-mono';
+        } else {
+            rProfittoResiduo.textContent = `€ ${formatValutaEuro(profittoResiduo)}`;
+            rProfittoResiduo.className = 'text-lg font-black text-amber-300 font-mono';
+        }
+    }
+
+    if (rSergioPct) rSergioPct.textContent = sPct;
+    if (rSergioQuota) {
+        if (sergioResidualShare < 0) {
+            rSergioQuota.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResidualShare))}`;
+            rSergioQuota.className = 'font-mono font-bold text-rose-400 text-sm';
+        } else {
+            rSergioQuota.textContent = `€ ${formatValutaEuro(sergioResidualShare)}`;
+            rSergioQuota.className = 'font-mono font-bold text-emerald-400 text-sm';
+        }
+    }
+
+    if (rRiccardoPct) rRiccardoPct.textContent = rPct;
+    if (rRiccardoQuota) {
+        if (riccardoResidualShare < 0) {
+            rRiccardoQuota.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResidualShare))}`;
+            rRiccardoQuota.className = 'font-mono font-bold text-rose-400 text-sm';
+        } else {
+            rRiccardoQuota.textContent = `€ ${formatValutaEuro(riccardoResidualShare)}`;
+            rRiccardoQuota.className = 'font-mono font-bold text-emerald-400 text-sm';
+        }
+    }
+
+    if (rTotaleAssegnato) {
+        if (totaleAssegnato < 0) {
+            rTotaleAssegnato.textContent = `-€ ${formatValutaEuro(Math.abs(totaleAssegnato))}`;
+            rTotaleAssegnato.className = 'text-xl font-black text-rose-400 font-mono';
+        } else {
+            rTotaleAssegnato.textContent = `€ ${formatValutaEuro(totaleAssegnato)}`;
+            rTotaleAssegnato.className = 'text-xl font-black text-emerald-400 font-mono';
+        }
+    }
+
+    // 5. Aggiorna le 4 Card KPI in cima
+    const totalProfitEl = document.getElementById('split-total-profit');
+    const ordersProfitEl = document.getElementById('split-orders-profit');
+    const alibabaFeeEl = document.getElementById('split-alibaba-fee');
+    const totalOrdersCountEl = document.getElementById('split-total-orders-count');
+    const sergioInitialEl = document.getElementById('split-sergio-initial');
+    const sergioWithdEl = document.getElementById('split-sergio-withdrawals');
+    const sergioNetEl = document.getElementById('split-sergio-net');
+    const sergioStatusEl = document.getElementById('split-sergio-status');
+    const riccardoInitialEl = document.getElementById('split-riccardo-initial');
+    const riccardoWithdEl = document.getElementById('split-riccardo-withdrawals');
+    const riccardoNetEl = document.getElementById('split-riccardo-net');
+    const riccardoStatusEl = document.getElementById('split-riccardo-status');
+    const totalNetEl = document.getElementById('split-total-net');
+    const totalNetStatusEl = document.getElementById('split-total-net-status');
+
+    if (totalProfitEl) totalProfitEl.textContent = `€ ${formatValutaEuro(netTotalProfit)}`;
+    if (ordersProfitEl) ordersProfitEl.textContent = `€ ${formatValutaEuro(ordersProfit)}`;
+    if (alibabaFeeEl) alibabaFeeEl.textContent = `-€ ${formatValutaEuro(alibabaFeeEur)}`;
+    if (totalOrdersCountEl) totalOrdersCountEl.textContent = summary.total_orders || 0;
+
+    if (sergioInitialEl) sergioInitialEl.textContent = `€ ${formatValutaEuro(sergioInitial)}`;
+    if (sergioWithdEl) sergioWithdEl.textContent = `-€ ${formatValutaEuro(speseSergio)}`;
+    if (sergioNetEl) {
+        if (sergioNet < 0) {
+            sergioNetEl.textContent = `-€ ${formatValutaEuro(Math.abs(sergioNet))}`;
+            sergioNetEl.className = 'text-xl font-black text-rose-600 font-mono';
+        } else if (sergioNet > 0) {
+            sergioNetEl.textContent = `€ ${formatValutaEuro(sergioNet)}`;
+            sergioNetEl.className = 'text-xl font-black text-emerald-600 font-mono';
+        } else {
+            sergioNetEl.textContent = `€ 0,00`;
+            sergioNetEl.className = 'text-xl font-black text-slate-700 font-mono';
+        }
+    }
+    if (sergioStatusEl) {
+        if (sergioNet < 0) {
+            sergioStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">⚠️ Sergio deve aggiungere € ${formatValutaEuro(Math.abs(sergioNet))}</span>`;
+        } else if (sergioNet > 0) {
+            sergioStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Quota profitto residuo: € ${formatValutaEuro(sergioNet)}</span>`;
+        } else {
+            sergioStatusEl.innerHTML = `<span class="text-slate-400 font-medium">Pareggio (€ 0,00)</span>`;
+        }
+    }
+
+    if (riccardoInitialEl) riccardoInitialEl.textContent = `€ ${formatValutaEuro(riccardoInitial)}`;
+    if (riccardoWithdEl) riccardoWithdEl.textContent = `-€ ${formatValutaEuro(speseRiccardo)}`;
+    if (riccardoNetEl) {
+        if (riccardoNet < 0) {
+            riccardoNetEl.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoNet))}`;
+            riccardoNetEl.className = 'text-xl font-black text-rose-600 font-mono';
+        } else if (riccardoNet > 0) {
+            riccardoNetEl.textContent = `€ ${formatValutaEuro(riccardoNet)}`;
+            riccardoNetEl.className = 'text-xl font-black text-emerald-600 font-mono';
+        } else {
+            riccardoNetEl.textContent = `€ 0,00`;
+            riccardoNetEl.className = 'text-xl font-black text-slate-700 font-mono';
+        }
+    }
+    if (riccardoStatusEl) {
+        if (riccardoNet < 0) {
+            riccardoStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">⚠️ Riccardo deve aggiungere € ${formatValutaEuro(Math.abs(riccardoNet))}</span>`;
+        } else if (riccardoNet > 0) {
+            riccardoStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Quota profitto residuo: € ${formatValutaEuro(riccardoNet)}</span>`;
+        } else {
+            riccardoStatusEl.innerHTML = `<span class="text-slate-400 font-medium">Pareggio (€ 0,00)</span>`;
+        }
+    }
+
+    if (totalNetEl) {
+        if (totalNet < 0) {
+            totalNetEl.textContent = `-€ ${formatValutaEuro(Math.abs(totalNet))}`;
+            totalNetEl.className = 'text-xl font-black text-rose-600 font-mono';
+        } else if (totalNet > 0) {
+            totalNetEl.textContent = `€ ${formatValutaEuro(totalNet)}`;
+            totalNetEl.className = 'text-xl font-black text-emerald-600 font-mono';
+        } else {
+            totalNetEl.textContent = `€ 0,00`;
+            totalNetEl.className = 'text-xl font-black text-slate-900 font-mono';
+        }
+    }
+    if (totalNetStatusEl) {
+        if (totalNet < 0) {
+            totalNetStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">⚠️ Da aggiungere al lotto: € ${formatValutaEuro(Math.abs(totalNet))}</span>`;
+        } else if (totalNet > 0) {
+            totalNetStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Saldo utile residuo complessivo</span>`;
+        } else {
+            totalNetStatusEl.innerHTML = `<span class="text-slate-400 font-medium">Pareggio globale</span>`;
+        }
+    }
+}
+
+function onSergioPercentageInput(val) {
+    if (profitSplitMode === 'by_expenses') return;
+    let sVal = parseFloat(val);
+    if (isNaN(sVal)) sVal = 0;
+    if (sVal < 0) sVal = 0;
+    if (sVal > 100) sVal = 100;
+
+    lotProfitPercentageSergio = Number(sVal.toFixed(2));
+    lotProfitPercentageRiccardo = Number((100 - lotProfitPercentageSergio).toFixed(2));
+    manualSavedSergioPct = lotProfitPercentageSergio;
+    manualSavedRiccardoPct = lotProfitPercentageRiccardo;
+
+    const rInput = document.getElementById('profit-split-riccardo-input');
+    const slider = document.getElementById('profit-split-slider');
+    if (rInput) rInput.value = lotProfitPercentageRiccardo;
+    if (slider) slider.value = Math.round(lotProfitPercentageSergio);
+
+    aggiornaSuddivisioneProfittoLive();
+    salvaSuddivisioneProfittoDebounced();
+}
+
+function onRiccardoPercentageInput(val) {
+    if (profitSplitMode === 'by_expenses') return;
+    let rVal = parseFloat(val);
+    if (isNaN(rVal)) rVal = 0;
+    if (rVal < 0) rVal = 0;
+    if (rVal > 100) rVal = 100;
+
+    lotProfitPercentageRiccardo = Number(rVal.toFixed(2));
+    lotProfitPercentageSergio = Number((100 - lotProfitPercentageRiccardo).toFixed(2));
+    manualSavedSergioPct = lotProfitPercentageSergio;
+    manualSavedRiccardoPct = lotProfitPercentageRiccardo;
+
+    const sInput = document.getElementById('profit-split-sergio-input');
+    const slider = document.getElementById('profit-split-slider');
+    if (sInput) sInput.value = lotProfitPercentageSergio;
+    if (slider) slider.value = Math.round(lotProfitPercentageSergio);
+
+    aggiornaSuddivisioneProfittoLive();
+    salvaSuddivisioneProfittoDebounced();
+}
+
+function onSliderPercentageInput(val) {
+    if (profitSplitMode === 'by_expenses') return;
+    let sVal = parseFloat(val);
+    if (isNaN(sVal)) sVal = 50;
+    if (sVal < 0) sVal = 0;
+    if (sVal > 100) sVal = 100;
+
+    lotProfitPercentageSergio = Math.round(sVal);
+    lotProfitPercentageRiccardo = 100 - lotProfitPercentageSergio;
+    manualSavedSergioPct = lotProfitPercentageSergio;
+    manualSavedRiccardoPct = lotProfitPercentageRiccardo;
+
+    const sInput = document.getElementById('profit-split-sergio-input');
+    const rInput = document.getElementById('profit-split-riccardo-input');
+    if (sInput) sInput.value = lotProfitPercentageSergio;
+    if (rInput) rInput.value = lotProfitPercentageRiccardo;
+
+    aggiornaSuddivisioneProfittoLive();
+    salvaSuddivisioneProfittoDebounced();
+}
+
+function impostaSuddivisioneProfittoPreset(sergioPct, riccardoPct) {
+    if (profitSplitMode === 'by_expenses') {
+        profitSplitMode = 'manual';
+    }
+    lotProfitPercentageSergio = Math.round(sergioPct);
+    lotProfitPercentageRiccardo = Math.round(riccardoPct);
+    manualSavedSergioPct = lotProfitPercentageSergio;
+    manualSavedRiccardoPct = lotProfitPercentageRiccardo;
+
+    const sInput = document.getElementById('profit-split-sergio-input');
+    const rInput = document.getElementById('profit-split-riccardo-input');
+    const slider = document.getElementById('profit-split-slider');
+    if (sInput) sInput.value = lotProfitPercentageSergio;
+    if (rInput) rInput.value = lotProfitPercentageRiccardo;
+    if (slider) slider.value = lotProfitPercentageSergio;
+
+    aggiornaSuddivisioneProfittoLive();
+    salvaSuddivisioneProfitto();
+}
+
+function salvaSuddivisioneProfittoDebounced() {
+    const statusEl = document.getElementById('profit-split-save-status');
+    if (statusEl) statusEl.innerHTML = `<span class="text-amber-500 font-bold animate-pulse">⏳ Modifica in corso...</span>`;
+
+    if (saveProfitSplitDebounceTimer) clearTimeout(saveProfitSplitDebounceTimer);
+    saveProfitSplitDebounceTimer = setTimeout(() => {
+        salvaSuddivisioneProfitto();
+    }, 600);
+}
+
+async function salvaSuddivisioneProfitto() {
+    const statusEl = document.getElementById('profit-split-save-status');
+    if (statusEl) statusEl.innerHTML = `<span class="text-blue-500 font-bold animate-pulse">💾 Salvataggio...</span>`;
+
+    try {
+        const response = await fetch('/api/profit-splits/lot-percentage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                lotto_id: currentProfitSplitLottoId,
+                split_mode: profitSplitMode,
+                sergio_percentage: manualSavedSergioPct,
+                riccardo_percentage: manualSavedRiccardoPct
+            })
+        });
+        const data = await response.json();
+        if (data && data.success) {
+            if (statusEl) statusEl.innerHTML = `<span class="text-emerald-600 font-bold">✅ Suddivisione salvata</span>`;
+            setTimeout(() => {
+                if (statusEl) statusEl.innerHTML = `<span class="text-slate-400 font-medium">💾 Salvataggio automatico</span>`;
+            }, 2500);
+        } else {
+            if (statusEl) statusEl.innerHTML = `<span class="text-rose-600 font-bold">⚠️ Errore salvataggio</span>`;
+            showToast("Errore nel salvataggio della suddivisione profitto: " + (data.error || "Errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("Errore salvataggio percentuale profitto:", err);
+        if (statusEl) statusEl.innerHTML = `<span class="text-rose-600 font-bold">⚠️ Errore rete</span>`;
+    }
+}
+
+// Esponi per chiamate onclick e oninput da HTML
+window.cambiaModalitaSuddivisione = cambiaModalitaSuddivisione;
+window.onSergioPercentageInput = onSergioPercentageInput;
+window.onRiccardoPercentageInput = onRiccardoPercentageInput;
+window.onSliderPercentageInput = onSliderPercentageInput;
+window.impostaSuddivisioneProfittoPreset = impostaSuddivisioneProfittoPreset;
+window.salvaSuddivisioneProfitto = salvaSuddivisioneProfitto;
 
 /**
  * Carica dal server il riepilogo della suddivisione profitto e l'elenco delle modifiche registrate
@@ -12524,119 +13050,42 @@ async function caricaSuddivisioneConti() {
 
         if (data.success) {
             profitSplitData = data;
-
-            // Aggiorna KPI Dashboard
             const summary = data.summary || {};
-            const totalProfitEl = document.getElementById('split-total-profit');
-            const ordersProfitEl = document.getElementById('split-orders-profit');
-            const alibabaFeeEl = document.getElementById('split-alibaba-fee');
-            const totalOrdersCountEl = document.getElementById('split-total-orders-count');
-            const sergioInitialEl = document.getElementById('split-sergio-initial');
-            const sergioWithdEl = document.getElementById('split-sergio-withdrawals');
-            const sergioNetEl = document.getElementById('split-sergio-net');
-            const sergioStatusEl = document.getElementById('split-sergio-status');
 
-            const riccardoInitialEl = document.getElementById('split-riccardo-initial');
-            const riccardoWithdEl = document.getElementById('split-riccardo-withdrawals');
-            const riccardoNetEl = document.getElementById('split-riccardo-net');
-            const riccardoStatusEl = document.getElementById('split-riccardo-status');
+            // Recupera lotto_id, modalità e percentuali salvate per il lotto
+            currentProfitSplitLottoId = summary.lotto_id || 1;
+            profitSplitMode = (summary.split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
 
-            const totalNetEl = document.getElementById('split-total-net');
-            const totalNetStatusEl = document.getElementById('split-total-net-status');
+            manualSavedSergioPct = (summary.manual_sergio_percentage !== undefined && summary.manual_sergio_percentage !== null)
+                ? Number(summary.manual_sergio_percentage)
+                : ((summary.sergio_percentage !== undefined && summary.split_mode !== 'by_expenses') ? Number(summary.sergio_percentage) : 50);
+            manualSavedRiccardoPct = (summary.manual_riccardo_percentage !== undefined && summary.manual_riccardo_percentage !== null)
+                ? Number(summary.manual_riccardo_percentage)
+                : (100 - manualSavedSergioPct);
 
-            const totProfit = Number(summary.total_profit) || 0;
-            const ordersProfit = Number(summary.orders_profit_total !== undefined ? summary.orders_profit_total : totProfit) || 0;
-            const alibabaFeeEur = Number(summary.alibaba_fee_eur) || 0;
+            autoCalculatedSergioPct = (summary.auto_sergio_percentage !== undefined && summary.auto_sergio_percentage !== null)
+                ? Number(summary.auto_sergio_percentage)
+                : 50;
+            autoCalculatedRiccardoPct = (summary.auto_riccardo_percentage !== undefined && summary.auto_riccardo_percentage !== null)
+                ? Number(summary.auto_riccardo_percentage)
+                : 50;
 
-            if (totalProfitEl) totalProfitEl.textContent = `€ ${formatValutaEuro(totProfit)}`;
-            if (ordersProfitEl) ordersProfitEl.textContent = `€ ${formatValutaEuro(ordersProfit)}`;
-            if (alibabaFeeEl) alibabaFeeEl.textContent = `-€ ${formatValutaEuro(alibabaFeeEur)}`;
-            if (totalOrdersCountEl) totalOrdersCountEl.textContent = summary.total_orders || 0;
-
-            // Dati Sergio
-            const sInit = Number(summary.sergio?.total_initial) || 0;
-            const sWithd = Number(summary.sergio?.total_withdrawals) || 0;
-            const sNet = Number(summary.sergio?.total_net) || 0;
-
-            if (sergioInitialEl) sergioInitialEl.textContent = `€ ${formatValutaEuro(sInit)}`;
-            if (sergioWithdEl) sergioWithdEl.textContent = `-€ ${formatValutaEuro(sWithd)}`;
-            if (sergioNetEl) {
-                if (sNet < 0) {
-                    sergioNetEl.textContent = `-€ ${formatValutaEuro(Math.abs(sNet))}`;
-                    sergioNetEl.className = 'text-xl font-black text-rose-600 font-mono';
-                } else if (sNet > 0) {
-                    sergioNetEl.textContent = `€ ${formatValutaEuro(sNet)}`;
-                    sergioNetEl.className = 'text-xl font-black text-emerald-600 font-mono';
-                } else {
-                    sergioNetEl.textContent = `€ 0,00`;
-                    sergioNetEl.className = 'text-xl font-black text-slate-700 font-mono';
-                }
-            }
-            if (sergioStatusEl) {
-                if (sNet < 0) {
-                    sergioStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">⚠️ Sergio deve aggiungere € ${formatValutaEuro(Math.abs(sNet))}</span>`;
-                } else if (sNet > 0) {
-                    sergioStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Ha ancora € ${formatValutaEuro(sNet)} disponibile</span>`;
-                } else {
-                    sergioStatusEl.innerHTML = `<span class="text-slate-400 font-medium">Pareggio (€ 0,00)</span>`;
-                }
+            if (profitSplitMode === 'by_expenses') {
+                lotProfitPercentageSergio = autoCalculatedSergioPct;
+                lotProfitPercentageRiccardo = autoCalculatedRiccardoPct;
+            } else {
+                lotProfitPercentageSergio = manualSavedSergioPct;
+                lotProfitPercentageRiccardo = manualSavedRiccardoPct;
             }
 
-            // Dati Riccardo
-            const rInit = Number(summary.riccardo?.total_initial) || 0;
-            const rWithd = Number(summary.riccardo?.total_withdrawals) || 0;
-            const rNet = Number(summary.riccardo?.total_net) || 0;
-
-            if (riccardoInitialEl) riccardoInitialEl.textContent = `€ ${formatValutaEuro(rInit)}`;
-            if (riccardoWithdEl) riccardoWithdEl.textContent = `-€ ${formatValutaEuro(rWithd)}`;
-            if (riccardoNetEl) {
-                if (rNet < 0) {
-                    riccardoNetEl.textContent = `-€ ${formatValutaEuro(Math.abs(rNet))}`;
-                    riccardoNetEl.className = 'text-xl font-black text-rose-600 font-mono';
-                } else if (rNet > 0) {
-                    riccardoNetEl.textContent = `€ ${formatValutaEuro(rNet)}`;
-                    riccardoNetEl.className = 'text-xl font-black text-emerald-600 font-mono';
-                } else {
-                    riccardoNetEl.textContent = `€ 0,00`;
-                    riccardoNetEl.className = 'text-xl font-black text-slate-700 font-mono';
-                }
-            }
-            if (riccardoStatusEl) {
-                if (rNet < 0) {
-                    riccardoStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">⚠️ Riccardo deve aggiungere € ${formatValutaEuro(Math.abs(rNet))}</span>`;
-                } else if (rNet > 0) {
-                    riccardoStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Ha ancora € ${formatValutaEuro(rNet)} disponibile</span>`;
-                } else {
-                    riccardoStatusEl.innerHTML = `<span class="text-slate-400 font-medium">Pareggio (€ 0,00)</span>`;
-                }
-            }
-
-            // Saldo Complessivo
-            const totNet = Number(summary.total_net !== undefined ? summary.total_net : (sNet + rNet)) || 0;
-            if (totalNetEl) {
-                if (totNet < 0) {
-                    totalNetEl.textContent = `-€ ${formatValutaEuro(Math.abs(totNet))}`;
-                    totalNetEl.className = 'text-xl font-black text-rose-600 font-mono';
-                } else if (totNet > 0) {
-                    totalNetEl.textContent = `€ ${formatValutaEuro(totNet)}`;
-                    totalNetEl.className = 'text-xl font-black text-emerald-600 font-mono';
-                } else {
-                    totalNetEl.textContent = `€ 0,00`;
-                    totalNetEl.className = 'text-xl font-black text-slate-900 font-mono';
-                }
-            }
-            if (totalNetStatusEl) {
-                if (totNet < 0) {
-                    totalNetStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">⚠️ Da aggiungere al lotto: € ${formatValutaEuro(Math.abs(totNet))}</span>`;
-                } else if (totNet > 0) {
-                    totalNetStatusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Saldo utile complessivo</span>`;
-                } else {
-                    totalNetStatusEl.innerHTML = `<span class="text-slate-400 font-medium">Pareggio globale</span>`;
-                }
-            }
+            // Aggiorna l'intera interfaccia
+            aggiornaSuddivisioneProfittoLive();
 
             // Renderizza l'elenco delle modifiche registrate
             renderTabellaModifiche(data.modifications || []);
+
+            // Renderizza l'elenco delle spese extra del lotto
+            renderTabellaSpeseExtra(data.extra_expenses || [], (data.summary && data.summary.exchange_rate) || 0.92);
 
             // Allinea le statistiche di incasso nella dashboard e nel riepilogo lotto
             if (typeof aggiornaStatisticheDashboard === 'function') {
@@ -13034,9 +13483,353 @@ async function eliminaModificaSuddivisione(orderId) {
     }
 }
 
+/**
+ * Renderizza la tabella delle Spese Extra del lotto
+ */
+function renderTabellaSpeseExtra(extraExpensesList, exchangeRate) {
+    const emptyState = document.getElementById('split-extra-empty-state');
+    const tableContainer = document.getElementById('split-extra-table-container');
+    const tbody = document.getElementById('split-extra-tbody');
+    const countBadge = document.getElementById('split-extra-count-badge');
+
+    const list = Array.isArray(extraExpensesList) ? extraExpensesList : [];
+
+    if (countBadge) {
+        countBadge.textContent = `${list.length} ${list.length === 1 ? 'spesa' : 'spese'}`;
+    }
+
+    if (list.length === 0) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        if (tableContainer) tableContainer.classList.add('hidden');
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+    if (tableContainer) tableContainer.classList.remove('hidden');
+
+    if (!tbody) return;
+
+    tbody.innerHTML = list.map(item => {
+        const idStr = escapeHtml(String(item.id || ''));
+        const desc = escapeHtml(String(item.description || 'Articolo extra'));
+        const qty = Number(item.quantity) || 1;
+        const unitUsd = Number(item.unit_price_usd) || 0;
+        const totUsd = Number(item.total_usd) || (qty * unitUsd);
+        const totEur = Number(item.total_eur) || 0;
+        const notes = escapeHtml(String(item.notes || '—'));
+        
+        let assignedBadge = '';
+        if (item.assigned_to === 'sergio' || item.assigned_to === '100_sergio') {
+            assignedBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300"><span>👤</span> Sergio (100%)</span>`;
+        } else if (item.assigned_to === 'riccardo' || item.assigned_to === '100_riccardo') {
+            assignedBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 font-bold text-[11px] border border-blue-300"><span>👤</span> Riccardo (100%)</span>`;
+        } else {
+            assignedBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 font-bold text-[11px] border border-slate-300"><span>⚖️</span> Altro (50% / 50%)</span>`;
+        }
+
+        return `
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-6 py-4">
+                    <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <span>👟</span> ${desc}
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-center font-mono font-bold text-slate-900 text-xs">
+                    ${qty}
+                </td>
+                <td class="px-6 py-4 text-right font-mono text-slate-600 text-xs">
+                    $ ${unitUsd.toFixed(2)}
+                </td>
+                <td class="px-6 py-4 text-right font-mono font-bold text-slate-900 text-xs">
+                    $ ${totUsd.toFixed(2)}
+                </td>
+                <td class="px-6 py-4 text-right font-mono font-bold text-emerald-700 text-xs">
+                    € ${formatValutaEuro(totEur)}
+                </td>
+                <td class="px-6 py-4 text-center">
+                    ${assignedBadge}
+                </td>
+                <td class="px-6 py-4 text-xs text-slate-500 max-w-xs truncate" title="${notes}">
+                    ${notes}
+                </td>
+                <td class="px-6 py-4 text-right space-x-2">
+                    <button onclick="apriModalSpesaExtra('${idStr}')" title="Modifica spesa extra" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer">
+                        <span>✏️</span> Modifica
+                    </button>
+                    <button onclick="eliminaSpesaExtra('${idStr}')" title="Elimina spesa extra" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer">
+                        <span>🗑️</span> Elimina
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+/**
+ * Seleziona visivamente e programmaticamente l'assegnatario della spesa extra nel modal
+ */
+function selezionaAssegnatarioSpesaExtra(assigned) {
+    const val = (assigned === 'riccardo' || assigned === '100_riccardo') ? 'riccardo' : ((assigned === 'altro' || assigned === '50_50') ? 'altro' : 'sergio');
+    
+    // Aggiorna i radio button
+    const radioSergio = document.getElementById('spesa-extra-radio-sergio');
+    const radioRiccardo = document.getElementById('spesa-extra-radio-riccardo');
+    const radioAltro = document.getElementById('spesa-extra-radio-altro');
+
+    if (radioSergio) radioSergio.checked = (val === 'sergio');
+    if (radioRiccardo) radioRiccardo.checked = (val === 'riccardo');
+    if (radioAltro) radioAltro.checked = (val === 'altro');
+
+    // Elementi Card
+    const cardSergio = document.getElementById('spesa-extra-card-sergio');
+    const cardRiccardo = document.getElementById('spesa-extra-card-riccardo');
+    const cardAltro = document.getElementById('spesa-extra-card-altro');
+
+    // Elementi Badge Spunta
+    const checkSergio = document.getElementById('spesa-extra-check-sergio');
+    const checkRiccardo = document.getElementById('spesa-extra-check-riccardo');
+    const checkAltro = document.getElementById('spesa-extra-check-altro');
+
+    // Reset stili
+    if (cardSergio) {
+        if (val === 'sergio') {
+            cardSergio.className = "relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all select-none border-amber-500 bg-amber-50/70 ring-2 ring-amber-300/60 shadow-xs";
+            if (checkSergio) checkSergio.className = "inline-flex items-center px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-extrabold text-[10px]";
+        } else {
+            cardSergio.className = "relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all select-none border-slate-200 bg-white hover:border-amber-300";
+            if (checkSergio) checkSergio.className = "hidden items-center px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-extrabold text-[10px]";
+        }
+    }
+
+    if (cardRiccardo) {
+        if (val === 'riccardo') {
+            cardRiccardo.className = "relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all select-none border-blue-600 bg-blue-50/70 ring-2 ring-blue-300/60 shadow-xs";
+            if (checkRiccardo) checkRiccardo.className = "inline-flex items-center px-1.5 py-0.5 rounded bg-blue-200 text-blue-900 font-extrabold text-[10px]";
+        } else {
+            cardRiccardo.className = "relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all select-none border-slate-200 bg-white hover:border-blue-300";
+            if (checkRiccardo) checkRiccardo.className = "hidden items-center px-1.5 py-0.5 rounded bg-blue-200 text-blue-900 font-extrabold text-[10px]";
+        }
+    }
+
+    if (cardAltro) {
+        if (val === 'altro') {
+            cardAltro.className = "relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all select-none border-slate-800 bg-slate-100 ring-2 ring-slate-300/80 shadow-xs";
+            if (checkAltro) checkAltro.className = "inline-flex items-center px-1.5 py-0.5 rounded bg-slate-300 text-slate-900 font-extrabold text-[10px]";
+        } else {
+            cardAltro.className = "relative flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-all select-none border-slate-200 bg-white hover:border-slate-300";
+            if (checkAltro) checkAltro.className = "hidden items-center px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 font-extrabold text-[10px]";
+        }
+    }
+}
+
+/**
+ * Calcolo live del totale USD ed EUR nella modale Spesa Extra
+ */
+function calcolaTotaleSpesaExtraLive() {
+    const qtyInput = document.getElementById('modal-spesa-extra-qty');
+    const priceUsdInput = document.getElementById('modal-spesa-extra-price-usd');
+    const rateBadge = document.getElementById('modal-spesa-extra-rate-badge');
+    const totalUsdEl = document.getElementById('modal-spesa-extra-total-usd-preview');
+    const totalEurEl = document.getElementById('modal-spesa-extra-total-eur-preview');
+
+    const qty = parseInt(qtyInput ? qtyInput.value : '1', 10) || 1;
+    const priceUsd = parseFloat(priceUsdInput ? priceUsdInput.value.replace(',', '.') : '0') || 0;
+    
+    const rate = (profitSplitData && profitSplitData.summary && profitSplitData.summary.exchange_rate)
+        ? Number(profitSplitData.summary.exchange_rate)
+        : 0.92;
+
+    if (rateBadge) {
+        rateBadge.textContent = `1 USD = ${rate.toFixed(4).replace('.', ',')} EUR`;
+    }
+
+    const totalUsd = qty * priceUsd;
+    const totalEur = totalUsd * rate;
+
+    if (totalUsdEl) totalUsdEl.textContent = `$ ${totalUsd.toFixed(2)}`;
+    if (totalEurEl) totalEurEl.textContent = `€ ${formatValutaEuro(totalEur)}`;
+}
+
+/**
+ * Apre la modale per aggiungere o modificare una spesa extra
+ */
+function apriModalSpesaExtra(spesaId) {
+    const modal = document.getElementById('modal-spesa-extra');
+    const container = document.getElementById('modal-spesa-extra-container');
+    const idInput = document.getElementById('modal-spesa-extra-id');
+    const titleEl = document.getElementById('modal-spesa-extra-title');
+    const descInput = document.getElementById('modal-spesa-extra-desc');
+    const qtyInput = document.getElementById('modal-spesa-extra-qty');
+    const priceUsdInput = document.getElementById('modal-spesa-extra-price-usd');
+    const notesInput = document.getElementById('modal-spesa-extra-notes');
+
+    if (!modal || !container) return;
+
+    if (spesaId) {
+        const extraList = (profitSplitData && profitSplitData.extra_expenses) ? profitSplitData.extra_expenses : [];
+        const existing = extraList.find(e => String(e.id) === String(spesaId));
+        if (existing) {
+            if (idInput) idInput.value = existing.id;
+            if (titleEl) titleEl.textContent = "Modifica Spesa Extra";
+            if (descInput) descInput.value = existing.description || '';
+            if (qtyInput) qtyInput.value = existing.quantity || 1;
+            if (priceUsdInput) priceUsdInput.value = existing.unit_price_usd !== undefined ? existing.unit_price_usd : '';
+            if (notesInput) notesInput.value = existing.notes || '';
+            
+            const assigned = existing.assigned_to || 'sergio';
+            selezionaAssegnatarioSpesaExtra(assigned);
+        }
+    } else {
+        if (idInput) idInput.value = '';
+        if (titleEl) titleEl.textContent = "Aggiungi Spesa Extra del Lotto";
+        if (descInput) descInput.value = '';
+        if (qtyInput) qtyInput.value = 1;
+        if (priceUsdInput) priceUsdInput.value = '';
+        if (notesInput) notesInput.value = '';
+        selezionaAssegnatarioSpesaExtra('sergio');
+    }
+
+    calcolaTotaleSpesaExtraLive();
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        container.classList.remove('opacity-0', 'scale-95');
+        container.classList.add('opacity-100', 'scale-100');
+    }, 10);
+}
+
+/**
+ * Chiude la modale spesa extra
+ */
+function chiudiModalSpesaExtra() {
+    const modal = document.getElementById('modal-spesa-extra');
+    const container = document.getElementById('modal-spesa-extra-container');
+    if (modal && container) {
+        container.classList.remove('opacity-100', 'scale-100');
+        container.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+}
+
+/**
+ * Salva la spesa extra sul server (creazione o aggiornamento)
+ */
+async function salvaSpesaExtra() {
+    const idInput = document.getElementById('modal-spesa-extra-id');
+    const descInput = document.getElementById('modal-spesa-extra-desc');
+    const qtyInput = document.getElementById('modal-spesa-extra-qty');
+    const priceUsdInput = document.getElementById('modal-spesa-extra-price-usd');
+    const notesInput = document.getElementById('modal-spesa-extra-notes');
+    const radios = document.getElementsByName('modal-spesa-extra-assigned');
+    const btn = document.getElementById('btn-salva-spesa-extra');
+
+    const desc = descInput ? descInput.value.trim() : '';
+    if (!desc) {
+        showToast("Inserisci il tipo o la descrizione dell'articolo.", "error");
+        if (descInput) descInput.focus();
+        return;
+    }
+
+    const qty = parseInt(qtyInput ? qtyInput.value : '1', 10);
+    if (isNaN(qty) || qty < 1) {
+        showToast("La quantità deve essere un numero intero di almeno 1.", "error");
+        if (qtyInput) qtyInput.focus();
+        return;
+    }
+
+    const priceUsd = parseFloat(priceUsdInput ? priceUsdInput.value.replace(',', '.') : '');
+    if (isNaN(priceUsd) || priceUsd < 0) {
+        showToast("Inserisci un prezzo unitario in USD valido (es. 3.00).", "error");
+        if (priceUsdInput) priceUsdInput.focus();
+        return;
+    }
+
+    let assigned = 'sergio';
+    radios.forEach(r => {
+        if (r.checked) assigned = r.value;
+    });
+
+    const spesaId = idInput ? idInput.value.trim() : '';
+    const lotId = (profitSplitData && profitSplitData.summary && profitSplitData.summary.lotto_id) || currentProfitSplitLottoId || 1;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin">⏳</span> Salvataggio...`;
+    }
+
+    try {
+        const response = await fetch('/api/profit-splits/extra-expense', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: spesaId || undefined,
+                lotto_id: lotId,
+                description: desc,
+                quantity: qty,
+                unit_price_usd: priceUsd,
+                assigned_to: assigned,
+                notes: notesInput ? notesInput.value.trim() : ''
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showToast("✅ Spesa extra registrata con successo.", "success");
+            chiudiModalSpesaExtra();
+            await caricaSuddivisioneConti();
+        } else {
+            showToast("⚠️ " + (data.error || "Impossibile salvare la spesa extra."), "error");
+        }
+    } catch (err) {
+        console.error("Errore salvataggio spesa extra:", err);
+        showToast("Errore di connessione al server.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>💾</span> Salva Spesa`;
+        }
+    }
+}
+
+/**
+ * Elimina una spesa extra registrata
+ */
+async function eliminaSpesaExtra(spesaId) {
+    if (!spesaId) return;
+
+    if (!confirm("Sei sicuro di voler eliminare questa spesa extra? L'importo verrà ricalcolato automaticamente nel profitto del lotto.")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/profit-splits/extra-expense/${encodeURIComponent(spesaId)}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showToast("✅ Spesa extra eliminata.", "success");
+            await caricaSuddivisioneConti();
+        } else {
+            showToast("Errore durante l'eliminazione: " + (data.error || "Errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("Errore eliminazione spesa extra:", err);
+        showToast("Errore di connessione al server.", "error");
+    }
+}
+
 // Esporta su window per binding con HTML onclick/oninput/onchange
 window.caricaSuddivisioneConti = caricaSuddivisioneConti;
 window.renderTabellaModifiche = renderTabellaModifiche;
+window.renderTabellaSpeseExtra = renderTabellaSpeseExtra;
+window.calcolaTotaleSpesaExtraLive = calcolaTotaleSpesaExtraLive;
+window.apriModalSpesaExtra = apriModalSpesaExtra;
+window.chiudiModalSpesaExtra = chiudiModalSpesaExtra;
+window.salvaSpesaExtra = salvaSpesaExtra;
+window.eliminaSpesaExtra = eliminaSpesaExtra;
 window.avviaSelezioneOrdinePerSuddivisione = avviaSelezioneOrdinePerSuddivisione;
 window.esciModalitaSelezioneOrdini = esciModalitaSelezioneOrdini;
 window.filtraOrdiniCards = filtraOrdiniCards;

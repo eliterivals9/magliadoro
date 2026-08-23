@@ -1085,6 +1085,10 @@ function getCentralizedExchangeRate(settings = null) {
   return 0.856;
 }
 
+function getEffectiveExchangeRate(settings = null) {
+  return getCentralizedExchangeRate(settings);
+}
+
 async function getLiveOrSettingsExchangeRate(settings = null) {
   const currentSettings = settings || getSettings();
   const valuta = (currentSettings && currentSettings.cambioValuta) || {};
@@ -6641,14 +6645,16 @@ function getLocalProfitShares() {
         return {
           shares: (parsed && typeof parsed.shares === 'object' && !Array.isArray(parsed.shares)) ? parsed.shares : {},
           movements: (parsed && Array.isArray(parsed.movements)) ? parsed.movements : [],
-          modifications: (parsed && typeof parsed.modifications === 'object' && !Array.isArray(parsed.modifications)) ? parsed.modifications : {}
+          modifications: (parsed && typeof parsed.modifications === 'object' && !Array.isArray(parsed.modifications)) ? parsed.modifications : {},
+          lot_percentages: (parsed && typeof parsed.lot_percentages === 'object' && !Array.isArray(parsed.lot_percentages)) ? parsed.lot_percentages : {},
+          extra_expenses: (parsed && Array.isArray(parsed.extra_expenses)) ? parsed.extra_expenses : []
         };
       }
     }
   } catch (err) {
     console.warn("⚠️ Errore lettura backup locale profit_shares_local.json:", err.message);
   }
-  return { shares: {}, movements: [], modifications: {} };
+  return { shares: {}, movements: [], modifications: {}, lot_percentages: {}, extra_expenses: [] };
 }
 
 function saveLocalProfitShares(data) {
@@ -6656,7 +6662,9 @@ function saveLocalProfitShares(data) {
     const payload = {
       shares: (data && typeof data.shares === 'object' && !Array.isArray(data.shares)) ? data.shares : {},
       movements: (data && Array.isArray(data.movements)) ? data.movements : [],
-      modifications: (data && typeof data.modifications === 'object' && !Array.isArray(data.modifications)) ? data.modifications : {}
+      modifications: (data && typeof data.modifications === 'object' && !Array.isArray(data.modifications)) ? data.modifications : {},
+      lot_percentages: (data && typeof data.lot_percentages === 'object' && !Array.isArray(data.lot_percentages)) ? data.lot_percentages : {},
+      extra_expenses: (data && Array.isArray(data.extra_expenses)) ? data.extra_expenses : []
     };
     fs.writeFileSync(LOCAL_PROFIT_SHARES_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (err) {
@@ -6679,7 +6687,9 @@ async function getDbProfitShares() {
         const result = {
           shares: (val && typeof val.shares === 'object' && !Array.isArray(val.shares)) ? val.shares : {},
           movements: (val && Array.isArray(val.movements)) ? val.movements : [],
-          modifications: (val && typeof val.modifications === 'object' && !Array.isArray(val.modifications)) ? val.modifications : {}
+          modifications: (val && typeof val.modifications === 'object' && !Array.isArray(val.modifications)) ? val.modifications : {},
+          lot_percentages: (val && typeof val.lot_percentages === 'object' && !Array.isArray(val.lot_percentages)) ? val.lot_percentages : {},
+          extra_expenses: (val && Array.isArray(val.extra_expenses)) ? val.extra_expenses : []
         };
         saveLocalProfitShares(result);
         return result;
@@ -6695,7 +6705,9 @@ async function saveDbProfitShares(data) {
   const payload = {
     shares: (data && typeof data.shares === 'object' && !Array.isArray(data.shares)) ? data.shares : {},
     movements: (data && Array.isArray(data.movements)) ? data.movements : [],
-    modifications: (data && typeof data.modifications === 'object' && !Array.isArray(data.modifications)) ? data.modifications : {}
+    modifications: (data && typeof data.modifications === 'object' && !Array.isArray(data.modifications)) ? data.modifications : {},
+    lot_percentages: (data && typeof data.lot_percentages === 'object' && !Array.isArray(data.lot_percentages)) ? data.lot_percentages : {},
+    extra_expenses: (data && Array.isArray(data.extra_expenses)) ? data.extra_expenses : []
   };
 
   // Salva backup locale
@@ -6732,7 +6744,7 @@ function parseOrderProfitValue(order) {
   return isNaN(parsed) ? 0 : parsed;
 }
 
-function parseOrderCostEUR(order) {
+function parseOrderCostEUR(order, exchangeRate = 0.92) {
   if (!order) return 0;
   const raw = order["Costo totale (EUR)"] !== undefined ? order["Costo totale (EUR)"]
     : (order["Costo (EUR)"] !== undefined ? order["Costo (EUR)"]
@@ -6740,13 +6752,36 @@ function parseOrderCostEUR(order) {
     : (order["Costo Totale Fornitore (EUR)"] !== undefined ? order["Costo Totale Fornitore (EUR)"]
     : (order.costo_totale_eur !== undefined ? order.costo_totale_eur
     : (order.costo_eur !== undefined ? order.costo_eur
-    : (order.costo !== undefined ? order.costo
-    : (order.costo_fornitore_eur !== undefined ? order.costo_fornitore_eur : undefined)))))));
-  if (raw === undefined || raw === null) return 0;
-  if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
-  const str = String(raw).trim().replace('€', '').replace('$', '').replace(/\s/g, '');
-  const parsed = parseFloat(str.replace(/\./g, '').replace(',', '.'));
-  return isNaN(parsed) ? 0 : parsed;
+    : (order.cost_eur !== undefined ? order.cost_eur
+    : (order.costo_fornitore_eur !== undefined ? order.costo_fornitore_eur
+    : (order.costo !== undefined ? order.costo : undefined))))))));
+  if (raw !== undefined && raw !== null) {
+    if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
+    const str = String(raw).trim().replace('€', '').replace('$', '').replace(/\s/g, '');
+    const parsed = parseFloat(str.replace(/\./g, '').replace(',', '.'));
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+
+  // Fallback: Check USD cost fields and convert to EUR
+  const rawUsd = order["Costo totale (USD)"] !== undefined ? order["Costo totale (USD)"]
+    : (order["Costo (USD)"] !== undefined ? order["Costo (USD)"]
+    : (order["Costo Fornitore (USD)"] !== undefined ? order["Costo Fornitore (USD)"]
+    : (order.costo_totale_usd !== undefined ? order.costo_totale_usd
+    : (order.costo_fornitore_usd !== undefined ? order.costo_fornitore_usd
+    : (order.costo_usd !== undefined ? order.costo_usd : undefined)))));
+  if (rawUsd !== undefined && rawUsd !== null) {
+    let usdVal = 0;
+    if (typeof rawUsd === 'number') usdVal = isNaN(rawUsd) ? 0 : rawUsd;
+    else {
+      const strUsd = String(rawUsd).trim().replace('$', '').replace('€', '').replace(/\s/g, '');
+      usdVal = parseFloat(strUsd.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+    if (usdVal > 0) {
+      return Number((usdVal * (exchangeRate || 0.92)).toFixed(2));
+    }
+  }
+
+  return 0;
 }
 
 // Recupera tutti gli articoli di un ordine e calcola dettagliatamente il costo fornitore in USD (Base + Personalizzazioni + Spedizione)
@@ -6927,7 +6962,7 @@ app.get('/api/profit-splits', async (req, res) => {
       const orderItems = await getOrderItemsDetailedSupplierCosts(o, allDbProducts, settings, currentLotShippingRate);
       
       // Costo dell'acquisto (in EUR) coerente con Ordini Prodotti
-      const eurDirect = parseOrderCostEUR(o);
+      const eurDirect = parseOrderCostEUR(o, orderExchangeRate);
       const itemsUsd = orderItems.reduce((s, it) => s + (Number(it.total_cost_usd) || 0), 0);
       const calculatedEur = itemsUsd > 0 ? convertUsdToEur(itemsUsd, orderExchangeRate, '/api/profit-splits') : 0;
       const orderCostEur = eurDirect > 0 ? eurDirect : (calculatedEur > 0 ? calculatedEur : (itemsUsd > 0 ? itemsUsd : 0));
@@ -6974,12 +7009,16 @@ app.get('/api/profit-splits', async (req, res) => {
           customer_name: customerName,
           order_date: orderDate,
           profit_eur: Number(profitTotal.toFixed(2)),
+          profit_total: Number(profitTotal.toFixed(2)),
           cost_eur: costToCharge,
           division: division,
           division_label: divisionLabel,
           sergio_charge: sergioCharge,
+          sergio_debit: sergioCharge,
           riccardo_charge: riccardoCharge,
+          riccardo_debit: riccardoCharge,
           products_summary: productsSummary,
+          items_text: productsSummary,
           items: orderItems,
           updated_at: mod.updated_at
         });
@@ -6992,54 +7031,432 @@ app.get('/api/profit-splits', async (req, res) => {
         customer_name: customerName,
         order_date: orderDate,
         profit_eur: Number(profitTotal.toFixed(2)),
+        profit_total: Number(profitTotal.toFixed(2)),
         cost_eur: finalCostEur,
         products_summary: productsSummary,
+        items_text: productsSummary,
         items: orderItems,
         is_modified: isModified,
         current_division: isModified ? mod.division : null
       });
     }
 
+    // Determina l'ID del lotto corrente per la persistenza della percentuale e delle spese extra
+    let currentLottoId = 1;
+    if (req.query && req.query.lotto_id) {
+      currentLottoId = Number(req.query.lotto_id) || 1;
+    } else {
+      const explicitLottoId = orders.find(o => o.lotto_id !== null && o.lotto_id !== undefined)?.lotto_id;
+      if (explicitLottoId !== undefined && explicitLottoId !== null) {
+        currentLottoId = Number(explicitLottoId);
+      } else {
+        const lottoFile = path.join(__dirname, 'lotto.json');
+        if (fs.existsSync(lottoFile)) {
+          try {
+            const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+            if (lottoObj && lottoObj.id) {
+              currentLottoId = Number(lottoObj.id);
+            }
+          } catch (e) {}
+        }
+      }
+    }
+
+    // SPESE EXTRA DEL LOTTO (scarpe, calze, completini extra, ecc.)
+    const allExtraExpenses = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
+    const lotExtraExpenses = allExtraExpenses.filter(e => Number(e.lotto_id || 1) === Number(currentLottoId));
+    
+    let extraExpensesSergio = 0;
+    let extraExpensesRiccardo = 0;
+    let extraExpensesTotalUsd = 0;
+
+    for (const exp of lotExtraExpenses) {
+      extraExpensesSergio += Number(exp.sergio_eur) || 0;
+      extraExpensesRiccardo += Number(exp.riccardo_eur) || 0;
+      extraExpensesTotalUsd += Number(exp.total_usd) || 0;
+    }
+
+    extraExpensesSergio = Number(extraExpensesSergio.toFixed(2));
+    extraExpensesRiccardo = Number(extraExpensesRiccardo.toFixed(2));
+    const extraExpensesTotalEur = Number((extraExpensesSergio + extraExpensesRiccardo).toFixed(2));
+    extraExpensesTotalUsd = Number(extraExpensesTotalUsd.toFixed(2));
+
     // Alibaba Payment Fee (3% sul totale fornitore del lotto in USD convertito in EUR)
     const alibabaFeeUsd = lotTotals.alibaba_fee_usd;
     const alibabaFeeEur = lotTotals.alibaba_fee_eur;
     const ordersProfitTotal = Number(totalProfit.toFixed(2));
-    // Il profitto netto disponibile per i soci è il profitto complessivo degli ordini al netto della Alibaba Payment Fee
+    // Il profitto del lotto al netto della Alibaba Payment Fee
     const netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
 
-    const sergioTotalInitial = Number((netTotalProfit / 2).toFixed(2));
-    const riccardoTotalInitial = Number((netTotalProfit / 2).toFixed(2));
-    const sergioTotalNet = Number((sergioTotalInitial - sergioTotalWithdrawals).toFixed(2));
-    const riccardoTotalNet = Number((riccardoTotalInitial - riccardoTotalWithdrawals).toFixed(2));
-    const totalNetBalance = Number((sergioTotalNet + riccardoTotalNet).toFixed(2));
+    // Spese personali completini da ordini cliente
+    const speseCompletiniSergio = Number(sergioTotalWithdrawals.toFixed(2));
+    const speseCompletiniRiccardo = Number(riccardoTotalWithdrawals.toFixed(2));
+
+    // Spese personali TOTALI (completini ordini + spese extra lotto)
+    const speseSergio = Number((speseCompletiniSergio + extraExpensesSergio).toFixed(2));
+    const speseRiccardo = Number((speseCompletiniRiccardo + extraExpensesRiccardo).toFixed(2));
+    const speseTotali = Number((speseSergio + speseRiccardo).toFixed(2));
+
+    // Profitto Residuo = Profitto del lotto - Spese Sergio - Spese Riccardo
+    const profittoResiduo = Number((netTotalProfit - speseSergio - speseRiccardo).toFixed(2));
+
+    // Credito residuo di ciascun socio dopo gli acquisti personali:
+    // Credito residuo = Profitto disponibile - Acquisti personali del socio
+    const creditoResiduoSergio = Number((netTotalProfit - speseSergio).toFixed(2));
+    const creditoResiduoRiccardo = Number((netTotalProfit - speseRiccardo).toFixed(2));
+    const sommaCreditiResidui = Number((creditoResiduoSergio + creditoResiduoRiccardo).toFixed(2));
+
+    // Calcolo automatico percentuali in base alle spese personali (in proporzione ai crediti residui)
+    let autoSergioPercentage = 50;
+    let autoRiccardoPercentage = 50;
+
+    if (sommaCreditiResidui > 0) {
+      autoSergioPercentage = Number(((creditoResiduoSergio / sommaCreditiResidui) * 100).toFixed(2));
+      autoRiccardoPercentage = Number((100 - autoSergioPercentage).toFixed(2));
+    } else if (sommaCreditiResidui < 0) {
+      if (creditoResiduoSergio === creditoResiduoRiccardo) {
+        autoSergioPercentage = 50;
+        autoRiccardoPercentage = 50;
+      } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
+        autoSergioPercentage = 100;
+        autoRiccardoPercentage = 0;
+      } else {
+        autoSergioPercentage = 0;
+        autoRiccardoPercentage = 100;
+      }
+    } else {
+      if (creditoResiduoSergio === creditoResiduoRiccardo) {
+        autoSergioPercentage = 50;
+        autoRiccardoPercentage = 50;
+      } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
+        autoSergioPercentage = 100;
+        autoRiccardoPercentage = 0;
+      } else {
+        autoSergioPercentage = 0;
+        autoRiccardoPercentage = 100;
+      }
+    }
+
+    // Recupera la configurazione specifica per questo lotto
+    const lotPercentages = (profitData && typeof profitData.lot_percentages === 'object' && !Array.isArray(profitData.lot_percentages)) ? profitData.lot_percentages : {};
+    const lotConfig = lotPercentages[String(currentLottoId)] || {};
+
+    const splitMode = (lotConfig.split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
+
+    let manualSergioPercentage = 50;
+    let manualRiccardoPercentage = 50;
+
+    if (lotConfig.sergio_percentage !== undefined && lotConfig.sergio_percentage !== null) {
+      const sp = Number(lotConfig.sergio_percentage);
+      if (!isNaN(sp) && sp >= 0 && sp <= 100) {
+        manualSergioPercentage = sp;
+        manualRiccardoPercentage = Number((100 - sp).toFixed(2));
+      }
+    } else if (lotConfig.riccardo_percentage !== undefined && lotConfig.riccardo_percentage !== null) {
+      const rp = Number(lotConfig.riccardo_percentage);
+      if (!isNaN(rp) && rp >= 0 && rp <= 100) {
+        manualRiccardoPercentage = rp;
+        manualSergioPercentage = Number((100 - rp).toFixed(2));
+      }
+    }
+
+    let sergioPercentage = (splitMode === 'by_expenses') ? autoSergioPercentage : manualSergioPercentage;
+    let riccardoPercentage = (splitMode === 'by_expenses') ? autoRiccardoPercentage : manualRiccardoPercentage;
+
+    // Calcolo quote spettanti sul profitto totale del lotto (Gross shares)
+    let sergioGrossShare = 0;
+    let riccardoGrossShare = 0;
+
+    if (sergioPercentage === 100) {
+      sergioGrossShare = netTotalProfit;
+      riccardoGrossShare = 0;
+    } else if (riccardoPercentage === 100) {
+      sergioGrossShare = 0;
+      riccardoGrossShare = netTotalProfit;
+    } else {
+      sergioGrossShare = Number(((netTotalProfit * sergioPercentage) / 100).toFixed(2));
+      riccardoGrossShare = Number((netTotalProfit - sergioGrossShare).toFixed(2));
+    }
+
+    // Saldo/Quota netta residua spettante a ciascun socio: Quota lorda - Acquisti personali
+    const sergioResidualShare = Number((sergioGrossShare - speseSergio).toFixed(2));
+    const riccardoResidualShare = Number((riccardoGrossShare - speseRiccardo).toFixed(2));
+    const totaleProfittoAssegnato = Number((sergioResidualShare + riccardoResidualShare).toFixed(2));
+
+    // Saldi netti finali e quote lorde
+    const sergioTotalNet = sergioResidualShare;
+    const riccardoTotalNet = riccardoResidualShare;
+    const sergioTotalInitial = sergioGrossShare;
+    const riccardoTotalInitial = riccardoGrossShare;
+    const totalNetBalance = profittoResiduo;
+
+    // Tasso di cambio effettivo del lotto / centralizzato
+    const effectiveExchangeRate = getEffectiveExchangeRate(settings);
 
     return res.json({
       success: true,
       summary: {
+        lotto_id: currentLottoId,
+        split_mode: splitMode,
+        exchange_rate: effectiveExchangeRate,
         total_orders: orders.length,
         orders_profit_total: ordersProfitTotal,
         alibaba_fee_usd: alibabaFeeUsd,
         alibaba_fee_eur: alibabaFeeEur,
         total_profit: netTotalProfit,
+        profitto_lotto: netTotalProfit,
+        profitto_disponibile: netTotalProfit,
+        spese_completini_sergio: speseCompletiniSergio,
+        spese_completini_riccardo: speseCompletiniRiccardo,
+        extra_expenses_sergio: extraExpensesSergio,
+        extra_expenses_riccardo: extraExpensesRiccardo,
+        extra_expenses_total_eur: extraExpensesTotalEur,
+        extra_expenses_total_usd: extraExpensesTotalUsd,
+        extra_expenses_count: lotExtraExpenses.length,
+        spese_sergio: speseSergio,
+        spese_riccardo: speseRiccardo,
+        spese_totali: speseTotali,
+        credito_residuo_sergio: creditoResiduoSergio,
+        credito_residuo_riccardo: creditoResiduoRiccardo,
+        somma_crediti_residui: sommaCreditiResidui,
+        auto_sergio_percentage: autoSergioPercentage,
+        auto_riccardo_percentage: autoRiccardoPercentage,
+        manual_sergio_percentage: manualSergioPercentage,
+        manual_riccardo_percentage: manualRiccardoPercentage,
+        profitto_residuo: profittoResiduo,
+        sergio_percentage: sergioPercentage,
+        riccardo_percentage: riccardoPercentage,
+        sergio_residual_share: sergioResidualShare,
+        riccardo_residual_share: riccardoResidualShare,
+        totale_profitto_assegnato: totaleProfittoAssegnato,
         total_modifications: modificationsList.length,
         total_net: totalNetBalance,
         sergio: {
           total_initial: sergioTotalInitial,
-          total_withdrawals: Number(sergioTotalWithdrawals.toFixed(2)),
-          total_net: sergioTotalNet
+          total_withdrawals: speseSergio,
+          spese_completini: speseCompletiniSergio,
+          spese_extra: extraExpensesSergio,
+          credito_residuo: creditoResiduoSergio,
+          total_net: sergioTotalNet,
+          residual_share: sergioResidualShare,
+          percentage: sergioPercentage
         },
         riccardo: {
           total_initial: riccardoTotalInitial,
-          total_withdrawals: Number(riccardoTotalWithdrawals.toFixed(2)),
-          total_net: riccardoTotalNet
+          total_withdrawals: speseRiccardo,
+          spese_completini: speseCompletiniRiccardo,
+          spese_extra: extraExpensesRiccardo,
+          credito_residuo: creditoResiduoRiccardo,
+          total_net: riccardoTotalNet,
+          residual_share: riccardoResidualShare,
+          percentage: riccardoPercentage
         }
       },
       modifications: modificationsList,
+      extra_expenses: lotExtraExpenses,
       lot_orders: lotOrdersList
     });
   } catch (err) {
     console.error("⚠️ Errore GET /api/profit-splits:", err.message);
-    return res.status(500).json({ success: false, error: err.message, modifications: [], lot_orders: [] });
+    return res.status(500).json({ success: false, error: err.message, modifications: [], extra_expenses: [], lot_orders: [] });
+  }
+});
+
+// POST /api/profit-splits/extra-expense - Aggiunge o aggiorna una spesa extra del lotto
+app.post('/api/profit-splits/extra-expense', async (req, res) => {
+  try {
+    const { id, lotto_id, description, quantity, unit_price_usd, assigned_to, notes } = req.body;
+
+    const descStr = String(description || '').trim();
+    if (!descStr) {
+      return res.status(400).json({ success: false, error: "Descrizione / nome articolo obbligatorio." });
+    }
+
+    const qty = parseInt(quantity, 10);
+    if (isNaN(qty) || qty < 1) {
+      return res.status(400).json({ success: false, error: "La quantità deve essere un numero intero maggiore o uguale a 1." });
+    }
+
+    const rawUnitPrice = parseFloat(String(unit_price_usd).replace(',', '.'));
+    if (isNaN(rawUnitPrice) || rawUnitPrice < 0) {
+      return res.status(400).json({ success: false, error: "Il prezzo unitario in USD deve essere un valore numerico valido (>= 0)." });
+    }
+
+    const validAssignments = ['sergio', 'riccardo', '50_50', 'altro', '100_sergio', '100_riccardo'];
+    let assignment = String(assigned_to || 'sergio').toLowerCase();
+    if (!validAssignments.includes(assignment)) {
+      assignment = 'sergio';
+    }
+
+    // Normalizza assegnazione
+    if (assignment === '100_sergio') assignment = 'sergio';
+    if (assignment === '100_riccardo') assignment = 'riccardo';
+    if (assignment === '50_50') assignment = 'altro';
+
+    let lotId = lotto_id;
+    if (!lotId) {
+      const lottoFile = path.join(__dirname, 'lotto.json');
+      if (fs.existsSync(lottoFile)) {
+        try {
+          const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+          if (lottoObj && lottoObj.id) lotId = lottoObj.id;
+        } catch (e) {}
+      }
+    }
+    lotId = Number(lotId || 1);
+
+    const settings = getSettings();
+    const rate = getEffectiveExchangeRate(settings);
+
+    const totalUsd = Number((qty * rawUnitPrice).toFixed(2));
+    const unitPriceEur = convertUsdToEur(rawUnitPrice, rate, '/api/profit-splits/extra-expense');
+    const totalEur = convertUsdToEur(totalUsd, rate, '/api/profit-splits/extra-expense');
+
+    let sergioEur = 0;
+    let riccardoEur = 0;
+    let assignedLabel = 'Sergio (100%)';
+
+    if (assignment === 'sergio') {
+      sergioEur = totalEur;
+      riccardoEur = 0;
+      assignedLabel = 'Sergio (100%)';
+    } else if (assignment === 'riccardo') {
+      sergioEur = 0;
+      riccardoEur = totalEur;
+      assignedLabel = 'Riccardo (100%)';
+    } else if (assignment === 'altro') {
+      sergioEur = Number((totalEur / 2).toFixed(2));
+      riccardoEur = Number((totalEur - sergioEur).toFixed(2));
+      assignedLabel = 'Altro (50% / 50%)';
+    }
+
+    const expenseId = id ? String(id) : `extra_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const profitData = await getDbProfitShares();
+    if (!Array.isArray(profitData.extra_expenses)) {
+      profitData.extra_expenses = [];
+    }
+
+    const existingIndex = profitData.extra_expenses.findIndex(e => String(e.id) === expenseId);
+    const expenseEntry = {
+      id: expenseId,
+      lotto_id: lotId,
+      description: descStr,
+      quantity: qty,
+      unit_price_usd: Number(rawUnitPrice.toFixed(2)),
+      total_usd: totalUsd,
+      exchange_rate: rate,
+      unit_price_eur: unitPriceEur,
+      total_eur: totalEur,
+      assigned_to: assignment,
+      assigned_label: assignedLabel,
+      sergio_eur: sergioEur,
+      riccardo_eur: riccardoEur,
+      notes: String(notes || '').trim(),
+      updated_at: new Date().toISOString(),
+      created_at: (existingIndex >= 0 && profitData.extra_expenses[existingIndex].created_at) ? profitData.extra_expenses[existingIndex].created_at : new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+      profitData.extra_expenses[existingIndex] = expenseEntry;
+    } else {
+      profitData.extra_expenses.push(expenseEntry);
+    }
+
+    await saveDbProfitShares(profitData);
+    return res.json({ success: true, expense: expenseEntry });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/profit-splits/extra-expense:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/profit-splits/extra-expense/:id - Elimina una spesa extra del lotto
+app.delete('/api/profit-splits/extra-expense/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Identificativo spesa mancante." });
+    }
+
+    const profitData = await getDbProfitShares();
+    if (!Array.isArray(profitData.extra_expenses)) {
+      profitData.extra_expenses = [];
+    }
+
+    const initialLen = profitData.extra_expenses.length;
+    profitData.extra_expenses = profitData.extra_expenses.filter(e => String(e.id) !== String(id));
+    const removed = profitData.extra_expenses.length < initialLen;
+
+    if (removed) {
+      await saveDbProfitShares(profitData);
+    }
+
+    return res.json({ success: true, removed });
+  } catch (err) {
+    console.error("⚠️ Errore DELETE /api/profit-splits/extra-expense/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/profit-splits/lot-percentage - Imposta la suddivisione del profitto residuo per il lotto
+app.post('/api/profit-splits/lot-percentage', async (req, res) => {
+  try {
+    const { lotto_id, split_mode, sergio_percentage, riccardo_percentage } = req.body;
+    const mode = (split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
+
+    let sPct = parseFloat(sergio_percentage);
+    let rPct = parseFloat(riccardo_percentage);
+
+    if (mode === 'manual') {
+      if (isNaN(sPct) || isNaN(rPct)) {
+        return res.status(400).json({ success: false, error: "Le percentuali devono essere valori numerici." });
+      }
+
+      if (sPct < 0 || sPct > 100 || rPct < 0 || rPct > 100) {
+        return res.status(400).json({ success: false, error: "Le percentuali devono essere comprese tra 0% e 100%." });
+      }
+
+      if (Math.round(sPct + rPct) !== 100) {
+        return res.status(400).json({ success: false, error: "La somma delle percentuali di Sergio e Riccardo deve fare esattamente 100%." });
+      }
+    } else {
+      if (isNaN(sPct)) sPct = 50;
+      if (isNaN(rPct)) rPct = 50;
+    }
+
+    let lotId = lotto_id;
+    if (!lotId) {
+      const lottoFile = path.join(__dirname, 'lotto.json');
+      if (fs.existsSync(lottoFile)) {
+        try {
+          const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+          if (lottoObj && lottoObj.id) lotId = lottoObj.id;
+        } catch (e) {}
+      }
+    }
+    lotId = String(lotId || '1');
+
+    const profitData = await getDbProfitShares();
+    if (!profitData.lot_percentages || typeof profitData.lot_percentages !== 'object' || Array.isArray(profitData.lot_percentages)) {
+      profitData.lot_percentages = {};
+    }
+
+    profitData.lot_percentages[lotId] = {
+      lotto_id: lotId,
+      split_mode: mode,
+      sergio_percentage: Number(sPct.toFixed(2)),
+      riccardo_percentage: Number(rPct.toFixed(2)),
+      updated_at: new Date().toISOString()
+    };
+
+    await saveDbProfitShares(profitData);
+    return res.json({
+      success: true,
+      lot_percentage: profitData.lot_percentages[lotId]
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/profit-splits/lot-percentage:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 

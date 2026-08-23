@@ -13832,3 +13832,5346 @@ sourceFunction: /api/profit-splits
 [2026-08-22T21:11:02.756Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
 [2026-08-22T21:11:03.250Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 577ms
 [2026-08-22T21:16:01.338Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 599ms
+[2026-08-23T22:39:06.703Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T22:39:06.719Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T22:39:06.719Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:39:06.720Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T22:39:06.720Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:39:09.722Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T22:39:09.768Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:39:10.674Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:39:10.846Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:39:11.641Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:39:11.974Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T22:39:11.975Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:39:12.088Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:39:12.096Z] [LOG] ✅ [RECLASS] Stato revisione inizializzato con 4 prodotti.
+[2026-08-23T22:39:12.550Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 571ms
+[2026-08-23T22:44:12.493Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T22:44:12.494Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:44:12.527Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:44:13.758Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:44:13.758Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:13.798Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:13.833Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:13.874Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:13.910Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:13.944Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:13.978Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.006Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.036Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.062Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:44:14.068Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.069Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.078Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.078Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.078Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.078Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.079Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.079Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.083Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.083Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.088Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.088Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.095Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.096Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.099Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.099Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.103Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.103Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.112Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.112Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.116Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.116Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.116Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.120Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.121Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.124Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.124Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:14.124Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:14.126Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.161Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.192Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.222Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.253Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T22:44:14.395Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:44:14.395Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.424Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.456Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.492Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.523Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.562Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.632Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.668Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.721Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.753Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.785Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.835Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.863Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:44:14.895Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T22:44:15.488Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:44:15.493Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.493Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.497Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.497Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.497Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.497Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.497Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.497Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.501Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.501Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.507Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.507Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.511Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.511Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.515Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.515Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.519Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.519Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.523Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.523Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.527Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.527Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.527Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.527Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.531Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.531Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.538Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.538Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.538Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.542Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.542Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:15.546Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.546Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:15.546Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:16.780Z] [LOG] [COUPON DEBUG]
+Operazione: SELECT
+Tabella: public.coupons
+[2026-08-23T22:44:16.814Z] [LOG] [COUPON DEBUG]
+Operazione: SELECT
+Tabella: public.coupons
+Numero coupon restituiti: 3
+Risultato: SUCCESS
+[2026-08-23T22:44:17.584Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:44:17.589Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.589Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.593Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.593Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.593Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.593Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.593Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.593Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.596Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.596Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.600Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.600Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.603Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.604Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.607Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.607Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.611Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.611Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.615Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.615Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.619Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.619Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.619Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.619Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.622Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.622Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.628Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.628Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.628Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.631Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.631Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:44:17.634Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.634Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:44:17.634Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:38.066Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T22:50:38.083Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T22:50:38.083Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:50:38.083Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T22:50:38.084Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:50:41.087Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T22:50:41.134Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:50:41.232Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:50:41.337Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:50:41.905Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:50:43.320Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T22:50:43.336Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T22:50:43.336Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:50:43.336Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T22:50:43.336Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:50:46.339Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T22:50:46.384Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:50:46.466Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:50:46.556Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:50:47.057Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:50:49.938Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T22:50:49.939Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:50:50.012Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:50:50.354Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 421ms
+[2026-08-23T22:50:55.666Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T22:50:55.667Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:50:55.698Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:50:56.591Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:50:56.592Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.631Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.661Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.693Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.736Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.769Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.801Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.895Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.957Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:56.990Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.024Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.057Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.090Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T22:50:57.253Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:50:57.253Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.283Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.313Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.343Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.376Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.407Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.439Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.471Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.502Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.538Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.568Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.600Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.632Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:50:57.664Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T22:50:58.250Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:50:58.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.261Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.261Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.262Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.262Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.262Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.262Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.265Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.265Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.269Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.269Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.273Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.273Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.277Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.277Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.281Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.281Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.284Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.284Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.288Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.293Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.293Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.297Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.297Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.297Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.300Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.300Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:58.304Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.304Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:58.304Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.885Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:50:59.889Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.890Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.893Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.893Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.893Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.893Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.893Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.893Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.896Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.896Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.900Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.900Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.903Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.904Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.907Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.907Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.911Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.911Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.914Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.914Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.918Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.918Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.918Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.918Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.924Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.928Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.928Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.928Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.931Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.931Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:50:59.934Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.934Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:50:59.935Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.320Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:55:47.328Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.328Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.337Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.337Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.341Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.341Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.345Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.345Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.349Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.349Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.353Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.353Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.357Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.357Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.361Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.361Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.361Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.361Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.365Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.365Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.368Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.368Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.368Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.371Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.371Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:55:47.375Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.375Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:55:47.375Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:26.424Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T22:57:26.440Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T22:57:26.440Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:57:26.440Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T22:57:26.440Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:57:29.443Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T22:57:29.489Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:57:29.573Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:57:29.677Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:57:30.227Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:57:31.589Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T22:57:31.608Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T22:57:31.608Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:57:31.609Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T22:57:31.609Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T22:57:34.611Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T22:57:34.656Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:57:34.779Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:57:34.871Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:57:35.356Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T22:57:37.923Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T22:57:37.923Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:57:37.962Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:57:38.307Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 387ms
+[2026-08-23T22:57:50.865Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T22:57:50.866Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T22:57:50.906Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T22:57:51.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:57:51.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.751Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.790Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.824Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.861Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.896Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.930Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.965Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:51.996Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.031Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.065Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.097Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.133Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.164Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T22:57:52.427Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:57:52.427Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.460Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.490Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.554Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.584Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.613Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.642Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.673Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.736Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.790Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.820Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T22:57:52.851Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T22:57:53.445Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:57:53.453Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.453Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.459Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.459Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.459Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.460Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.460Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.460Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.465Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.466Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.470Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.470Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.477Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.477Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.480Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.480Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.484Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.484Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.487Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.487Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.491Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.491Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.491Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.491Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.496Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.496Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.500Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.500Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.500Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.504Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.504Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:53.508Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.508Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:53.508Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.095Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:57:54.100Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.100Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.104Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.104Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.104Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.104Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.104Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.104Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.107Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.107Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.110Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.110Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.115Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.115Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.118Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.118Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.125Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.125Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.129Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.129Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.129Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.129Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.135Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.135Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.138Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.139Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.139Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.142Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.142Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:54.146Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.146Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:54.146Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.916Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T22:57:55.921Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.921Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.924Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.924Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.928Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.928Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.931Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.931Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.934Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.934Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.938Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.938Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.941Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.941Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.945Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.945Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.948Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.952Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.952Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.956Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.956Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.956Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.960Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.960Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T22:57:55.963Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.963Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T22:57:55.963Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.541Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:05:16.549Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.549Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.553Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.553Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.553Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.553Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.553Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.553Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.563Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.563Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.567Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.567Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.570Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.570Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.575Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.575Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.579Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.579Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.582Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.582Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.582Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.582Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.586Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.586Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.591Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.591Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.591Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.595Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.595Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:05:16.599Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.599Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:05:16.599Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:09:51.936Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T23:09:51.955Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T23:09:51.955Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:09:51.956Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T23:09:51.956Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:09:54.961Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T23:09:55.010Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:09:55.109Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:09:55.235Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:09:55.892Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:09:57.634Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T23:09:57.653Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T23:09:57.653Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:09:57.653Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T23:09:57.653Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:10:00.690Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T23:10:00.691Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:10:00.778Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:10:00.903Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:10:01.466Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:10:06.178Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T23:10:06.178Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:10:06.247Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:10:06.640Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 468ms
+[2026-08-23T23:10:11.590Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T23:10:11.590Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:10:11.624Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:10:12.494Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:10:12.494Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.538Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.581Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.617Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.657Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.700Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.737Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.781Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.846Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.882Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.914Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.946Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:12.978Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.008Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T23:10:13.142Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:10:13.142Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.177Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.210Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.247Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.312Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.341Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.370Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.400Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.431Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.462Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.495Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.528Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.558Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:10:13.591Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T23:10:14.165Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:10:14.171Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.171Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.179Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.179Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.182Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.183Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.186Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.186Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.189Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.189Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.193Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.193Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.196Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.197Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.203Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.203Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.204Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.204Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.207Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.207Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.210Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.210Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.210Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.213Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.213Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.216Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.216Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:14.216Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:14.216Z] [ERROR] ⚠️ Errore GET /api/profit-splits: getEffectiveExchangeRate is not defined
+[2026-08-23T23:10:26.509Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:10:26.516Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.516Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.526Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.526Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.533Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.533Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.537Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.538Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.543Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.543Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.550Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.550Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.554Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.554Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.563Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.563Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.569Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.569Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.569Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.573Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.573Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.577Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.577Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:26.577Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:26.577Z] [ERROR] ⚠️ Errore GET /api/profit-splits: getEffectiveExchangeRate is not defined
+[2026-08-23T23:10:43.336Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T23:10:46.693Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:10:46.698Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.699Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.703Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.706Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.707Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.713Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.713Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.718Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.718Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.724Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.724Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.731Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.731Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.736Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.737Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.742Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.742Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.742Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.742Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.748Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.748Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.755Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.755Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.755Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.761Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.761Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.771Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.771Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:46.771Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:46.771Z] [ERROR] ⚠️ Errore GET /api/profit-splits: getEffectiveExchangeRate is not defined
+[2026-08-23T23:10:51.622Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T23:10:51.640Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T23:10:51.640Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:10:51.641Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T23:10:51.641Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:10:53.244Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:10:53.250Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.251Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.256Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.260Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.260Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.267Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.268Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.271Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.271Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.275Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.275Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.279Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.279Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.283Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.283Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.287Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.291Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.291Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.298Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.298Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.298Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.302Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.302Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:53.307Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.307Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:10:53.307Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:10:54.642Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T23:10:54.643Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:10:54.678Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:10:54.766Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:10:55.299Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:10:56.292Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3.5
+conversionRate: 0.856
+convertedEUR: 3
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:10:56.292Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 7
+conversionRate: 0.856
+convertedEUR: 5.99
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:11:03.131Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T23:11:03.148Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T23:11:03.149Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:11:03.150Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T23:11:03.150Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:11:06.152Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T23:11:06.200Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:11:06.295Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:11:06.410Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:11:06.859Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:11:10.536Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T23:11:10.536Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:11:10.594Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:11:10.967Z] [LOG] [API /api/products] Successfully loaded 4618 products from Supabase via helper in 441ms
+[2026-08-23T23:11:18.453Z] [LOG] >>> ENTRATA GET /api/settings
+[2026-08-23T23:11:18.454Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:11:18.491Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:11:19.272Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:11:19.273Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.311Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.354Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.391Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.426Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.464Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.496Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.532Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.562Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.599Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.630Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.664Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.693Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:19.724Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T23:11:19.965Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:11:19.965Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.005Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.037Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.073Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.110Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.142Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.173Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:11:20.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.187Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.188Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.188Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.188Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.188Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.188Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.194Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.194Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.198Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.198Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.202Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.203Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.207Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.207Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.211Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.211Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.215Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.215Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.220Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.220Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.220Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.220Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.224Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.224Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.227Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.228Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.228Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.231Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.231Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.235Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.236Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:20.236Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:20.239Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.284Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.316Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.352Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.384Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.417Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.448Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.99
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: recalculateCurrentLottoInternal
+[2026-08-23T23:11:20.483Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 1
+totalQuantity: 21
+shippingRate: 3
+ordersAffected: 13
+totalShipping: 63
+[2026-08-23T23:11:21.055Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:11:21.061Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.061Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.065Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.065Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.065Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.072Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.073Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.076Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.076Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.080Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.080Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.097Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.097Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.102Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.102Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.102Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.102Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.106Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.107Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.111Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.111Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.111Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.115Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.115Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:21.120Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.120Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:21.120Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.350Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:11:23.356Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.356Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.360Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.360Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.360Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.360Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.360Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.360Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.363Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.363Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.367Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.367Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.371Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.371Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.374Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.374Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.378Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.378Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.382Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.382Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.385Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.385Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.385Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.385Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.389Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.389Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.396Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.396Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.396Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.399Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.400Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:23.403Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.403Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:23.403Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:50.544Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:11:50.544Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:11:51.167Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:11:51.172Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.172Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.186Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.186Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.190Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.190Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.195Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.195Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.200Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.200Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.204Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.204Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.208Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.208Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.208Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.208Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.214Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.214Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.219Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.219Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.219Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.222Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.222Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:11:51.226Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.226Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:11:51.227Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:15.917Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:12:15.917Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:12:16.611Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:12:16.617Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.617Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.624Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.624Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.624Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.624Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.624Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.624Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.629Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.630Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.634Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.634Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.638Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.638Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.642Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.642Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.646Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.646Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.650Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.651Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.654Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.655Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.655Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.655Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.659Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.659Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.663Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.663Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.663Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.668Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.668Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:12:16.672Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.672Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:12:16.672Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:19.039Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-08-23T23:18:19.057Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-08-23T23:18:19.057Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:18:19.058Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 2 lotti reali.
+[2026-08-23T23:18:19.058Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-08-23T23:18:22.061Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-08-23T23:18:22.107Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-08-23T23:18:22.227Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-08-23T23:18:22.324Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:18:22.965Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-08-23T23:18:24.054Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:18:24.060Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.061Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.066Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.071Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.071Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.075Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.075Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.080Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.080Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.084Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.084Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.088Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.088Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.096Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.096Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.096Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.096Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.100Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.101Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.108Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.112Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.114Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:24.118Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.118Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:24.118Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.760Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:18:28.766Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.766Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.770Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.770Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.770Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.770Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.770Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.770Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.775Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.775Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.778Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.778Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.782Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.782Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.785Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.785Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.788Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.788Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.792Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.792Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.799Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.799Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.802Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.802Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.802Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.806Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.806Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:28.810Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.810Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:28.810Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.962Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:18:44.968Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.968Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.972Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.972Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.972Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.972Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.973Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.973Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.977Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.977Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.982Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.982Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.986Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.986Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.990Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.990Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.994Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.995Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:44.998Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:44.998Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:45.001Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.001Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.001Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.001Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:45.004Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.004Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:45.008Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.008Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.009Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:45.012Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.012Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:45.015Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.015Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:45.015Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.252Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 9
+conversionRate: 0.856
+convertedEUR: 7.7
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:18:50.252Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 9
+conversionRate: 0.856
+convertedEUR: 7.7
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:18:50.800Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:18:50.805Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.805Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.809Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.809Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.809Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.809Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.809Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.809Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.812Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.812Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.816Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.816Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.820Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.820Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.824Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.824Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.827Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.827Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.832Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.832Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.836Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.836Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.836Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.836Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.840Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.840Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.843Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.844Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.844Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.847Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.847Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:50.851Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.851Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:50.851Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:54.489Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 10
+conversionRate: 0.856
+convertedEUR: 8.56
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:18:54.489Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 10
+conversionRate: 0.856
+convertedEUR: 8.56
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:18:55.078Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:18:55.082Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.082Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.085Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.097Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.097Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.101Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.101Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.105Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.105Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.110Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.110Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.117Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.118Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.127Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.127Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.131Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.131Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.132Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.136Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.136Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:55.140Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.140Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:55.140Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.340Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 10
+conversionRate: 0.856
+convertedEUR: 8.56
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:18:59.340Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 10
+conversionRate: 0.856
+convertedEUR: 8.56
+sourceFunction: /api/profit-splits/extra-expense
+[2026-08-23T23:18:59.909Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 8.31
+conversionRate: 0.856
+convertedEUR: 7.11
+sourceFunction: calculateLottoTotals
+[2026-08-23T23:18:59.915Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.915Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.99
+conversionRate: 0.856
+convertedEUR: 13.69
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13.8
+conversionRate: 0.856
+convertedEUR: 11.81
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 68.79
+conversionRate: 0.856
+convertedEUR: 58.88
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.923Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.923Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.927Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.927Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.931Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.931Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.935Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.935Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.939Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.940Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.943Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.944Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.950Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.3
+conversionRate: 0.856
+convertedEUR: 9.67
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.950Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 13
+conversionRate: 0.856
+convertedEUR: 11.13
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.950Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 12
+conversionRate: 0.856
+convertedEUR: 10.27
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.950Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 36.3
+conversionRate: 0.856
+convertedEUR: 31.07
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.954Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.954Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.958Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.958Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11
+conversionRate: 0.856
+convertedEUR: 9.42
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.958Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22
+conversionRate: 0.856
+convertedEUR: 18.83
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.961Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.961Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: /api/profit-splits
+[2026-08-23T23:18:59.965Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14
+conversionRate: 0.856
+convertedEUR: 11.98
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.965Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.99
+conversionRate: 0.856
+convertedEUR: 12.83
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-08-23T23:18:59.965Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 28.990000000000002
+conversionRate: 0.856
+convertedEUR: 24.82
+sourceFunction: /api/profit-splits
