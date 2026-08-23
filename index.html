@@ -6923,6 +6923,8 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         var databaseProdotti = window.databaseProdotti || [];
         window.databaseProdotti = databaseProdotti;
         var databaseInizializzato = false;
+        var isCaricamentoCatalogoInCorso = true;
+        var databaseCaricamentoErrore = false;
         var sessioneUtente = null;
         window.sessioneUtente = null;
 
@@ -7328,6 +7330,44 @@ function chiudiZoomImmagine(){
 
         let caricaProdottiPromise = null;
         let isCaricamentoCatalogoInCorso = true;
+        let databaseCaricamentoErrore = false;
+
+        function reRenderizzaSezioneAttiva() {
+            const paginaClub = document.getElementById('pagina-club');
+            const paginaMondiali = document.getElementById('pagina-mondiali');
+            const paginaRicerca = document.getElementById('pagina-ricerca');
+            const paginaWishlist = document.getElementById('pagina-wishlist');
+            const paginaAreaCliente = document.getElementById('pagina-area-cliente');
+
+            if (paginaRicerca && paginaRicerca.classList.contains('attiva')) {
+                if (typeof queryRicercaCorrente !== 'undefined' && queryRicercaCorrente && queryRicercaCorrente.trim().length > 0) {
+                    eseguiERenderizzaRicerca(queryRicercaCorrente);
+                }
+            } else if (paginaClub && paginaClub.classList.contains('attiva')) {
+                if (!squadraSelezionata || squadraSelezionata === '') {
+                    squadraSelezionata = 'lega_tutti';
+                }
+                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
+                    renderizzaProdottiSquadraConFiltri();
+                }
+            } else if (paginaMondiali && paginaMondiali.classList.contains('attiva')) {
+                if (!squadraSelezionata || squadraSelezionata === '') {
+                    squadraSelezionata = 'continent_tutte';
+                }
+                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
+                    renderizzaProdottiSquadraConFiltri();
+                }
+            } else if (paginaWishlist && paginaWishlist.classList.contains('attiva')) {
+                if (typeof renderingWishlistUtente === 'function') {
+                    renderingWishlistUtente();
+                }
+            } else if (paginaAreaCliente && paginaAreaCliente.classList.contains('attiva')) {
+                if (typeof renderingWishlistUtente === 'function') {
+                    renderingWishlistUtente();
+                }
+            }
+        }
+        window.reRenderizzaSezioneAttiva = reRenderizzaSezioneAttiva;
 
         function caricaProdottiDaDatabase() {
             // Se gia' caricato con successo, restituisci subito il risultato in memoria
@@ -7342,6 +7382,7 @@ function chiudiZoomImmagine(){
 
             caricaProdottiPromise = (async () => {
                 isCaricamentoCatalogoInCorso = true;
+                databaseCaricamentoErrore = false;
                 const maxTentativi = 3;
                 let attempt = 0;
                 let caricamentoRiuscito = false;
@@ -7361,28 +7402,13 @@ function chiudiZoomImmagine(){
                                 window.databaseProdotti = databaseProdotti;
                                 databaseInizializzato = true;
                                 isCaricamentoCatalogoInCorso = false;
+                                databaseCaricamentoErrore = false;
                                 caricamentoRiuscito = true;
-
-                                // AGGIORNAMENTO E RENDERING AUTOMATICO INTERFACCIA APPENA DISPONIBILE
-                                if (typeof inizializzaCarouselNuoviArrivi === 'function') {
-                                    inizializzaCarouselNuoviArrivi();
-                                }
-
-                                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
-                                    const paginaClub = document.getElementById('pagina-club');
-                                    const paginaMondiali = document.getElementById('pagina-mondiali');
-                                    if (paginaClub && paginaClub.classList.contains('attiva') && (!squadraSelezionata || squadraSelezionata === '')) {
-                                        squadraSelezionata = 'lega_tutti';
-                                    } else if (paginaMondiali && paginaMondiali.classList.contains('attiva') && (!squadraSelezionata || squadraSelezionata === '')) {
-                                        squadraSelezionata = 'continent_tutte';
-                                    }
-                                    renderizzaProdottiSquadraConFiltri();
-                                }
-
-                                return databaseProdotti;
+                                break;
                             }
                         }
                     } catch (err) {
+                        console.warn(`Tentativo ${attempt}/${maxTentativi} caricamento catalogo fallito:`, err);
                         if (attempt < maxTentativi) {
                             await new Promise(r => setTimeout(r, 400 * attempt));
                         }
@@ -7391,18 +7417,28 @@ function chiudiZoomImmagine(){
 
                 isCaricamentoCatalogoInCorso = false;
 
-                // Se arriviamo qui dopo i tentativi, attiviamo la modalità di resilienza locale
-                if (databaseProdotti.length === 0) {
+                if (!caricamentoRiuscito && databaseProdotti.length === 0) {
+                    // Attivazione catalogo locale di resilienza se API non disponibile
                     console.warn("Attivazione catalogo prodotti locale di resilienza.");
                     inizializzaDatabaseProdotti();
+                    if (databaseProdotti.length > 0) {
+                        databaseInizializzato = true;
+                        databaseCaricamentoErrore = false;
+                    } else {
+                        databaseInizializzato = false;
+                        databaseCaricamentoErrore = true;
+                    }
+                } else {
                     databaseInizializzato = true;
+                    databaseCaricamentoErrore = false;
                 }
-                
+
+                // AGGIORNAMENTO AUTOMATICO DI TUTTI I COMPONENTI E DELLE VISTE ATTIVE
                 if (typeof inizializzaCarouselNuoviArrivi === 'function') {
                     inizializzaCarouselNuoviArrivi();
                 }
-                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
-                    renderizzaProdottiSquadraConFiltri();
+                if (typeof reRenderizzaSezioneAttiva === 'function') {
+                    reRenderizzaSezioneAttiva();
                 }
 
                 return databaseProdotti;
@@ -7411,7 +7447,7 @@ function chiudiZoomImmagine(){
             return caricaProdottiPromise;
         }
 
-        // Avvia immediatamente il caricamento del catalogo non appena la libreria di script viene caricata
+        // Avvia immediatamente il caricamento del catalogo non appena lo script viene caricato
         caricaProdottiDaDatabase();
 
         async function seedSupabase() {
@@ -7771,64 +7807,13 @@ for (const cat in hierarchy) {
             `;
 
             nav.innerHTML = html;
-        }
-
-        function selezionaEFiltraCustomCategoria(categoria, valore) {
-            mostraSezioneCompleta('club');
-            squadraSelezionata = '';
-            const containerFiltriClub = document.getElementById('filtri-squadra-container');
-            const containerOrdClub = document.getElementById('ordinamento-club-container');
-            if (containerFiltriClub) containerFiltriClub.style.display = 'none';
-            if (containerOrdClub) containerOrdClub.style.display = 'none';
-            
-            if (categoria === 'NBA') {
-                document.getElementById('titolo-dinamico-club').innerText = `⭐ Tutte le Squadre NBA`;
-            } else {
-                document.getElementById('titolo-dinamico-club').innerText = `⭐ Tutti i team ${categoria}`;
-            }
-
-            const contenitore = document.getElementById('contenitore-club-griglia');
-            contenitore.innerHTML = '';
-            
-            const squadreDellaCategoria = publicTeams.filter(t => t.categoria === categoria).map(t => t.name);
-            const prodottiDellaCategoria = databaseProdotti.filter(p => squadreDellaCategoria.includes(p.squadra));
-
-                        console.log("Numero squadre publicTeams:", publicTeams.length);
-console.log("Categoria:", categoria);
-console.log("Squadre della categoria:", squadreDellaCategoria);
-console.log("Prodotti totali:", databaseProdotti.length);
-console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
-
-            
-            const squadreUnicheMostrate = [...new Set(prodottiDellaCategoria.map(p => p.squadra))];
-            
-            if (squadreUnicheMostrate.length === 0) {
-                if (typeof isCaricamentoCatalogoInCorso !== 'undefined' && isCaricamentoCatalogoInCorso) {
-                    contenitore.innerHTML = `
-                        <div style="grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 15px; color: rgba(255,255,255,0.7); text-align: center;">
-                            <span class="material-icons animate-spin" style="font-size: 40px; color: var(--primary, #eab308);">sync</span>
-                            <div>
-                                <p style="font-size: 15px; font-weight: 700; margin: 0; color: #fff;">Caricamento prodotti in corso...</p>
-                                <p style="font-size: 13px; opacity: 0.8; margin-top: 4px;">Attendere qualche secondo mentre stiamo preparando il catalogo.</p>
-                            </div>
-                        </div>`;
-                } else {
-                    contenitore.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px; color: var(--on-surface-de-emphasis);">
-                            <span style="font-size: 40px; display: block; margin-bottom: 10px;">👕</span>
-                            <p style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">Nessun prodotto trovato</p>
-                            <p style="font-size: 13px; opacity: 0.8;">Non ci sono articoli disponibili per questa categoria.</p>
-                        </div>`;
-                }
-            } else {
-                squadreUnicheMostrate.forEach(sq => {
-                    const prodSquadra = prodottiDellaCategoria.find(p => p.squadra === sq);
-                    const img = prodSquadra ? prodSquadra.immagine : "";
-                    contenitore.innerHTML += renderizzaCardHTML(sq, img, `Team ${categoria}`);
-                });
+            window.publicTeams = publicTeams;
+            if (databaseInizializzato && typeof reRenderizzaSezioneAttiva === 'function') {
+                reRenderizzaSezioneAttiva();
             }
         }
-        window.selezionaEFiltraCustomCategoria = selezionaEFiltraCustomCategoria;
+        window.caricaNavigazioneDinamica = caricaNavigazioneDinamica;
+        caricaNavigazioneDinamica();
 
         function inizializzaCarouselNuoviArrivi() {
             const container = document.getElementById('prodotti-in-evidenza');
@@ -8390,6 +8375,22 @@ console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
                 window.caricaRecensioniPubbliche();
             }
 
+            if (idSezione === 'club') {
+                if (!squadraSelezionata || squadraSelezionata === '') {
+                    squadraSelezionata = 'lega_tutti';
+                }
+                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
+                    renderizzaProdottiSquadraConFiltri();
+                }
+            } else if (idSezione === 'mondiali') {
+                if (!squadraSelezionata || squadraSelezionata === '') {
+                    squadraSelezionata = 'continent_tutte';
+                }
+                if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
+                    renderizzaProdottiSquadraConFiltri();
+                }
+            }
+
             // Aggiorna Titolo SEO e Meta Descrizione
             if (metadataPagine[idSezione]) {
                 document.title = metadataPagine[idSezione].titolo;
@@ -8493,8 +8494,6 @@ console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
             const contenitore = document.getElementById('contenitore-ricerca-griglia');
             if (!contenitore) return;
 
-            contenitore.innerHTML = '';
-
             if (query !== queryRicercaCorrente) {
                 paginaCorrenteRicerca = 1;
                 queryRicercaCorrente = query;
@@ -8502,13 +8501,34 @@ console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
 
             const termini = normalizzaTesto(query).split(/\s+/).filter(t => t.length > 0);
             if (termini.length === 0) {
+                contenitore.innerHTML = '';
                 return;
             }
 
-            if (!databaseInizializzato) {
-                inizializzaDatabaseProdotti();
-                databaseInizializzato = true;
+            // Aggiorna titolo di ricerca
+            const titoloRicerca = document.getElementById('titolo-ricerca');
+            if (titoloRicerca) {
+                titoloRicerca.innerText = `Risultati per: "${query}"`;
             }
+
+            // STATO 1: CARICAMENTO IN CORSO
+            if (isCaricamentoCatalogoInCorso || !databaseInizializzato) {
+                const sottotitoloRicerca = document.getElementById('sottotitolo-ricerca');
+                if (sottotitoloRicerca) {
+                    sottotitoloRicerca.innerText = `Ricerca in corso tra i prodotti del catalogo...`;
+                }
+                contenitore.innerHTML = `
+                    <div style="grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 15px; color: rgba(255,255,255,0.7); text-align: center;">
+                        <span class="material-icons animate-spin" style="font-size: 40px; color: var(--primary, #eab308);">sync</span>
+                        <div>
+                            <p style="font-size: 15px; font-weight: 700; margin: 0; color: #fff;">Ricerca in corso...</p>
+                            <p style="font-size: 13px; opacity: 0.8; margin-top: 4px;">Attendere il caricamento dei prodotti del catalogo.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            contenitore.innerHTML = '';
 
             // Filtra databaseProdotti
             const matching = databaseProdotti.filter(p => {
@@ -8533,11 +8553,7 @@ console.log("Prodotti filtrati:", prodottiDellaCategoria.length);
                 });
             });
 
-            // Aggiorna titolo e sottotitolo con il numero di risultati trovati
-            const titoloRicerca = document.getElementById('titolo-ricerca');
-            if (titoloRicerca) {
-                titoloRicerca.innerText = `Risultati per: "${query}"`;
-            }
+            // Aggiorna sottotitolo con il numero di risultati trovati
             const sottotitoloRicerca = document.getElementById('sottotitolo-ricerca');
             if (sottotitoloRicerca) {
                 sottotitoloRicerca.innerText = `Trovati ${matching.length} prodotti corrispondenti.`;
@@ -9029,6 +9045,9 @@ if (valoreLega === 'tutti') {
         }
 
         function renderizzaProdottiSquadraConFiltri() {
+            if (!squadraSelezionata || squadraSelezionata === '') {
+                squadraSelezionata = 'lega_tutti';
+            }
             const isClubSquad = isClub(squadraSelezionata) || squadraSelezionata.startsWith('categoria_') || squadraSelezionata.startsWith('categoria-custom_') || squadraSelezionata.startsWith('lega_');
             const targetContenitoreId = isClubSquad ? 'contenitore-club-griglia' : 'contenitore-nazionali-griglia';
             const containerFiltriClub = document.getElementById('filtri-squadra-container');
@@ -9052,6 +9071,33 @@ if (valoreLega === 'tutti') {
 
             const contenitore = document.getElementById(targetContenitoreId);
             if (!contenitore) return;
+
+            // STATO 1: CARICAMENTO IN CORSO
+            if (isCaricamentoCatalogoInCorso || !databaseInizializzato) {
+                contenitore.innerHTML = `
+                    <div style="grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 70px 20px; gap: 16px; color: rgba(255,255,255,0.7); text-align: center;">
+                        <span class="material-icons animate-spin" style="font-size: 42px; color: var(--primary, #eab308);">sync</span>
+                        <div>
+                            <p style="font-size: 16px; font-weight: 700; margin: 0; color: #fff;">Caricamento prodotti in corso...</p>
+                            <p style="font-size: 13px; opacity: 0.8; margin-top: 5px;">Attendere qualche secondo mentre stiamo preparando il catalogo.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            // STATO 4: ERRORE CARICAMENTO API
+            if (databaseCaricamentoErrore && databaseProdotti.length === 0) {
+                contenitore.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--on-surface-de-emphasis);">
+                        <span class="material-icons" style="font-size: 44px; color: #ef4444; display: block; margin-bottom: 12px;">cloud_off</span>
+                        <p style="font-weight: 700; font-size: 16px; margin-bottom: 6px; color: #fff;">Impossibile caricare il catalogo</p>
+                        <p style="font-size: 13px; opacity: 0.8; max-width: 420px; margin: 0 auto 16px auto;">Si è verificato un problema di connessione durante il recupero dei prodotti.</p>
+                        <button onclick="caricaProdottiDaDatabase()" class="btn-configura" style="padding: 10px 20px; font-size: 13px; border-radius: 8px;">
+                            <span class="material-icons" style="font-size: 16px; vertical-align: middle; margin-right: 6px;">refresh</span>Riprova Caricamento
+                        </button>
+                    </div>`;
+                return;
+            }
             
             contenitore.innerHTML = '';
             
