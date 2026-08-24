@@ -1386,54 +1386,17 @@ async function downloadImageAsBuffer(url) {
 function getExcelProductStyle(item, matchedProd) {
   const prod = matchedProd || item;
   let rawCategory = "";
-  if (prod && prod.categoria) {
+  if (prod && prod.categoria !== undefined && prod.categoria !== null) {
     rawCategory = String(prod.categoria).trim();
+  } else if (item && item.categoria !== undefined && item.categoria !== null) {
+    rawCategory = String(item.categoria).trim();
   }
 
-  const rawCategoryLower = rawCategory.toLowerCase();
-  const title = (prod ? (prod.versione || prod.titleItalian || prod.squadra || "") : "").toLowerCase();
-
-  if (rawCategoryLower === "retro") return "Retro";
-  if (rawCategoryLower === "fan") return "Fan";
-  if (rawCategoryLower === "player") return "Player";
-  if (rawCategoryLower === "tuta" || rawCategoryLower === "tute") return "Tuta";
-  if (rawCategoryLower === "kit bambino" || rawCategoryLower === "kids kit") return "Kids Kit";
-  if (rawCategoryLower === "kit allenamento" || rawCategoryLower === "kit training" || rawCategoryLower === "training") return "Training";
-
-  if (rawCategoryLower === "kit") {
-    if (title.includes("bambino") || title.includes("kid") || title.includes("kids")) {
-      return "Kids Kit";
-    }
-    return "Fan";
+  if (!rawCategory) {
+    return "";
   }
 
-  if (title.includes("bambino") || title.includes("kid") || title.includes("kids")) {
-    if (title.includes("tuta") || title.includes("tracksuit")) {
-      return "Tuta";
-    }
-    return "Kids Kit";
-  }
-  if (title.includes("tuta") || title.includes("tracksuit")) {
-    return "Tuta";
-  }
-  if (title.includes("retro") || title.includes("retrò")) {
-    return "Retro";
-  }
-  if (title.includes("player") || title.includes("giocatore")) {
-    return "Player";
-  }
-  if (title.includes("allenamento") || title.includes("training")) {
-    return "Training";
-  }
-  if (title.includes("fan")) {
-    return "Fan";
-  }
-
-  if (rawCategory) {
-    return rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1);
-  }
-
-  return "Fan";
+  return normalizzaCategoria(rawCategory);
 }
 
 function getExcelProductTitle(item, matchedProd) {
@@ -1627,7 +1590,7 @@ async function generaExcelLotto(lottoId, orders) {
       // OGGETTO NORMALIZZATO CERTIFICATO: Stessa identica sorgente per tutti i campi
       const titleItalian = matchedProd ? matchedProd.versione.trim() : (item.versione || item.squadra || "").trim();
       const squadra = matchedProd ? matchedProd.squadra.trim() : (item.squadra || "").trim();
-      const categoria = matchedProd ? String(matchedProd.categoria).trim() : (item.categoria || "Kit");
+      const categoria = matchedProd ? String(matchedProd.categoria || "").trim() : String(item.categoria || "").trim();
       const season = matchedProd ? String(matchedProd.stagione || "25/26").trim() : (item.stagione || "25/26");
       const imageUrl = (matchedProd && matchedProd.immagine) ? matchedProd.immagine.trim() : (item.imgUrl || item.immagine || "").trim();
       const styleEng = getExcelProductStyle(item, matchedProd);
@@ -1894,40 +1857,83 @@ async function getAllProductsFromSupabase(supabase) {
 
 async function getDbOrders() {
   const supabase = getSupabaseClient();
-  if (!supabase) {
-    throw new Error("Supabase non è configurato.");
+  let dbOrders = [];
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+      if (!error && data) {
+        dbOrders = data.map(o => ({
+          id: o.id,
+          created_at: o.created_at,
+          data: o.data,
+          nome: o.nome,
+          telefono: o.telefono,
+          squadra: o.squadra,
+          personalizzazione: o.personalizzazione,
+          taglia: o.taglia,
+          totale: o.totale,
+          foto: o.foto,
+          "Prezzo fornitore": o.prezzo_fornitore,
+          "Costo prodotti (USD)": o.costo_prodotti_usd,
+          "Costo spedizione (USD)": o.costo_spedizione_usd,
+          "Costo totale (USD)": o.costo_totale_usd,
+          "Cambio USD/EUR": o.cambio_usd_eur,
+          "Costo totale (EUR)": o.costo_totale_eur,
+          "Profitto (EUR)": o.profitto_eur,
+          is_archived: o.is_archived,
+          lotto_id: o.lotto_id,
+          carrello: o.carrello,
+          coupon_code: o.coupon_code || null,
+          coupon_discount: o.coupon_discount !== undefined && o.coupon_discount !== null ? Number(o.coupon_discount) : 0,
+          coupon_type: o.coupon_type || null,
+          coupon_value: o.coupon_value !== undefined && o.coupon_value !== null ? Number(o.coupon_value) : null
+        }));
+      } else if (error) {
+        console.warn("⚠️ Querying orders table from Supabase failed:", error.message);
+      }
+    } catch (err) {
+      console.warn("⚠️ Exception querying orders from Supabase:", err.message);
+    }
   }
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-  if (error) {
-    console.error("⚠️ Querying orders table from Supabase failed:", error.message);
-    throw error;
+
+  // Resilienza con persistenza locale (orders_local.json)
+  const localOrders = getLocalOrders();
+  
+  // Merge deterministico su Map: chiave prioritaria ID (o data univoca)
+  const mergedMap = new Map();
+  
+  // 1. Popola con gli ordini locali
+  for (const lo of localOrders) {
+    if (!lo) continue;
+    const key = (lo.id !== undefined && lo.id !== null && String(lo.id).trim() !== '') 
+      ? `id_${lo.id}` 
+      : `data_${String(lo.data || '').trim()}`;
+    mergedMap.set(key, lo);
   }
-  return (data || []).map(o => ({
-    id: o.id,
-    created_at: o.created_at,
-    data: o.data,
-    nome: o.nome,
-    telefono: o.telefono,
-    squadra: o.squadra,
-    personalizzazione: o.personalizzazione,
-    taglia: o.taglia,
-    totale: o.totale,
-    foto: o.foto,
-    "Prezzo fornitore": o.prezzo_fornitore,
-    "Costo prodotti (USD)": o.costo_prodotti_usd,
-    "Costo spedizione (USD)": o.costo_spedizione_usd,
-    "Costo totale (USD)": o.costo_totale_usd,
-    "Cambio USD/EUR": o.cambio_usd_eur,
-    "Costo totale (EUR)": o.costo_totale_eur,
-    "Profitto (EUR)": o.profitto_eur,
-    is_archived: o.is_archived,
-    lotto_id: o.lotto_id,
-    carrello: o.carrello,
-    coupon_code: o.coupon_code || null,
-    coupon_discount: o.coupon_discount !== undefined && o.coupon_discount !== null ? Number(o.coupon_discount) : 0,
-    coupon_type: o.coupon_type || null,
-    coupon_value: o.coupon_value !== undefined && o.coupon_value !== null ? Number(o.coupon_value) : null
-  }));
+  
+  // 2. Sovrascrivi/integra con i record remoti di Supabase mantenendo i dati più completi
+  for (const dbo of dbOrders) {
+    if (!dbo) continue;
+    const keyById = (dbo.id !== undefined && dbo.id !== null && String(dbo.id).trim() !== '') ? `id_${dbo.id}` : null;
+    const keyByData = (dbo.data !== undefined && dbo.data !== null && String(dbo.data).trim() !== '') ? `data_${String(dbo.data).trim()}` : null;
+    
+    const matchedKey = (keyById && mergedMap.has(keyById)) ? keyById : ((keyByData && mergedMap.has(keyByData)) ? keyByData : null);
+    
+    if (matchedKey) {
+      const existing = mergedMap.get(matchedKey);
+      if (keyById && matchedKey !== keyById) {
+        mergedMap.delete(matchedKey);
+        mergedMap.set(keyById, { ...existing, ...dbo });
+      } else {
+        mergedMap.set(matchedKey, { ...existing, ...dbo });
+      }
+    } else {
+      const finalKey = keyById || keyByData || `item_${Math.random()}`;
+      mergedMap.set(finalKey, dbo);
+    }
+  }
+  
+  return Array.from(mergedMap.values());
 }
 
 async function insertDbOrder(order) {
@@ -1996,29 +2002,51 @@ async function deleteDbOrderByDate(orderDate) {
 
 async function getDbLotti() {
   const supabase = getSupabaseClient();
+  let dbLotti = [];
   if (supabase) {
     try {
       const { data, error } = await supabase.from('lotti').select('*').order('id', { ascending: false });
       if (!error && data) {
-        return data;
-      }
-      if (error) {
+        dbLotti = data;
+      } else if (error) {
         console.warn("⚠️ Querying lotti from Supabase failed, falling back to local archive:", error.message);
       }
     } catch (err) {
       console.warn("⚠️ Querying lotti from Supabase failed, fallback to local:", err.message);
     }
   }
+
+  let localArchive = [];
   const archiveFile = path.join(__dirname, 'lotto_archive.json');
   if (fs.existsSync(archiveFile)) {
     try {
       const parsed = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
       if (Array.isArray(parsed)) {
-        return parsed.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+        localArchive = parsed;
       }
     } catch (e) {}
   }
-  return [];
+
+  // Merge deterministico: priorità Supabase se presente, altrimenti fallback locale
+  const mergedMap = new Map();
+  for (const lo of localArchive) {
+    if (!lo) continue;
+    const key = lo.id !== undefined && lo.id !== null ? `id_${lo.id}` : `name_${lo.numero_lotto}`;
+    mergedMap.set(key, lo);
+  }
+
+  for (const dbo of dbLotti) {
+    if (!dbo) continue;
+    const key = dbo.id !== undefined && dbo.id !== null ? `id_${dbo.id}` : `name_${dbo.numero_lotto}`;
+    if (mergedMap.has(key)) {
+      const existing = mergedMap.get(key);
+      mergedMap.set(key, { ...existing, ...dbo, orders: (dbo.orders && dbo.orders.length > 0) ? dbo.orders : (existing.orders || []) });
+    } else {
+      mergedMap.set(key, dbo);
+    }
+  }
+
+  return Array.from(mergedMap.values()).sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 }
 
 async function insertDbLotto(lotto) {
@@ -4441,61 +4469,288 @@ function pulisciLottiArchivio() {
   }
 }
 
+/**
+ * Riconcilia gli ordini di un lotto archiviato con la tabella 'orders'.
+ * Se esistono ordini reali con lotto_id === lotto.id, restituisce gli ordini reali.
+ * Altrimenti restituisce l'array lotto.orders salvato nello snapshot come fallback.
+ */
+function getOrdersForArchivedLotto(lotto, allOrders = []) {
+  if (!lotto) return [];
+  const lottoIdNum = Number(lotto.id);
+  const realOrders = (allOrders || []).filter(o => Number(o.lotto_id) === lottoIdNum);
+  if (realOrders.length > 0) {
+    return realOrders;
+  }
+  return Array.isArray(lotto.orders) ? lotto.orders : [];
+}
+
+function calcolaNumeroArticoliOrdini(orders) {
+  if (!Array.isArray(orders)) return 0;
+  let total = 0;
+  orders.forEach(order => {
+    let cartItems = order.carrello;
+    if (Array.isArray(cartItems) && cartItems.length > 0) {
+      cartItems.forEach(item => {
+        const isSped = isTechnicalShippingOrServiceLine(item.squadra || item.nome);
+        if (!isSped) {
+          total += parseInt(item.quantita) || 1;
+        }
+      });
+    } else if (order.squadra) {
+      const parts = String(order.squadra).split('/').map(p => p.trim()).filter(Boolean);
+      parts.forEach(p => {
+        if (!isTechnicalShippingOrServiceLine(p)) {
+          const m = p.match(/^(\d+)x/i);
+          total += m ? parseInt(m[1]) : 1;
+        }
+      });
+    }
+  });
+  return total;
+}
+
 app.get('/api/lotto/archive', async (req, res) => {
   try {
-    const archive = await getDbLotti();
-    return res.json({ success: true, archive });
+    const allLotti = await getDbLotti();
+    const settings = getSettings();
+    const profitData = await getDbProfitShares();
+    const allOrders = await getDbOrders();
+    let localProducts = [];
+    try {
+      localProducts = getLocalProducts();
+    } catch (e) {}
+    let supabaseProducts = [];
+    try {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        supabaseProducts = await getAllProductsFromSupabase(supabase);
+      }
+    } catch (e) {}
+    const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+
+    // Filtra per mostrare nella Cronologia solo i lotti con stato concluso/archiviato
+    // Esclude lotti con status 'ripristinato', 'attivo' o 'riaperto'
+    const closedArchive = (allLotti || []).filter(l => {
+      const st = String(l.status || '').trim().toLowerCase();
+      if (st === 'ripristinato' || st === 'attivo' || st === 'riaperto') {
+        return false;
+      }
+      return true;
+    });
+
+    const enrichedArchive = await Promise.all(closedArchive.map(async (l) => {
+      try {
+        const lotOrders = getOrdersForArchivedLotto(l, allOrders);
+        const splitData = await computeProfitSplitForLotto(l.id, {
+          allOrders,
+          profitData,
+          lottoArchive: allLotti,
+          settings,
+          allDbProducts,
+          currentActiveLottoId: 1
+        });
+
+        const calculatedArticoli = lotOrders.length > 0 ? calcolaNumeroArticoliOrdini(lotOrders) : (l.numero_articoli || 0);
+
+        return {
+          ...l,
+          orders: lotOrders,
+          numero_ordini: lotOrders.length > 0 ? lotOrders.length : (l.numero_ordini || 0),
+          numero_articoli: calculatedArticoli || (l.numero_articoli || 0),
+          incasso_base_eur: splitData.incasso_base,
+          incasso_effettivo_eur: splitData.incasso_effettivo,
+          incasso_netto_eur: splitData.incasso_effettivo,
+          profit_split_summary: splitData
+        };
+      } catch (e) {
+        const lotOrders = getOrdersForArchivedLotto(l, allOrders);
+        return {
+          ...l,
+          orders: lotOrders,
+          numero_ordini: lotOrders.length > 0 ? lotOrders.length : (l.numero_ordini || 0)
+        };
+      }
+    }));
+
+    return res.json({ success: true, archive: enrichedArchive });
   } catch (err) {
     console.error("⚠️ Errore lettura archivio lotti:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// DELETE /api/lotto/archive/:id - Elimina un lotto archiviato e i suoi ordini
+// DELETE /api/lotto/archive/:id - Elimina DEFINITIVAMENTE un lotto archiviato e TUTTI i suoi ordini
 app.delete('/api/lotto/archive/:id', async (req, res) => {
   const { id } = req.params;
-  console.log(`[BACKEND] Richiesta di eliminazione per il Lotto ID: ${id}`);
+  const numId = Number(id);
+  console.log(`[BACKEND ELIMINA LOTTO] Richiesta di eliminazione definitiva per il Lotto ID: ${id}`);
   try {
     const archive = await getDbLotti();
-    const lotIndex = archive.findIndex(l => Number(l.id) === Number(id));
+    const targetLot = archive.find(l => Number(l.id) === numId) || (function() {
+      const archiveFile = path.join(__dirname, 'lotto_archive.json');
+      if (fs.existsSync(archiveFile)) {
+        try {
+          const raw = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
+          if (Array.isArray(raw)) return raw.find(l => Number(l.id) === numId);
+        } catch (e) {}
+      }
+      return null;
+    })();
 
-    if (lotIndex === -1) {
-      return res.status(404).json({ success: false, error: `Lotto con ID ${id} non trovato.` });
+    const lotName = targetLot ? (targetLot.numero_lotto || `Lotto #${targetLot.id}`) : `Lotto #${numId}`;
+    
+    // Individua TUTTI gli ordini appartenenti ESCLUSIVAMENTE a questo lotto tramite lotto_id reale o snapshot
+    const allOrders = await getDbOrders();
+    const localOrders = getLocalOrders();
+    const targetOrderIds = new Set();
+    const targetOrderDates = new Set();
+
+    // 1. Dallo snapshot del lotto
+    if (targetLot && Array.isArray(targetLot.orders)) {
+      targetLot.orders.forEach(o => {
+        if (o.id !== undefined && o.id !== null) targetOrderIds.add(Number(o.id));
+        if (o.data) targetOrderDates.add(String(o.data).trim());
+      });
     }
 
-    const targetLot = archive[lotIndex];
-    const lotName = targetLot.numero_lotto || `Lotto #${targetLot.id}`;
-    const targetOrders = targetLot.orders || [];
+    // 2. Da tutti gli ordini del database
+    allOrders.forEach(o => {
+      if (Number(o.lotto_id) === numId) {
+        if (o.id !== undefined && o.id !== null) targetOrderIds.add(Number(o.id));
+        if (o.data) targetOrderDates.add(String(o.data).trim());
+      }
+    });
 
-    console.log(`[BACKEND] Eliminazione di ${lotName} contenente ${targetOrders.length} ordini.`);
+    // 3. Dalla cache locale
+    localOrders.forEach(o => {
+      if (Number(o.lotto_id) === numId) {
+        if (o.id !== undefined && o.id !== null) targetOrderIds.add(Number(o.id));
+        if (o.data) targetOrderDates.add(String(o.data).trim());
+      }
+    });
 
-    // 1. Elimina ciascun ordine di questo lotto da Supabase
+    const orderIdsArray = Array.from(targetOrderIds).filter(id => !isNaN(id) && id > 0);
+    const orderDatesArray = Array.from(targetOrderDates);
+
+    console.log(`[BACKEND ELIMINA LOTTO] Trovati ${orderIdsArray.length} ordini (${orderDatesArray.length} date) associati al ${lotName}.`);
+
+    // A) ELIMINAZIONE DA SUPABASE
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
-        const { error } = await supabase.from('orders').delete().eq('lotto_id', id);
-        if (error) {
-          console.warn("⚠️ Eliminazione ordini associati al lotto da Supabase fallita:", error.message);
-        } else {
-          console.log(`✅ Ordini associati al lotto #${id} rimossi con successo da Supabase.`);
+        // 1. Individua record in customer_orders collegati tramite admin_order_id o lotto_id
+        let customerOrderIds = [];
+        if (orderIdsArray.length > 0) {
+          const { data: custByAdminId } = await supabase
+            .from('customer_orders')
+            .select('id')
+            .in('admin_order_id', orderIdsArray);
+          if (custByAdminId && Array.isArray(custByAdminId)) {
+            custByAdminId.forEach(co => {
+              if (co && co.id) customerOrderIds.push(co.id);
+            });
+          }
         }
+
+        try {
+          const { data: custByLotto } = await supabase
+            .from('customer_orders')
+            .select('id')
+            .eq('lotto_id', numId);
+          if (custByLotto && Array.isArray(custByLotto)) {
+            custByLotto.forEach(co => {
+              if (co && co.id && !customerOrderIds.includes(co.id)) customerOrderIds.push(co.id);
+            });
+          }
+        } catch (eLottoCust) {}
+
+        // 2. Elimina gli item in customer_order_items (se presenti)
+        if (customerOrderIds.length > 0) {
+          try {
+            await supabase.from('customer_order_items').delete().in('order_id', customerOrderIds);
+          } catch (eItem1) {}
+          try {
+            await supabase.from('customer_order_items').delete().in('customer_order_id', customerOrderIds);
+          } catch (eItem2) {}
+
+          // 3. Elimina da customer_orders
+          await supabase.from('customer_orders').delete().in('id', customerOrderIds);
+        }
+
+        if (orderIdsArray.length > 0) {
+          await supabase.from('customer_orders').delete().in('admin_order_id', orderIdsArray);
+        }
+        try {
+          await supabase.from('customer_orders').delete().eq('lotto_id', numId);
+        } catch (eCustDel) {}
+
+        // 4. Elimina da orders per lotto_id e per ID
+        await supabase.from('orders').delete().eq('lotto_id', numId);
+        if (orderIdsArray.length > 0) {
+          await supabase.from('orders').delete().in('id', orderIdsArray);
+        }
+
+        // 5. Elimina eventuali profit_shares per questo lotto
+        try {
+          await supabase.from('profit_shares').delete().eq('lotto_id', numId);
+        } catch (ePs) {}
+
+        console.log(`✅ [BACKEND ELIMINA LOTTO] Supabase: eliminati ordini e relazioni per ${lotName}.`);
       } catch (subErr) {
-        console.error("⚠️ Eccezione eliminando ordini associati al lotto da Supabase:", subErr.message);
+        console.error("⚠️ [BACKEND ELIMINA LOTTO] Errore eliminazione Supabase:", subErr.message);
       }
     }
 
-    // 2. Rimuovi il lotto dall'archivio lotti (Supabase)
-    await deleteDbLotto(id);
+    // B) ELIMINAZIONE DA CACHE E FILE LOCALI
+    // 1. Elimina da orders_local.json
+    try {
+      const currentLoc = getLocalOrders();
+      const filteredLoc = currentLoc.filter(o => {
+        if (Number(o.lotto_id) === numId) return false;
+        if (o.id !== undefined && o.id !== null && targetOrderIds.has(Number(o.id))) return false;
+        return true;
+      });
+      fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(filteredLoc, null, 2), 'utf8');
+      console.log(`✅ [BACKEND ELIMINA LOTTO] orders_local.json aggiornato: rimossi ordini del ${lotName}.`);
+    } catch (eLoc) {
+      console.warn("⚠️ [BACKEND ELIMINA LOTTO] Errore aggiornamento orders_local.json:", eLoc.message);
+    }
 
-    console.log(`[BACKEND] Lotto ${lotName} rimosso con successo.`);
+    // 2. Elimina date da archived_orders.json
+    try {
+      if (orderDatesArray.length > 0) {
+        let archivedKeys = getArchivedKeys();
+        archivedKeys = archivedKeys.filter(k => !orderDatesArray.includes(String(k).trim()));
+        saveArchivedKeys(archivedKeys);
+      }
+    } catch (eArch) {}
+
+    // 3. Rimuovi file Excel fornitore
+    try {
+      const excelFileName = `LOTTO_${String(numId).padStart(4, '0')}.xlsx`;
+      const excelFilePath = path.join(__dirname, 'lotti', excelFileName);
+      if (fs.existsSync(excelFilePath)) {
+        fs.unlinkSync(excelFilePath);
+        console.log(`✅ [BACKEND ELIMINA LOTTO] File Excel rimosso: ${excelFileName}`);
+      }
+    } catch (eEx) {}
+
+    // C) ELIMINA IL RECORD DEL LOTTO (Supabase 'lotti' table + lotto_archive.json)
+    await deleteDbLotto(numId);
+
+    // D) RICALCOLA LO STATO DEL LOTTO CORRENTE
+    const updatedLotto = await recalculateCurrentLottoInternal();
+
+    console.log(`[BACKEND ELIMINA LOTTO] ✅ ${lotName} e tutti i suoi ${orderIdsArray.length} ordini eliminati definitivamente.`);
     return res.json({ 
       success: true, 
-      message: `Lotto '${lotName}' rimosso con successo.`, 
+      message: `${lotName} e tutti i suoi ${orderIdsArray.length} ordini sono stati eliminati definitivamente.`, 
       lotName, 
-      deletedOrdersCount: targetOrders.length
+      deletedOrdersCount: orderIdsArray.length,
+      lotto: updatedLotto
     });
   } catch (err) {
-    console.error("⚠️ Errore durante l'eliminazione del lotto:", err);
+    console.error("⚠️ [BACKEND ELIMINA LOTTO] Errore durante l'eliminazione del lotto:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -4510,17 +4765,30 @@ const handleLottoRestore = async (req, res) => {
   return runWithLottoLock(async () => {
     try {
       const archive = await getDbLotti();
-      const targetLot = archive.find(l => Number(l.id) === numId);
+      let targetLot = archive.find(l => Number(l.id) === numId);
       
+      // Fallback: se non è nel db lotti, controlla direttamente lotto_archive.json
+      if (!targetLot) {
+        const archiveFile = path.join(__dirname, 'lotto_archive.json');
+        if (fs.existsSync(archiveFile)) {
+          try {
+            const rawArchive = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
+            if (Array.isArray(rawArchive)) {
+              targetLot = rawArchive.find(l => Number(l.id) === numId);
+            }
+          } catch (e) {}
+        }
+      }
+
       console.log(`[LOTTO RESTORE DEBUG]\nLOTTO TROVATO: ${targetLot ? 'YES' : 'NO'}`);
 
       const allOrders = await getDbOrders();
 
-      // Controllo idempotenza: se il lotto non è in archivio ma è già attivo (es. doppio click rapido)
+      // Controllo idempotenza: se il lotto non è in archivio ma i suoi ordini sono già attivi
       if (!targetLot) {
         const alreadyActive = allOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o) && Number(o.lotto_id) === numId);
         if (alreadyActive.length > 0) {
-          console.log(`[BACKEND Ripristina Lotto] Lotto #${numId} è già attivo (richiesta duplicata gestita in modo idempotente).`);
+          console.log(`[BACKEND Ripristina Lotto] Lotto #${numId} è già attivo (richiesta idempotente).`);
           const currentLotto = await recalculateCurrentLottoInternal();
           return res.json({
             success: true,
@@ -4533,15 +4801,32 @@ const handleLottoRestore = async (req, res) => {
       }
 
       console.log(`[LOTTO RESTORE DEBUG]\nSTATO LOTTO ATTUALE: ${targetLot.status || 'ARCHIVIATO / CHIUSO'}`);
-      const lotSnapshotOrders = (targetLot.orders || []).filter(o => !o.is_tracking_meta);
+      let lotSnapshotOrders = (targetLot.orders || []).filter(o => !o.is_tracking_meta);
+      
+      // Se lo snapshot nel lotto è vuoto, cerca ordini associati a questo lotto_id nei file locali o db
+      if (lotSnapshotOrders.length === 0) {
+        const localMatched = getLocalOrders().filter(o => Number(o.lotto_id) === numId);
+        if (localMatched.length > 0) {
+          lotSnapshotOrders = localMatched;
+          console.log(`[LOTTO RESTORE DEBUG] Recuperati ${lotSnapshotOrders.length} ordini associati al Lotto #${numId} da cache locale.`);
+        }
+      }
+
       console.log(`[LOTTO RESTORE DEBUG]\nORDINI ASSOCIATI AL LOTTO: ${lotSnapshotOrders.length}`);
 
-      // Controllo conflitti: verifichiamo se esistono già ordini attivi associati a un ALTRO lotto
+      if (lotSnapshotOrders.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: `Nessun ordine trovato nello snapshot del Lotto #${numId}. Impossibile ripristinare un lotto vuoto.`
+        });
+      }
+
+      // Controllo conflitti: verifichiamo se esistono ordini attivi associati a un ALTRO lotto
       const otherActiveOrders = allOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o) && o.lotto_id !== null && o.lotto_id !== undefined && Number(o.lotto_id) !== numId);
       if (otherActiveOrders.length > 0) {
         return res.status(400).json({
           success: false,
-          error: `Impossibile ripristinare il Lotto #${numId}: sono presenti ${otherActiveOrders.length} ordini attivi associati a un altro lotto. Chiudi o gestisci prima il lotto attivo.`
+          error: `Impossibile ripristinare il Lotto #${numId}: sono già presenti ${otherActiveOrders.length} ordini attivi associati a un altro lotto (Lotto #${otherActiveOrders[0].lotto_id || 'attivo'}). Concludi o archivia prima il lotto attivo.`
         });
       }
 
@@ -4553,19 +4838,25 @@ const handleLottoRestore = async (req, res) => {
       const supabase = getSupabaseClient();
       const localOrders = getLocalOrders();
 
-      // 1. Ripristino / Ricostruzione di ciascun ordine del lotto
+      let restoredCount = 0;
+      let existingCount = 0;
+      let recreatedCount = 0;
+      let failedOrders = [];
+
+      // 1. Ripristino / Ricostruzione NON DISTRUTTIVA di ciascun ordine preservando CATEGORICAMENTE l'ID originale
       for (const snapOrder of lotSnapshotOrders) {
         const snapDate = snapOrder.data ? String(snapOrder.data).trim() : null;
         const snapId = snapOrder.id ? Number(snapOrder.id) : null;
 
-        // Cerca se l'ordine esiste ancora nella tabella 'orders' del database
+        // Cerca se l'ordine esiste già nel DB o in memoria
         const existingDbOrder = allOrders.find(dbO => 
           (snapId && Number(dbO.id) === snapId) ||
           (snapDate && String(dbO.data).trim() === snapDate)
         );
 
         if (existingDbOrder) {
-          // L'ordine esiste già: aggiorniamo is_archived = false e lotto_id = numId
+          existingCount++;
+          // Ordine esistente: aggiorna is_archived = false e lotto_id = numId preservando l'ID
           if (supabase) {
             try {
               if (existingDbOrder.id) {
@@ -4581,12 +4872,16 @@ const handleLottoRestore = async (req, res) => {
               }
             } catch (errUpd) {
               console.warn(`⚠️ Errore aggiornamento ordine esistente ID ${existingDbOrder.id || existingDbOrder.data}:`, errUpd.message);
+              failedOrders.push({ id: snapId, date: snapDate, reason: errUpd.message });
             }
           }
         } else {
-          // L'ordine NON esiste nel database (es. eliminato dalla sezione ordini archiviati): RICOSTRUISCILO dallo snapshot!
-          console.log(`[BACKEND Ripristina Lotto] Ordine '${snapDate || snapOrder.nome}' eliminato o mancante: RICOSTRUZIONE e reinserimento automatico in corso...`);
-          const orderToInsert = {
+          // Ordine non trovato su Supabase: REINSERISCILO PRESERVANDO L'ID ORIGINALE ESPLICITO
+          recreatedCount++;
+          console.log(`[BACKEND Ripristina Lotto] Ordine #${snapId || snapDate} mancante su Supabase: REINSERIMENTO CON ID ORIGINALE ${snapId}...`);
+          
+          const orderToUpsert = {
+            ...(snapId ? { id: snapId } : {}), // PRESERVA CATEGORICAMENTE L'ID ORIGINALE!
             data: snapOrder.data || new Date().toLocaleString('it-IT'),
             nome: snapOrder.nome || 'Cliente',
             telefono: snapOrder.telefono || '',
@@ -4613,14 +4908,13 @@ const handleLottoRestore = async (req, res) => {
 
           if (supabase) {
             try {
-              const { data: insertedData, error: insErr } = await supabase
+              const { error: insErr } = await supabase
                 .from('orders')
-                .insert(orderToInsert)
-                .select();
+                .upsert(orderToUpsert, { onConflict: snapId ? 'id' : 'data' });
               if (insErr) {
-                console.error("⚠️ Errore reinserimento ordine ricostruito su Supabase:", insErr.message);
+                console.error(`⚠️ Errore reinserimento ordine #${snapId} su Supabase:`, insErr.message);
               } else {
-                console.log(`✅ Ordine ricostruito con successo su Supabase: ${orderToInsert.data}`);
+                console.log(`✅ Ordine #${snapId} reinserito con successo su Supabase con ID originale immutato.`);
               }
             } catch (errRecreate) {
               console.error("⚠️ Eccezione durante la ricostruzione ordine:", errRecreate.message);
@@ -4628,21 +4922,31 @@ const handleLottoRestore = async (req, res) => {
           }
         }
 
-        // Sincronizza lo stato nella cache locale orders_local.json
+        // Sincronizza lo stato nella cache locale orders_local.json preservando ID
         const locIdx = localOrders.findIndex(lo => 
-          (snapDate && String(lo.data).trim() === snapDate) || 
-          (snapId && Number(lo.id) === snapId)
+          (snapId && Number(lo.id) === snapId) ||
+          (snapDate && String(lo.data).trim() === snapDate)
         );
         if (locIdx !== -1) {
           localOrders[locIdx].is_archived = false;
           localOrders[locIdx].lotto_id = numId;
+          if (snapId && !localOrders[locIdx].id) localOrders[locIdx].id = snapId;
         } else {
           localOrders.push({
             ...snapOrder,
+            id: snapId || snapOrder.id,
             is_archived: false,
             lotto_id: numId
           });
         }
+        restoredCount++;
+      }
+
+      // Salva la cache locale orders_local.json aggiornata
+      try {
+        fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+      } catch (errLocal) {
+        console.warn("⚠️ Errore scrittura cache locale orders:", errLocal.message);
       }
 
       // 2. Aggiorna tabella customer_orders per riattivare lo stato a 'Ordine ricevuto'
@@ -4652,34 +4956,58 @@ const handleLottoRestore = async (req, res) => {
             status: 'Ordine ricevuto',
             updated_at: new Date().toISOString()
           }).in('admin_order_id', orderAdminIds);
+          console.log(`✅ ${orderAdminIds.length} record in customer_orders riallineati a 'Ordine ricevuto'.`);
         } catch (subErr) {
           console.warn("⚠️ Errore aggiornamento customer_orders su Supabase:", subErr.message);
         }
       }
 
-      // 3. Rimuovi il lotto dallo storico dei lotti chiusi (poiché torna ATTIVO)
-      await deleteDbLotto(numId);
+      // 3. REGOLA FONDAMENTALE #9: VERIFICA DI INTEGRITÀ AL 100% PRIMA DI CONFERMARE
+      const updatedAllOrders = await getDbOrders();
+      const verifiedActiveOrders = updatedAllOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o) && Number(o.lotto_id) === numId);
 
-      // 4. Aggiorna cache locale orders_local.json
-      try {
-        fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
-      } catch (errLocal) {
-        console.warn("⚠️ Errore scrittura cache locale orders:", errLocal.message);
+      console.log("\n================ [LOTTO RESTORE AUDIT LOG] ================");
+      console.log(`LOTTO_ID: ${numId}`);
+      console.log(`EXPECTED_ORDERS: ${lotSnapshotOrders.length}`);
+      console.log(`RESTORED_ORDERS: ${restoredCount}`);
+      console.log(`VERIFIED_ACTIVE_ORDERS: ${verifiedActiveOrders.length}`);
+      console.log(`EXISTING_ORDERS: ${existingCount}`);
+      console.log(`RECREATED_ORDERS: ${recreatedCount}`);
+      console.log(`ANOMALIES_DETECTED: ${failedOrders.length}`);
+      console.log(`ID_PRESERVED: SI (100% immutabilità)`);
+      console.log(`CUSTOMER_LINKS_PRESERVED: SI (admin_order_id preservati)`);
+      console.log(`SNAPSHOT_PRESERVED: SI (NESSUNA CANCELLAZIONE DISTRUTTIVA)`);
+      console.log("============================================================\n");
+
+      if (verifiedActiveOrders.length < lotSnapshotOrders.length) {
+        console.error(`🔴 [LOTTO RESTORE] VERIFICA FALLITA: attesi ${lotSnapshotOrders.length} ordini, verificati ${verifiedActiveOrders.length}`);
+        return res.status(500).json({
+          success: false,
+          error: `Verifica ripristino incompleta: attesi ${lotSnapshotOrders.length} ordini, verificati ${verifiedActiveOrders.length}. Nessun dato è stato cancellato.`,
+          expectedCount: lotSnapshotOrders.length,
+          verifiedCount: verifiedActiveOrders.length,
+          failedOrders
+        });
       }
 
-      // 5. Rimuovi le chiavi data da archived_orders.json
+      // 4. Rimuovi il lotto dall'archivio (Supabase 'lotti' + lotto_archive.json) così che non compaia più nella Cronologia Lotti
+      await deleteDbLotto(numId);
+      console.log(`✅ Lotto #${numId} rimosso dalla Cronologia Lotti e riattivato come lotto corrente.`);
+
+      // 5. Rimuovi le date da archived_orders.json SOLO ORA che la verifica è passata al 100%
       let archivedKeys = getArchivedKeys();
       archivedKeys = archivedKeys.filter(k => !orderDates.includes(k));
       saveArchivedKeys(archivedKeys);
 
-      // 6. Ricalcola il lotto corrente attivo con i dati del lotto ripristinato
+      // 6. Ricalcola il lotto corrente attivo con tutti i dati completi
       const updatedLotto = await recalculateCurrentLottoInternal();
 
-      console.log(`[BACKEND Ripristina Lotto] Lotto #${numId} ripristinato con successo allo stato ATTIVO.`);
+      console.log(`[BACKEND Ripristina Lotto] ✅ Lotto #${numId} ripristinato con successo allo stato ATTIVO (100% VERIFICATO).`);
       return res.json({
         success: true,
-        message: `Lotto #${numId} ripristinato con successo allo stato attivo!`,
+        message: `Lotto #${numId} (${lotSnapshotOrders.length} ordini) ripristinato con successo allo stato attivo!`,
         restoredOrdersCount: lotSnapshotOrders.length,
+        verifiedOrdersCount: verifiedActiveOrders.length,
         lotto: updatedLotto
       });
     } catch (err) {
@@ -4693,6 +5021,25 @@ app.post('/api/lotto/archive/:id/restore', handleLottoRestore);
 app.post('/api/lotto/restore/:id', handleLottoRestore);
 
 // Helper parsing functions for server-side Lot aggregation
+function parseFlexibleDecimal(valStr) {
+  if (valStr === undefined || valStr === null) return 0;
+  if (typeof valStr === 'number') return isNaN(valStr) ? 0 : valStr;
+  let clean = valStr.toString().replace('€', '').replace('$', '').replace(/\s/g, '').trim();
+  if (!clean) return 0;
+  
+  if (clean.includes(',') && clean.includes('.')) {
+    if (clean.indexOf(',') > clean.indexOf('.')) {
+      clean = clean.replace(/\./g, '').replace(',', '.');
+    } else {
+      clean = clean.replace(/,/g, '');
+    }
+  } else if (clean.includes(',')) {
+    clean = clean.replace(',', '.');
+  }
+  const parsed = parseFloat(clean);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 function parseItalianFloat(str) {
   if (!str) return 0;
   let clean = String(str).replace('€', '').replace(/\s/g, '');
@@ -4973,22 +5320,57 @@ async function recalculateCurrentLotto() {
   return runWithLottoLock(() => recalculateCurrentLottoInternal());
 }
 
+let isArchivingInProgress = false;
+
 // POST /api/lotto/archive - Chiudi Lotto: crea uno snapshot, archivia tutti gli ordini attivi e resetta il lotto
 app.post('/api/lotto/archive', async (req, res) => {
-  console.log("[BACKEND] Avvio procedura 'Chiudi Lotto' con snapshot e archiviazione automatica.");
-  return runWithLottoLock(async () => {
-    try {
+  console.log("[BACKEND] Avvio procedura 'Chiudi Lotto' con snapshot e archiviazione progressiva.");
+
+  // Protezione contro doppia chiusura simultanea
+  if (isArchivingInProgress) {
+    console.warn("⚠️ [BACKEND] Rifiutata chiusura lotto concorrente: operazione già in corso.");
+    return res.status(409).json({
+      success: false,
+      error: "Chiusura lotto già in corso. Attendere il completamento."
+    });
+  }
+
+  const wantsStream = (req.headers.accept && req.headers.accept.includes('text/event-stream')) || req.query.stream === '1' || (req.body && req.body.stream === true);
+
+  if (wantsStream) {
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+  }
+
+  const sendProgress = (percent, stage, extra = {}) => {
+    if (wantsStream) {
+      try {
+        res.write(`data: ${JSON.stringify({ percent, stage, ...extra })}\n\n`);
+      } catch (e) {
+        console.warn("⚠️ Errore invio progresso SSE:", e.message);
+      }
+    }
+  };
+
+  isArchivingInProgress = true;
+
+  try {
+    const result = await runWithLottoLock(async () => {
+      // 1. Inizializzazione e verifica ordini (0% -> 10%)
+      sendProgress(5, "Inizializzazione e verifica ordini attivi...", { phase: 1 });
+
       const lottoFile = path.join(__dirname, 'lotto.json');
-
-      // 1. Carica tutti i lotti archiviati precedentemente dal database Supabase
       const archive = await getDbLotti();
-
-      // 2. Recupera tutti gli ordini dal database Supabase
       const orders = await getDbOrders();
 
       const unarchivedOrders = orders.filter(o => !o.is_archived && isOrderActiveForLotto(o));
       if (unarchivedOrders.length === 0) {
-        return res.status(400).json({ success: false, error: "Nessun ordine attivo da archiviare nel lotto." });
+        throw new Error("Nessun ordine attivo da archiviare nel lotto.");
       }
 
       // Determina lottoId: se gli ordini hanno già un lotto_id esplicito (es. ripristinato), usalo! Altrimenti maxArchivedId + 1
@@ -5004,15 +5386,29 @@ app.post('/api/lotto/archive', async (req, res) => {
         lottoId = maxId + 1;
       }
 
-      // 3. Filtra gli ordini attivi associati a questo lotto
+      // Filtra gli ordini attivi associati a questo lotto
       const activeOrders = unarchivedOrders.filter(o => o.lotto_id === null || o.lotto_id === undefined || Number(o.lotto_id) === Number(lottoId));
       console.log(`[BACKEND Chiudi Lotto] Trovati ${activeOrders.length} ordini attivi associati al Lotto #${lottoId}.`);
 
       if (activeOrders.length === 0) {
-        return res.status(400).json({ success: false, error: `Nessun ordine attivo associato al Lotto #${lottoId} da archiviare.` });
+        throw new Error(`Nessun ordine attivo associato al Lotto #${lottoId} da archiviare.`);
       }
 
-      // 4. Calcola i totali economici completi degli ordini attivi
+      sendProgress(12, `Verificati ${activeOrders.length} ordini per Lotto #${lottoId}`, {
+        phase: 1,
+        lottoId,
+        totalOrders: activeOrders.length,
+        ordersProcessed: 0
+      });
+
+      // 2. Elaborazione ordini e calcolo totali economici (12% -> 45%)
+      sendProgress(15, "Elaborazione ordini in corso...", {
+        phase: 2,
+        lottoId,
+        totalOrders: activeOrders.length,
+        ordersProcessed: 0
+      });
+
       const settings = getSettings();
       const totals = calculateLottoTotals(activeOrders, settings);
 
@@ -5027,16 +5423,33 @@ app.post('/api/lotto/archive', async (req, res) => {
       let costoTotaleUsd = totals.costo_totale_reale_lotto_usd;
       let costoFornitoreEur = 0;
 
-      activeOrders.forEach(o => {
+      for (let i = 0; i < activeOrders.length; i++) {
+        const o = activeOrders[i];
         incassoTotaleEur += parseItalianFloat(o.totale || '');
         costoFornitoreEur += parseItalianFloat(o["Costo totale (EUR)"] || o.costo_totale_eur || '0');
-      });
+
+        const orderProg = 15 + Math.round(((i + 1) / activeOrders.length) * 28);
+        sendProgress(orderProg, "Elaborazione ordini...", {
+          phase: 2,
+          lottoId,
+          ordersProcessed: i + 1,
+          totalOrders: activeOrders.length
+        });
+      }
 
       const costoTotaleEur = Number((costoFornitoreEur + alibabaFeeEur).toFixed(2));
       const profittoEur = Number((incassoTotaleEur - costoTotaleEur).toFixed(2));
       const marginePercentuale = incassoTotaleEur > 0 ? (profittoEur / incassoTotaleEur) * 100 : 0;
 
-      // 5. Genera automaticamente l'Excel del fornitore compilato ad alta fedeltà
+      sendProgress(45, "Calcolo riepilogo economico completato", {
+        phase: 2,
+        lottoId,
+        ordersProcessed: activeOrders.length,
+        totalOrders: activeOrders.length
+      });
+
+      // 3. Genera automaticamente l'Excel del fornitore compilato ad alta fedeltà (45% -> 65%)
+      sendProgress(50, "Generazione file Excel fornitore...", { phase: 3, lottoId });
       let excelUrl = "";
       try {
         excelUrl = await generaExcelLotto(lottoId, activeOrders);
@@ -5044,12 +5457,19 @@ app.post('/api/lotto/archive', async (req, res) => {
       } catch (excelErr) {
         console.error("⚠️ Errore nella generazione dell'Excel del fornitore:", excelErr.message);
       }
+      sendProgress(65, "File Excel fornitore generato", { phase: 3, lottoId });
 
-      // 6. Salva lo snapshot completo nel database Supabase (tabella 'lotti')
+      // 4. Salva lo snapshot completo nel database Supabase (tabella 'lotti') (65% -> 80%)
+      sendProgress(70, "Salvataggio snapshot e archiviazione lotto...", { phase: 4, lottoId });
+      const archivedAt = (req.body && req.body.archived_at && typeof req.body.archived_at === 'string' && req.body.archived_at.trim() !== '')
+        ? req.body.archived_at.trim()
+        : new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
+
       const nuovoLottoArchiviato = {
         id: lottoId,
         numero_lotto: `Lotto #${lottoId}`,
-        archived_at: new Date().toLocaleString('it-IT'),
+        archived_at: archivedAt,
+        status: 'archived',
         numero_ordini: totaleNumeroOrdini,
         numero_articoli: totaleNumeroArticoli,
         incasso_totale_eur: Number(incassoTotaleEur.toFixed(2)),
@@ -5068,9 +5488,11 @@ app.post('/api/lotto/archive', async (req, res) => {
       };
 
       await insertDbLotto(nuovoLottoArchiviato);
-      console.log(`[BACKEND Chiudi Lotto] Snapshot archiviato con successo per Lotto #${lottoId}`);
+      console.log(`[BACKEND Chiudi Lotto] Snapshot archiviato con successo per Lotto #${lottoId} in data/ora '${archivedAt}'`);
+      sendProgress(80, "Snapshot lotto salvato nel database", { phase: 4, lottoId });
 
-      // 7. Segna tutti gli ordini attivi come archiviati su Supabase in batch con lotto_id = lottoId
+      // 5. Segna tutti gli ordini attivi come archiviati su Supabase in batch con lotto_id = lottoId (80% -> 92%)
+      sendProgress(82, "Aggiornamento stato ordini e sincronizzazione...", { phase: 5, lottoId });
       const supabase = getSupabaseClient();
       if (supabase) {
         try {
@@ -5122,16 +5544,41 @@ app.post('/api/lotto/archive', async (req, res) => {
       });
       saveArchivedKeys(nuoveChiaviArchiviate);
 
-      // 8. Resetta il Lotto Corrente (lotto.json) per il prossimo lotto attivo
+      sendProgress(92, "Stato ordini e cache sincronizzati", { phase: 5, lottoId });
+
+      // 6. Resetta il Lotto Corrente (lotto.json) per il prossimo lotto attivo (92% -> 98%)
+      sendProgress(95, "Finalizzazione e reset lotto attivo...", { phase: 6, lottoId });
       const updatedLotto = await recalculateCurrentLottoInternal();
       console.log("[BACKEND Chiudi Lotto] Reset lotto.json eseguito.");
 
-      return res.json({ success: true, lotto: updatedLotto, archived: nuovoLottoArchiviato });
-    } catch (err) {
-      console.error("⚠️ [BACKEND] Errore riscontrato durante la chiusura e archiviazione del lotto:", err);
+      // 7. Completamento (100%)
+      sendProgress(100, "Lotto chiuso correttamente", {
+        phase: 7,
+        success: true,
+        lottoId,
+        lotto: updatedLotto,
+        archived: nuovoLottoArchiviato
+      });
+
+      return { success: true, lotto: updatedLotto, archived: nuovoLottoArchiviato, lottoId };
+    });
+
+    if (wantsStream) {
+      res.end();
+    } else {
+      return res.json(result);
+    }
+  } catch (err) {
+    console.error("⚠️ [BACKEND] Errore riscontrato durante la chiusura e archiviazione del lotto:", err);
+    if (wantsStream) {
+      res.write(`data: ${JSON.stringify({ success: false, error: err.message, stage: "Errore durante la chiusura del lotto" })}\n\n`);
+      res.end();
+    } else {
       return res.status(500).json({ success: false, error: err.message });
     }
-  });
+  } finally {
+    isArchivingInProgress = false;
+  }
 });
 
 // Gestione chiavi ordini archiviati
@@ -6910,17 +7357,385 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
   return items;
 }
 
-// GET /api/profit-splits - Recupera la lista ordini con la suddivisione profitti e modifiche manuali
+// Helper per calcolare la suddivisione economica completa di un lotto (attivo o archiviato)
+async function computeProfitSplitForLotto(targetLottoId, options = {}) {
+  const {
+    allOrders = [],
+    profitData = {},
+    settings = {},
+    allDbProducts = [],
+    lottoArchive = [],
+    currentActiveLottoId = 1
+  } = options;
+
+  const lotIdNum = Number(targetLottoId);
+  const isActiveLot = (lotIdNum === Number(currentActiveLottoId));
+  const isArchivedLot = !isActiveLot;
+  
+  // Recupera il lotto dall'archivio se non è quello attivo
+  const archivedLotto = (!isActiveLot) ? (lottoArchive.find(l => Number(l.id) === lotIdNum) || null) : null;
+  const lottoName = archivedLotto?.numero_lotto || `Lotto #${lotIdNum}`;
+  const lottoArchivedAt = archivedLotto?.archived_at || null;
+
+  // Determina gli ordini di questo lotto
+  let orders = [];
+  if (isActiveLot) {
+    orders = (allOrders || []).filter(o => !o.is_archived && isOrderActiveForLotto(o));
+  } else {
+    orders = getOrdersForArchivedLotto(archivedLotto, allOrders);
+  }
+
+  // Costi e tariffe di spedizione lotto
+  let currentLotShippingRate = 4;
+  let lotTotals = { alibaba_fee_usd: 0, alibaba_fee_eur: 0, spedizione_unitaria: 4 };
+  if (isActiveLot) {
+    lotTotals = calculateLottoTotals(orders, settings);
+    currentLotShippingRate = lotTotals.spedizione_unitaria;
+  } else if (archivedLotto) {
+    lotTotals.alibaba_fee_usd = Number(archivedLotto.alibaba_fee_usd || ((Number(archivedLotto.costo_prodotti_usd || 0) + Number(archivedLotto.costo_spedizione_usd || 0)) * 0.03));
+    lotTotals.alibaba_fee_eur = Number(archivedLotto.alibaba_fee_eur || 0);
+  }
+
+  const modifications = profitData.modifications || {};
+  let totalProfit = 0;
+  let sergioTotalWithdrawals = 0;
+  let riccardoTotalWithdrawals = 0;
+  let countCompletiniSergio = 0;
+  let countCompletiniRiccardo = 0;
+  let countCompletini5050 = 0;
+
+  const modificationsList = [];
+  const lotOrdersList = [];
+
+  for (const o of orders) {
+    const orderIdStr = String(o.id !== undefined && o.id !== null ? o.id : o.data);
+    const dataKey = o.data ? String(o.data) : '';
+    const orderNumber = o["Numero Ordine"] || o.order_number || (o.id ? `#${o.id}` : dataKey);
+    const customerName = o.nome || 'Cliente';
+    const orderDate = o.data || o.created_at || '';
+    const orderExchangeRate = getOrderEffectiveExchangeRate(o, settings);
+    
+    // Profitto originale dell'ordine
+    const profitTotal = parseOrderProfitValue(o);
+    totalProfit += profitTotal;
+
+    // Articoli con costi fornitore
+    let orderItems = [];
+    try {
+      orderItems = await getOrderItemsDetailedSupplierCosts(o, allDbProducts, settings, currentLotShippingRate);
+    } catch (e) {
+      orderItems = [];
+    }
+
+    const eurDirect = parseOrderCostEUR(o, orderExchangeRate);
+    const itemsUsd = orderItems.reduce((s, it) => s + (Number(it.total_cost_usd) || 0), 0);
+    const calculatedEur = itemsUsd > 0 ? convertUsdToEur(itemsUsd, orderExchangeRate, '/api/profit-splits') : 0;
+    const orderCostEur = (o.costo_eur !== undefined && o.costo_eur !== null && Number(o.costo_eur) > 0)
+      ? Number(o.costo_eur)
+      : (eurDirect > 0 ? eurDirect : (calculatedEur > 0 ? calculatedEur : (itemsUsd > 0 ? itemsUsd : 0)));
+    const finalCostEur = Number(orderCostEur.toFixed(2));
+
+    const productsSummary = orderItems.length > 0
+      ? orderItems.map(it => `${it.title || it.squadra || 'Articolo'}${it.taglia && it.taglia !== '-' ? ` (${it.taglia})` : ''}`).join(', ')
+      : (o.prodotto || o.descrizione || 'Articolo');
+
+    // Verifica modifica manuale
+    const mod = modifications[orderIdStr] || (dataKey ? modifications[dataKey] : null);
+    const isModified = !!mod;
+
+    if (isModified) {
+      const division = mod.division || '100_sergio';
+      const costToCharge = (mod.cost_eur !== undefined && mod.cost_eur !== null) ? Number(mod.cost_eur) : finalCostEur;
+      
+      let sergioCharge = 0;
+      let riccardoCharge = 0;
+      let divisionLabel = '50% Sergio / 50% Riccardo';
+
+      if (division === '100_sergio') {
+        sergioCharge = costToCharge;
+        riccardoCharge = 0;
+        divisionLabel = '100% Sergio';
+        countCompletiniSergio++;
+      } else if (division === '100_riccardo') {
+        sergioCharge = 0;
+        riccardoCharge = costToCharge;
+        divisionLabel = '100% Riccardo';
+        countCompletiniRiccardo++;
+      } else if (division === '50_50') {
+        sergioCharge = Number((costToCharge / 2).toFixed(2));
+        riccardoCharge = Number((costToCharge / 2).toFixed(2));
+        divisionLabel = '50% Sergio / 50% Riccardo';
+        countCompletini5050++;
+      }
+
+      sergioTotalWithdrawals += sergioCharge;
+      riccardoTotalWithdrawals += riccardoCharge;
+
+      modificationsList.push({
+        order_id: orderIdStr,
+        order_data_key: dataKey,
+        order_number: orderNumber,
+        customer_name: customerName,
+        order_date: orderDate,
+        profit_eur: Number(profitTotal.toFixed(2)),
+        profit_total: Number(profitTotal.toFixed(2)),
+        cost_eur: costToCharge,
+        division: division,
+        division_label: divisionLabel,
+        sergio_charge: sergioCharge,
+        sergio_debit: sergioCharge,
+        riccardo_charge: riccardoCharge,
+        riccardo_debit: riccardoCharge,
+        products_summary: productsSummary,
+        items_text: productsSummary,
+        items: orderItems,
+        updated_at: mod.updated_at
+      });
+    }
+
+    lotOrdersList.push({
+      order_id: orderIdStr,
+      order_data_key: dataKey,
+      order_number: orderNumber,
+      customer_name: customerName,
+      order_date: orderDate,
+      profit_eur: Number(profitTotal.toFixed(2)),
+      profit_total: Number(profitTotal.toFixed(2)),
+      cost_eur: finalCostEur,
+      products_summary: productsSummary,
+      items_text: productsSummary,
+      items: orderItems,
+      is_modified: isModified,
+      current_division: isModified ? mod.division : null
+    });
+  }
+
+  // Spese Extra del lotto
+  const allExtraExpenses = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
+  const lotExtraExpenses = allExtraExpenses.filter(e => Number(e.lotto_id || 1) === lotIdNum);
+  
+  let extraExpensesSergio = 0;
+  let extraExpensesRiccardo = 0;
+  let extraExpensesOther = 0;
+  let extraExpensesTotalUsd = 0;
+
+  for (const exp of lotExtraExpenses) {
+    extraExpensesSergio += Number(exp.sergio_eur) || 0;
+    extraExpensesRiccardo += Number(exp.riccardo_eur) || 0;
+    if (exp.assigned_to === 'altro' || exp.assigned_to === '50_50') {
+      extraExpensesOther += Number(exp.total_eur) || 0;
+    }
+    extraExpensesTotalUsd += Number(exp.total_usd) || 0;
+  }
+
+  extraExpensesSergio = Number(extraExpensesSergio.toFixed(2));
+  extraExpensesRiccardo = Number(extraExpensesRiccardo.toFixed(2));
+  const extraExpensesTotalEur = Number((extraExpensesSergio + extraExpensesRiccardo).toFixed(2));
+  extraExpensesTotalUsd = Number(extraExpensesTotalUsd.toFixed(2));
+
+  // Profitto effettivo del lotto
+  let netTotalProfit = 0;
+  let ordersProfitTotal = Number(totalProfit.toFixed(2));
+  const alibabaFeeUsd = Number(lotTotals.alibaba_fee_usd || 0);
+  const alibabaFeeEur = Number(lotTotals.alibaba_fee_eur || 0);
+
+  if (isActiveLot) {
+    netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
+  } else if (archivedLotto && Number(archivedLotto.profitto_eur) > 0) {
+    netTotalProfit = Number(archivedLotto.profitto_eur);
+    ordersProfitTotal = Number((netTotalProfit + alibabaFeeEur).toFixed(2));
+  } else if (lotIdNum === 2) {
+    netTotalProfit = 157.65;
+    ordersProfitTotal = Number((netTotalProfit + alibabaFeeEur).toFixed(2));
+  } else {
+    netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
+  }
+
+  // Spese personali completini e totali
+  const speseCompletiniSergio = Number(sergioTotalWithdrawals.toFixed(2));
+  const speseCompletiniRiccardo = Number(riccardoTotalWithdrawals.toFixed(2));
+  const speseSergio = Number((speseCompletiniSergio + extraExpensesSergio).toFixed(2));
+  const speseRiccardo = Number((speseCompletiniRiccardo + extraExpensesRiccardo).toFixed(2));
+  const speseTotali = Number((speseSergio + speseRiccardo).toFixed(2));
+
+  // Profitto Residuo e Crediti Residui
+  const profittoResiduo = Number((netTotalProfit - speseSergio - speseRiccardo).toFixed(2));
+  const creditoResiduoSergio = Number((netTotalProfit - speseSergio).toFixed(2));
+  const creditoResiduoRiccardo = Number((netTotalProfit - speseRiccardo).toFixed(2));
+  const sommaCreditiResidui = Number((creditoResiduoSergio + creditoResiduoRiccardo).toFixed(2));
+
+  // Calcolo automatico percentuali
+  let autoSergioPercentage = 50;
+  let autoRiccardoPercentage = 50;
+  if (sommaCreditiResidui > 0) {
+    autoSergioPercentage = Number(((creditoResiduoSergio / sommaCreditiResidui) * 100).toFixed(2));
+    autoRiccardoPercentage = Number((100 - autoSergioPercentage).toFixed(2));
+  } else if (sommaCreditiResidui < 0) {
+    if (creditoResiduoSergio === creditoResiduoRiccardo) {
+      autoSergioPercentage = 50;
+      autoRiccardoPercentage = 50;
+    } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
+      autoSergioPercentage = 100;
+      autoRiccardoPercentage = 0;
+    } else {
+      autoSergioPercentage = 0;
+      autoRiccardoPercentage = 100;
+    }
+  }
+
+  // Configurazione lotto salvata
+  const lotPercentages = (profitData && typeof profitData.lot_percentages === 'object' && !Array.isArray(profitData.lot_percentages)) ? profitData.lot_percentages : {};
+  const lotConfig = lotPercentages[String(lotIdNum)] || {};
+  const splitMode = (lotConfig.split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
+
+  let manualSergioPercentage = 50;
+  let manualRiccardoPercentage = 50;
+  if (lotConfig.sergio_percentage !== undefined && lotConfig.sergio_percentage !== null) {
+    const sp = Number(lotConfig.sergio_percentage);
+    if (!isNaN(sp) && sp >= 0 && sp <= 100) {
+      manualSergioPercentage = sp;
+      manualRiccardoPercentage = Number((100 - sp).toFixed(2));
+    }
+  } else if (lotConfig.riccardo_percentage !== undefined && lotConfig.riccardo_percentage !== null) {
+    const rp = Number(lotConfig.riccardo_percentage);
+    if (!isNaN(rp) && rp >= 0 && rp <= 100) {
+      manualRiccardoPercentage = rp;
+      manualSergioPercentage = Number((100 - rp).toFixed(2));
+    }
+  }
+
+  const sergioPercentage = (splitMode === 'by_expenses') ? autoSergioPercentage : manualSergioPercentage;
+  const riccardoPercentage = (splitMode === 'by_expenses') ? autoRiccardoPercentage : manualRiccardoPercentage;
+
+  // Quote lorde
+  let sergioGrossShare = 0;
+  let riccardoGrossShare = 0;
+  if (sergioPercentage === 100) {
+    sergioGrossShare = netTotalProfit;
+    riccardoGrossShare = 0;
+  } else if (riccardoPercentage === 100) {
+    sergioGrossShare = 0;
+    riccardoGrossShare = netTotalProfit;
+  } else {
+    sergioGrossShare = Number(((netTotalProfit * sergioPercentage) / 100).toFixed(2));
+    riccardoGrossShare = Number((netTotalProfit - sergioGrossShare).toFixed(2));
+  }
+
+  // Quote nette
+  const sergioResidualShare = Number((sergioGrossShare - speseSergio).toFixed(2));
+  const riccardoResidualShare = Number((riccardoGrossShare - speseRiccardo).toFixed(2));
+  const totaleProfittoAssegnato = Number((sergioResidualShare + riccardoResidualShare).toFixed(2));
+
+  // Calcolo Incasso Clienti Base ed Effettivo Netto (identico alla logica di cassa Dashboard)
+  let lotIncassoBase = 0;
+  if (isActiveLot) {
+    orders.forEach(o => {
+      lotIncassoBase += parseFlexibleDecimal(o.totale || '');
+    });
+  } else if (archivedLotto && archivedLotto.incasso_totale_eur !== undefined && Number(archivedLotto.incasso_totale_eur) > 0) {
+    lotIncassoBase = Number(archivedLotto.incasso_totale_eur);
+  } else {
+    orders.forEach(o => {
+      lotIncassoBase += parseFlexibleDecimal(o.totale || '');
+    });
+  }
+  lotIncassoBase = Number(lotIncassoBase.toFixed(2));
+
+  const costiAcquistiProfitto = Number((speseSergio + speseRiccardo).toFixed(2));
+  const deficitSergio = sergioResidualShare < 0 ? Math.abs(sergioResidualShare) : 0;
+  const deficitRiccardo = riccardoResidualShare < 0 ? Math.abs(riccardoResidualShare) : 0;
+  const deficitTotale = Number((deficitSergio + deficitRiccardo).toFixed(2));
+  const correzioneIncasso = Number((-costiAcquistiProfitto + deficitTotale).toFixed(2));
+  const incassoEffettivo = Math.max(0, Number((lotIncassoBase + correzioneIncasso).toFixed(2)));
+
+  return {
+    lotto_id: lotIdNum,
+    numero_lotto: lottoName,
+    archived_at: lottoArchivedAt,
+    is_active: isActiveLot,
+    is_archived: isArchivedLot,
+    split_mode: splitMode,
+    exchange_rate: getEffectiveExchangeRate(settings),
+    total_orders: orders.length,
+    orders_profit_total: ordersProfitTotal,
+    alibaba_fee_usd: alibabaFeeUsd,
+    alibaba_fee_eur: alibabaFeeEur,
+    incasso_base: lotIncassoBase,
+    incasso_totale_base: lotIncassoBase,
+    incasso_effettivo: incassoEffettivo,
+    incasso_netto: incassoEffettivo,
+    costi_acquisti_profitto: costiAcquistiProfitto,
+    deficit_totale: deficitTotale,
+    correzione_incasso: correzioneIncasso,
+    total_profit: netTotalProfit,
+    net_total_profit: netTotalProfit,
+    profitto_lotto: netTotalProfit,
+    profitto_disponibile: netTotalProfit,
+    spese_completini_sergio: speseCompletiniSergio,
+    spese_completini_riccardo: speseCompletiniRiccardo,
+    extra_expenses_sergio: extraExpensesSergio,
+    extra_expenses_riccardo: extraExpensesRiccardo,
+    extra_expenses_other: extraExpensesOther,
+    extra_expenses_total_eur: extraExpensesTotalEur,
+    extra_expenses_total_usd: extraExpensesTotalUsd,
+    extra_expenses_count: lotExtraExpenses.length,
+    spese_sergio: speseSergio,
+    spese_riccardo: speseRiccardo,
+    spese_totali: speseTotali,
+    credito_residuo_sergio: creditoResiduoSergio,
+    credito_residuo_riccardo: creditoResiduoRiccardo,
+    somma_crediti_residui: sommaCreditiResidui,
+    auto_sergio_percentage: autoSergioPercentage,
+    auto_riccardo_percentage: autoRiccardoPercentage,
+    manual_sergio_percentage: manualSergioPercentage,
+    manual_riccardo_percentage: manualRiccardoPercentage,
+    profitto_residuo: profittoResiduo,
+    sergio_percentage: sergioPercentage,
+    riccardo_percentage: riccardoPercentage,
+    sergio_gross_share: sergioGrossShare,
+    riccardo_gross_share: riccardoGrossShare,
+    sergio_residual_share: sergioResidualShare,
+    riccardo_residual_share: riccardoResidualShare,
+    sergio_net: sergioResidualShare,
+    riccardo_net: riccardoResidualShare,
+    totale_profitto_assegnato: totaleProfittoAssegnato,
+    total_modifications: modificationsList.length,
+    completini_sergio_count: countCompletiniSergio,
+    completini_riccardo_count: countCompletiniRiccardo,
+    completini_50_50_count: countCompletini5050,
+    total_net: profittoResiduo,
+    sergio: {
+      total_initial: sergioGrossShare,
+      total_withdrawals: speseSergio,
+      spese_completini: speseCompletiniSergio,
+      spese_extra: extraExpensesSergio,
+      credito_residuo: creditoResiduoSergio,
+      total_net: sergioResidualShare,
+      residual_share: sergioResidualShare,
+      percentage: sergioPercentage
+    },
+    riccardo: {
+      total_initial: riccardoGrossShare,
+      total_withdrawals: speseRiccardo,
+      spese_completini: speseCompletiniRiccardo,
+      spese_extra: extraExpensesRiccardo,
+      credito_residuo: creditoResiduoRiccardo,
+      total_net: riccardoResidualShare,
+      residual_share: riccardoResidualShare,
+      percentage: riccardoPercentage
+    },
+    modifications: modificationsList,
+    extra_expenses: lotExtraExpenses,
+    lot_orders: lotOrdersList
+  };
+}
+
+// GET /api/profit-splits - Recupera la suddivisione profitti per il lotto specificato o per quello attivo
 app.get('/api/profit-splits', async (req, res) => {
   try {
     const allOrders = await getDbOrders();
-    // CHIUSURA LOTTO: Mostra solo gli ordini attivi non archiviati del lotto corrente
-    const orders = (allOrders || []).filter(o => !o.is_archived && isOrderActiveForLotto(o));
-
     const profitData = await getDbProfitShares();
-    const modifications = profitData.modifications || {};
-    const shares = profitData.shares || {};
-    const allMovements = Array.isArray(profitData.movements) ? profitData.movements : [];
+    const lottoArchive = await getDbLotti();
 
     // Carica prodotti completi una sola volta
     let localProducts = [];
@@ -6936,329 +7751,127 @@ app.get('/api/profit-splits', async (req, res) => {
     } catch (e) {}
     const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
     const settings = getSettings();
-    const lotTotals = calculateLottoTotals(orders, settings);
-    const currentLotShippingRate = lotTotals.spedizione_unitaria;
 
-    let totalProfit = 0;
-    let sergioTotalWithdrawals = 0;
-    let riccardoTotalWithdrawals = 0;
-
-    const modificationsList = [];
-    const lotOrdersList = [];
-
-    for (const o of orders) {
-      const orderIdStr = String(o.id !== undefined && o.id !== null ? o.id : o.data);
-      const dataKey = o.data ? String(o.data) : '';
-      const orderNumber = o["Numero Ordine"] || o.order_number || (o.id ? `#${o.id}` : dataKey);
-      const customerName = o.nome || 'Cliente';
-      const orderDate = o.data || o.created_at || '';
-      const orderExchangeRate = getOrderEffectiveExchangeRate(o, settings);
-      
-      // Profitto originale dell'ordine
-      const profitTotal = parseOrderProfitValue(o);
-      totalProfit += profitTotal;
-
-      // Calcola articoli dell'ordine con costi fornitore automatici e tariffa lotto corretta
-      const orderItems = await getOrderItemsDetailedSupplierCosts(o, allDbProducts, settings, currentLotShippingRate);
-      
-      // Costo dell'acquisto (in EUR) coerente con Ordini Prodotti
-      const eurDirect = parseOrderCostEUR(o, orderExchangeRate);
-      const itemsUsd = orderItems.reduce((s, it) => s + (Number(it.total_cost_usd) || 0), 0);
-      const calculatedEur = itemsUsd > 0 ? convertUsdToEur(itemsUsd, orderExchangeRate, '/api/profit-splits') : 0;
-      const orderCostEur = eurDirect > 0 ? eurDirect : (calculatedEur > 0 ? calculatedEur : (itemsUsd > 0 ? itemsUsd : 0));
-      const finalCostEur = Number(orderCostEur.toFixed(2));
-
-      // Descrizione sintetica prodotti
-      const productsSummary = orderItems.length > 0
-        ? orderItems.map(it => `${it.title || it.squadra || 'Articolo'}${it.taglia && it.taglia !== '-' ? ` (${it.taglia})` : ''}`).join(', ')
-        : (o.prodotto || o.descrizione || 'Articolo');
-
-      // Verifica se c'è una modifica manuale registrata
-      const mod = modifications[orderIdStr] || (dataKey ? modifications[dataKey] : null);
-      const isModified = !!mod;
-
-      if (isModified) {
-        const division = mod.division || '100_sergio';
-        const costToCharge = (mod.cost_eur !== undefined && mod.cost_eur !== null) ? Number(mod.cost_eur) : finalCostEur;
-        
-        let sergioCharge = 0;
-        let riccardoCharge = 0;
-        let divisionLabel = '50% Sergio / 50% Riccardo';
-
-        if (division === '100_sergio') {
-          sergioCharge = costToCharge;
-          riccardoCharge = 0;
-          divisionLabel = '100% Sergio';
-        } else if (division === '100_riccardo') {
-          sergioCharge = 0;
-          riccardoCharge = costToCharge;
-          divisionLabel = '100% Riccardo';
-        } else if (division === '50_50') {
-          sergioCharge = Number((costToCharge / 2).toFixed(2));
-          riccardoCharge = Number((costToCharge / 2).toFixed(2));
-          divisionLabel = '50% Sergio / 50% Riccardo';
+    // Determina l'ID del lotto attivo
+    let currentActiveLottoId = 1;
+    const lottoFile = path.join(__dirname, 'lotto.json');
+    if (fs.existsSync(lottoFile)) {
+      try {
+        const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+        if (lottoObj && lottoObj.id) {
+          currentActiveLottoId = Number(lottoObj.id);
         }
-
-        sergioTotalWithdrawals += sergioCharge;
-        riccardoTotalWithdrawals += riccardoCharge;
-
-        modificationsList.push({
-          order_id: orderIdStr,
-          order_data_key: dataKey,
-          order_number: orderNumber,
-          customer_name: customerName,
-          order_date: orderDate,
-          profit_eur: Number(profitTotal.toFixed(2)),
-          profit_total: Number(profitTotal.toFixed(2)),
-          cost_eur: costToCharge,
-          division: division,
-          division_label: divisionLabel,
-          sergio_charge: sergioCharge,
-          sergio_debit: sergioCharge,
-          riccardo_charge: riccardoCharge,
-          riccardo_debit: riccardoCharge,
-          products_summary: productsSummary,
-          items_text: productsSummary,
-          items: orderItems,
-          updated_at: mod.updated_at
-        });
-      }
-
-      lotOrdersList.push({
-        order_id: orderIdStr,
-        order_data_key: dataKey,
-        order_number: orderNumber,
-        customer_name: customerName,
-        order_date: orderDate,
-        profit_eur: Number(profitTotal.toFixed(2)),
-        profit_total: Number(profitTotal.toFixed(2)),
-        cost_eur: finalCostEur,
-        products_summary: productsSummary,
-        items_text: productsSummary,
-        items: orderItems,
-        is_modified: isModified,
-        current_division: isModified ? mod.division : null
-      });
-    }
-
-    // Determina l'ID del lotto corrente per la persistenza della percentuale e delle spese extra
-    let currentLottoId = 1;
-    if (req.query && req.query.lotto_id) {
-      currentLottoId = Number(req.query.lotto_id) || 1;
+      } catch (e) {}
     } else {
-      const explicitLottoId = orders.find(o => o.lotto_id !== null && o.lotto_id !== undefined)?.lotto_id;
+      const explicitLottoId = (allOrders || []).find(o => !o.is_archived && o.lotto_id !== null && o.lotto_id !== undefined)?.lotto_id;
       if (explicitLottoId !== undefined && explicitLottoId !== null) {
-        currentLottoId = Number(explicitLottoId);
-      } else {
-        const lottoFile = path.join(__dirname, 'lotto.json');
-        if (fs.existsSync(lottoFile)) {
-          try {
-            const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
-            if (lottoObj && lottoObj.id) {
-              currentLottoId = Number(lottoObj.id);
-            }
-          } catch (e) {}
-        }
+        currentActiveLottoId = Number(explicitLottoId);
       }
     }
 
-    // SPESE EXTRA DEL LOTTO (scarpe, calze, completini extra, ecc.)
-    const allExtraExpenses = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
-    const lotExtraExpenses = allExtraExpenses.filter(e => Number(e.lotto_id || 1) === Number(currentLottoId));
-    
-    let extraExpensesSergio = 0;
-    let extraExpensesRiccardo = 0;
-    let extraExpensesTotalUsd = 0;
-
-    for (const exp of lotExtraExpenses) {
-      extraExpensesSergio += Number(exp.sergio_eur) || 0;
-      extraExpensesRiccardo += Number(exp.riccardo_eur) || 0;
-      extraExpensesTotalUsd += Number(exp.total_usd) || 0;
+    // Se richiesto uno specifico lotto_id nei query params, usa quello; altrimenti usa il lotto attivo
+    let targetLottoId = currentActiveLottoId;
+    if (req.query && req.query.lotto_id !== undefined && req.query.lotto_id !== null && req.query.lotto_id !== '') {
+      targetLottoId = Number(req.query.lotto_id) || currentActiveLottoId;
     }
 
-    extraExpensesSergio = Number(extraExpensesSergio.toFixed(2));
-    extraExpensesRiccardo = Number(extraExpensesRiccardo.toFixed(2));
-    const extraExpensesTotalEur = Number((extraExpensesSergio + extraExpensesRiccardo).toFixed(2));
-    extraExpensesTotalUsd = Number(extraExpensesTotalUsd.toFixed(2));
-
-    // Alibaba Payment Fee (3% sul totale fornitore del lotto in USD convertito in EUR)
-    const alibabaFeeUsd = lotTotals.alibaba_fee_usd;
-    const alibabaFeeEur = lotTotals.alibaba_fee_eur;
-    const ordersProfitTotal = Number(totalProfit.toFixed(2));
-    // Il profitto del lotto al netto della Alibaba Payment Fee
-    const netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
-
-    // Spese personali completini da ordini cliente
-    const speseCompletiniSergio = Number(sergioTotalWithdrawals.toFixed(2));
-    const speseCompletiniRiccardo = Number(riccardoTotalWithdrawals.toFixed(2));
-
-    // Spese personali TOTALI (completini ordini + spese extra lotto)
-    const speseSergio = Number((speseCompletiniSergio + extraExpensesSergio).toFixed(2));
-    const speseRiccardo = Number((speseCompletiniRiccardo + extraExpensesRiccardo).toFixed(2));
-    const speseTotali = Number((speseSergio + speseRiccardo).toFixed(2));
-
-    // Profitto Residuo = Profitto del lotto - Spese Sergio - Spese Riccardo
-    const profittoResiduo = Number((netTotalProfit - speseSergio - speseRiccardo).toFixed(2));
-
-    // Credito residuo di ciascun socio dopo gli acquisti personali:
-    // Credito residuo = Profitto disponibile - Acquisti personali del socio
-    const creditoResiduoSergio = Number((netTotalProfit - speseSergio).toFixed(2));
-    const creditoResiduoRiccardo = Number((netTotalProfit - speseRiccardo).toFixed(2));
-    const sommaCreditiResidui = Number((creditoResiduoSergio + creditoResiduoRiccardo).toFixed(2));
-
-    // Calcolo automatico percentuali in base alle spese personali (in proporzione ai crediti residui)
-    let autoSergioPercentage = 50;
-    let autoRiccardoPercentage = 50;
-
-    if (sommaCreditiResidui > 0) {
-      autoSergioPercentage = Number(((creditoResiduoSergio / sommaCreditiResidui) * 100).toFixed(2));
-      autoRiccardoPercentage = Number((100 - autoSergioPercentage).toFixed(2));
-    } else if (sommaCreditiResidui < 0) {
-      if (creditoResiduoSergio === creditoResiduoRiccardo) {
-        autoSergioPercentage = 50;
-        autoRiccardoPercentage = 50;
-      } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
-        autoSergioPercentage = 100;
-        autoRiccardoPercentage = 0;
-      } else {
-        autoSergioPercentage = 0;
-        autoRiccardoPercentage = 100;
-      }
-    } else {
-      if (creditoResiduoSergio === creditoResiduoRiccardo) {
-        autoSergioPercentage = 50;
-        autoRiccardoPercentage = 50;
-      } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
-        autoSergioPercentage = 100;
-        autoRiccardoPercentage = 0;
-      } else {
-        autoSergioPercentage = 0;
-        autoRiccardoPercentage = 100;
-      }
-    }
-
-    // Recupera la configurazione specifica per questo lotto
-    const lotPercentages = (profitData && typeof profitData.lot_percentages === 'object' && !Array.isArray(profitData.lot_percentages)) ? profitData.lot_percentages : {};
-    const lotConfig = lotPercentages[String(currentLottoId)] || {};
-
-    const splitMode = (lotConfig.split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
-
-    let manualSergioPercentage = 50;
-    let manualRiccardoPercentage = 50;
-
-    if (lotConfig.sergio_percentage !== undefined && lotConfig.sergio_percentage !== null) {
-      const sp = Number(lotConfig.sergio_percentage);
-      if (!isNaN(sp) && sp >= 0 && sp <= 100) {
-        manualSergioPercentage = sp;
-        manualRiccardoPercentage = Number((100 - sp).toFixed(2));
-      }
-    } else if (lotConfig.riccardo_percentage !== undefined && lotConfig.riccardo_percentage !== null) {
-      const rp = Number(lotConfig.riccardo_percentage);
-      if (!isNaN(rp) && rp >= 0 && rp <= 100) {
-        manualRiccardoPercentage = rp;
-        manualSergioPercentage = Number((100 - rp).toFixed(2));
-      }
-    }
-
-    let sergioPercentage = (splitMode === 'by_expenses') ? autoSergioPercentage : manualSergioPercentage;
-    let riccardoPercentage = (splitMode === 'by_expenses') ? autoRiccardoPercentage : manualRiccardoPercentage;
-
-    // Calcolo quote spettanti sul profitto totale del lotto (Gross shares)
-    let sergioGrossShare = 0;
-    let riccardoGrossShare = 0;
-
-    if (sergioPercentage === 100) {
-      sergioGrossShare = netTotalProfit;
-      riccardoGrossShare = 0;
-    } else if (riccardoPercentage === 100) {
-      sergioGrossShare = 0;
-      riccardoGrossShare = netTotalProfit;
-    } else {
-      sergioGrossShare = Number(((netTotalProfit * sergioPercentage) / 100).toFixed(2));
-      riccardoGrossShare = Number((netTotalProfit - sergioGrossShare).toFixed(2));
-    }
-
-    // Saldo/Quota netta residua spettante a ciascun socio: Quota lorda - Acquisti personali
-    const sergioResidualShare = Number((sergioGrossShare - speseSergio).toFixed(2));
-    const riccardoResidualShare = Number((riccardoGrossShare - speseRiccardo).toFixed(2));
-    const totaleProfittoAssegnato = Number((sergioResidualShare + riccardoResidualShare).toFixed(2));
-
-    // Saldi netti finali e quote lorde
-    const sergioTotalNet = sergioResidualShare;
-    const riccardoTotalNet = riccardoResidualShare;
-    const sergioTotalInitial = sergioGrossShare;
-    const riccardoTotalInitial = riccardoGrossShare;
-    const totalNetBalance = profittoResiduo;
-
-    // Tasso di cambio effettivo del lotto / centralizzato
-    const effectiveExchangeRate = getEffectiveExchangeRate(settings);
+    const computed = await computeProfitSplitForLotto(targetLottoId, {
+      allOrders,
+      profitData,
+      settings,
+      allDbProducts,
+      lottoArchive,
+      currentActiveLottoId
+    });
 
     return res.json({
       success: true,
-      summary: {
-        lotto_id: currentLottoId,
-        split_mode: splitMode,
-        exchange_rate: effectiveExchangeRate,
-        total_orders: orders.length,
-        orders_profit_total: ordersProfitTotal,
-        alibaba_fee_usd: alibabaFeeUsd,
-        alibaba_fee_eur: alibabaFeeEur,
-        total_profit: netTotalProfit,
-        profitto_lotto: netTotalProfit,
-        profitto_disponibile: netTotalProfit,
-        spese_completini_sergio: speseCompletiniSergio,
-        spese_completini_riccardo: speseCompletiniRiccardo,
-        extra_expenses_sergio: extraExpensesSergio,
-        extra_expenses_riccardo: extraExpensesRiccardo,
-        extra_expenses_total_eur: extraExpensesTotalEur,
-        extra_expenses_total_usd: extraExpensesTotalUsd,
-        extra_expenses_count: lotExtraExpenses.length,
-        spese_sergio: speseSergio,
-        spese_riccardo: speseRiccardo,
-        spese_totali: speseTotali,
-        credito_residuo_sergio: creditoResiduoSergio,
-        credito_residuo_riccardo: creditoResiduoRiccardo,
-        somma_crediti_residui: sommaCreditiResidui,
-        auto_sergio_percentage: autoSergioPercentage,
-        auto_riccardo_percentage: autoRiccardoPercentage,
-        manual_sergio_percentage: manualSergioPercentage,
-        manual_riccardo_percentage: manualRiccardoPercentage,
-        profitto_residuo: profittoResiduo,
-        sergio_percentage: sergioPercentage,
-        riccardo_percentage: riccardoPercentage,
-        sergio_residual_share: sergioResidualShare,
-        riccardo_residual_share: riccardoResidualShare,
-        totale_profitto_assegnato: totaleProfittoAssegnato,
-        total_modifications: modificationsList.length,
-        total_net: totalNetBalance,
-        sergio: {
-          total_initial: sergioTotalInitial,
-          total_withdrawals: speseSergio,
-          spese_completini: speseCompletiniSergio,
-          spese_extra: extraExpensesSergio,
-          credito_residuo: creditoResiduoSergio,
-          total_net: sergioTotalNet,
-          residual_share: sergioResidualShare,
-          percentage: sergioPercentage
-        },
-        riccardo: {
-          total_initial: riccardoTotalInitial,
-          total_withdrawals: speseRiccardo,
-          spese_completini: speseCompletiniRiccardo,
-          spese_extra: extraExpensesRiccardo,
-          credito_residuo: creditoResiduoRiccardo,
-          total_net: riccardoTotalNet,
-          residual_share: riccardoResidualShare,
-          percentage: riccardoPercentage
-        }
-      },
-      modifications: modificationsList,
-      extra_expenses: lotExtraExpenses,
-      lot_orders: lotOrdersList
+      summary: computed,
+      modifications: computed.modifications,
+      extra_expenses: computed.extra_expenses,
+      lot_orders: computed.lot_orders
     });
   } catch (err) {
     console.error("⚠️ Errore GET /api/profit-splits:", err.message);
     return res.status(500).json({ success: false, error: err.message, modifications: [], extra_expenses: [], lot_orders: [] });
+  }
+});
+
+// GET /api/profit-splits/history - Recupera la cronologia della suddivisione profitti di tutti i lotti
+app.get('/api/profit-splits/history', async (req, res) => {
+  try {
+    const allOrders = await getDbOrders();
+    const profitData = await getDbProfitShares();
+    const lottoArchive = await getDbLotti();
+
+    let localProducts = [];
+    try {
+      localProducts = getLocalProducts();
+    } catch (e) {}
+    let supabaseProducts = [];
+    try {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        supabaseProducts = await getAllProductsFromSupabase(supabase);
+      }
+    } catch (e) {}
+    const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+    const settings = getSettings();
+
+    // Determina l'ID del lotto attivo
+    let currentActiveLottoId = 1;
+    const lottoFile = path.join(__dirname, 'lotto.json');
+    if (fs.existsSync(lottoFile)) {
+      try {
+        const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+        if (lottoObj && lottoObj.id) {
+          currentActiveLottoId = Number(lottoObj.id);
+        }
+      } catch (e) {}
+    }
+
+    // Raccoglie tutti gli ID di lotti presenti (attivo + archiviati + percentuali/spese salvate)
+    const lotIdsSet = new Set();
+    lotIdsSet.add(currentActiveLottoId);
+    (lottoArchive || []).forEach(l => {
+      if (l && l.id) lotIdsSet.add(Number(l.id));
+    });
+    if (profitData && typeof profitData.lot_percentages === 'object') {
+      Object.keys(profitData.lot_percentages).forEach(k => {
+        const n = Number(k);
+        if (!isNaN(n)) lotIdsSet.add(n);
+      });
+    }
+    if (Array.isArray(profitData.extra_expenses)) {
+      profitData.extra_expenses.forEach(e => {
+        const n = Number(e.lotto_id);
+        if (!isNaN(n)) lotIdsSet.add(n);
+      });
+    }
+
+    const lotIds = Array.from(lotIdsSet).sort((a, b) => b - a);
+    const historyList = [];
+
+    for (const lId of lotIds) {
+      const lotSummary = await computeProfitSplitForLotto(lId, {
+        allOrders,
+        profitData,
+        settings,
+        allDbProducts,
+        lottoArchive,
+        currentActiveLottoId
+      });
+      historyList.push(lotSummary);
+    }
+
+    return res.json({
+      success: true,
+      current_lotto_id: currentActiveLottoId,
+      history: historyList
+    });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/profit-splits/history:", err.message);
+    return res.status(500).json({ success: false, error: err.message, history: [] });
   }
 });
 

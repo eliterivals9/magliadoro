@@ -3,30 +3,106 @@
     "archived_at": "11/07/2026, 00:46:17",
     "id": 2,
     "numero_lotto": "Lotto #2",
-    "numero_ordini": 1,
-    "numero_articoli": 2,
-    "incasso_totale_eur": 0,
-    "costo_prodotti_usd": 0,
-    "costo_spedizione_usd": 4,
-    "costo_totale_usd": 4,
-    "costo_totale_eur": 3.68,
-    "profitto_eur": 0,
-    "margine_percentuale": 0,
-    "orders": []
-  },
-  {
-    "archived_at": "11/07/2026, 00:47:21",
-    "id": 3,
-    "numero_lotto": "Lotto #3",
-    "numero_ordini": 1,
-    "numero_articoli": 3,
-    "incasso_totale_eur": 0,
-    "costo_prodotti_usd": 0,
-    "costo_spedizione_usd": 4,
-    "costo_totale_usd": 4,
-    "costo_totale_eur": 3.68,
-    "profitto_eur": 0,
-    "margine_percentuale": 0,
-    "orders": []
+    "numero_ordini": 5,
+    "numero_articoli": 6,
+    "incasso_totale_eur": 250,
+    "costo_prodotti_usd": 90,
+    "costo_spedizione_usd": 10,
+    "costo_totale_usd": 100,
+    "costo_totale_eur": 85.6,
+    "profitto_eur": 157.65,
+    "margine_percentuale": 63.06,
+    "orders": [
+      {
+        "id": 183,
+        "data": "24/08/2026, 00:26:35",
+        "nome": "Sergio Catania (Personale)",
+        "totale": 17,
+        "costo_eur": 14.56,
+        "is_archived": true,
+        "lotto_id": 2,
+        "carrello": [
+          {
+            "id": "p183",
+            "nome": "Completino Sergio Real Madrid",
+            "quantita": 1,
+            "prezzo": 17,
+            "costo_usd": 17
+          }
+        ]
+      },
+      {
+        "id": 186,
+        "data": "24/08/2026, 00:28:41",
+        "nome": "Sergio Catania (Personale)",
+        "totale": 13,
+        "costo_eur": 11.13,
+        "is_archived": true,
+        "lotto_id": 2,
+        "carrello": [
+          {
+            "id": "p186",
+            "nome": "Maglia Sergio Barcellona",
+            "quantita": 1,
+            "prezzo": 13,
+            "costo_usd": 13
+          }
+        ]
+      },
+      {
+        "id": 189,
+        "data": "24/08/2026, 00:31:30",
+        "nome": "Riccardo Torrisi (Personale)",
+        "totale": 39,
+        "costo_eur": 33.39,
+        "is_archived": true,
+        "lotto_id": 2,
+        "carrello": [
+          {
+            "id": "p189_1",
+            "nome": "Kit Riccardo Juventus Vintage",
+            "quantita": 2,
+            "prezzo": 39,
+            "costo_usd": 39
+          }
+        ]
+      },
+      {
+        "id": 191,
+        "data": "24/08/2026, 00:33:12",
+        "nome": "Ordine Condiviso Soci",
+        "totale": 14,
+        "costo_eur": 11.99,
+        "is_archived": true,
+        "lotto_id": 2,
+        "carrello": [
+          {
+            "id": "p191",
+            "nome": "Campione Promo Shop",
+            "quantita": 1,
+            "prezzo": 14,
+            "costo_usd": 14
+          }
+        ]
+      },
+      {
+        "id": 192,
+        "data": "24/08/2026, 00:35:46",
+        "nome": "Sergio Catania (Personale)",
+        "totale": 11,
+        "costo_eur": 9.42,
+        "is_archived": true,
+        "lotto_id": 2,
+        "carrello": [
+          {
+            "id": "p192",
+            "nome": "Completino Allenamento Sergio",
+            "quantita": 1,
+            "prezzo": 11,
+            "costo_usd": 11
+          }
+        ]
+      }
+    ]
   }
 ]

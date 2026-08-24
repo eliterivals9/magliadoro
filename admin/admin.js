@@ -360,7 +360,10 @@ function risolviAliasSquadra(nomeInput, listaSquadreEsistenti) {
 
 function parseFlexibleDecimal(valStr) {
     if (valStr === undefined || valStr === null) return 0;
-    let clean = valStr.toString().replace('€', '').replace('$', '').replace(/\s/g, '').trim();
+    if (typeof valStr === 'number') {
+        return isNaN(valStr) ? 0 : valStr;
+    }
+    let clean = valStr.toString().replace(/€/g, '').replace(/\$/g, '').replace(/\s+/g, '').trim();
     if (!clean) return 0;
     
     // Check if it has both . and ,
@@ -694,30 +697,265 @@ function nascondiSquadraDropdown() {
 // Espone a window per click in HTML dinamico
 window.selezionaSquadra = selezionaSquadra;
 
+let isClosingLotto = false;
+
+window.openCloseLottoProgressModal = function(lottoName = "Lotto Corrente") {
+    const modal = document.getElementById('close-lotto-progress-modal');
+    const container = document.getElementById('close-lotto-progress-container');
+    const iconBox = document.getElementById('close-lotto-icon-box');
+    const icon = document.getElementById('close-lotto-icon');
+    const title = document.getElementById('close-lotto-title');
+    const phaseText = document.getElementById('close-lotto-phase-text');
+    const progressBar = document.getElementById('close-lotto-progress-bar');
+    const percentage = document.getElementById('close-lotto-percentage');
+    const subinfo = document.getElementById('close-lotto-subinfo');
+    const warningNote = document.getElementById('close-lotto-warning-note');
+    const errorActions = document.getElementById('close-lotto-error-actions');
+
+    if (title) title.innerText = `Chiusura ${lottoName}`;
+    if (phaseText) {
+        phaseText.innerText = "Preparazione chiusura lotto...";
+        phaseText.className = "text-xs font-semibold text-slate-600 mb-5 min-h-[18px]";
+    }
+    if (progressBar) {
+        progressBar.style.width = '0%';
+        progressBar.className = "h-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-500 rounded-full transition-all duration-300 ease-out relative";
+    }
+    if (percentage) {
+        percentage.innerText = "0%";
+        percentage.className = "text-slate-900 font-mono text-sm font-black";
+    }
+    if (subinfo) {
+        subinfo.innerText = "Inizializzazione...";
+        subinfo.className = "text-slate-500 font-mono text-[11px]";
+    }
+    if (iconBox) {
+        iconBox.className = "w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200/60 flex items-center justify-center text-3xl transition-all duration-300";
+    }
+    if (icon) {
+        icon.className = "animate-pulse";
+        icon.innerText = "📦";
+    }
+    if (warningNote) warningNote.classList.remove('hidden');
+    if (errorActions) errorActions.classList.add('hidden');
+
+    if (modal && container) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+};
+
+window.updateCloseLottoProgress = function(percent, stage, extra = {}) {
+    const progressBar = document.getElementById('close-lotto-progress-bar');
+    const percentage = document.getElementById('close-lotto-percentage');
+    const phaseText = document.getElementById('close-lotto-phase-text');
+    const subinfo = document.getElementById('close-lotto-subinfo');
+    const title = document.getElementById('close-lotto-title');
+
+    const safePercent = Math.min(100, Math.max(0, Math.round(percent)));
+    if (progressBar) progressBar.style.width = `${safePercent}%`;
+    if (percentage) percentage.innerText = `${safePercent}%`;
+    if (phaseText && stage) phaseText.innerText = stage;
+
+    if (extra.lottoId && title) {
+        title.innerText = `Chiusura Lotto #${extra.lottoId}`;
+    }
+
+    if (subinfo) {
+        if (extra.totalOrders !== undefined && extra.ordersProcessed !== undefined) {
+            subinfo.innerText = `Ordini elaborati: ${extra.ordersProcessed} / ${extra.totalOrders}`;
+        } else if (extra.totalOrders !== undefined) {
+            subinfo.innerText = `Totale ordini: ${extra.totalOrders}`;
+        } else {
+            subinfo.innerText = stage || "";
+        }
+    }
+};
+
+window.showCloseLottoSuccess = function(lottoName = "Lotto") {
+    const iconBox = document.getElementById('close-lotto-icon-box');
+    const icon = document.getElementById('close-lotto-icon');
+    const title = document.getElementById('close-lotto-title');
+    const phaseText = document.getElementById('close-lotto-phase-text');
+    const progressBar = document.getElementById('close-lotto-progress-bar');
+    const percentage = document.getElementById('close-lotto-percentage');
+    const subinfo = document.getElementById('close-lotto-subinfo');
+    const warningNote = document.getElementById('close-lotto-warning-note');
+
+    if (iconBox) {
+        iconBox.className = "w-16 h-16 mx-auto mb-4 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center text-3xl shadow-md shadow-emerald-500/10";
+    }
+    if (icon) {
+        icon.className = "";
+        icon.innerText = "✓";
+    }
+    if (title) title.innerText = "✓ Lotto chiuso";
+    if (phaseText) {
+        phaseText.innerText = "Chiusura completata correttamente.";
+        phaseText.className = "text-xs font-bold text-emerald-600 mb-5 min-h-[18px]";
+    }
+    if (progressBar) {
+        progressBar.style.width = "100%";
+        progressBar.className = "h-full bg-emerald-500 rounded-full transition-all duration-300 ease-out";
+    }
+    if (percentage) {
+        percentage.innerText = "100%";
+        percentage.className = "text-emerald-600 font-mono text-sm font-black";
+    }
+    if (subinfo) subinfo.innerText = "Dati archiviati con successo.";
+    if (warningNote) warningNote.classList.add('hidden');
+};
+
+window.showCloseLottoError = function(errorMessage, stage = "") {
+    const iconBox = document.getElementById('close-lotto-icon-box');
+    const icon = document.getElementById('close-lotto-icon');
+    const title = document.getElementById('close-lotto-title');
+    const phaseText = document.getElementById('close-lotto-phase-text');
+    const progressBar = document.getElementById('close-lotto-progress-bar');
+    const subinfo = document.getElementById('close-lotto-subinfo');
+    const warningNote = document.getElementById('close-lotto-warning-note');
+    const errorActions = document.getElementById('close-lotto-error-actions');
+
+    if (iconBox) {
+        iconBox.className = "w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-50 text-red-600 border border-red-200/80 flex items-center justify-center text-3xl";
+    }
+    if (icon) {
+        icon.className = "";
+        icon.innerText = "❌";
+    }
+    if (title) title.innerText = "Errore durante la chiusura del lotto";
+    if (phaseText) {
+        phaseText.innerText = stage ? `Fase: ${stage}` : "Chiusura lotto non completata";
+        phaseText.className = "text-xs font-bold text-red-600 mb-5 min-h-[18px]";
+    }
+    if (progressBar) {
+        progressBar.className = "h-full bg-red-500 rounded-full transition-all duration-300 ease-out";
+    }
+    if (subinfo) {
+        subinfo.innerText = errorMessage || "Si è verificato un errore.";
+        subinfo.className = "text-red-600 font-bold text-xs truncate max-w-[280px]";
+    }
+    if (warningNote) warningNote.classList.add('hidden');
+    if (errorActions) errorActions.classList.remove('hidden');
+};
+
+window.closeLottoProgressModal = function(force = false) {
+    if (isClosingLotto && !force) return; // Protezione chiusura accidentale durante operazione attiva
+    const modal = document.getElementById('close-lotto-progress-modal');
+    const container = document.getElementById('close-lotto-progress-container');
+    if (modal && container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+};
+
 /**
- * Gestisce l'azione del lotto corrente
+ * Gestisce l'azione del lotto corrente con monitoraggio in tempo reale e barra di progresso
  */
 function inizializzaLottoAction() {
     const btnLotto = document.getElementById('btn-lotto-effettuato');
     if (btnLotto) {
         btnLotto.addEventListener('click', async () => {
-            console.log("[FRONTEND] Click su 'Segna come Ordine Effettuato' rilevato. Avvio procedura di archiviazione.");
+            if (isClosingLotto) {
+                console.warn("[FRONTEND] Chiusura lotto già in corso. Click ignorato.");
+                return;
+            }
+
+            console.log("[FRONTEND] Click su 'Chiudi Lotto' rilevato. Avvio procedura di archiviazione.");
+            
+            // Disabilita pulsante per evitare doppi click
+            btnLotto.disabled = true;
+            btnLotto.classList.add('opacity-50', 'cursor-not-allowed');
+            isClosingLotto = true;
+
+            const currentLottoId = window.currentLottoData?.id || (window.cronologiaLotti?.length ? Math.max(...window.cronologiaLotti.map(l => Number(l.id) || 0)) + 1 : 1);
+            const lotName = window.currentLottoData?.numero_lotto || `Lotto #${currentLottoId}`;
+
+            window.openCloseLottoProgressModal(lotName);
+
             try {
-                console.log("[FRONTEND] Invio richiesta POST a /api/lotto/archive...");
-                const response = await fetch('/api/lotto/archive', { method: 'POST' });
-                console.log("[FRONTEND] Risposta ricevuta con stato HTTP:", response.status);
-                const result = await response.json();
-                console.log("[FRONTEND] Dettaglio risposta del server:", JSON.stringify(result, null, 2));
+                const clientTimestamp = new Date().toLocaleString('it-IT');
+                console.log("[FRONTEND] Invio richiesta streaming a /api/lotto/archive...");
                 
-                if (result.success) {
+                const response = await fetch('/api/lotto/archive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream'
+                    },
+                    body: JSON.stringify({ archived_at: clientTimestamp, stream: true })
+                });
+
+                if (!response.ok && response.status !== 409) {
+                    let errorText = "Errore durante la chiusura del lotto.";
+                    try {
+                        const errJson = await response.json();
+                        if (errJson && errJson.error) errorText = errJson.error;
+                    } catch (e) {}
+                    window.showCloseLottoError(errorText, "Connessione server");
+                    return;
+                }
+
+                const contentType = response.headers.get('content-type') || '';
+                let lastEvent = null;
+
+                if (contentType.includes('text/event-stream') && response.body) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop(); // Mantieni eventuale frammento incompleto
+
+                        for (const line of lines) {
+                            const trimmed = line.trim();
+                            if (trimmed.startsWith('data:')) {
+                                const jsonStr = trimmed.replace(/^data:\s*/, '');
+                                if (jsonStr) {
+                                    try {
+                                        const eventData = JSON.parse(jsonStr);
+                                        lastEvent = eventData;
+                                        if (eventData.success === false) {
+                                            window.showCloseLottoError(eventData.error || "Operazione fallita", eventData.stage);
+                                            return;
+                                        }
+                                        window.updateCloseLottoProgress(eventData.percent, eventData.stage, eventData);
+                                    } catch (e) {
+                                        console.warn("Errore parsing SSE chunk:", e);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const result = await response.json();
+                    lastEvent = result;
+                    if (!result.success) {
+                        window.showCloseLottoError(result.error || "Operazione fallita", "Elaborazione");
+                        return;
+                    }
+                    window.updateCloseLottoProgress(100, "Lotto chiuso correttamente");
+                }
+
+                if (lastEvent && lastEvent.success !== false) {
+                    window.showCloseLottoSuccess(lastEvent.lottoId ? `Lotto #${lastEvent.lottoId}` : lotName);
                     showToast("Lotto archiviato con successo!", "success");
-                    console.log("[FRONTEND] Archiviazione riuscita. Lotto dopo il reset ricevuto dal server:", JSON.stringify(result.lotto, null, 2));
-                    
+
                     // Azzeramento immediato lato client
                     const statsLotto = document.getElementById('stats-lotto-corrente');
-                    if (statsLotto) {
-                        statsLotto.innerText = "0 art.";
-                    }
+                    if (statsLotto) statsLotto.innerText = "0 art.";
+                    
                     const elArticoli = document.getElementById('lotto-articoli');
                     const elCostoProd = document.getElementById('lotto-costo-prodotti');
                     const elSpedizione = document.getElementById('lotto-spedizione');
@@ -730,17 +968,27 @@ function inizializzaLottoAction() {
                     if (elCostoPers) elCostoPers.innerText = '$ 0.00';
                     if (elCostoTotale) elCostoTotale.innerText = '$ 0.00';
 
+                    // Attesa breve (1.2s) per permettere all'utente di vedere il 100% completato con spunta verde
+                    await new Promise(resolve => setTimeout(resolve, 1200));
+                    window.closeLottoProgressModal(true);
+
                     await caricaLotto();
                     await caricaOrdini();
                     await caricaCronologiaLotti();
-                    console.log("[FRONTEND] Eseguite caricaLotto(), caricaOrdini() e caricaCronologiaLotti() per aggiornare l'interfaccia con i dati freschi.");
-                } else {
-                    console.error("[FRONTEND] Il server ha risposto con errore:", result.error);
-                    showToast("Errore durante l'archiviazione: " + result.error, "error");
+                    if (typeof caricaGestioneOrdini === 'function') {
+                        await caricaGestioneOrdini();
+                    }
+                    console.log("[FRONTEND] Eseguite caricaLotto(), caricaOrdini(), caricaCronologiaLotti() e caricaGestioneOrdini() con i dati aggiornati.");
                 }
             } catch (err) {
                 console.error("[FRONTEND] Eccezione riscontrata durante l'archiviazione del lotto:", err);
-                showToast("Errore di connessione.", "error");
+                window.showCloseLottoError(err.message || "Errore di connessione", "Comunicazione di rete");
+            } finally {
+                isClosingLotto = false;
+                if (btnLotto) {
+                    btnLotto.disabled = false;
+                    btnLotto.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
             }
         });
     }
@@ -1116,7 +1364,11 @@ function renderCronologiaLotti() {
     const sorted = [...cronologiaLotti].reverse();
 
     tbody.innerHTML = sorted.map(l => {
-        const incasso = Number(l.incasso_totale_eur || 0).toFixed(2).replace('.', ',') + '€';
+        const splitSum = l.profit_split_summary || null;
+        const incassoBase = Number(l.incasso_base_eur !== undefined ? l.incasso_base_eur : (l.incasso_totale_eur || 0));
+        const cashflow = calcolaIncassoEffettivo(incassoBase, splitSum);
+        const incassoVal = (l.incasso_effettivo_eur !== undefined) ? Number(l.incasso_effettivo_eur) : cashflow.incasso_effettivo;
+        const incasso = incassoVal.toFixed(2).replace('.', ',') + '€';
         const profitto = Number(l.profitto_eur || 0).toFixed(2).replace('.', ',') + '€';
         
         return `
@@ -1128,16 +1380,19 @@ function renderCronologiaLotti() {
                 <td class="px-4 py-3.5 text-xs text-slate-900 font-extrabold font-mono">${incasso}</td>
                 <td class="px-4 py-3.5 text-xs text-emerald-600 font-extrabold font-mono">${profitto}</td>
                 <td class="px-4 py-3.5 text-xs text-right space-x-1">
-                    <button onclick="apriDettaglioLotto(${l.id})" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-[10px] rounded-lg transition-all" title="Visualizza dettagli ed ordini del lotto">
+                    <button onclick="apriDettaglioLotto(${l.id})" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-[10px] rounded-lg transition-all cursor-pointer" title="Visualizza dettagli ed ordini del lotto">
                         Dettagli
                     </button>
-                    <button onclick="ripristinaLotto(${l.id})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-800 font-bold text-[10px] rounded-lg transition-all border border-amber-200/60" title="Riporta tutti gli ordini di questo lotto negli Ordini Attivi">
+                    <button onclick="apriSuddivisioneProfittiLotto(${l.id})" class="px-3 py-1.5 bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold font-bold text-[10px] rounded-lg transition-all border border-brand-gold/30 cursor-pointer" title="Visualizza e gestisci la suddivisione profitti di questo lotto">
+                        💰 Suddivisione Profitti
+                    </button>
+                    <button onclick="ripristinaLotto(${l.id})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-800 font-bold text-[10px] rounded-lg transition-all border border-amber-200/60 cursor-pointer" title="Riporta tutti gli ordini di questo lotto negli Ordini Attivi">
                         📥 Ripristina
                     </button>
                     <a href="${l.excel_url || `/lotti/LOTTO_${String(l.id).padStart(4, '0')}.xlsx`}" download class="inline-flex items-center px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 font-bold text-[10px] rounded-lg transition-all border border-emerald-100/50">
                         🟢 Excel Fornitore
                     </a>
-                    <button onclick="chiediEliminaLotto(${l.id})" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] rounded-lg transition-all">
+                    <button onclick="chiediEliminaLotto(${l.id})" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] rounded-lg transition-all cursor-pointer">
                         🗑️ Elimina
                     </button>
                 </td>
@@ -1260,6 +1515,12 @@ window.ripristinaLottoDaModale = async function() {
     }
 };
 
+window.eliminaLottoDaModale = function() {
+    if (window.currentDetailLottoId) {
+        window.chiediEliminaLotto(window.currentDetailLottoId);
+    }
+};
+
 window.chiediEliminaLotto = function(id) {
     const lotto = cronologiaLotti.find(l => Number(l.id) === Number(id));
     if (!lotto) {
@@ -1268,11 +1529,16 @@ window.chiediEliminaLotto = function(id) {
     }
 
     const lotName = lotto.numero_lotto || `Lotto #${lotto.id}`;
+    const orderCount = lotto.numero_ordini || (Array.isArray(lotto.orders) ? lotto.orders.filter(o => !o.is_tracking_meta).length : 0);
     
-    // Set lot name in confirmation modal
+    // Set lot name and order count in confirmation modal
     const nameEl = document.getElementById('delete-lotto-name');
     if (nameEl) {
         nameEl.innerText = lotName;
+    }
+    const countEl = document.getElementById('delete-lotto-count');
+    if (countEl) {
+        countEl.innerText = orderCount;
     }
 
     // Set confirm button handler
@@ -1309,18 +1575,26 @@ window.closeDeleteLottoConfirmModal = function() {
 };
 
 async function eseguiEliminaLotto(id, lotName) {
-    showToast("Eliminazione lotto in corso...", "info");
+    showToast(`Eliminazione ${lotName} e ordini associati in corso...`, "info");
     try {
         const response = await fetch(`/api/lotto/archive/${id}`, {
             method: 'DELETE'
         });
         const result = await response.json();
         if (response.ok && result && result.success) {
-            showToast(`Lotto ${lotName} eliminato con successo.`, "success");
+            showToast(`${lotName} eliminato con successo.`, "success");
             
-            // Aggiorna l'interfaccia ricaricando i dati
+            if (typeof closeLottoDetailsModal === 'function') {
+                closeLottoDetailsModal();
+            }
+
+            // Aggiorna l'interfaccia ricaricando tutti i dati
             await caricaCronologiaLotti();
+            await caricaLotto();
             await caricaOrdini();
+            if (typeof caricaGestioneOrdini === 'function') {
+                await caricaGestioneOrdini();
+            }
         } else {
             console.error("[FRONTEND] Errore eliminazione lotto:", result.error);
             showToast("Errore durante l'eliminazione: " + (result.error || "Errore sconosciuto"), "error");
@@ -1360,7 +1634,37 @@ window.apriDettaglioLotto = function(id) {
     if (dateEl) dateEl.innerText = `Chiuso il: ${lotto.archived_at || ''}`;
     if (ordiniEl) ordiniEl.innerText = lotto.numero_ordini || 0;
     if (articoliEl) articoliEl.innerText = lotto.numero_articoli || 0;
-    if (incassoEl) incassoEl.innerText = `€ ${Number(lotto.incasso_totale_eur || 0).toFixed(2).replace('.', ',')}`;
+
+    // Calcolo Incasso Clienti Netto usando la stessa identica logica della Dashboard (calcolaIncassoEffettivo)
+    const baseIncasso = Number(lotto.incasso_base_eur !== undefined ? lotto.incasso_base_eur : (lotto.incasso_totale_eur || 0));
+    const lottoCashflow = calcolaIncassoEffettivo(baseIncasso, lotto.profit_split_summary);
+    if (incassoEl) {
+        incassoEl.innerText = `€ ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (lottoCashflow.correzione_incasso !== 0) {
+            incassoEl.title = `Incasso Base: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${lottoCashflow.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${lottoCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        } else {
+            incassoEl.title = `Incasso Totale: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
+        }
+    }
+
+    // Rinfresca asincronamente con la suddivisione profitti del lotto per aggiornamenti in tempo reale
+    fetch(`/api/profit-splits?lotto_id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.success && data.summary && Number(window.currentDetailLottoId) === Number(id)) {
+                const refreshedCashflow = calcolaIncassoEffettivo(baseIncasso, data.summary);
+                if (incassoEl) {
+                    incassoEl.innerText = `€ ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+                    if (refreshedCashflow.correzione_incasso !== 0) {
+                        incassoEl.title = `Incasso Base: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${refreshedCashflow.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${refreshedCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+                    } else {
+                        incassoEl.title = `Incasso Totale: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
+                    }
+                }
+            }
+        })
+        .catch(() => {});
+
     if (costoProdEl) costoProdEl.innerText = `$ ${Number(lotto.costo_prodotti_usd || 0).toFixed(2).replace('.', ',')}`;
     if (costoSpedEl) costoSpedEl.innerText = `$ ${Number(lotto.costo_spedizione_usd || 0).toFixed(2).replace('.', ',')}`;
     if (alibabaFeeEl) {
@@ -1535,8 +1839,8 @@ window.apriDettaglioLotto = function(id) {
                                         <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
                                         <span class="font-mono font-semibold text-white">
                                             € ${(() => {
-                                                const totIncassato = parseFloat(totaleOrdine.replace(/[^0-9,.-]/g, '').replace(',', '.')) || 0;
-                                                const haSpedCliente = prodottiOrdinati.toLowerCase().includes('spedizione');
+                                                const totIncassato = parseFlexibleDecimal(totaleOrdine);
+                                                const haSpedCliente = String(prodottiOrdinati || '').toLowerCase().includes('spedizione');
                                                 const spedCliente = haSpedCliente ? 2.00 : 0.00;
                                                 const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
                                                 return (totIncassato + couponDiscount - spedCliente).toFixed(2).replace('.', ',');
@@ -1572,7 +1876,7 @@ window.apriDettaglioLotto = function(id) {
                                     <!-- Totale Incassato -->
                                     <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
                                         <span class="text-white font-bold">Totale Incassato:</span>
-                                        <span class="font-extrabold text-white font-mono text-sm">${totaleOrdine}</span>
+                                        <span class="font-extrabold text-white font-mono text-sm">${typeof totaleOrdine === 'number' ? `€ ${totaleOrdine.toFixed(2).replace('.', ',')}` : (String(totaleOrdine).includes('€') ? String(totaleOrdine) : `€ ${String(totaleOrdine)}`)}</span>
                                     </div>
                                     <!-- Costo Prodotti -->
                                     <div class="flex justify-between items-center py-0.5">
@@ -1679,21 +1983,25 @@ function isOrderActive(o) {
 
 /**
  * Calcola l'incasso effettivo da recuperare dai clienti in base alle modifiche di Suddivisione Profitto.
- * Formula: INCASSO_EFFETTIVO = INCASSO_BASE_CLIENTI - COSTI_ACQUISTI_COPERTI_DAL_PROFITTO + DEFICIT_DOVUTO_A_SALDI_NEGATIVI
+ * Formula condivisa tra Dashboard, Dettaglio Lotto e Cronologia Lotti:
+ * INCASSO_EFFETTIVO = INCASSO_BASE_CLIENTI - COSTI_ACQUISTI_COPERTI_DAL_PROFITTO + DEFICIT_DOVUTO_A_SALDI_NEGATIVI
  */
-function calcolaIncassoEffettivo(incassoBase) {
+function calcolaIncassoEffettivo(incassoBase, profitDataOrSummary = profitSplitData) {
     const incasso_base = Number(incassoBase) || 0;
     let costi_acquisti_profitto = 0;
     let deficit_totale = 0;
 
-    if (profitSplitData && profitSplitData.summary) {
-        const summary = profitSplitData.summary;
-        const sWithd = Number(summary.sergio?.total_withdrawals) || 0;
-        const rWithd = Number(summary.riccardo?.total_withdrawals) || 0;
+    const summary = (profitDataOrSummary && profitDataOrSummary.summary) 
+        ? profitDataOrSummary.summary 
+        : (profitDataOrSummary || (typeof profitSplitData !== 'undefined' ? profitSplitData?.summary : null));
+
+    if (summary) {
+        const sWithd = Number(summary.sergio?.total_withdrawals) || Number(summary.spese_sergio) || 0;
+        const rWithd = Number(summary.riccardo?.total_withdrawals) || Number(summary.spese_riccardo) || 0;
         costi_acquisti_profitto = sWithd + rWithd;
 
-        const sNet = Number(summary.sergio?.total_net) || 0;
-        const rNet = Number(summary.riccardo?.total_net) || 0;
+        const sNet = Number(summary.sergio?.total_net) || Number(summary.sergio_net) || Number(summary.sergio_residual_share) || 0;
+        const rNet = Number(summary.riccardo?.total_net) || Number(summary.riccardo_net) || Number(summary.riccardo_residual_share) || 0;
 
         const deficitSergio = sNet < 0 ? Math.abs(sNet) : 0;
         const deficitRiccardo = rNet < 0 ? Math.abs(rNet) : 0;
@@ -3709,7 +4017,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     // Sezioni disponibili
     const sections = [
         'dashboard', 'prodotti', 'ordini', 'lotto', 
-        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'revisione-riclassificazione', 'marketing', 'recensioni', 'coupon', 'suddivisione-conti', 'chat'
+        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'marketing', 'recensioni', 'coupon', 'suddivisione-conti', 'chat'
     ];
     
     // Mappa dei titoli dell'header
@@ -3722,7 +4030,6 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'tracking': 'Tracking Spedizioni',
         'impostazioni': 'Impostazioni',
         'gestione-catalogo': 'Gestione Catalogo',
-        'revisione-riclassificazione': 'Revisione & Riclassificazione Prodotti',
         'marketing': 'Gestione Promo Home',
         'recensioni': 'Moderazione Recensioni',
         'coupon': 'Gestione Coupon Sconto',
@@ -3772,10 +4079,6 @@ function switchTab(tabId, preserveSelectionMode = false) {
         }
     } else if (tabId === 'gestione-ordini') {
         caricaGestioneOrdini();
-    } else if (tabId === 'revisione-riclassificazione') {
-        if (typeof caricaRevisioneRiclassificazione === 'function') {
-            caricaRevisioneRiclassificazione();
-        }
     } else if (tabId === 'marketing') {
         loadMarketingPromo();
     } else if (tabId === 'recensioni') {
@@ -4657,8 +4960,8 @@ function renderOrdini() {
                                 <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
                                 <span class="font-mono font-semibold text-white">
                                     € ${(() => {
-                                        const totIncassato = parseFloat(totaleOrdine.replace(/[^0-9,.-]/g, '').replace(',', '.')) || 0;
-                                        const haSpedCliente = prodottiOrdinati.toLowerCase().includes('spedizione');
+                                        const totIncassato = parseFlexibleDecimal(totaleOrdine);
+                                        const haSpedCliente = String(prodottiOrdinati || '').toLowerCase().includes('spedizione');
                                         const spedCliente = haSpedCliente ? 2.00 : 0.00;
                                         const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
                                         return (totIncassato + couponDiscount - spedCliente).toFixed(2).replace('.', ',');
@@ -4694,7 +4997,7 @@ function renderOrdini() {
                             <!-- Totale Incassato -->
                             <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
                                 <span class="text-white font-bold">Totale Incassato:</span>
-                                <span class="font-extrabold text-white font-mono text-sm">${totaleOrdine}</span>
+                                <span class="font-extrabold text-white font-mono text-sm">${typeof totaleOrdine === 'number' ? `€ ${totaleOrdine.toFixed(2).replace('.', ',')}` : (String(totaleOrdine).includes('€') ? String(totaleOrdine) : `€ ${String(totaleOrdine)}`)}</span>
                             </div>
                             <!-- Costo Prodotti -->
                             <div class="flex justify-between items-center py-0.5">
@@ -9481,17 +9784,138 @@ window.nascondiProgressoImportazione = nascondiProgressoImportazione;
 
 window.gestioneOrdiniList = [];
 
+/**
+ * Recupera il set di tutti gli ID dei lotti validi ed esistenti
+ * (Lotto Corrente attivo + Cronologia Lotti archiviati).
+ */
+function getValidLottoIds() {
+    const validIds = new Set();
+    
+    // Lotto attivo corrente
+    if (window.currentLottoData && window.currentLottoData.id !== undefined && window.currentLottoData.id !== null) {
+        const cId = Number(window.currentLottoData.id);
+        if (!isNaN(cId) && cId > 0) {
+            validIds.add(cId);
+        }
+    }
+
+    // Cronologia lotti (archiviati)
+    if (Array.isArray(cronologiaLotti)) {
+        cronologiaLotti.forEach(l => {
+            if (l && l.id !== undefined && l.id !== null) {
+                const lId = Number(l.id);
+                if (!isNaN(lId) && lId > 0) {
+                    validIds.add(lId);
+                }
+            }
+        });
+    }
+
+    return validIds;
+}
+
+/**
+ * Popola dinamicamente il menu a tendina "Filtra per Lotto"
+ * con i lotti effettivamente esistenti (Lotto Corrente + Cronologia Lotti + Tutti i lotti).
+ */
+function popolaFiltroLottiGestioneOrdini(preselezionaLottoId = null) {
+    const select = document.getElementById('gestione-ordini-filter-lotto');
+    if (!select) return;
+
+    const previousValue = select.value;
+    const currentActiveId = (window.currentLottoData && window.currentLottoData.id) ? Number(window.currentLottoData.id) : null;
+    
+    // Costruisce mappa dei lotti validi: id -> label
+    const lottiMap = new Map();
+    
+    // 1. Inserisci prima il lotto corrente se esiste
+    if (currentActiveId && !isNaN(currentActiveId) && currentActiveId > 0) {
+        lottiMap.set(currentActiveId, `Lotto #${currentActiveId} (Corrente)`);
+    }
+
+    // 2. Inserisci i lotti dalla Cronologia Lotti (ordinati dal più recente al meno recente)
+    if (Array.isArray(cronologiaLotti)) {
+        const sortedArch = [...cronologiaLotti].sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+        sortedArch.forEach(l => {
+            if (l && l.id !== undefined && l.id !== null) {
+                const lId = Number(l.id);
+                if (!isNaN(lId) && lId > 0) {
+                    if (lId === currentActiveId) {
+                        lottiMap.set(lId, `Lotto #${lId} (Corrente)`);
+                    } else if (!lottiMap.has(lId)) {
+                        lottiMap.set(lId, l.numero_lotto || `Lotto #${lId}`);
+                    }
+                }
+            }
+        });
+    }
+
+    // Ricrea le opzioni
+    select.innerHTML = '';
+
+    lottiMap.forEach((label, id) => {
+        const opt = document.createElement('option');
+        opt.value = String(id);
+        opt.innerText = label;
+        select.appendChild(opt);
+    });
+
+    // Aggiungi opzione "Tutti i lotti"
+    const optAll = document.createElement('option');
+    optAll.value = 'all';
+    optAll.innerText = 'Tutti i lotti';
+    select.appendChild(optAll);
+
+    // Determina la selezione predefinita:
+    // 1. Se indicato preselezionaLottoId
+    // 2. Altrimenti se il valore precedente era ancora valido nel set
+    // 3. Altrimenti default = LOTTO CORRENTE (se esistente), altrimenti primo lotto, altrimenti 'all'
+    if (preselezionaLottoId !== null && (lottiMap.has(Number(preselezionaLottoId)) || preselezionaLottoId === 'all')) {
+        select.value = String(preselezionaLottoId);
+    } else if (previousValue && previousValue !== 'all' && lottiMap.has(Number(previousValue))) {
+        select.value = previousValue;
+    } else if (currentActiveId && lottiMap.has(currentActiveId)) {
+        select.value = String(currentActiveId);
+    } else if (lottiMap.size > 0) {
+        select.value = String(lottiMap.keys().next().value);
+    } else {
+        select.value = 'all';
+    }
+}
+
 // 1. GESTIONE ORDINI
-async function caricaGestioneOrdini() {
+async function caricaGestioneOrdini(preselezionaLottoId = null) {
     try {
-        const response = await fetch('/api/admin/gestione-ordini');
-        if (response.ok) {
-            const data = await response.json();
-            if (data && data.success) {
-                window.gestioneOrdiniList = data.orders || [];
-                renderGestioneOrdini();
+        // Carica in parallelo ordini, cronologia lotti e stato lotto attivo
+        const [ordersRes, archiveRes, lottoRes] = await Promise.all([
+            fetch('/api/admin/gestione-ordini').catch(() => null),
+            fetch('/api/lotto/archive').catch(() => null),
+            fetch('/api/lotto').catch(() => null)
+        ]);
+
+        if (archiveRes && archiveRes.ok) {
+            const archData = await archiveRes.json();
+            if (archData && archData.success && Array.isArray(archData.archive)) {
+                cronologiaLotti = archData.archive;
             }
         }
+
+        if (lottoRes && lottoRes.ok) {
+            const lData = await lottoRes.json();
+            if (lData && lData.success && lData.lotto) {
+                window.currentLottoData = lData.lotto;
+            }
+        }
+
+        if (ordersRes && ordersRes.ok) {
+            const data = await ordersRes.json();
+            if (data && data.success) {
+                window.gestioneOrdiniList = data.orders || [];
+            }
+        }
+
+        popolaFiltroLottiGestioneOrdini(preselezionaLottoId);
+        renderGestioneOrdini();
     } catch (err) {
         console.error("⚠️ Errore caricamento gestione ordini:", err);
     }
@@ -9503,12 +9927,27 @@ function renderGestioneOrdini() {
 
     // Recupera filtri
     const searchVal = (document.getElementById('gestione-ordini-search')?.value || '').toLowerCase().trim();
+    const filterLotto = document.getElementById('gestione-ordini-filter-lotto')?.value || 'all';
     const filterPagamento = document.getElementById('gestione-ordini-filter-pagamento')?.value || 'all';
     const filterSpedizione = document.getElementById('gestione-ordini-filter-spedizione')?.value || 'all';
     const filterDataInizio = document.getElementById('gestione-ordini-filter-data-inizio')?.value || '';
     const filterDataFine = document.getElementById('gestione-ordini-filter-data-fine')?.value || '';
 
-    let filtrate = [...window.gestioneOrdiniList];
+    const validLottoIds = getValidLottoIds();
+
+    // REGOLA: Mostrare SOLO gli ordini appartenenti a lotti effettivamente presenti nella Cronologia Lotti o nel Lotto Corrente
+    let filtrate = (window.gestioneOrdiniList || []).filter(ord => {
+        if (ord.lotto_id === null || ord.lotto_id === undefined || ord.lotto_id === '' || isNaN(Number(ord.lotto_id))) {
+            return false;
+        }
+        return validLottoIds.has(Number(ord.lotto_id));
+    });
+
+    // Applica Filtro per Lotto specifico
+    if (filterLotto !== 'all') {
+        const targetLottoId = Number(filterLotto);
+        filtrate = filtrate.filter(ord => Number(ord.lotto_id) === targetLottoId);
+    }
 
     // Applica Ricerca
     if (searchVal) {
@@ -9590,6 +10029,29 @@ function renderGestioneOrdini() {
             ? `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-bold text-[8px] uppercase tracking-wider"><span>👤</span> Registrato</span>`
             : `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-md font-bold text-[8px] uppercase tracking-wider">Ospite</span>`;
 
+        // Calcolo sicuro del totale dovuto ("Totale che mi deve")
+        const rawTotale = (ord.totale !== undefined && ord.totale !== null && ord.totale !== '')
+            ? ord.totale
+            : (ord.totale_ordine ?? ord.totale_eur ?? ord.total ?? ord.importo ?? 0);
+        const totaleOrdine = parseFlexibleDecimal(rawTotale);
+
+        const statusPagamento = String(ord.payment_status || '').trim().toLowerCase();
+        const isPagato = statusPagamento === 'pagato' || statusPagamento === 'paid';
+
+        let totalePagato = 0;
+        if (ord.importo_pagato !== undefined && ord.importo_pagato !== null && ord.importo_pagato !== '') {
+            totalePagato = parseFlexibleDecimal(ord.importo_pagato);
+        } else if (ord.totale_pagato !== undefined && ord.totale_pagato !== null && ord.totale_pagato !== '') {
+            totalePagato = parseFlexibleDecimal(ord.totale_pagato);
+        } else if (ord.pagato !== undefined && ord.pagato !== null && ord.pagato !== '') {
+            totalePagato = parseFlexibleDecimal(ord.pagato);
+        } else if (isPagato) {
+            totalePagato = totaleOrdine;
+        }
+
+        const totaleCheMiDeve = Math.max(0, totaleOrdine - totalePagato);
+        const totaleCheMiDeveFormatted = `€${totaleCheMiDeve.toFixed(2).replace('.', ',')}`;
+
         return `
             <tr class="hover:bg-slate-50/50 transition-colors ${isAnnullato ? 'bg-rose-50/30' : ''}">
                 <!-- 1. ORDINE -->
@@ -9623,9 +10085,9 @@ function renderGestioneOrdini() {
                 <!-- 4. SITUAZIONE ECONOMICA -->
                 <td class="px-5 py-4">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-xs font-black text-slate-950 font-mono">€${Number(ord.totale).toFixed(2).replace('.', ',')}</span>
+                        <span class="text-xs font-bold text-slate-900 font-mono">${totaleCheMiDeveFormatted}</span>
                         <span class="px-2 py-0.5 text-[9px] font-extrabold rounded-md border ${pagClass}">
-                            ${ord.payment_status}
+                            ${ord.payment_status || 'Da pagare'}
                         </span>
                         ${isAnnullato ? `<span class="px-2 py-0.5 text-[9px] font-extrabold rounded-md bg-rose-100 text-rose-800 border border-rose-300 uppercase">Annullato</span>` : ''}
                     </div>
@@ -9643,6 +10105,7 @@ function renderGestioneOrdini() {
 
 // Aggancia eventi per i filtri di Gestione Ordini
 document.getElementById('gestione-ordini-search')?.addEventListener('input', renderGestioneOrdini);
+document.getElementById('gestione-ordini-filter-lotto')?.addEventListener('change', renderGestioneOrdini);
 document.getElementById('gestione-ordini-filter-pagamento')?.addEventListener('change', renderGestioneOrdini);
 document.getElementById('gestione-ordini-filter-spedizione')?.addEventListener('change', renderGestioneOrdini);
 document.getElementById('gestione-ordini-filter-data-inizio')?.addEventListener('change', renderGestioneOrdini);
@@ -12516,6 +12979,7 @@ let manualSavedRiccardoPct = 50;
 let autoCalculatedSergioPct = 50;
 let autoCalculatedRiccardoPct = 50;
 let currentProfitSplitLottoId = 1;
+let currentSelectedProfitLottoId = null;
 let saveProfitSplitDebounceTimer = null;
 
 function formatValutaEuro(num) {
@@ -12708,7 +13172,52 @@ function aggiornaSuddivisioneProfittoLive() {
         }
     }
     if (slider && Number(slider.value) !== Math.round(sPct)) slider.value = Math.round(sPct);
-    if (lottoBadge) lottoBadge.textContent = `Lotto #${currentProfitSplitLottoId}`;
+    const lotDisplayNumber = (profitSplitData && profitSplitData.summary && profitSplitData.summary.numero_lotto) 
+        ? profitSplitData.summary.numero_lotto 
+        : `Lotto #${currentProfitSplitLottoId}`;
+    if (lottoBadge) lottoBadge.textContent = lotDisplayNumber;
+
+    // Aggiorna Banner Contestuale del Lotto visualizzato
+    const contextTitle = document.getElementById('profit-split-lot-context-title');
+    const contextTag = document.getElementById('profit-split-lot-context-tag');
+    const contextDesc = document.getElementById('profit-split-lot-context-desc');
+    const contextIcon = document.getElementById('profit-split-lot-context-icon');
+    const btnTornaAttivo = document.getElementById('profit-split-btn-torna-attivo');
+
+    const isArchivedLot = Boolean(
+        (profitSplitData && profitSplitData.summary && profitSplitData.summary.is_archived) ||
+        (cronologiaLotti && cronologiaLotti.some(l => Number(l.id) === Number(currentProfitSplitLottoId)))
+    );
+
+    if (contextTitle) {
+        contextTitle.textContent = `Visualizzazione: ${lotDisplayNumber}`;
+    }
+    if (contextTag) {
+        if (isArchivedLot) {
+            contextTag.textContent = "Archiviato / Concluso";
+            contextTag.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300";
+        } else {
+            contextTag.textContent = "Lotto Attivo Corrente";
+            contextTag.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300";
+        }
+    }
+    if (contextDesc) {
+        if (isArchivedLot) {
+            contextDesc.textContent = `Stai consultando la suddivisione profitti del ${lotDisplayNumber}. Tutte le spese, modifiche e ripartizioni sono salvate in modo indipendente.`;
+        } else {
+            contextDesc.textContent = `Stai visualizzando e gestendo i dati di suddivisione profitti del lotto attivo corrente (${lotDisplayNumber}).`;
+        }
+    }
+    if (contextIcon) {
+        contextIcon.textContent = isArchivedLot ? "🏛️" : "🟢";
+    }
+    if (btnTornaAttivo) {
+        if (isArchivedLot) {
+            btnTornaAttivo.classList.remove('hidden');
+        } else {
+            btnTornaAttivo.classList.add('hidden');
+        }
+    }
 
     // Aggiorna Crediti Residui nelle card socio
     const splitSergioCredito = document.getElementById('split-sergio-credito-residuo');
@@ -12759,8 +13268,6 @@ function aggiornaSuddivisioneProfittoLive() {
     const rProfittoLotto = document.getElementById('riepilogo-profitto-lotto');
     const rSpeseSergio = document.getElementById('riepilogo-spese-sergio');
     const rSpeseRiccardo = document.getElementById('riepilogo-spese-riccardo');
-    const rCreditoSergio = document.getElementById('riepilogo-credito-sergio');
-    const rCreditoRiccardo = document.getElementById('riepilogo-credito-riccardo');
     const rProfittoResiduo = document.getElementById('riepilogo-profitto-residuo');
     const rSergioPct = document.getElementById('riepilogo-sergio-pct');
     const rSergioQuota = document.getElementById('riepilogo-sergio-quota');
@@ -12771,8 +13278,6 @@ function aggiornaSuddivisioneProfittoLive() {
     if (rProfittoLotto) rProfittoLotto.textContent = `€ ${formatValutaEuro(netTotalProfit)}`;
     if (rSpeseSergio) rSpeseSergio.textContent = `-€ ${formatValutaEuro(speseSergio)}`;
     if (rSpeseRiccardo) rSpeseRiccardo.textContent = `-€ ${formatValutaEuro(speseRiccardo)}`;
-    if (rCreditoSergio) rCreditoSergio.textContent = `€ ${formatValutaEuro(creditoResiduoSergio)}`;
-    if (rCreditoRiccardo) rCreditoRiccardo.textContent = `€ ${formatValutaEuro(creditoResiduoRiccardo)}`;
 
     if (rProfittoResiduo) {
         if (profittoResiduo < 0) {
@@ -12784,34 +13289,50 @@ function aggiornaSuddivisioneProfittoLive() {
         }
     }
 
+    // Suddivisione sul solo PROFITTO RESIDUO per il riepilogo
+    let sergioResiduoQuota = 0;
+    let riccardoResiduoQuota = 0;
+
+    if (sPct === 100) {
+        sergioResiduoQuota = profittoResiduo;
+        riccardoResiduoQuota = 0;
+    } else if (rPct === 100) {
+        sergioResiduoQuota = 0;
+        riccardoResiduoQuota = profittoResiduo;
+    } else {
+        sergioResiduoQuota = Number(((profittoResiduo * sPct) / 100).toFixed(2));
+        riccardoResiduoQuota = Number((profittoResiduo - sergioResiduoQuota).toFixed(2));
+    }
+    const totaleResiduoAssegnato = Number((sergioResiduoQuota + riccardoResiduoQuota).toFixed(2));
+
     if (rSergioPct) rSergioPct.textContent = sPct;
     if (rSergioQuota) {
-        if (sergioResidualShare < 0) {
-            rSergioQuota.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResidualShare))}`;
+        if (sergioResiduoQuota < 0) {
+            rSergioQuota.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResiduoQuota))}`;
             rSergioQuota.className = 'font-mono font-bold text-rose-400 text-sm';
         } else {
-            rSergioQuota.textContent = `€ ${formatValutaEuro(sergioResidualShare)}`;
+            rSergioQuota.textContent = `€ ${formatValutaEuro(sergioResiduoQuota)}`;
             rSergioQuota.className = 'font-mono font-bold text-emerald-400 text-sm';
         }
     }
 
     if (rRiccardoPct) rRiccardoPct.textContent = rPct;
     if (rRiccardoQuota) {
-        if (riccardoResidualShare < 0) {
-            rRiccardoQuota.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResidualShare))}`;
+        if (riccardoResiduoQuota < 0) {
+            rRiccardoQuota.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResiduoQuota))}`;
             rRiccardoQuota.className = 'font-mono font-bold text-rose-400 text-sm';
         } else {
-            rRiccardoQuota.textContent = `€ ${formatValutaEuro(riccardoResidualShare)}`;
+            rRiccardoQuota.textContent = `€ ${formatValutaEuro(riccardoResiduoQuota)}`;
             rRiccardoQuota.className = 'font-mono font-bold text-emerald-400 text-sm';
         }
     }
 
     if (rTotaleAssegnato) {
-        if (totaleAssegnato < 0) {
-            rTotaleAssegnato.textContent = `-€ ${formatValutaEuro(Math.abs(totaleAssegnato))}`;
+        if (totaleResiduoAssegnato < 0) {
+            rTotaleAssegnato.textContent = `-€ ${formatValutaEuro(Math.abs(totaleResiduoAssegnato))}`;
             rTotaleAssegnato.className = 'text-xl font-black text-rose-400 font-mono';
         } else {
-            rTotaleAssegnato.textContent = `€ ${formatValutaEuro(totaleAssegnato)}`;
+            rTotaleAssegnato.textContent = `€ ${formatValutaEuro(totaleResiduoAssegnato)}`;
             rTotaleAssegnato.className = 'text-xl font-black text-emerald-400 font-mono';
         }
     }
@@ -13043,9 +13564,17 @@ window.salvaSuddivisioneProfitto = salvaSuddivisioneProfitto;
 /**
  * Carica dal server il riepilogo della suddivisione profitto e l'elenco delle modifiche registrate
  */
-async function caricaSuddivisioneConti() {
+async function caricaSuddivisioneConti(targetLottoId) {
     try {
-        const response = await fetch('/api/profit-splits');
+        if (targetLottoId !== undefined && targetLottoId !== null && targetLottoId !== '') {
+            currentSelectedProfitLottoId = Number(targetLottoId);
+        }
+
+        const url = (currentSelectedProfitLottoId !== null && currentSelectedProfitLottoId !== undefined)
+            ? `/api/profit-splits?lotto_id=${encodeURIComponent(currentSelectedProfitLottoId)}`
+            : '/api/profit-splits';
+
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data.success) {
@@ -13053,7 +13582,7 @@ async function caricaSuddivisioneConti() {
             const summary = data.summary || {};
 
             // Recupera lotto_id, modalità e percentuali salvate per il lotto
-            currentProfitSplitLottoId = summary.lotto_id || 1;
+            currentProfitSplitLottoId = summary.lotto_id || currentSelectedProfitLottoId || 1;
             profitSplitMode = (summary.split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
 
             manualSavedSergioPct = (summary.manual_sergio_percentage !== undefined && summary.manual_sergio_percentage !== null)
@@ -13087,12 +13616,14 @@ async function caricaSuddivisioneConti() {
             // Renderizza l'elenco delle spese extra del lotto
             renderTabellaSpeseExtra(data.extra_expenses || [], (data.summary && data.summary.exchange_rate) || 0.92);
 
-            // Allinea le statistiche di incasso nella dashboard e nel riepilogo lotto
-            if (typeof aggiornaStatisticheDashboard === 'function') {
-                aggiornaStatisticheDashboard();
-            }
-            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
-                aggiornaStatisticheLottoCorrente();
+            // Allinea le statistiche di incasso nella dashboard e nel riepilogo lotto solo se siamo sul lotto attivo
+            if (!summary.is_archived) {
+                if (typeof aggiornaStatisticheDashboard === 'function') {
+                    aggiornaStatisticheDashboard();
+                }
+                if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                    aggiornaStatisticheLottoCorrente();
+                }
             }
         } else {
             showToast("Errore nel caricamento della suddivisione profitto: " + (data.error || "Errore sconosciuto"), "error");
@@ -13101,6 +13632,35 @@ async function caricaSuddivisioneConti() {
         console.error("Errore fetch /api/profit-splits:", err);
         showToast("Errore di connessione al server per la suddivisione profitto.", "error");
     }
+}
+
+/**
+ * Apre direttamente la suddivisione profitti del lotto specificato (attivo o archiviato)
+ */
+function apriSuddivisioneProfittiLotto(lottoId) {
+    if (typeof closeLottoDetailsModal === 'function') {
+        closeLottoDetailsModal();
+    }
+    currentSelectedProfitLottoId = Number(lottoId);
+    switchTab('suddivisione-conti');
+    caricaSuddivisioneConti(currentSelectedProfitLottoId);
+}
+
+/**
+ * Apre la suddivisione profitti del lotto attualmente visualizzato nella modale di dettaglio
+ */
+function apriSuddivisioneProfittiLottoDaModale() {
+    if (window.currentDetailLottoId) {
+        apriSuddivisioneProfittiLotto(window.currentDetailLottoId);
+    }
+}
+
+/**
+ * Ripristina la visualizzazione al lotto attivo corrente
+ */
+function tornaAlLottoAttivoSuddivisione() {
+    currentSelectedProfitLottoId = null;
+    caricaSuddivisioneConti();
 }
 
 /**
@@ -13823,6 +14383,9 @@ async function eliminaSpesaExtra(spesaId) {
 
 // Esporta su window per binding con HTML onclick/oninput/onchange
 window.caricaSuddivisioneConti = caricaSuddivisioneConti;
+window.apriSuddivisioneProfittiLotto = apriSuddivisioneProfittiLotto;
+window.apriSuddivisioneProfittiLottoDaModale = apriSuddivisioneProfittiLottoDaModale;
+window.tornaAlLottoAttivoSuddivisione = tornaAlLottoAttivoSuddivisione;
 window.renderTabellaModifiche = renderTabellaModifiche;
 window.renderTabellaSpeseExtra = renderTabellaSpeseExtra;
 window.calcolaTotaleSpesaExtraLive = calcolaTotaleSpesaExtraLive;
