@@ -4009,6 +4009,9 @@ function showToast(message, type = "info") {
  * @param {string} tabId - L'id della tab da attivare
  */
 function switchTab(tabId, preserveSelectionMode = false) {
+    if (tabId === 'lotti') {
+        tabId = 'lotto';
+    }
     if (!preserveSelectionMode) {
         orderSelectionMode = null;
     }
@@ -4087,6 +4090,9 @@ function switchTab(tabId, preserveSelectionMode = false) {
         caricaCoupon();
     } else if (tabId === 'suddivisione-conti') {
         caricaSuddivisioneConti();
+    } else if (tabId === 'lotto') {
+        if (typeof caricaLotto === 'function') caricaLotto();
+        if (typeof caricaCronologiaLotti === 'function') caricaCronologiaLotti();
     } else if (tabId === 'chat') {
         if (typeof caricaConversazioniAdmin === 'function') {
             caricaConversazioniAdmin();
