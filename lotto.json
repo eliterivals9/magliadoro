@@ -10,5 +10,9 @@
   "alibaba_fee_percent": 3,
   "alibaba_fee_usd": 0,
   "alibaba_fee_eur": 0,
-  "costo_totale_reale_lotto_usd": 0
+  "spese_extra_usd": 0,
+  "spese_extra_eur": 0,
+  "costo_totale_usd": 0,
+  "costo_totale_reale_lotto_usd": 0,
+  "extra_expenses": []
 }

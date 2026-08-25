@@ -1838,7 +1838,7 @@
                             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/30 text-brand-gold text-[10px] font-bold uppercase tracking-wider">
                                 ⚖️ Contabilità Interna Soci
                             </div>
-                            <h2 class="text-xl md:text-2xl font-black tracking-tight">Suddivisione Conti (Sergio & Riccardo)</h2>
+                            <h2 id="suddivisione-conti-main-title" class="text-xl md:text-2xl font-black tracking-tight">Suddivisione Conti (Sergio & Riccardo)</h2>
                             <p class="text-slate-300 text-xs md:text-sm max-w-2xl font-medium leading-relaxed">
                                 Gestione interna della suddivisione dei profitti per ordine e registrazione dei completini/prelievi presi per sé. Nessun dato economico originale dell'ordine viene modificato.
                             </p>
@@ -1887,6 +1887,15 @@
                         <button onclick="switchTab('lotto')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
                             <span>📜</span> Cronologia Lotti
                         </button>
+                    </div>
+                </div>
+
+                <!-- Alert se lotto senza suddivisione salvata -->
+                <div id="profit-split-lot-empty-notice" class="hidden bg-amber-50/90 border border-amber-200 rounded-2xl p-4 text-amber-900 text-xs flex items-center gap-3">
+                    <span class="text-xl">ℹ️</span>
+                    <div>
+                        <span class="font-bold">Questo lotto non ha ancora una suddivisione conti salvata.</span>
+                        <span class="text-amber-700 ml-1">Puoi impostare le percentuali desiderate o registrare spese/acquisti personali per iniziare la configurazione di questo lotto.</span>
                     </div>
                 </div>
 
@@ -2029,7 +2038,7 @@
                                 </button>
                             </div>
 
-                            <!-- Quadro 4 Valori Chiave Richiesti: Profitto Disponibile, Acquisti, Credito Residuo, Suddivisione -->
+                            <!-- Quadro 4 Valori Chiave Richiesti: Profitto Disponibile, Acquisti, Saldo Residuo, Suddivisione -->
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs">
                                 <div class="space-y-0.5">
                                     <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">PROFITTO DISPONIBILE</div>
@@ -2042,7 +2051,7 @@
                                     </div>
                                 </div>
                                 <div class="space-y-0.5">
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">CREDITO RESIDUO</div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">SALDO RESIDUO</div>
                                     <div class="text-[11px] font-bold text-slate-700">
                                         S: <span id="card-credito-sergio" class="text-amber-700 font-mono">€ 0,00</span> | R: <span id="card-credito-riccardo" class="text-blue-700 font-mono">€ 0,00</span>
                                     </div>
@@ -2058,10 +2067,10 @@
                             <!-- Banner Informativo Modalità Automatica (visibile solo se attiva la modalità in base alle spese) -->
                             <div id="by-expenses-info-banner" class="hidden mt-3 p-3 bg-amber-50/80 border border-amber-200/90 rounded-xl text-xs text-amber-900 space-y-1">
                                 <div class="flex items-center gap-1.5 font-bold">
-                                    <span>💡</span> <span>Calcolo automatico in base alle spese personali attivo:</span>
+                                    <span>💡</span> <span>Suddivisione 50/50 con deduzione spese personali:</span>
                                 </div>
                                 <p class="text-[11px] text-amber-800 leading-relaxed">
-                                    Il sistema determina il credito residuo (<code class="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">Profitto disponibile - Spese personali</code>) e calcola automaticamente le percentuali spettanti. Chi ha sostenuto più spese personali riceve una quota residua inferiore.
+                                    Il profitto disponibile viene suddiviso equamente al 50% di base tra Sergio e Riccardo. Gli acquisti personali sostenuti da ciascun socio vengono detratti dalla propria quota base (50%) per determinare il rispettivo <strong>Saldo Residuo</strong> finale.
                                 </p>
                             </div>
 
@@ -2090,12 +2099,12 @@
                                             <span class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">%</span>
                                         </div>
                                         <div class="text-right shrink-0">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase">Quota Residua</div>
+                                            <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo Residuo</div>
                                             <div id="split-sergio-share-preview" class="text-base font-black text-brand-gold font-mono">€ 0,00</div>
                                         </div>
                                     </div>
                                     <div class="mt-2.5 pt-2 border-t border-amber-200/60 flex justify-between items-center text-[11px]">
-                                        <span class="text-slate-500 font-medium">Credito Residuo:</span>
+                                        <span class="text-slate-500 font-medium">Saldo Residuo:</span>
                                         <span id="split-sergio-credito-residuo" class="font-mono font-bold text-amber-800">€ 0,00</span>
                                     </div>
                                 </div>
@@ -2123,12 +2132,12 @@
                                             <span class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">%</span>
                                         </div>
                                         <div class="text-right shrink-0">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase">Quota Residua</div>
+                                            <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo Residuo</div>
                                             <div id="split-riccardo-share-preview" class="text-base font-black text-blue-700 font-mono">€ 0,00</div>
                                         </div>
                                     </div>
                                     <div class="mt-2.5 pt-2 border-t border-blue-200/60 flex justify-between items-center text-[11px]">
-                                        <span class="text-slate-500 font-medium">Credito Residuo:</span>
+                                        <span class="text-slate-500 font-medium">Saldo Residuo:</span>
                                         <span id="split-riccardo-credito-residuo" class="font-mono font-bold text-blue-800">€ 0,00</span>
                                     </div>
                                 </div>

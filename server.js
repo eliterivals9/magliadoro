@@ -2040,7 +2040,16 @@ async function getDbLotti() {
     const key = dbo.id !== undefined && dbo.id !== null ? `id_${dbo.id}` : `name_${dbo.numero_lotto}`;
     if (mergedMap.has(key)) {
       const existing = mergedMap.get(key);
-      mergedMap.set(key, { ...existing, ...dbo, orders: (dbo.orders && dbo.orders.length > 0) ? dbo.orders : (existing.orders || []) });
+      const merged = { ...existing };
+      for (const [k, v] of Object.entries(dbo)) {
+        if (v !== undefined && v !== null) {
+          merged[k] = v;
+        }
+      }
+      if (dbo.orders && dbo.orders.length > 0) {
+        merged.orders = dbo.orders;
+      }
+      mergedMap.set(key, merged);
     } else {
       mergedMap.set(key, dbo);
     }
@@ -2057,20 +2066,50 @@ async function insertDbLotto(lotto) {
         id: lotto.id,
         numero_lotto: lotto.numero_lotto,
         archived_at: lotto.archived_at,
+        status: lotto.status || 'archived',
         numero_ordini: lotto.numero_ordini,
         numero_articoli: lotto.numero_articoli,
         incasso_totale_eur: lotto.incasso_totale_eur,
         costo_prodotti_usd: lotto.costo_prodotti_usd,
         costo_spedizione_usd: lotto.costo_spedizione_usd,
+        costo_fornitore_usd: lotto.costo_fornitore_usd,
+        costo_fornitore_eur: lotto.costo_fornitore_eur,
+        alibaba_fee_usd: lotto.alibaba_fee_usd,
+        alibaba_fee_eur: lotto.alibaba_fee_eur,
+        spese_extra_usd: lotto.spese_extra_usd,
+        spese_extra_eur: lotto.spese_extra_eur,
         costo_totale_usd: lotto.costo_totale_usd,
         costo_totale_eur: lotto.costo_totale_eur,
         profitto_eur: lotto.profitto_eur,
         margine_percentuale: lotto.margine_percentuale,
         excel_url: lotto.excel_url,
-        orders: lotto.orders || []
+        orders: lotto.orders || [],
+        extra_expenses: lotto.extra_expenses || []
       });
       if (error) {
-        console.error("⚠️ Upserting lotto to Supabase failed:", error.message);
+        // Se alcune colonne estese non sono definite nella tabella Supabase, esegui il fallback con schema base
+        console.warn("⚠️ Upsert con campi estesi su Supabase non riuscito, eseguo fallback con colonne base:", error.message);
+        const { error: fallbackErr } = await supabase.from('lotti').upsert({
+          id: lotto.id,
+          numero_lotto: lotto.numero_lotto,
+          archived_at: lotto.archived_at,
+          numero_ordini: lotto.numero_ordini,
+          numero_articoli: lotto.numero_articoli,
+          incasso_totale_eur: lotto.incasso_totale_eur,
+          costo_prodotti_usd: lotto.costo_prodotti_usd,
+          costo_spedizione_usd: lotto.costo_spedizione_usd,
+          costo_totale_usd: lotto.costo_totale_usd,
+          costo_totale_eur: lotto.costo_totale_eur,
+          profitto_eur: lotto.profitto_eur,
+          margine_percentuale: lotto.margine_percentuale,
+          excel_url: lotto.excel_url,
+          orders: lotto.orders || []
+        });
+        if (fallbackErr) {
+          console.error("⚠️ Upsert base lotto su Supabase fallito:", fallbackErr.message);
+        } else {
+          console.log(`✅ Lotto #${lotto.id} salvato su Supabase (schema base).`);
+        }
       } else {
         console.log(`✅ Lotto #${lotto.id} salvato con successo nel database Supabase 'lotti'.`);
       }
@@ -4376,6 +4415,20 @@ app.get('/api/lotto', async (req, res) => {
   }
 });
 
+// Helper per ottenere in modo sicuro e universale l'ID del lotto attivo
+function getCurrentActiveLottoId() {
+  const lottoFile = path.join(__dirname, 'lotto.json');
+  if (fs.existsSync(lottoFile)) {
+    try {
+      const lottoData = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+      if (lottoData && lottoData.id) {
+        return Number(lottoData.id);
+      }
+    } catch (e) {}
+  }
+  return 1;
+}
+
 // GET /api/lotto/archive - Ottieni la cronologia dei lotti archiviati
 function pulisciLottiArchivio() {
   try {
@@ -4538,6 +4591,8 @@ app.get('/api/lotto/archive', async (req, res) => {
       return true;
     });
 
+    const currentActiveLottoId = getCurrentActiveLottoId();
+
     const enrichedArchive = await Promise.all(closedArchive.map(async (l) => {
       try {
         const lotOrders = getOrdersForArchivedLotto(l, allOrders);
@@ -4547,19 +4602,60 @@ app.get('/api/lotto/archive', async (req, res) => {
           lottoArchive: allLotti,
           settings,
           allDbProducts,
-          currentActiveLottoId: 1
+          currentActiveLottoId
         });
 
         const calculatedArticoli = lotOrders.length > 0 ? calcolaNumeroArticoliOrdini(lotOrders) : (l.numero_articoli || 0);
+        const incassoBase = Number((splitData && splitData.incasso_base > 0) ? splitData.incasso_base : (l.incasso_totale_eur || 0));
+        const incassoEffettivo = (splitData && splitData.incasso_effettivo !== undefined) ? splitData.incasso_effettivo : incassoBase;
+
+        const extraExpensesUsd = Number(splitData?.extra_expenses_total_usd || l.spese_extra_usd || 0);
+        const extraExpensesEur = Number(splitData?.extra_expenses_total_eur || l.spese_extra_eur || 0);
+
+        const costoProdottiUsd = Number(l.costo_prodotti_usd || 0);
+        const costoSpedizioneUsd = Number(l.costo_spedizione_usd || 0);
+        const costoFornitoreUsd = Number(l.costo_fornitore_usd || (costoProdottiUsd + costoSpedizioneUsd));
+        const alibabaFeeUsd = Number(l.alibaba_fee_usd !== undefined ? l.alibaba_fee_usd : (costoFornitoreUsd * 0.03));
+        const alibabaFeeEur = Number(l.alibaba_fee_eur || convertUsdToEur(alibabaFeeUsd, null, 'GET /api/lotto/archive'));
+        
+        let costoFornitoreEur = 0;
+        if (lotOrders && lotOrders.length > 0) {
+          costoFornitoreEur = lotOrders.reduce((sum, ord) => {
+            return sum + parseItalianFloat(ord["Costo totale (EUR)"] || ord.costo_totale_eur || '0');
+          }, 0);
+        }
+        if (costoFornitoreEur === 0 && l.costo_fornitore_eur !== undefined && l.costo_fornitore_eur !== null && Number(l.costo_fornitore_eur) > 0) {
+          costoFornitoreEur = Number(l.costo_fornitore_eur);
+        }
+        if (costoFornitoreEur === 0 && l.costo_totale_eur && Number(l.costo_totale_eur) > 0) {
+          costoFornitoreEur = Math.max(0, Number(l.costo_totale_eur) - alibabaFeeEur - extraExpensesEur);
+        }
+        if (costoFornitoreEur === 0 && costoFornitoreUsd > 0) {
+          costoFornitoreEur = convertUsdToEur(costoFornitoreUsd, null, 'GET /api/lotto/archive fallback');
+        }
+        costoFornitoreEur = Number(costoFornitoreEur.toFixed(2));
+
+        const costoTotaleUsd = Number((costoFornitoreUsd + alibabaFeeUsd + extraExpensesUsd).toFixed(2));
+        const costoTotaleEur = Number((costoFornitoreEur + alibabaFeeEur + extraExpensesEur).toFixed(2));
+        const profittoEur = (splitData && splitData.profitto_lotto !== undefined)
+          ? Number(splitData.profitto_lotto)
+          : Number((incassoBase - costoTotaleEur).toFixed(2));
+        const marginePercentuale = incassoBase > 0 ? Number(((profittoEur / incassoBase) * 100).toFixed(2)) : 0;
 
         return {
           ...l,
           orders: lotOrders,
           numero_ordini: lotOrders.length > 0 ? lotOrders.length : (l.numero_ordini || 0),
           numero_articoli: calculatedArticoli || (l.numero_articoli || 0),
-          incasso_base_eur: splitData.incasso_base,
-          incasso_effettivo_eur: splitData.incasso_effettivo,
-          incasso_netto_eur: splitData.incasso_effettivo,
+          incasso_base_eur: incassoBase,
+          incasso_effettivo_eur: incassoEffettivo,
+          incasso_netto_eur: incassoEffettivo,
+          spese_extra_usd: extraExpensesUsd,
+          spese_extra_eur: extraExpensesEur,
+          costo_totale_usd: costoTotaleUsd,
+          costo_totale_eur: costoTotaleEur,
+          profitto_eur: profittoEur,
+          margine_percentuale: marginePercentuale,
           profit_split_summary: splitData
         };
       } catch (e) {
@@ -4690,7 +4786,7 @@ app.delete('/api/lotto/archive/:id', async (req, res) => {
           await supabase.from('orders').delete().in('id', orderIdsArray);
         }
 
-        // 5. Elimina eventuali profit_shares per questo lotto
+        // 5. Elimina eventuali profit_shares per questo lotto (tabella dedicata profit_shares se presente)
         try {
           await supabase.from('profit_shares').delete().eq('lotto_id', numId);
         } catch (ePs) {}
@@ -4702,6 +4798,43 @@ app.delete('/api/lotto/archive/:id', async (req, res) => {
     }
 
     // B) ELIMINAZIONE DA CACHE E FILE LOCALI
+    // 1. Elimina extra_expenses, modifiche e percentuali appartenenti esclusivamente a questo lotto da profit_shares (settings / local)
+    try {
+      const profitData = await getDbProfitShares();
+      let hasProfitChanges = false;
+      if (Array.isArray(profitData.extra_expenses)) {
+        const initialLen = profitData.extra_expenses.length;
+        profitData.extra_expenses = profitData.extra_expenses.filter(e => Number(e.lotto_id) !== numId);
+        if (profitData.extra_expenses.length !== initialLen) {
+          hasProfitChanges = true;
+          console.log(`✅ [BACKEND ELIMINA LOTTO] Eliminate ${initialLen - profitData.extra_expenses.length} spese extra associate al ${lotName}.`);
+        }
+      }
+      if (profitData.lot_percentages && (profitData.lot_percentages[String(numId)] || profitData.lot_percentages[numId])) {
+        delete profitData.lot_percentages[String(numId)];
+        delete profitData.lot_percentages[numId];
+        hasProfitChanges = true;
+      }
+      if (profitData.modifications && typeof profitData.modifications === 'object') {
+        const initialMods = Object.keys(profitData.modifications).length;
+        const newMods = {};
+        for (const [k, v] of Object.entries(profitData.modifications)) {
+          const modLotId = v?.lotto_id !== undefined ? Number(v.lotto_id) : (orderIdsArray.includes(Number(k)) ? numId : null);
+          if (modLotId !== numId) {
+            newMods[k] = v;
+          }
+        }
+        if (Object.keys(newMods).length !== initialMods) {
+          profitData.modifications = newMods;
+          hasProfitChanges = true;
+        }
+      }
+      if (hasProfitChanges) {
+        await saveDbProfitShares(profitData);
+      }
+    } catch (eProfitDel) {
+      console.warn("⚠️ [BACKEND ELIMINA LOTTO] Errore pulizia profit_shares per il lotto eliminato:", eProfitDel.message);
+    }
     // 1. Elimina da orders_local.json
     try {
       const currentLoc = getLocalOrders();
@@ -5083,7 +5216,7 @@ function parseOrderTotalCustomerPaid(order) {
   return isNaN(parsed) ? 0 : parsed;
 }
 
-function calculateLottoTotals(orders, settings) {
+function calculateLottoTotals(orders, settings, extraExpenses = []) {
   if (!settings) {
     settings = getSettings();
   }
@@ -5122,14 +5255,32 @@ function calculateLottoTotals(orders, settings) {
   const costo_fornitore_usd = Number((costo_totale_prodotti_usd + spedizione_corrente_usd).toFixed(2));
   const costo_complessivo_lotto_usd = costo_fornitore_usd;
 
+  // Calcolo Spese Extra Lotto in USD ed EUR
+  let spese_extra_usd = 0;
+  let spese_extra_eur = 0;
+  const exchangeRate = getOrderEffectiveExchangeRate({}, settings);
+
+  if (Array.isArray(extraExpenses)) {
+    for (const exp of extraExpenses) {
+      const expUsd = Number(exp.total_usd) || (Number(exp.quantity || 1) * Number(exp.unit_price_usd || 0));
+      const expRate = Number(exp.exchange_rate) > 0 ? Number(exp.exchange_rate) : exchangeRate;
+      const expEur = Number(exp.total_eur) || convertUsdToEur(expUsd, expRate, 'calculateLottoTotals');
+      spese_extra_usd += expUsd;
+      spese_extra_eur += expEur;
+    }
+  }
+  spese_extra_usd = Number(spese_extra_usd.toFixed(2));
+  spese_extra_eur = Number(spese_extra_eur.toFixed(2));
+
   // Alibaba Payment Processing Fee (3% sul totale ordine fornitore in USD)
   const alibaba_fee_percent = (settings?.alibabaFee?.percentage !== undefined && settings?.alibabaFee?.percentage !== null)
     ? Number(settings.alibabaFee.percentage)
     : 3.0;
   const alibaba_fee_usd = Number((costo_complessivo_lotto_usd * (alibaba_fee_percent / 100)).toFixed(2));
-  const exchangeRate = getOrderEffectiveExchangeRate({}, settings);
   const alibaba_fee_eur = convertUsdToEur(alibaba_fee_usd, exchangeRate, 'calculateLottoTotals');
-  const costo_totale_reale_lotto_usd = Number((costo_complessivo_lotto_usd + alibaba_fee_usd).toFixed(2));
+
+  // COSTO TOTALE LOTTO USD = Costo Prodotti USD + Spedizione USD + Fee USD + Spese Extra USD
+  const costo_totale_reale_lotto_usd = Number((costo_fornitore_usd + alibaba_fee_usd + spese_extra_usd).toFixed(2));
 
   return {
     numero_totale_articoli,
@@ -5142,6 +5293,9 @@ function calculateLottoTotals(orders, settings) {
     alibaba_fee_percent,
     alibaba_fee_usd,
     alibaba_fee_eur,
+    spese_extra_usd,
+    spese_extra_eur,
+    costo_totale_usd: costo_totale_reale_lotto_usd,
     costo_totale_reale_lotto_usd
   };
 }
@@ -5214,7 +5368,16 @@ async function recalculateCurrentLottoInternal() {
     };
   }
 
-  const totals = calculateLottoTotals(activeOrders, settings);
+  let lotExtraExpenses = [];
+  try {
+    const profitData = await getDbProfitShares();
+    const allExtra = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
+    lotExtraExpenses = allExtra.filter(e => e.lotto_id !== undefined && e.lotto_id !== null && Number(e.lotto_id) === Number(currentLottoId));
+  } catch (errExp) {
+    console.warn("⚠️ Impossibile caricare spese extra per ricalcolo lotto:", errExp.message);
+  }
+
+  const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses);
   const currentUnitShippingRate = totals.spedizione_unitaria;
 
   // Sincronizza dinamicamente la tariffa di spedizione e tutti i calcoli economici di TUTTI gli ordini attivi del lotto
@@ -5299,12 +5462,16 @@ async function recalculateCurrentLottoInternal() {
     costo_totale_prodotti_usd: totals.costo_totale_prodotti_usd,
     spedizione_corrente_usd: totals.spedizione_corrente_usd,
     costo_fornitore_usd: totals.costo_fornitore_usd,
-    costo_complessivo_lotto_usd: totals.costo_complessivo_lotto_usd,
+    costo_complessivo_lotto_usd: totals.costo_totale_reale_lotto_usd,
     costo_totale_personalizzazioni_usd: totals.costo_totale_personalizzazioni_usd,
     alibaba_fee_percent: totals.alibaba_fee_percent,
     alibaba_fee_usd: totals.alibaba_fee_usd,
     alibaba_fee_eur: totals.alibaba_fee_eur,
-    costo_totale_reale_lotto_usd: totals.costo_totale_reale_lotto_usd
+    spese_extra_usd: totals.spese_extra_usd,
+    spese_extra_eur: totals.spese_extra_eur,
+    costo_totale_usd: totals.costo_totale_reale_lotto_usd,
+    costo_totale_reale_lotto_usd: totals.costo_totale_reale_lotto_usd,
+    extra_expenses: lotExtraExpenses
   };
 
   try {
@@ -5410,16 +5577,27 @@ app.post('/api/lotto/archive', async (req, res) => {
       });
 
       const settings = getSettings();
-      const totals = calculateLottoTotals(activeOrders, settings);
+      let lotExtraExpenses = [];
+      try {
+        const profitData = await getDbProfitShares();
+        const allExtra = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
+        lotExtraExpenses = allExtra.filter(e => e.lotto_id !== undefined && e.lotto_id !== null && Number(e.lotto_id) === Number(lottoId));
+      } catch (errExp) {
+        console.warn("⚠️ Impossibile caricare spese extra per chiusura lotto:", errExp.message);
+      }
+
+      const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses);
 
       let totaleNumeroOrdini = activeOrders.length;
       let totaleNumeroArticoli = totals.numero_totale_articoli;
       let incassoTotaleEur = 0;
       let costoProdottiUsd = totals.costo_totale_prodotti_usd;
       let costoSpedizioneUsd = totals.spedizione_corrente_usd;
-      let costoFornitoreUsd = totals.costo_complessivo_lotto_usd;
+      let costoFornitoreUsd = totals.costo_fornitore_usd;
       let alibabaFeeUsd = totals.alibaba_fee_usd;
       let alibabaFeeEur = totals.alibaba_fee_eur;
+      let speseExtraUsd = totals.spese_extra_usd || 0;
+      let speseExtraEur = totals.spese_extra_eur || 0;
       let costoTotaleUsd = totals.costo_totale_reale_lotto_usd;
       let costoFornitoreEur = 0;
 
@@ -5437,7 +5615,7 @@ app.post('/api/lotto/archive', async (req, res) => {
         });
       }
 
-      const costoTotaleEur = Number((costoFornitoreEur + alibabaFeeEur).toFixed(2));
+      const costoTotaleEur = Number((costoFornitoreEur + alibabaFeeEur + speseExtraEur).toFixed(2));
       const profittoEur = Number((incassoTotaleEur - costoTotaleEur).toFixed(2));
       const marginePercentuale = incassoTotaleEur > 0 ? (profittoEur / incassoTotaleEur) * 100 : 0;
 
@@ -5476,6 +5654,8 @@ app.post('/api/lotto/archive', async (req, res) => {
         costo_prodotti_usd: costoProdottiUsd,
         costo_spedizione_usd: costoSpedizioneUsd,
         costo_fornitore_usd: costoFornitoreUsd,
+        spese_extra_usd: speseExtraUsd,
+        spese_extra_eur: speseExtraEur,
         costo_totale_usd: costoTotaleUsd,
         alibaba_fee_usd: alibabaFeeUsd,
         alibaba_fee_eur: alibabaFeeEur,
@@ -5484,7 +5664,8 @@ app.post('/api/lotto/archive', async (req, res) => {
         profitto_eur: profittoEur,
         margine_percentuale: Number(marginePercentuale.toFixed(2)),
         excel_url: excelUrl,
-        orders: activeOrders
+        orders: activeOrders,
+        extra_expenses: lotExtraExpenses
       };
 
       await insertDbLotto(nuovoLottoArchiviato);
@@ -7365,7 +7546,7 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     settings = {},
     allDbProducts = [],
     lottoArchive = [],
-    currentActiveLottoId = 1
+    currentActiveLottoId = getCurrentActiveLottoId()
   } = options;
 
   const lotIdNum = Number(targetLottoId);
@@ -7512,7 +7693,7 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
 
   // Spese Extra del lotto
   const allExtraExpenses = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
-  const lotExtraExpenses = allExtraExpenses.filter(e => Number(e.lotto_id || 1) === lotIdNum);
+  const lotExtraExpenses = allExtraExpenses.filter(e => e.lotto_id !== undefined && e.lotto_id !== null && Number(e.lotto_id) === lotIdNum);
   
   let extraExpensesSergio = 0;
   let extraExpensesRiccardo = 0;
@@ -7533,19 +7714,17 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
   const extraExpensesTotalEur = Number((extraExpensesSergio + extraExpensesRiccardo).toFixed(2));
   extraExpensesTotalUsd = Number(extraExpensesTotalUsd.toFixed(2));
 
-  // Profitto effettivo del lotto
+  // Profitto effettivo del lotto (Calcolo fresco, deterministico ed idempotente)
   let netTotalProfit = 0;
   let ordersProfitTotal = Number(totalProfit.toFixed(2));
   const alibabaFeeUsd = Number(lotTotals.alibaba_fee_usd || 0);
   const alibabaFeeEur = Number(lotTotals.alibaba_fee_eur || 0);
 
-  if (isActiveLot) {
+  if (orders.length > 0) {
+    ordersProfitTotal = Number(totalProfit.toFixed(2));
     netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
   } else if (archivedLotto && Number(archivedLotto.profitto_eur) > 0) {
     netTotalProfit = Number(archivedLotto.profitto_eur);
-    ordersProfitTotal = Number((netTotalProfit + alibabaFeeEur).toFixed(2));
-  } else if (lotIdNum === 2) {
-    netTotalProfit = 157.65;
     ordersProfitTotal = Number((netTotalProfit + alibabaFeeEur).toFixed(2));
   } else {
     netTotalProfit = Number((ordersProfitTotal - alibabaFeeEur).toFixed(2));
@@ -7558,30 +7737,14 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
   const speseRiccardo = Number((speseCompletiniRiccardo + extraExpensesRiccardo).toFixed(2));
   const speseTotali = Number((speseSergio + speseRiccardo).toFixed(2));
 
-  // Profitto Residuo e Crediti Residui
+  // Profitto Residuo
   const profittoResiduo = Number((netTotalProfit - speseSergio - speseRiccardo).toFixed(2));
-  const creditoResiduoSergio = Number((netTotalProfit - speseSergio).toFixed(2));
-  const creditoResiduoRiccardo = Number((netTotalProfit - speseRiccardo).toFixed(2));
-  const sommaCreditiResidui = Number((creditoResiduoSergio + creditoResiduoRiccardo).toFixed(2));
 
-  // Calcolo automatico percentuali
-  let autoSergioPercentage = 50;
-  let autoRiccardoPercentage = 50;
-  if (sommaCreditiResidui > 0) {
-    autoSergioPercentage = Number(((creditoResiduoSergio / sommaCreditiResidui) * 100).toFixed(2));
-    autoRiccardoPercentage = Number((100 - autoSergioPercentage).toFixed(2));
-  } else if (sommaCreditiResidui < 0) {
-    if (creditoResiduoSergio === creditoResiduoRiccardo) {
-      autoSergioPercentage = 50;
-      autoRiccardoPercentage = 50;
-    } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
-      autoSergioPercentage = 100;
-      autoRiccardoPercentage = 0;
-    } else {
-      autoSergioPercentage = 0;
-      autoRiccardoPercentage = 100;
-    }
-  }
+  // In modalità "In base alle spese personali" (by_expenses):
+  // La suddivisione base è SEMPRE 50% Sergio e 50% Riccardo prima di considerare gli acquisti personali.
+  // Le spese personali non alterano le percentuali base, ma vengono sottratte dalla quota base (50%) di ciascun socio.
+  const autoSergioPercentage = 50;
+  const autoRiccardoPercentage = 50;
 
   // Configurazione lotto salvata
   const lotPercentages = (profitData && typeof profitData.lot_percentages === 'object' && !Array.isArray(profitData.lot_percentages)) ? profitData.lot_percentages : {};
@@ -7607,7 +7770,7 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
   const sergioPercentage = (splitMode === 'by_expenses') ? autoSergioPercentage : manualSergioPercentage;
   const riccardoPercentage = (splitMode === 'by_expenses') ? autoRiccardoPercentage : manualRiccardoPercentage;
 
-  // Quote lorde
+  // Quote lorde (Quote base prima degli acquisti personali)
   let sergioGrossShare = 0;
   let riccardoGrossShare = 0;
   if (sergioPercentage === 100) {
@@ -7617,16 +7780,17 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     sergioGrossShare = 0;
     riccardoGrossShare = netTotalProfit;
   } else {
+    // Gestione accurata dei centesimi in modo che sergioGrossShare + riccardoGrossShare === netTotalProfit
     sergioGrossShare = Number(((netTotalProfit * sergioPercentage) / 100).toFixed(2));
     riccardoGrossShare = Number((netTotalProfit - sergioGrossShare).toFixed(2));
   }
 
-  // Quote nette
+  // Quote nette / Saldi residui: Quota Base - Acquisti Personali
   const sergioResidualShare = Number((sergioGrossShare - speseSergio).toFixed(2));
   const riccardoResidualShare = Number((riccardoGrossShare - speseRiccardo).toFixed(2));
   const totaleProfittoAssegnato = Number((sergioResidualShare + riccardoResidualShare).toFixed(2));
 
-  // Calcolo Incasso Clienti Base ed Effettivo Netto (identico alla logica di cassa Dashboard)
+  // Calcolo Incasso Clienti Base ed Effettivo (regola universale per tutti i lotti)
   let lotIncassoBase = 0;
   if (isActiveLot) {
     orders.forEach(o => {
@@ -7641,12 +7805,25 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
   }
   lotIncassoBase = Number(lotIncassoBase.toFixed(2));
 
-  const costiAcquistiProfitto = Number((speseSergio + speseRiccardo).toFixed(2));
-  const deficitSergio = sergioResidualShare < 0 ? Math.abs(sergioResidualShare) : 0;
-  const deficitRiccardo = riccardoResidualShare < 0 ? Math.abs(riccardoResidualShare) : 0;
-  const deficitTotale = Number((deficitSergio + deficitRiccardo).toFixed(2));
-  const correzioneIncasso = Number((-costiAcquistiProfitto + deficitTotale).toFixed(2));
-  const incassoEffettivo = Math.max(0, Number((lotIncassoBase + correzioneIncasso).toFixed(2)));
+  // A) INCASSO BASE: Totale ordini del lotto
+  // B) COSTO DEI PRODOTTI PERSONALI: Prodotti degli ordini assegnati a Sergio / Riccardo / 50-50
+  const costoProdottiPersonali = Number((speseCompletiniSergio + speseCompletiniRiccardo).toFixed(2));
+
+  // Profitto disponibile del lotto prima degli acquisti personali
+  const profittoDisponibile = Number((netTotalProfit - extraExpensesTotalEur).toFixed(2));
+
+  // Costo coperto dal profitto disponibile
+  const costoCoperto = (profittoDisponibile > 0)
+    ? Math.min(profittoDisponibile, costoProdottiPersonali)
+    : 0;
+
+  // C) DEFICIT: eventuale parte degli acquisti personali che supera il profitto disponibile
+  const deficitTotale = (costoProdottiPersonali > profittoDisponibile)
+    ? Number((costoProdottiPersonali - Math.max(0, profittoDisponibile)).toFixed(2))
+    : 0;
+
+  // INCASSO CLIENTI: incassoBase - costoCoperto + deficit
+  const incassoEffettivo = Number((lotIncassoBase - costoCoperto + deficitTotale).toFixed(2));
 
   return {
     lotto_id: lotIdNum,
@@ -7662,11 +7839,14 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     alibaba_fee_eur: alibabaFeeEur,
     incasso_base: lotIncassoBase,
     incasso_totale_base: lotIncassoBase,
+    costo_prodotti_personali: costoProdottiPersonali,
+    profitto_disponibile: profittoDisponibile,
+    costo_coperto: costoCoperto,
+    deficit: deficitTotale,
+    deficit_totale: deficitTotale,
     incasso_effettivo: incassoEffettivo,
     incasso_netto: incassoEffettivo,
-    costi_acquisti_profitto: costiAcquistiProfitto,
-    deficit_totale: deficitTotale,
-    correzione_incasso: correzioneIncasso,
+    costi_acquisti_profitto: costoProdottiPersonali,
     total_profit: netTotalProfit,
     net_total_profit: netTotalProfit,
     profitto_lotto: netTotalProfit,
@@ -7682,9 +7862,11 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     spese_sergio: speseSergio,
     spese_riccardo: speseRiccardo,
     spese_totali: speseTotali,
-    credito_residuo_sergio: creditoResiduoSergio,
-    credito_residuo_riccardo: creditoResiduoRiccardo,
-    somma_crediti_residui: sommaCreditiResidui,
+    saldo_residuo_sergio: sergioResidualShare,
+    saldo_residuo_riccardo: riccardoResidualShare,
+    credito_residuo_sergio: sergioResidualShare,
+    credito_residuo_riccardo: riccardoResidualShare,
+    somma_crediti_residui: totaleProfittoAssegnato,
     auto_sergio_percentage: autoSergioPercentage,
     auto_riccardo_percentage: autoRiccardoPercentage,
     manual_sergio_percentage: manualSergioPercentage,
@@ -7709,7 +7891,8 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
       total_withdrawals: speseSergio,
       spese_completini: speseCompletiniSergio,
       spese_extra: extraExpensesSergio,
-      credito_residuo: creditoResiduoSergio,
+      saldo_residuo: sergioResidualShare,
+      credito_residuo: sergioResidualShare,
       total_net: sergioResidualShare,
       residual_share: sergioResidualShare,
       percentage: sergioPercentage
@@ -7719,7 +7902,8 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
       total_withdrawals: speseRiccardo,
       spese_completini: speseCompletiniRiccardo,
       spese_extra: extraExpensesRiccardo,
-      credito_residuo: creditoResiduoRiccardo,
+      saldo_residuo: riccardoResidualShare,
+      credito_residuo: riccardoResidualShare,
       total_net: riccardoResidualShare,
       residual_share: riccardoResidualShare,
       percentage: riccardoPercentage
@@ -7906,17 +8090,12 @@ app.post('/api/profit-splits/extra-expense', async (req, res) => {
     if (assignment === '100_riccardo') assignment = 'riccardo';
     if (assignment === '50_50') assignment = 'altro';
 
-    let lotId = lotto_id;
-    if (!lotId) {
-      const lottoFile = path.join(__dirname, 'lotto.json');
-      if (fs.existsSync(lottoFile)) {
-        try {
-          const lottoObj = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
-          if (lottoObj && lottoObj.id) lotId = lottoObj.id;
-        } catch (e) {}
-      }
+    // Validazione rigorosa del lotto_id: deve essere obbligatorio e numerico valido
+    const parsedLotId = Number(lotto_id);
+    if (lotto_id === undefined || lotto_id === null || isNaN(parsedLotId) || parsedLotId <= 0) {
+      return res.status(400).json({ success: false, error: "Identificativo lotto (lotto_id) obbligatorio e valido per registrare la spesa extra." });
     }
-    lotId = Number(lotId || 1);
+    const lotId = parsedLotId;
 
     const settings = getSettings();
     const rate = getEffectiveExchangeRate(settings);
@@ -7976,6 +8155,11 @@ app.post('/api/profit-splits/extra-expense', async (req, res) => {
     }
 
     await saveDbProfitShares(profitData);
+    try {
+      await recalculateCurrentLottoInternal();
+    } catch (eRecalc) {
+      console.warn("⚠️ Errore ricalcolo lotto dopo salvataggio spesa extra:", eRecalc.message);
+    }
     return res.json({ success: true, expense: expenseEntry });
   } catch (err) {
     console.error("⚠️ Errore POST /api/profit-splits/extra-expense:", err.message);
@@ -8002,6 +8186,11 @@ app.delete('/api/profit-splits/extra-expense/:id', async (req, res) => {
 
     if (removed) {
       await saveDbProfitShares(profitData);
+      try {
+        await recalculateCurrentLottoInternal();
+      } catch (eRecalc) {
+        console.warn("⚠️ Errore ricalcolo lotto dopo eliminazione spesa extra:", eRecalc.message);
+      }
     }
 
     return res.json({ success: true, removed });
@@ -8113,6 +8302,11 @@ app.post('/api/profit-splits/modification', async (req, res) => {
     }
 
     await saveDbProfitShares(profitData);
+    try {
+      await recalculateCurrentLottoInternal();
+    } catch (eRecalc) {
+      console.warn("⚠️ Errore ricalcolo lotto dopo salvataggio modifica suddivisione:", eRecalc.message);
+    }
     return res.json({ success: true, modification: modEntry });
   } catch (err) {
     console.error("⚠️ Errore POST /api/profit-splits/modification:", err.message);
@@ -8144,7 +8338,14 @@ app.delete('/api/profit-splits/modification/:id', async (req, res) => {
       }
     }
 
-    await saveDbProfitShares(profitData);
+    if (found) {
+      await saveDbProfitShares(profitData);
+      try {
+        await recalculateCurrentLottoInternal();
+      } catch (eRecalc) {
+        console.warn("⚠️ Errore ricalcolo lotto dopo rimozione modifica suddivisione:", eRecalc.message);
+      }
+    }
     return res.json({ success: true, removed: found });
   } catch (err) {
     console.error("⚠️ Errore DELETE /api/profit-splits/modification/:id:", err.message);
@@ -8359,6 +8560,36 @@ app.post('/api/orders', async (req, res) => {
 
     const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
 
+    // PRE-VALIDAZIONE RIGIDA SERVER-SIDE: Ogni articolo nel carrello (eccetto voci tecniche di spedizione/servizio) DEVE esistere realmente nel catalogo
+    for (let index = 0; index < carrello.length; index++) {
+      const item = carrello[index];
+      const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+      if (isSpedizioneCliente) continue;
+
+      let matchedProd = null;
+      if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
+        matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
+      }
+      if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
+        matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+      }
+
+      if (!matchedProd) {
+        console.error(`❌ [SERVER 400 Bad Request] Articolo fantasma o inesistente nel carrello alla posizione ${index + 1}:`, item);
+        return res.status(400).json({
+          success: false,
+          error: `Articolo non valido o non presente nel catalogo: "${item.squadra || item.versione || 'Sconosciuto'}"`,
+          reason: "Tutti gli articoli dell'ordine devono corrispondere a prodotti reali presenti nel catalogo (tramite ID o legacy_id valido).",
+          invalid_item: {
+            index: index + 1,
+            squadra: item.squadra || null,
+            id: item.id || null,
+            legacy_id: item.legacy_id || null
+          }
+        });
+      }
+    }
+
     // Calcoliamo i totali dell'ordine
     let totale_pagato_cliente = 0;
     let costo_prodotti_usd = 0;
@@ -8418,37 +8649,15 @@ app.post('/api/orders', async (req, res) => {
         }
       }
 
-      // 3. Fallback: Prova tramite il nome/versione (item.squadra === p.versione o item.squadra === p.squadra)
-      if (!matchedProd) {
-        matchedProd = allDbProducts.find(p => p.versione === item.squadra);
-        if (matchedProd) {
-          matchMethod = `versione (fallback)`;
-        } else {
-          matchedProd = allDbProducts.find(p => p.squadra === item.squadra);
-          if (matchedProd) {
-            matchMethod = `squadra (fallback)`;
-          }
-        }
-      }
-
       if (matchedProd) {
         matchLog.push(`Prodotto trovato su Supabase: "${matchedProd.versione}" (id: ${matchedProd.id}, legacy_id: ${matchedProd.legacy_id}) tramite ${matchMethod}`);
         const prezzoFornUnitarioUSD = matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null
           ? Number(matchedProd.prezzo_fornitore)
           : 0;
         matchLog.push(`Prezzo fornitore recuperato: $${prezzoFornUnitarioUSD.toFixed(2)}`);
-      } else {
+      } else if (!isSpedizioneCliente) {
         matchLog.push(`Prodotto trovato su Supabase: Nessuna corrispondenza trovata.`);
         matchLog.push(`Prezzo fornitore recuperato: $0.00`);
-        
-        let reasons = [];
-        if (!item.id && !item.legacy_id) {
-          reasons.push("Il frontend non ha inviato id o legacy_id per questo prodotto.");
-        } else {
-          reasons.push(`Nessun prodotto nel database corrisponde a id: "${item.id}" o legacy_id: "${item.legacy_id}".`);
-        }
-        reasons.push(`Nessun prodotto nel database corrisponde al nome/versione "${item.squadra}".`);
-        matchLog.push(`Motivo dell'eventuale mancata corrispondenza: ${reasons.join(" ")}`);
       }
 
       // Stampa il log formattato come richiesto
@@ -8736,9 +8945,6 @@ console.log("=================================");
             let matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
             if (!matchedProd && item.legacy_id) {
               matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
-            }
-            if (!matchedProd) {
-              matchedProd = allDbProducts.find(p => p.versione === item.squadra || p.squadra === item.squadra);
             }
 
             orderItemsToInsert.push({
@@ -11249,6 +11455,11 @@ app.get('/api/catalog/no-filter-audit', async (req, res) => {
     console.error("🔴 [NO-FILTER-AUDIT] Errore:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Catch-all per tutte le rotte API non trovate (evita di restituire l'HTML di index.html per le chiamate /api/*)
+app.all('/api/*', (req, res) => {
+  res.status(404).json({ success: false, error: `Endpoint API non trovato: ${req.method} ${req.path}` });
 });
 
 // Fallback all routes to index.html

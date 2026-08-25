@@ -17,6 +17,54 @@
   },
   "movements": [],
   "modifications": {
+    "140": {
+      "cost_eur": 14.55,
+      "division": "100_riccardo",
+      "order_id": "140",
+      "updated_at": "2026-08-25T05:29:26.637Z",
+      "division_label": "100% Riccardo",
+      "order_data_key": "21/08/2026, 09:54:06"
+    },
+    "142": {
+      "cost_eur": 11.13,
+      "division": "100_sergio",
+      "order_id": "142",
+      "updated_at": "2026-08-25T05:29:17.638Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "21/08/2026, 09:56:20"
+    },
+    "144": {
+      "cost_eur": 9.42,
+      "division": "100_sergio",
+      "order_id": "144",
+      "updated_at": "2026-08-25T05:29:10.569Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "21/08/2026, 09:57:16"
+    },
+    "146": {
+      "cost_eur": 14.55,
+      "division": "100_sergio",
+      "order_id": "146",
+      "updated_at": "2026-08-25T05:29:03.820Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "21/08/2026, 09:59:02"
+    },
+    "147": {
+      "cost_eur": 18.83,
+      "division": "100_riccardo",
+      "order_id": "147",
+      "updated_at": "2026-08-25T05:28:56.767Z",
+      "division_label": "100% Riccardo",
+      "order_data_key": "21/08/2026, 09:59:41"
+    },
+    "148": {
+      "cost_eur": 11.98,
+      "division": "50_50",
+      "order_id": "148",
+      "updated_at": "2026-08-25T05:28:48.691Z",
+      "division_label": "50% Sergio / 50% Riccardo",
+      "order_data_key": "21/08/2026, 10:00:20"
+    },
     "164": {
       "cost_eur": 12.84,
       "division": "50_50",
@@ -104,6 +152,54 @@
       "updated_at": "2026-08-24T00:36:16.777Z",
       "division_label": "100% Sergio",
       "order_data_key": "24/08/2026, 00:35:46"
+    },
+    "21/08/2026, 09:54:06": {
+      "cost_eur": 14.55,
+      "division": "100_riccardo",
+      "order_id": "140",
+      "updated_at": "2026-08-25T05:29:26.637Z",
+      "division_label": "100% Riccardo",
+      "order_data_key": "21/08/2026, 09:54:06"
+    },
+    "21/08/2026, 09:56:20": {
+      "cost_eur": 11.13,
+      "division": "100_sergio",
+      "order_id": "142",
+      "updated_at": "2026-08-25T05:29:17.638Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "21/08/2026, 09:56:20"
+    },
+    "21/08/2026, 09:57:16": {
+      "cost_eur": 9.42,
+      "division": "100_sergio",
+      "order_id": "144",
+      "updated_at": "2026-08-25T05:29:10.569Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "21/08/2026, 09:57:16"
+    },
+    "21/08/2026, 09:59:02": {
+      "cost_eur": 14.55,
+      "division": "100_sergio",
+      "order_id": "146",
+      "updated_at": "2026-08-25T05:29:03.820Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "21/08/2026, 09:59:02"
+    },
+    "21/08/2026, 09:59:41": {
+      "cost_eur": 18.83,
+      "division": "100_riccardo",
+      "order_id": "147",
+      "updated_at": "2026-08-25T05:28:56.767Z",
+      "division_label": "100% Riccardo",
+      "order_data_key": "21/08/2026, 09:59:41"
+    },
+    "21/08/2026, 10:00:20": {
+      "cost_eur": 11.98,
+      "division": "50_50",
+      "order_id": "148",
+      "updated_at": "2026-08-25T05:28:48.691Z",
+      "division_label": "50% Sergio / 50% Riccardo",
+      "order_data_key": "21/08/2026, 10:00:20"
     },
     "21/08/2026, 11:11:57": {
       "cost_eur": 12.84,
@@ -197,146 +293,20 @@
   "lot_percentages": {
     "1": {
       "lotto_id": "1",
-      "split_mode": "manual",
-      "updated_at": "2026-08-23T23:41:54.037Z",
-      "sergio_percentage": 67,
-      "riccardo_percentage": 33
+      "split_mode": "by_expenses",
+      "updated_at": "2026-08-25T18:16:52.135Z",
+      "sergio_percentage": 66,
+      "riccardo_percentage": 34
     },
     "2": {
       "lotto_id": "2",
       "split_mode": "by_expenses",
-      "updated_at": "2026-08-24T01:12:16.857Z",
+      "updated_at": "2026-08-25T18:08:04.973Z",
       "sergio_percentage": 65,
       "riccardo_percentage": 35
     }
   },
   "extra_expenses": [
-    {
-      "id": "extra_1787526710544_qhkyli",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 2.57,
-      "total_usd": 3,
-      "created_at": "2026-08-23T23:11:50.575Z",
-      "sergio_eur": 2.57,
-      "updated_at": "2026-08-23T23:29:20.990Z",
-      "assigned_to": "sergio",
-      "description": "Calzettoni",
-      "riccardo_eur": 0,
-      "exchange_rate": 0.856,
-      "assigned_label": "Sergio (100%)",
-      "unit_price_eur": 2.57,
-      "unit_price_usd": 3
-    },
-    {
-      "id": "extra_1787526735917_9u6yyg",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 2.57,
-      "total_usd": 3,
-      "created_at": "2026-08-23T23:12:15.974Z",
-      "sergio_eur": 2.57,
-      "updated_at": "2026-08-23T23:29:18.781Z",
-      "assigned_to": "sergio",
-      "description": "Calze",
-      "riccardo_eur": 0,
-      "exchange_rate": 0.856,
-      "assigned_label": "Sergio (100%)",
-      "unit_price_eur": 2.57,
-      "unit_price_usd": 3
-    },
-    {
-      "id": "extra_1787527769893_xx6040",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 2.57,
-      "total_usd": 3,
-      "created_at": "2026-08-23T23:29:29.957Z",
-      "sergio_eur": 2.57,
-      "updated_at": "2026-08-23T23:29:29.957Z",
-      "assigned_to": "sergio",
-      "description": "Calze",
-      "riccardo_eur": 0,
-      "exchange_rate": 0.856,
-      "assigned_label": "Sergio (100%)",
-      "unit_price_eur": 2.57,
-      "unit_price_usd": 3
-    },
-    {
-      "id": "extra_1787527795740_te53t1",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 43.66,
-      "total_usd": 51,
-      "created_at": "2026-08-23T23:29:55.776Z",
-      "sergio_eur": 43.66,
-      "updated_at": "2026-08-23T23:29:55.776Z",
-      "assigned_to": "sergio",
-      "description": "Scarpe da calcio",
-      "riccardo_eur": 0,
-      "exchange_rate": 0.856,
-      "assigned_label": "Sergio (100%)",
-      "unit_price_eur": 43.66,
-      "unit_price_usd": 51
-    },
-    {
-      "id": "extra_1787528547607_66azbs",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 2.57,
-      "total_usd": 3,
-      "created_at": "2026-08-23T23:42:27.837Z",
-      "sergio_eur": 0,
-      "updated_at": "2026-08-23T23:42:27.837Z",
-      "assigned_to": "riccardo",
-      "description": "Calzettoni",
-      "riccardo_eur": 2.57,
-      "exchange_rate": 0.856,
-      "assigned_label": "Riccardo (100%)",
-      "unit_price_eur": 2.57,
-      "unit_price_usd": 3
-    },
-    {
-      "id": "extra_1787528560482_zrb8jn",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 2.57,
-      "total_usd": 3,
-      "created_at": "2026-08-23T23:42:40.674Z",
-      "sergio_eur": 0,
-      "updated_at": "2026-08-23T23:42:40.674Z",
-      "assigned_to": "riccardo",
-      "description": "Calzettoni",
-      "riccardo_eur": 2.57,
-      "exchange_rate": 0.856,
-      "assigned_label": "Riccardo (100%)",
-      "unit_price_eur": 2.57,
-      "unit_price_usd": 3
-    },
-    {
-      "id": "extra_1787528568762_re8qmy",
-      "notes": "",
-      "lotto_id": 1,
-      "quantity": 1,
-      "total_eur": 2.57,
-      "total_usd": 3,
-      "created_at": "2026-08-23T23:42:48.969Z",
-      "sergio_eur": 0,
-      "updated_at": "2026-08-23T23:42:48.969Z",
-      "assigned_to": "riccardo",
-      "description": "Polsini",
-      "riccardo_eur": 2.57,
-      "exchange_rate": 0.856,
-      "assigned_label": "Riccardo (100%)",
-      "unit_price_eur": 2.57,
-      "unit_price_usd": 3
-    },
     {
       "id": "extra_1787531850647_d6n603",
       "notes": "",

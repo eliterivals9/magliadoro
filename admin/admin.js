@@ -1268,6 +1268,8 @@ async function caricaLotto() {
     try {
         const response = await fetch('/api/lotto');
         if (response.ok) {
+            const ct = response.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) return;
             const result = await response.json();
             if (result && result.success && result.lotto) {
                 const lotto = result.lotto;
@@ -1318,7 +1320,7 @@ async function caricaLotto() {
             }
         }
     } catch (err) {
-        console.error("Errore caricamento lotto:", err);
+        console.warn("Errore caricamento lotto:", err.message || err);
     }
 }
 
@@ -1328,6 +1330,11 @@ async function caricaCronologiaLotti() {
     try {
         const response = await fetch('/api/lotto/archive');
         if (response.ok) {
+            const ct = response.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) {
+                cronologiaLotti = [];
+                return;
+            }
             const result = await response.json();
             if (result && result.success && Array.isArray(result.archive)) {
                 cronologiaLotti = result.archive;
@@ -1338,7 +1345,7 @@ async function caricaCronologiaLotti() {
             cronologiaLotti = [];
         }
     } catch (err) {
-        console.error("Errore caricamento cronologia lotti:", err);
+        console.warn("Errore caricamento cronologia lotti:", err.message || err);
         cronologiaLotti = [];
     }
 
@@ -1365,9 +1372,9 @@ function renderCronologiaLotti() {
 
     tbody.innerHTML = sorted.map(l => {
         const splitSum = l.profit_split_summary || null;
-        const incassoBase = Number(l.incasso_base_eur !== undefined ? l.incasso_base_eur : (l.incasso_totale_eur || 0));
+        const incassoBase = Number(l.incasso_totale_eur !== undefined && Number(l.incasso_totale_eur) > 0 ? l.incasso_totale_eur : (l.incasso_base_eur || 0));
         const cashflow = calcolaIncassoEffettivo(incassoBase, splitSum);
-        const incassoVal = (l.incasso_effettivo_eur !== undefined) ? Number(l.incasso_effettivo_eur) : cashflow.incasso_effettivo;
+        const incassoVal = (splitSum && splitSum.incasso_effettivo !== undefined) ? Number(splitSum.incasso_effettivo) : cashflow.incasso_effettivo;
         const incasso = incassoVal.toFixed(2).replace('.', ',') + '€';
         const profitto = Number(l.profitto_eur || 0).toFixed(2).replace('.', ',') + '€';
         
@@ -1383,8 +1390,8 @@ function renderCronologiaLotti() {
                     <button onclick="apriDettaglioLotto(${l.id})" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 font-bold text-[10px] rounded-lg transition-all cursor-pointer" title="Visualizza dettagli ed ordini del lotto">
                         Dettagli
                     </button>
-                    <button onclick="apriSuddivisioneProfittiLotto(${l.id})" class="px-3 py-1.5 bg-brand-gold/15 hover:bg-brand-gold/25 text-brand-gold font-bold text-[10px] rounded-lg transition-all border border-brand-gold/30 cursor-pointer" title="Visualizza e gestisci la suddivisione profitti di questo lotto">
-                        💰 Suddivisione Profitti
+                    <button onclick="apriSuddivisioneProfittiLotto(${l.id})" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 hover:text-black font-bold text-[10px] rounded-lg transition-all border border-amber-300 shadow-2xs cursor-pointer inline-flex items-center gap-1" title="Visualizza e gestisci la suddivisione profitti del ${l.numero_lotto || `Lotto #${l.id}`}">
+                        <span>⚖️</span> <span>Suddivisione Profitto</span>
                     </button>
                     <button onclick="ripristinaLotto(${l.id})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-800 font-bold text-[10px] rounded-lg transition-all border border-amber-200/60 cursor-pointer" title="Riporta tutti gli ordini di questo lotto negli Ordini Attivi">
                         📥 Ripristina
@@ -1636,29 +1643,29 @@ window.apriDettaglioLotto = function(id) {
     if (articoliEl) articoliEl.innerText = lotto.numero_articoli || 0;
 
     // Calcolo Incasso Clienti Netto usando la stessa identica logica della Dashboard (calcolaIncassoEffettivo)
-    const baseIncasso = Number(lotto.incasso_base_eur !== undefined ? lotto.incasso_base_eur : (lotto.incasso_totale_eur || 0));
+    const baseIncasso = Number(lotto.incasso_totale_eur !== undefined && Number(lotto.incasso_totale_eur) > 0 ? lotto.incasso_totale_eur : (lotto.incasso_base_eur || 0));
     const lottoCashflow = calcolaIncassoEffettivo(baseIncasso, lotto.profit_split_summary);
     if (incassoEl) {
         incassoEl.innerText = `€ ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
-        if (lottoCashflow.correzione_incasso !== 0) {
-            incassoEl.title = `Incasso Base: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${lottoCashflow.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${lottoCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (lottoCashflow.costo_prodotti_personali > 0 || lottoCashflow.deficit_totale > 0) {
+            incassoEl.title = `Incasso Base: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${lottoCashflow.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${lottoCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
         } else {
-            incassoEl.title = `Incasso Totale: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
+            incassoEl.title = `Incasso Totale Clienti: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
         }
     }
 
     // Rinfresca asincronamente con la suddivisione profitti del lotto per aggiornamenti in tempo reale
     fetch(`/api/profit-splits?lotto_id=${id}`)
-        .then(res => res.json())
+        .then(res => (res.ok && res.headers.get('content-type')?.includes('application/json')) ? res.json() : null)
         .then(data => {
             if (data && data.success && data.summary && Number(window.currentDetailLottoId) === Number(id)) {
                 const refreshedCashflow = calcolaIncassoEffettivo(baseIncasso, data.summary);
                 if (incassoEl) {
                     incassoEl.innerText = `€ ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
-                    if (refreshedCashflow.correzione_incasso !== 0) {
-                        incassoEl.title = `Incasso Base: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${refreshedCashflow.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${refreshedCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+                    if (refreshedCashflow.costo_prodotti_personali > 0 || refreshedCashflow.deficit_totale > 0) {
+                        incassoEl.title = `Incasso Base: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${refreshedCashflow.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${refreshedCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
                     } else {
-                        incassoEl.title = `Incasso Totale: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
+                        incassoEl.title = `Incasso Totale Clienti: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
                     }
                 }
             }
@@ -1982,42 +1989,61 @@ function isOrderActive(o) {
 }
 
 /**
- * Calcola l'incasso effettivo da recuperare dai clienti in base alle modifiche di Suddivisione Profitto.
- * Formula condivisa tra Dashboard, Dettaglio Lotto e Cronologia Lotti:
- * INCASSO_EFFETTIVO = INCASSO_BASE_CLIENTI - COSTI_ACQUISTI_COPERTI_DAL_PROFITTO + DEFICIT_DOVUTO_A_SALDI_NEGATIVI
+ * Calcola l'incasso clienti in base ai prodotti personali assegnati nella Suddivisione Conti.
+ * 
+ * FORMULA CONCETTUALE:
+ * - incasso_base = totale degli ordini del lotto
+ * - costo_prodotti_personali = somma dei costi dei prodotti assegnati a Sergio + Riccardo + 50/50
+ * - profitto_disponibile = profitto del lotto prima degli acquisti personali
+ * - costo_coperto = parte degli acquisti coperta dal profitto
+ * - deficit = eventuale parte che porta il profitto sotto zero
+ * 
+ * INCASSO CLIENTI = incasso_base - costo_coperto + deficit
  */
 function calcolaIncassoEffettivo(incassoBase, profitDataOrSummary = profitSplitData) {
     const incasso_base = Number(incassoBase) || 0;
-    let costi_acquisti_profitto = 0;
-    let deficit_totale = 0;
+    let costo_prodotti_personali = 0;
+    let profitto_disponibile = 0;
+    let costo_coperto = 0;
+    let deficit = 0;
 
     const summary = (profitDataOrSummary && profitDataOrSummary.summary) 
         ? profitDataOrSummary.summary 
         : (profitDataOrSummary || (typeof profitSplitData !== 'undefined' ? profitSplitData?.summary : null));
 
     if (summary) {
-        const sWithd = Number(summary.sergio?.total_withdrawals) || Number(summary.spese_sergio) || 0;
-        const rWithd = Number(summary.riccardo?.total_withdrawals) || Number(summary.spese_riccardo) || 0;
-        costi_acquisti_profitto = sWithd + rWithd;
-
-        const sNet = Number(summary.sergio?.total_net) || Number(summary.sergio_net) || Number(summary.sergio_residual_share) || 0;
-        const rNet = Number(summary.riccardo?.total_net) || Number(summary.riccardo_net) || Number(summary.riccardo_residual_share) || 0;
-
-        const deficitSergio = sNet < 0 ? Math.abs(sNet) : 0;
-        const deficitRiccardo = rNet < 0 ? Math.abs(rNet) : 0;
-        deficit_totale = deficitSergio + deficitRiccardo;
+        if (summary.costo_prodotti_personali !== undefined) {
+            costo_prodotti_personali = Number(summary.costo_prodotti_personali) || 0;
+            profitto_disponibile = Number(summary.profitto_disponibile ?? summary.total_profit ?? summary.net_total_profit ?? 0) || 0;
+            costo_coperto = (summary.costo_coperto !== undefined) 
+                ? Number(summary.costo_coperto) 
+                : ((profitto_disponibile > 0) ? Math.min(profitto_disponibile, costo_prodotti_personali) : 0);
+            deficit = (summary.deficit !== undefined)
+                ? Number(summary.deficit)
+                : ((summary.deficit_totale !== undefined)
+                    ? Number(summary.deficit_totale)
+                    : ((costo_prodotti_personali > profitto_disponibile) ? Number((costo_prodotti_personali - Math.max(0, profitto_disponibile)).toFixed(2)) : 0));
+        } else {
+            const sCompletini = Number(summary.spese_completini_sergio || 0);
+            const rCompletini = Number(summary.spese_completini_riccardo || 0);
+            costo_prodotti_personali = Number((sCompletini + rCompletini).toFixed(2));
+            const netProfit = Number(summary.total_profit ?? summary.net_total_profit ?? 0);
+            const extraExp = Number(summary.extra_expenses_total_eur || 0);
+            profitto_disponibile = Number((netProfit - extraExp).toFixed(2));
+            costo_coperto = (profitto_disponibile > 0) ? Math.min(profitto_disponibile, costo_prodotti_personali) : 0;
+            deficit = (costo_prodotti_personali > profitto_disponibile) ? Number((costo_prodotti_personali - Math.max(0, profitto_disponibile)).toFixed(2)) : 0;
+        }
     }
 
-    const correzione_incasso = -costi_acquisti_profitto + deficit_totale;
-    const incasso_effettivo = Math.max(0, incasso_base + correzione_incasso);
-
-    console.log(`[PROFIT SPLIT CASHFLOW DEBUG] incasso_base: ${incasso_base.toFixed(2)}, costi_acquisti_profitto: ${costi_acquisti_profitto.toFixed(2)}, deficit_totale: ${deficit_totale.toFixed(2)}, correzione_incasso: ${correzione_incasso.toFixed(2)}, incasso_effettivo: ${incasso_effettivo.toFixed(2)}`);
+    const incasso_effettivo = Number((incasso_base - costo_coperto + deficit).toFixed(2));
 
     return {
         incasso_base,
-        costi_acquisti_profitto,
-        deficit_totale,
-        correzione_incasso,
+        costo_prodotti_personali,
+        profitto_disponibile,
+        costo_coperto,
+        deficit,
+        deficit_totale: deficit,
         incasso_effettivo
     };
 }
@@ -2082,7 +2108,19 @@ function aggiornaStatisticheDashboard() {
         alibabaFeeEur = alibabaFeeUsd / tasso;
     }
 
-    const costoTotaleLottoEur = costoFornitoreLottoEur + alibabaFeeEur;
+    // Spese Extra del lotto
+    let speseExtraUsd = 0;
+    let speseExtraEur = 0;
+    if (window.currentLottoData) {
+        speseExtraUsd = Number(window.currentLottoData.spese_extra_usd || 0);
+        speseExtraEur = Number(window.currentLottoData.spese_extra_eur || 0);
+    }
+    if (speseExtraEur === 0 && profitSplitData && profitSplitData.summary && profitSplitData.summary.is_active) {
+        speseExtraUsd = Number(profitSplitData.summary.extra_expenses_total_usd || 0);
+        speseExtraEur = Number(profitSplitData.summary.extra_expenses_total_eur || 0);
+    }
+
+    const costoTotaleLottoEur = costoFornitoreLottoEur + alibabaFeeEur + speseExtraEur;
     const profittoRealeLotto = Math.max(-999999, incassoLottoCorrente - costoTotaleLottoEur);
 
     // Calcolo Incasso Effettivo integrato con Suddivisione Profitto
@@ -2093,10 +2131,10 @@ function aggiornaStatisticheDashboard() {
     const incassoTotaleEl = document.getElementById('stats-incasso-totale');
     if (incassoTotaleEl) {
         incassoTotaleEl.innerText = `€ ${incassoDaMostrare.toFixed(2).replace('.', ',')}`;
-        if (cashflow.correzione_incasso !== 0) {
-            incassoTotaleEl.title = `Incasso Base: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${cashflow.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${cashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (cashflow.costo_prodotti_personali > 0 || cashflow.deficit_totale > 0) {
+            incassoTotaleEl.title = `Incasso Base: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${cashflow.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${cashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
         } else {
-            incassoTotaleEl.title = `Incasso Totale: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')}`;
+            incassoTotaleEl.title = `Incasso Totale Clienti: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')}`;
         }
     }
 
@@ -2192,7 +2230,15 @@ function aggiornaStatisticheLottoCorrente() {
         alibabaFeeEur = alibabaFeeUsd / tasso;
     }
 
-    const costoTotaleEur = costoFornitoreEur + alibabaFeeEur;
+    let speseExtraEur = 0;
+    if (window.currentLottoData) {
+        speseExtraEur = Number(window.currentLottoData.spese_extra_eur || 0);
+    }
+    if (speseExtraEur === 0 && profitSplitData && profitSplitData.summary && profitSplitData.summary.is_active) {
+        speseExtraEur = Number(profitSplitData.summary.extra_expenses_total_eur || 0);
+    }
+
+    const costoTotaleEur = costoFornitoreEur + alibabaFeeEur + speseExtraEur;
     const profittoPrevisto = incassoPrevisto - costoTotaleEur;
 
     const cashflowLotto = calcolaIncassoEffettivo(incassoPrevisto);
@@ -2202,8 +2248,8 @@ function aggiornaStatisticheLottoCorrente() {
     const incassoPrevistoEl = document.getElementById('lotto-incasso-previsto');
     if (incassoPrevistoEl) {
         incassoPrevistoEl.innerText = `€ ${incassoPrevistoEffettivo.toFixed(2).replace('.', ',')}`;
-        if (cashflowLotto.correzione_incasso !== 0) {
-            incassoPrevistoEl.title = `Incasso Base: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')} | Costi Coperti da Profitto: -€ ${cashflowLotto.costi_acquisti_profitto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflowLotto.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Effettivo: € ${cashflowLotto.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (cashflowLotto.costo_prodotti_personali > 0 || cashflowLotto.deficit_totale > 0) {
+            incassoPrevistoEl.title = `Incasso Base: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${cashflowLotto.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflowLotto.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${cashflowLotto.incasso_effettivo.toFixed(2).replace('.', ',')}`;
         } else {
             incassoPrevistoEl.title = `Incasso Previsto dai clienti: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')}`;
         }
@@ -4089,7 +4135,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     } else if (tabId === 'coupon') {
         caricaCoupon();
     } else if (tabId === 'suddivisione-conti') {
-        caricaSuddivisioneConti();
+        caricaSuddivisioneConti(currentSelectedProfitLottoId);
     } else if (tabId === 'lotto') {
         if (typeof caricaLotto === 'function') caricaLotto();
         if (typeof caricaCronologiaLotti === 'function') caricaCronologiaLotti();
@@ -5078,6 +5124,8 @@ async function caricaSettings() {
     try {
         const res = await fetch('/api/settings');
         if (res.ok) {
+            const ct = res.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) return;
             const data = await res.json();
             if (data.success && data.settings) {
                 window.appSettings = data.settings;
@@ -5085,7 +5133,7 @@ async function caricaSettings() {
             }
         }
     } catch (e) {
-        console.error("Errore nel caricamento delle impostazioni:", e);
+        console.warn("Errore nel caricamento delle impostazioni:", e.message || e);
     }
 }
 
@@ -9373,6 +9421,18 @@ async function controllaStatoConnessioni() {
     try {
         const res = await fetch('/api/connections/status');
         if (res.ok) {
+            const ct = res.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) {
+                if (supabaseStatus) {
+                    supabaseStatus.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-800";
+                    supabaseStatus.innerText = "Non disponibile";
+                }
+                if (lottiStatus) {
+                    lottiStatus.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-800";
+                    lottiStatus.innerText = "Non disponibile";
+                }
+                return;
+            }
             const data = await res.json();
             if (data.success && data.status) {
                 const s = data.status;
@@ -13030,48 +13090,20 @@ function aggiornaSuddivisioneProfittoLive() {
     // Profitto Residuo = Profitto del lotto - Spese personali
     const profittoResiduo = Number((netTotalProfit - speseSergio - speseRiccardo).toFixed(2));
 
-    // Crediti residui di ciascun socio dopo gli acquisti personali:
-    // Credito residuo = Profitto disponibile - Spese personali del socio
-    const creditoResiduoSergio = Number((netTotalProfit - speseSergio).toFixed(2));
-    const creditoResiduoRiccardo = Number((netTotalProfit - speseRiccardo).toFixed(2));
-    const sommaCreditiResidui = Number((creditoResiduoSergio + creditoResiduoRiccardo).toFixed(2));
+    // In modalità 'by_expenses' (in base alle spese personali):
+    // La suddivisione base è SEMPRE 50% Sergio e 50% Riccardo prima di considerare gli acquisti personali.
+    // Le spese personali non alterano le percentuali base, ma vengono sottratte dalla quota base (50%) di ciascun socio.
+    autoCalculatedSergioPct = 50;
+    autoCalculatedRiccardoPct = 50;
 
-    // Calcolo automatico percentuali in base ai crediti residui
-    if (sommaCreditiResidui > 0) {
-        autoCalculatedSergioPct = Number(((creditoResiduoSergio / sommaCreditiResidui) * 100).toFixed(2));
-        autoCalculatedRiccardoPct = Number((100 - autoCalculatedSergioPct).toFixed(2));
-    } else if (sommaCreditiResidui < 0) {
-        if (creditoResiduoSergio === creditoResiduoRiccardo) {
-            autoCalculatedSergioPct = 50;
-            autoCalculatedRiccardoPct = 50;
-        } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
-            autoCalculatedSergioPct = 100;
-            autoCalculatedRiccardoPct = 0;
-        } else {
-            autoCalculatedSergioPct = 0;
-            autoCalculatedRiccardoPct = 100;
-        }
-    } else {
-        if (creditoResiduoSergio === creditoResiduoRiccardo) {
-            autoCalculatedSergioPct = 50;
-            autoCalculatedRiccardoPct = 50;
-        } else if (creditoResiduoSergio > creditoResiduoRiccardo) {
-            autoCalculatedSergioPct = 100;
-            autoCalculatedRiccardoPct = 0;
-        } else {
-            autoCalculatedSergioPct = 0;
-            autoCalculatedRiccardoPct = 100;
-        }
-    }
-
-    // Determina le percentuali effettive da applicare
-    let sPct = (profitSplitMode === 'by_expenses') ? autoCalculatedSergioPct : lotProfitPercentageSergio;
-    let rPct = (profitSplitMode === 'by_expenses') ? autoCalculatedRiccardoPct : lotProfitPercentageRiccardo;
+    // Determina le percentuali effettive da applicare (50/50 in 'by_expenses' oppure percentuali impostate in 'manual')
+    let sPct = (profitSplitMode === 'by_expenses') ? 50 : (lotProfitPercentageSergio || 50);
+    let rPct = (profitSplitMode === 'by_expenses') ? 50 : (lotProfitPercentageRiccardo !== undefined ? lotProfitPercentageRiccardo : 50);
 
     if (isNaN(sPct)) sPct = 50;
     if (isNaN(rPct)) rPct = 50;
 
-    // Calcolo quote spettanti sul profitto lordo disponibile del lotto (Gross shares)
+    // Calcolo quote spettanti sul profitto lordo disponibile del lotto (Gross shares / Quota Base)
     let sergioGrossShare = 0;
     let riccardoGrossShare = 0;
 
@@ -13082,11 +13114,12 @@ function aggiornaSuddivisioneProfittoLive() {
         sergioGrossShare = 0;
         riccardoGrossShare = netTotalProfit;
     } else {
+        // Gestione accurata dei centesimi in modo che sergioGrossShare + riccardoGrossShare === netTotalProfit
         sergioGrossShare = Number(((netTotalProfit * sPct) / 100).toFixed(2));
         riccardoGrossShare = Number((netTotalProfit - sergioGrossShare).toFixed(2));
     }
 
-    // Saldo/Credito netto residuo spettante a ciascun socio: Quota lorda - Acquisti personali del socio
+    // Saldo/Credito netto residuo spettante a ciascun socio: Quota lorda Base - Acquisti personali del socio
     const sergioResidualShare = Number((sergioGrossShare - speseSergio).toFixed(2));
     const riccardoResidualShare = Number((riccardoGrossShare - speseRiccardo).toFixed(2));
     const totaleAssegnato = Number((sergioResidualShare + riccardoResidualShare).toFixed(2));
@@ -13095,7 +13128,7 @@ function aggiornaSuddivisioneProfittoLive() {
     const riccardoNet = riccardoResidualShare;
     const sergioInitial = sergioGrossShare;
     const riccardoInitial = riccardoGrossShare;
-    const totalNet = profittoResiduo;
+    const totalNet = totaleAssegnato;
 
     // Aggiorna Selettore Modalità UI
     const btnManual = document.getElementById('btn-mode-manual');
@@ -13183,24 +13216,32 @@ function aggiornaSuddivisioneProfittoLive() {
         : `Lotto #${currentProfitSplitLottoId}`;
     if (lottoBadge) lottoBadge.textContent = lotDisplayNumber;
 
-    // Aggiorna Banner Contestuale del Lotto visualizzato
+    // Aggiorna Titolo Principale e Banner Contestuale del Lotto visualizzato
+    const mainTitle = document.getElementById('suddivisione-conti-main-title');
     const contextTitle = document.getElementById('profit-split-lot-context-title');
     const contextTag = document.getElementById('profit-split-lot-context-tag');
     const contextDesc = document.getElementById('profit-split-lot-context-desc');
     const contextIcon = document.getElementById('profit-split-lot-context-icon');
     const btnTornaAttivo = document.getElementById('profit-split-btn-torna-attivo');
+    const emptyNotice = document.getElementById('profit-split-lot-empty-notice');
 
     const isArchivedLot = Boolean(
         (profitSplitData && profitSplitData.summary && profitSplitData.summary.is_archived) ||
         (cronologiaLotti && cronologiaLotti.some(l => Number(l.id) === Number(currentProfitSplitLottoId)))
     );
 
+    if (mainTitle) {
+        mainTitle.textContent = isArchivedLot 
+            ? `Suddivisione Conti — ${lotDisplayNumber}` 
+            : `Suddivisione Conti — ${lotDisplayNumber} (Lotto Attivo)`;
+    }
+
     if (contextTitle) {
-        contextTitle.textContent = `Visualizzazione: ${lotDisplayNumber}`;
+        contextTitle.textContent = `Suddivisione Conti: ${lotDisplayNumber}`;
     }
     if (contextTag) {
         if (isArchivedLot) {
-            contextTag.textContent = "Archiviato / Concluso";
+            contextTag.textContent = "Archiviato / Storico";
             contextTag.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300";
         } else {
             contextTag.textContent = "Lotto Attivo Corrente";
@@ -13209,7 +13250,7 @@ function aggiornaSuddivisioneProfittoLive() {
     }
     if (contextDesc) {
         if (isArchivedLot) {
-            contextDesc.textContent = `Stai consultando la suddivisione profitti del ${lotDisplayNumber}. Tutte le spese, modifiche e ripartizioni sono salvate in modo indipendente.`;
+            contextDesc.textContent = `Stai consultando e gestendo la suddivisione profitti del ${lotDisplayNumber}. I dati e le modifiche salvate sono esclusivi di questo lotto.`;
         } else {
             contextDesc.textContent = `Stai visualizzando e gestendo i dati di suddivisione profitti del lotto attivo corrente (${lotDisplayNumber}).`;
         }
@@ -13225,11 +13266,28 @@ function aggiornaSuddivisioneProfittoLive() {
         }
     }
 
-    // Aggiorna Crediti Residui nelle card socio
+    if (emptyNotice) {
+        const hasOrders = (profitSplitData && profitSplitData.summary && Number(profitSplitData.summary.total_orders || 0) > 0);
+        const hasExtraExpenses = (profitSplitData && profitSplitData.extra_expenses && profitSplitData.extra_expenses.length > 0);
+        const hasModifications = (profitSplitData && profitSplitData.modifications && profitSplitData.modifications.length > 0);
+        if (!hasOrders && !hasExtraExpenses && !hasModifications) {
+            emptyNotice.classList.remove('hidden');
+        } else {
+            emptyNotice.classList.add('hidden');
+        }
+    }
+
+    // Aggiorna Saldi Residui nelle card socio
     const splitSergioCredito = document.getElementById('split-sergio-credito-residuo');
     const splitRiccardoCredito = document.getElementById('split-riccardo-credito-residuo');
-    if (splitSergioCredito) splitSergioCredito.textContent = `€ ${formatValutaEuro(creditoResiduoSergio)}`;
-    if (splitRiccardoCredito) splitRiccardoCredito.textContent = `€ ${formatValutaEuro(creditoResiduoRiccardo)}`;
+    if (splitSergioCredito) {
+        splitSergioCredito.textContent = (sergioResidualShare < 0 ? '-€ ' : (sergioResidualShare > 0 ? '+€ ' : '€ ')) + formatValutaEuro(Math.abs(sergioResidualShare));
+        splitSergioCredito.className = sergioResidualShare < 0 ? 'font-mono font-bold text-rose-600' : 'font-mono font-bold text-amber-800';
+    }
+    if (splitRiccardoCredito) {
+        splitRiccardoCredito.textContent = (riccardoResidualShare < 0 ? '-€ ' : (riccardoResidualShare > 0 ? '+€ ' : '€ ')) + formatValutaEuro(Math.abs(riccardoResidualShare));
+        splitRiccardoCredito.className = riccardoResidualShare < 0 ? 'font-mono font-bold text-rose-600' : 'font-mono font-bold text-blue-800';
+    }
 
     // 2. Aggiorna Quadro 4 Dati Chiave
     const cardProfitto = document.getElementById('card-profitto-disponibile');
@@ -13243,10 +13301,16 @@ function aggiornaSuddivisioneProfittoLive() {
     if (cardProfitto) cardProfitto.textContent = `€ ${formatValutaEuro(netTotalProfit)}`;
     if (cardSpeseSergio) cardSpeseSergio.textContent = `€ ${formatValutaEuro(speseSergio)}`;
     if (cardSpeseRiccardo) cardSpeseRiccardo.textContent = `€ ${formatValutaEuro(speseRiccardo)}`;
-    if (cardCreditoSergio) cardCreditoSergio.textContent = `€ ${formatValutaEuro(creditoResiduoSergio)}`;
-    if (cardCreditoRiccardo) cardCreditoRiccardo.textContent = `€ ${formatValutaEuro(creditoResiduoRiccardo)}`;
-    if (cardQuotaSergio) cardQuotaSergio.textContent = `${sPct}% (€ ${formatValutaEuro(sergioResidualShare)})`;
-    if (cardQuotaRiccardo) cardQuotaRiccardo.textContent = `${rPct}% (€ ${formatValutaEuro(riccardoResidualShare)})`;
+    if (cardCreditoSergio) {
+        cardCreditoSergio.textContent = (sergioResidualShare < 0 ? '-€ ' : (sergioResidualShare > 0 ? '+€ ' : '€ ')) + formatValutaEuro(Math.abs(sergioResidualShare));
+        cardCreditoSergio.className = sergioResidualShare < 0 ? 'text-rose-600 font-mono' : 'text-amber-700 font-mono';
+    }
+    if (cardCreditoRiccardo) {
+        cardCreditoRiccardo.textContent = (riccardoResidualShare < 0 ? '-€ ' : (riccardoResidualShare > 0 ? '+€ ' : '€ ')) + formatValutaEuro(Math.abs(riccardoResidualShare));
+        cardCreditoRiccardo.className = riccardoResidualShare < 0 ? 'text-rose-600 font-mono' : 'text-blue-700 font-mono';
+    }
+    if (cardQuotaSergio) cardQuotaSergio.textContent = `${sPct}% (€ ${formatValutaEuro(sergioGrossShare)})`;
+    if (cardQuotaRiccardo) cardQuotaRiccardo.textContent = `${rPct}% (€ ${formatValutaEuro(riccardoGrossShare)})`;
 
     // 3. Aggiorna anteprime quote accanto agli input
     const sergioPreview = document.getElementById('split-sergio-share-preview');
@@ -13256,7 +13320,7 @@ function aggiornaSuddivisioneProfittoLive() {
             sergioPreview.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResidualShare))}`;
             sergioPreview.className = 'text-base font-black text-rose-600 font-mono';
         } else {
-            sergioPreview.textContent = `€ ${formatValutaEuro(sergioResidualShare)}`;
+            sergioPreview.textContent = `+€ ${formatValutaEuro(sergioResidualShare)}`;
             sergioPreview.className = 'text-base font-black text-brand-gold font-mono';
         }
     }
@@ -13265,7 +13329,7 @@ function aggiornaSuddivisioneProfittoLive() {
             riccardoPreview.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResidualShare))}`;
             riccardoPreview.className = 'text-base font-black text-rose-600 font-mono';
         } else {
-            riccardoPreview.textContent = `€ ${formatValutaEuro(riccardoResidualShare)}`;
+            riccardoPreview.textContent = `+€ ${formatValutaEuro(riccardoResidualShare)}`;
             riccardoPreview.className = 'text-base font-black text-blue-700 font-mono';
         }
     }
@@ -13295,50 +13359,34 @@ function aggiornaSuddivisioneProfittoLive() {
         }
     }
 
-    // Suddivisione sul solo PROFITTO RESIDUO per il riepilogo
-    let sergioResiduoQuota = 0;
-    let riccardoResiduoQuota = 0;
-
-    if (sPct === 100) {
-        sergioResiduoQuota = profittoResiduo;
-        riccardoResiduoQuota = 0;
-    } else if (rPct === 100) {
-        sergioResiduoQuota = 0;
-        riccardoResiduoQuota = profittoResiduo;
-    } else {
-        sergioResiduoQuota = Number(((profittoResiduo * sPct) / 100).toFixed(2));
-        riccardoResiduoQuota = Number((profittoResiduo - sergioResiduoQuota).toFixed(2));
-    }
-    const totaleResiduoAssegnato = Number((sergioResiduoQuota + riccardoResiduoQuota).toFixed(2));
-
     if (rSergioPct) rSergioPct.textContent = sPct;
     if (rSergioQuota) {
-        if (sergioResiduoQuota < 0) {
-            rSergioQuota.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResiduoQuota))}`;
+        if (sergioResidualShare < 0) {
+            rSergioQuota.textContent = `-€ ${formatValutaEuro(Math.abs(sergioResidualShare))}`;
             rSergioQuota.className = 'font-mono font-bold text-rose-400 text-sm';
         } else {
-            rSergioQuota.textContent = `€ ${formatValutaEuro(sergioResiduoQuota)}`;
+            rSergioQuota.textContent = `+€ ${formatValutaEuro(sergioResidualShare)}`;
             rSergioQuota.className = 'font-mono font-bold text-emerald-400 text-sm';
         }
     }
 
     if (rRiccardoPct) rRiccardoPct.textContent = rPct;
     if (rRiccardoQuota) {
-        if (riccardoResiduoQuota < 0) {
-            rRiccardoQuota.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResiduoQuota))}`;
+        if (riccardoResidualShare < 0) {
+            rRiccardoQuota.textContent = `-€ ${formatValutaEuro(Math.abs(riccardoResidualShare))}`;
             rRiccardoQuota.className = 'font-mono font-bold text-rose-400 text-sm';
         } else {
-            rRiccardoQuota.textContent = `€ ${formatValutaEuro(riccardoResiduoQuota)}`;
+            rRiccardoQuota.textContent = `+€ ${formatValutaEuro(riccardoResidualShare)}`;
             rRiccardoQuota.className = 'font-mono font-bold text-emerald-400 text-sm';
         }
     }
 
     if (rTotaleAssegnato) {
-        if (totaleResiduoAssegnato < 0) {
-            rTotaleAssegnato.textContent = `-€ ${formatValutaEuro(Math.abs(totaleResiduoAssegnato))}`;
+        if (totaleAssegnato < 0) {
+            rTotaleAssegnato.textContent = `-€ ${formatValutaEuro(Math.abs(totaleAssegnato))}`;
             rTotaleAssegnato.className = 'text-xl font-black text-rose-400 font-mono';
         } else {
-            rTotaleAssegnato.textContent = `€ ${formatValutaEuro(totaleResiduoAssegnato)}`;
+            rTotaleAssegnato.textContent = `€ ${formatValutaEuro(totaleAssegnato)}`;
             rTotaleAssegnato.className = 'text-xl font-black text-emerald-400 font-mono';
         }
     }
@@ -13572,15 +13620,26 @@ window.salvaSuddivisioneProfitto = salvaSuddivisioneProfitto;
  */
 async function caricaSuddivisioneConti(targetLottoId) {
     try {
-        if (targetLottoId !== undefined && targetLottoId !== null && targetLottoId !== '') {
+        if (targetLottoId === 'active' || targetLottoId === null) {
+            currentSelectedProfitLottoId = null;
+        } else if (targetLottoId !== undefined && targetLottoId !== '') {
             currentSelectedProfitLottoId = Number(targetLottoId);
         }
 
-        const url = (currentSelectedProfitLottoId !== null && currentSelectedProfitLottoId !== undefined)
+        const url = (currentSelectedProfitLottoId !== null && currentSelectedProfitLottoId !== undefined && !isNaN(currentSelectedProfitLottoId))
             ? `/api/profit-splits?lotto_id=${encodeURIComponent(currentSelectedProfitLottoId)}`
             : '/api/profit-splits';
 
         const response = await fetch(url);
+        if (!response.ok) {
+            console.warn("Risposta HTTP non ok per /api/profit-splits:", response.status);
+            return;
+        }
+        const ct = response.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) {
+            console.warn("Risposta non JSON per /api/profit-splits");
+            return;
+        }
         const data = await response.json();
 
         if (data.success) {
@@ -13588,7 +13647,7 @@ async function caricaSuddivisioneConti(targetLottoId) {
             const summary = data.summary || {};
 
             // Recupera lotto_id, modalità e percentuali salvate per il lotto
-            currentProfitSplitLottoId = summary.lotto_id || currentSelectedProfitLottoId || 1;
+            currentProfitSplitLottoId = Number(summary.lotto_id || currentSelectedProfitLottoId || 1);
             profitSplitMode = (summary.split_mode === 'by_expenses') ? 'by_expenses' : 'manual';
 
             manualSavedSergioPct = (summary.manual_sergio_percentage !== undefined && summary.manual_sergio_percentage !== null)
@@ -13666,7 +13725,7 @@ function apriSuddivisioneProfittiLottoDaModale() {
  */
 function tornaAlLottoAttivoSuddivisione() {
     currentSelectedProfitLottoId = null;
-    caricaSuddivisioneConti();
+    caricaSuddivisioneConti('active');
 }
 
 /**
@@ -14006,7 +14065,15 @@ async function salvaModificaSuddivisione() {
             orderSelectionMode = null;
             chiudiModalModificaSuddivisione();
             switchTab('suddivisione-conti');
-            await caricaSuddivisioneConti();
+            await caricaSuddivisioneConti(currentProfitSplitLottoId);
+            await caricaLotto();
+            await caricaCronologiaLotti();
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard();
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
         } else {
             showToast("⚠️ " + (data.error || "Impossibile salvare la modifica."), "error");
         }
@@ -14039,7 +14106,15 @@ async function eliminaModificaSuddivisione(orderId) {
         const data = await response.json();
         if (data.success) {
             showToast("✅ Modifica rimossa. Suddivisione ripristinata a 50/50.", "success");
-            await caricaSuddivisioneConti();
+            await caricaSuddivisioneConti(currentProfitSplitLottoId);
+            await caricaLotto();
+            await caricaCronologiaLotti();
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard();
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
         } else {
             showToast("Errore durante l'eliminazione: " + (data.error || "Errore sconosciuto"), "error");
         }
@@ -14318,7 +14393,15 @@ async function salvaSpesaExtra() {
     });
 
     const spesaId = idInput ? idInput.value.trim() : '';
-    const lotId = (profitSplitData && profitSplitData.summary && profitSplitData.summary.lotto_id) || currentProfitSplitLottoId || 1;
+    const lotId = Number((profitSplitData && profitSplitData.summary && profitSplitData.summary.lotto_id) || currentProfitSplitLottoId || (window.currentLottoData && window.currentLottoData.id));
+    if (!lotId || isNaN(lotId) || lotId <= 0) {
+        showToast("Impossibile determinare il lotto di appartenenza della spesa.", "error");
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>💾</span> Salva Spesa`;
+        }
+        return;
+    }
 
     if (btn) {
         btn.disabled = true;
@@ -14344,7 +14427,15 @@ async function salvaSpesaExtra() {
         if (data.success) {
             showToast("✅ Spesa extra registrata con successo.", "success");
             chiudiModalSpesaExtra();
-            await caricaSuddivisioneConti();
+            await caricaSuddivisioneConti(currentProfitSplitLottoId);
+            await caricaLotto();
+            await caricaCronologiaLotti();
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard();
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
         } else {
             showToast("⚠️ " + (data.error || "Impossibile salvare la spesa extra."), "error");
         }
@@ -14377,7 +14468,15 @@ async function eliminaSpesaExtra(spesaId) {
         const data = await response.json();
         if (data.success) {
             showToast("✅ Spesa extra eliminata.", "success");
-            await caricaSuddivisioneConti();
+            await caricaSuddivisioneConti(currentProfitSplitLottoId);
+            await caricaLotto();
+            await caricaCronologiaLotti();
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard();
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
         } else {
             showToast("Errore durante l'eliminazione: " + (data.error || "Errore sconosciuto"), "error");
         }
