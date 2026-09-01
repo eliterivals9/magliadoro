@@ -1004,6 +1004,14 @@ body {
         .btn-conferma-carrello { width: 100%; background: var(--gold-gradient); color: #000000; border: none; padding: 15px; border-radius: var(--radius-m); font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(214, 164, 58, 0.2); transition: all 0.2s; }
         .btn-conferma-carrello:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
+        /* Overlay Backdrop Carrello */
+        .overlay-carrello {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(6, 6, 6, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 298; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .overlay-carrello.attivo {
+            opacity: 1; visibility: visible; pointer-events: auto;
+        }
+
         /* Sidebar Carrello (Glassmorphism Slide) */
         .sidebar-carrello {
             position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px; height: 100%; background-color: rgba(18, 18, 18, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: -15px 0 50px rgba(0, 0, 0, 0.7); z-index: 299; transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 30px; display: flex; flex-direction: column; box-sizing: border-box; border-left: 1px solid rgba(214, 164, 58, 0.15);
@@ -1060,6 +1068,120 @@ body {
             color: #000000;
             border-color: var(--primary);
             box-shadow: var(--gold-glow);
+        }
+
+        /* ========================================================
+           STILI PREMIUM PAGINAZIONE (Maglia d'Oro)
+           ======================================================== */
+        .contenitore-paginazione {
+            grid-column: 1 / -1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin: 30px 0 16px 0;
+            padding: 16px 0;
+        }
+
+        .info-paginazione-badge {
+            font-size: 12.5px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            padding: 5px 14px;
+            border-radius: var(--radius-full, 9999px);
+            letter-spacing: 0.3px;
+        }
+
+        .wrapper-tasti-paginazione {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-paginazione {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.85);
+            background-color: #121212;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-m, 8px);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            line-height: 1;
+            outline: none;
+        }
+
+        .btn-paginazione:hover {
+            border-color: rgba(214, 164, 58, 0.45);
+            background-color: rgba(214, 164, 58, 0.08);
+            color: var(--primary, #d6a43a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(214, 164, 58, 0.15);
+        }
+
+        .btn-paginazione:active {
+            transform: translateY(0);
+        }
+
+        .btn-paginazione.attivo {
+            background: var(--gold-gradient, linear-gradient(135deg, #d6a43a 0%, #f6e07a 50%, #b8860b 100%)) !important;
+            color: #000000 !important;
+            border-color: #f6e07a !important;
+            box-shadow: var(--gold-glow, 0 0 16px rgba(214, 164, 58, 0.35)) !important;
+            font-weight: 800;
+            pointer-events: none;
+        }
+
+        .btn-paginazione-nav {
+            padding: 0 15px;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+        }
+
+        .dots-paginazione {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 40px;
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 2px;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .btn-paginazione {
+                min-width: 38px;
+                height: 38px;
+                padding: 0 10px;
+                font-size: 13px;
+            }
+            .btn-paginazione-nav {
+                padding: 0 12px;
+                font-size: 12px;
+            }
+            .wrapper-tasti-paginazione {
+                gap: 6px;
+            }
+            .contenitore-paginazione {
+                margin: 22px 0 12px 0;
+            }
         }
 
         /* Barra di ricerca Premium */
@@ -5471,12 +5593,15 @@ body {
             <div id="filtri-squadra-container" style="display: none; margin-bottom: 30px; background: var(--surface); padding: 16px; border-radius: var(--radius-l); border: 1px solid var(--outline-variant); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
                 <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
                     <button class="btn-filtro-categoria attivo" data-categoria="tutti" onclick="impostaFiltroCategoria('tutti')">Tutto</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Completi</button>
-                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
+                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Club</button>
                     <button class="btn-filtro-categoria" data-categoria="player" onclick="impostaFiltroCategoria('player')">Player Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
-                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tute</button>
+                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
                     <button class="btn-filtro-categoria" data-categoria="retro" onclick="impostaFiltroCategoria('retro')">Maglie Retro</button>
+                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
+                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tuta</button>
+                    <button class="btn-filtro-categoria" data-categoria="polo" onclick="impostaFiltroCategoria('polo')">Polo</button>
+                    <button class="btn-filtro-categoria" data-categoria="smanicati" onclick="impostaFiltroCategoria('smanicati')">Smanicati</button>
+                    <button class="btn-filtro-categoria" data-categoria="maniche lunghe" onclick="impostaFiltroCategoria('maniche lunghe')">Maniche Lunghe</button>
                     <button class="btn-filtro-categoria" data-categoria="kit bambino" onclick="impostaFiltroCategoria('kit bambino')">Kit Bambino</button>
                 </div>
             </div>
@@ -5526,12 +5651,15 @@ body {
             <div id="filtri-nazionali-container" style="display: none; margin-bottom: 30px; background: var(--surface); padding: 16px; border-radius: var(--radius-l); border: 1px solid var(--outline-variant); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
                 <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
                     <button class="btn-filtro-categoria attivo" data-categoria="tutti" onclick="impostaFiltroCategoria('tutti')">Tutto</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Completi</button>
-                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
+                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Club</button>
                     <button class="btn-filtro-categoria" data-categoria="player" onclick="impostaFiltroCategoria('player')">Player Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
-                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tute</button>
+                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
                     <button class="btn-filtro-categoria" data-categoria="retro" onclick="impostaFiltroCategoria('retro')">Maglie Retro</button>
+                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
+                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tuta</button>
+                    <button class="btn-filtro-categoria" data-categoria="polo" onclick="impostaFiltroCategoria('polo')">Polo</button>
+                    <button class="btn-filtro-categoria" data-categoria="smanicati" onclick="impostaFiltroCategoria('smanicati')">Smanicati</button>
+                    <button class="btn-filtro-categoria" data-categoria="maniche lunghe" onclick="impostaFiltroCategoria('maniche lunghe')">Maniche Lunghe</button>
                     <button class="btn-filtro-categoria" data-categoria="kit bambino" onclick="impostaFiltroCategoria('kit bambino')">Kit Bambino</button>
                 </div>
             </div>
@@ -7325,7 +7453,7 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         </div>
     </div>
 
-    <div class="modal-personalizza" id="modal-personalizza">
+    <div class="modal-personalizza" id="modal-personalizza" onclick="if(event.target === this) chiudiPersonalizzazione()">
         <div class="modal-content">
             <button class="btn-chiudi-modal" onclick="chiudiPersonalizzazione()">✕</button>
             <h4 id="modal-titolo-squadra">Personalizza il Kit</h4>
@@ -7361,6 +7489,9 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
             <button class="btn-conferma-carrello" onclick="aggiungiProdottoConfigurato()">Aggiungi al Carrello</button>
         </div>
     </div>
+
+    <!-- OVERLAY BACKDROP CARRELLO -->
+    <div class="overlay-carrello" id="overlay-carrello" onclick="toggleCarrello()"></div>
 
     <!-- SIDEBAR CARRELLO -->
     <div class="sidebar-carrello" id="sidebar-carrello">
@@ -7413,7 +7544,15 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         var databaseCaricamentoErrore = false;
         var caricaProdottiPromise = null;
         var sessioneUtente = null;
-        window.sessioneUtente = null;
+        try {
+            const rawSavedSession = localStorage.getItem('maglia_doro_user_session');
+            if (rawSavedSession) {
+                sessioneUtente = JSON.parse(rawSavedSession);
+            }
+        } catch (e) {
+            console.warn("Impossibile caricare sessione da storage locale:", e);
+        }
+        window.sessioneUtente = sessioneUtente;
 
         let indexInModifica = null;
         let couponApplicato = null;
@@ -8218,6 +8357,9 @@ function chiudiZoomImmagine(){
                 }
 
                 // AGGIORNAMENTO AUTOMATICO DI TUTTI I COMPONENTI E DELLE VISTE ATTIVE
+                if (typeof renderizzaFiltriCatalogoPubblici === 'function') {
+                    renderizzaFiltriCatalogoPubblici();
+                }
                 if (typeof inizializzaCarouselNuoviArrivi === 'function') {
                     inizializzaCarouselNuoviArrivi();
                 }
@@ -8858,6 +9000,9 @@ for (const cat in hierarchy) {
         }
 
         window.onload = async function() {
+            if (typeof caricaSettingsEFiltriPubblici === 'function') {
+                await caricaSettingsEFiltriPubblici();
+            }
             await caricaProdottiDaDatabase();
             inizializzaCarouselNuoviArrivi();
             await caricaNavigazioneDinamica();
@@ -10061,12 +10206,12 @@ if (valoreLega === 'tutti') {
             chiudiTuttiIDropdown();
         }
 
-                function generaHTMLPaginazione(currentPage, totalPages, totalItems, from, to, callbackFn) {
+        function generaHTMLPaginazione(currentPage, totalPages, totalItems, from, to, callbackFn) {
             if (totalPages <= 1) return '';
             let buttonsHtml = '';
             
             if (currentPage > 1) {
-                buttonsHtml += '<button class="btn-paginazione" onclick="' + callbackFn + '(' + (currentPage - 1) + ')">‹ Prec</button>';
+                buttonsHtml += '<button class="btn-paginazione btn-paginazione-nav" onclick="' + callbackFn + '(' + (currentPage - 1) + ')">‹ Prec</button>';
             }
             
             for (let p = 1; p <= totalPages; p++) {
@@ -10074,17 +10219,17 @@ if (valoreLega === 'tutti') {
                     const activeClass = p === currentPage ? 'attivo' : '';
                     buttonsHtml += '<button class="btn-paginazione ' + activeClass + '" onclick="' + callbackFn + '(' + p + ')">' + p + '</button>';
                 } else if (p === currentPage - 3 || p === currentPage + 3) {
-                    buttonsHtml += '<span class="dots-paginazione" style="color: var(--on-surface-de-emphasis); padding: 0 4px;">...</span>';
+                    buttonsHtml += '<span class="dots-paginazione">...</span>';
                 }
             }
             
             if (currentPage < totalPages) {
-                buttonsHtml += '<button class="btn-paginazione" onclick="' + callbackFn + '(' + (currentPage + 1) + ')">Succ ›</button>';
+                buttonsHtml += '<button class="btn-paginazione btn-paginazione-nav" onclick="' + callbackFn + '(' + (currentPage + 1) + ')">Succ ›</button>';
             }
             
-            return '<div class="contenitore-paginazione" style="grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 25px 0 10px 0;">' +
-                '<div style="font-size: 12px; color: var(--on-surface-de-emphasis);">Mostrati ' + from + '-' + to + ' di ' + totalItems + ' articoli</div>' +
-                '<div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center;">' + buttonsHtml + '</div>' +
+            return '<div class="contenitore-paginazione">' +
+                '<div class="info-paginazione-badge">Mostrati <strong style="color: var(--primary, #d6a43a);">' + from + '-' + to + '</strong> di <strong style="color: #ffffff;">' + totalItems + '</strong> articoli</div>' +
+                '<div class="wrapper-tasti-paginazione">' + buttonsHtml + '</div>' +
             '</div>';
         }
         window.generaHTMLPaginazione = generaHTMLPaginazione;
@@ -10364,11 +10509,28 @@ function renderizzaProdottiSquadraConFiltri() {
                 const data = await res.json();
                 if (data && data.success && data.settings) {
                     window.appSettings = data.settings;
-                    renderizzaFiltriCatalogoPubblici();
                 }
             } catch (e) {
-                console.warn("⚠️ Impossibile caricare filtri catalogo da /api/settings:", e);
+                console.warn("⚠️ Impossibile caricare filtri catalogo da /api/settings (uso fallback locale):", e);
             }
+            renderizzaFiltriCatalogoPubblici();
+        }
+        window.caricaSettingsEFiltriPubblici = caricaSettingsEFiltriPubblici;
+
+        function ottieniChiaveCanonicoFiltro(nome) {
+            const lower = (nome || '').toLowerCase().trim();
+            if (lower === 'tutti' || lower === 'tutto') return 'tutti';
+            if (lower === 'kit' || lower === 'kit club' || lower === 'kit completi' || lower === 'kit completo') return 'kit';
+            if (lower === 'fan' || lower === 'fan version' || lower === 'versione fan') return 'fan';
+            if (lower === 'player' || lower === 'player version' || lower === 'versione player') return 'player';
+            if (lower === 'retro' || lower === 'retrò' || lower === 'maglie retro' || lower === 'maglia retro') return 'retro';
+            if (lower === 'kit allenamento' || lower === 'allenamento' || lower === 'kit training' || lower === 'training') return 'kit allenamento';
+            if (lower === 'tuta' || lower === 'tute' || lower === 'tuta completa') return 'tuta';
+            if (lower === 'polo') return 'polo';
+            if (lower === 'smanicati' || lower === 'smanicato') return 'smanicati';
+            if (lower === 'maniche lunghe' || lower === 'manica lunga') return 'maniche lunghe';
+            if (lower === 'kit bambino' || lower === 'bambino' || lower === 'kids' || lower === 'kid') return 'kit bambino';
+            return lower;
         }
 
         function renderizzaFiltriCatalogoPubblici() {
@@ -10382,7 +10544,7 @@ function renderizzaProdottiSquadraConFiltri() {
             }
 
             let filtriCatalogoExtra = [];
-            if (Array.isArray(window.appSettings.filtriCatalogo)) {
+            if (Array.isArray(window.appSettings.filtriCatalogo) && window.appSettings.filtriCatalogo.length > 0) {
                 filtriCatalogoExtra = window.appSettings.filtriCatalogo
                     .filter(f => f.stato === 'attivo' || f.attivo !== false)
                     .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
@@ -10391,36 +10553,44 @@ function renderizzaProdottiSquadraConFiltri() {
             const listaFiltri = [{ nome: 'Tutto', key: 'tutti' }];
             const keysAggiunte = new Set(['tutti']);
 
-            // 1. Categorie dalle Regole Prezzi / Impostazioni
-            categorieConfigurate.forEach(cat => {
-                const nome = (cat.nome || '').trim();
-                const key = nome.toLowerCase();
-                if (nome && !keysAggiunte.has(key)) {
-                    keysAggiunte.add(key);
-                    listaFiltri.push({ nome, key });
-                }
-            });
-
-            // 2. Filtri catalogo dalle Impostazioni
-            filtriCatalogoExtra.forEach(filtro => {
-                const nome = (filtro.nome || '').trim();
-                const key = nome.toLowerCase();
-                if (nome && !keysAggiunte.has(key)) {
-                    keysAggiunte.add(key);
-                    listaFiltri.push({ nome, key });
-                }
-            });
-
-            // 3. Eventuali ulteriori categorie presenti nei prodotti del database
-            if (window.databaseProdotti && Array.isArray(window.databaseProdotti)) {
-                window.databaseProdotti.forEach(p => {
-                    const catName = (p.categoria || '').trim();
-                    if (catName && catName !== '__coupon__') {
-                        const key = catName.toLowerCase();
-                        if (!keysAggiunte.has(key)) {
-                            keysAggiunte.add(key);
-                            listaFiltri.push({ nome: catName, key });
-                        }
+            // 1. Categorie attive dalle Impostazioni (Admin Source of Truth)
+            if (categorieConfigurate.length > 0) {
+                categorieConfigurate.forEach(cat => {
+                    const nome = (cat.nome || '').trim();
+                    const key = ottieniChiaveCanonicoFiltro(nome);
+                    if (nome && !keysAggiunte.has(key)) {
+                        keysAggiunte.add(key);
+                        listaFiltri.push({ nome, key, ordine: Number(cat.ordine) || 99 });
+                    }
+                });
+            } else if (filtriCatalogoExtra.length > 0) {
+                // 2. Filtri catalogo dalle Impostazioni se categorie non presenti
+                filtriCatalogoExtra.forEach(filtro => {
+                    const nome = (filtro.nome || '').trim();
+                    const key = ottieniChiaveCanonicoFiltro(nome);
+                    if (nome && key !== 'tutti' && !keysAggiunte.has(key)) {
+                        keysAggiunte.add(key);
+                        listaFiltri.push({ nome, key, ordine: Number(filtro.ordine) || 99 });
+                    }
+                });
+            } else {
+                // Fallback di sola emergenza in caso di API non raggiungibile al primo render
+                const defaultEmergenza = [
+                    { nome: 'Kit Club', key: 'kit', ordine: 1 },
+                    { nome: 'Player Version', key: 'player', ordine: 2 },
+                    { nome: 'Fan Version', key: 'fan', ordine: 3 },
+                    { nome: 'Maglie Retro', key: 'retro', ordine: 4 },
+                    { nome: 'Kit Allenamento', key: 'kit allenamento', ordine: 5 },
+                    { nome: 'Tuta', key: 'tuta', ordine: 6 },
+                    { nome: 'Polo', key: 'polo', ordine: 7 },
+                    { nome: 'Smanicati', key: 'smanicati', ordine: 8 },
+                    { nome: 'Maniche Lunghe', key: 'maniche lunghe', ordine: 9 },
+                    { nome: 'Kit Bambino', key: 'kit bambino', ordine: 10 }
+                ];
+                defaultEmergenza.forEach(def => {
+                    if (!keysAggiunte.has(def.key)) {
+                        keysAggiunte.add(def.key);
+                        listaFiltri.push(def);
                     }
                 });
             }
@@ -10431,28 +10601,31 @@ function renderizzaProdottiSquadraConFiltri() {
                 listaFiltri.forEach(item => {
                     const rawName = item.nome;
                     const valAttr = item.key;
-                    const isSelected = (filtroCategoriaCorrente || 'tutti').toLowerCase() === valAttr;
+                    const curCatNorm = ottieniChiaveCanonicoFiltro(filtroCategoriaCorrente || 'tutti');
+                    const isSelected = curCatNorm === valAttr;
                     const activeClass = isSelected ? 'attivo' : '';
                     
                     let label = rawName;
-                    const lower = label.toLowerCase();
+                    const lower = valAttr;
                     if (lower === 'tutti' || lower === 'tutto') label = 'Tutto';
                     else if (lower === 'kit') label = 'Kit Club';
                     else if (lower === 'fan') label = 'Fan Version';
                     else if (lower === 'player') label = 'Player Version';
-                    else if (lower === 'retro' || lower === 'retrò') label = 'Maglie Retro';
-                    else if (lower === 'kit allenamento' || lower === 'allenamento' || lower === 'kit training') label = 'Kit Allenamento';
-                    else if (lower === 'tuta' || lower === 'tute') label = 'Tuta';
+                    else if (lower === 'retro') label = 'Maglie Retro';
+                    else if (lower === 'kit allenamento') label = 'Kit Allenamento';
+                    else if (lower === 'tuta') label = 'Tuta';
                     else if (lower === 'polo') label = 'Polo';
-                    else if (lower === 'smanicati' || lower === 'smanicato') label = 'Smanicati';
-                    else if (lower === 'maniche lunghe' || lower === 'manica lunga') label = 'Maniche lunghe';
-                    else if (lower === 'kit bambino' || lower === 'bambino') label = 'Kit Bambino';
+                    else if (lower === 'smanicati') label = 'Smanicati';
+                    else if (lower === 'maniche lunghe') label = 'Maniche Lunghe';
+                    else if (lower === 'kit bambino') label = 'Kit Bambino';
                     
                     htmlBtns += `<button class="btn-filtro-categoria ${activeClass}" data-categoria="${valAttr}" onclick="impostaFiltroCategoria('${valAttr}')">${label}</button>`;
                 });
                 container.innerHTML = htmlBtns;
             });
+            aggiornaGraficaFiltriAttivi();
         }
+        window.renderizzaFiltriCatalogoPubblici = renderizzaFiltriCatalogoPubblici;
 
         function impostaFiltroCategoria(categoria) {
             paginaCorrenteCatalogo = 1;
@@ -10918,8 +11091,13 @@ function renderizzaProdottiSquadraConFiltri() {
 
         function toggleCarrello() { 
             const sidebar = document.getElementById('sidebar-carrello');
+            const overlay = document.getElementById('overlay-carrello');
+            if (!sidebar) return;
             const staAprendo = !sidebar.classList.contains('aperto');
             sidebar.classList.toggle('aperto'); 
+            if (overlay) {
+                overlay.classList.toggle('attivo', sidebar.classList.contains('aperto'));
+            }
             if (staAprendo) {
                 selezionaProdottoSuggerito();
                 aggiornaGraficaCarrello();
@@ -11371,7 +11549,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
 // Calcolo spedizione (gratuita sopra 50€)
             const sogliaSpedizioneGratis = 50.0;
-            const costoSpedizioneStandard = 4.99;
+            const costoSpedizioneStandard = 2.00;
             let spedizioneGratis = subtotale >= sogliaSpedizioneGratis;
             let costoSpedizione = spedizioneGratis ? 0 : costoSpedizioneStandard;
 
@@ -11570,6 +11748,95 @@ function renderizzaProdottiSquadraConFiltri() {
         }
         window.processaAcquistoDatabase = processaAcquistoDatabase;
 
+        // Customer Notification Toast
+        function mostraToastPremium(messaggio, tipo = 'info') {
+            let container = document.getElementById('premium-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'premium-toast-container';
+                container.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 90vw; width: 380px;';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.style.cssText = 'pointer-events: auto; padding: 14px 18px; border-radius: 12px; font-size: 13.5px; font-weight: 600; line-height: 1.4; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); opacity: 0; transform: translateY(-10px);';
+
+            let iconName = 'info';
+            let bgColor = 'rgba(24, 24, 27, 0.95)';
+            let borderColor = 'rgba(255, 255, 255, 0.15)';
+            let textColor = '#ffffff';
+            let iconColor = 'var(--primary)';
+
+            if (tipo === 'success') {
+                iconName = 'check_circle';
+                bgColor = 'rgba(16, 185, 129, 0.18)';
+                borderColor = 'rgba(16, 185, 129, 0.4)';
+                iconColor = '#10B981';
+                textColor = '#ecfdf5';
+            } else if (tipo === 'error') {
+                iconName = 'error';
+                bgColor = 'rgba(239, 68, 68, 0.18)';
+                borderColor = 'rgba(239, 68, 68, 0.4)';
+                iconColor = '#EF4444';
+                textColor = '#fef2f2';
+            } else if (tipo === 'warning') {
+                iconName = 'warning';
+                bgColor = 'rgba(245, 158, 11, 0.18)';
+                borderColor = 'rgba(245, 158, 11, 0.4)';
+                iconColor = '#F59E0B';
+                textColor = '#fffbeb';
+            }
+
+            toast.style.background = bgColor;
+            toast.style.border = `1px solid ${borderColor}`;
+            toast.style.color = textColor;
+
+            toast.innerHTML = `
+                <span class="material-icons" style="color: ${iconColor}; font-size: 20px; flex-shrink: 0;">${iconName}</span>
+                <span style="flex-grow: 1;">${messaggio}</span>
+                <span style="cursor: pointer; opacity: 0.6; font-size: 16px; margin-left: 6px;" onclick="this.parentElement.remove()">✕</span>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+        window.mostraToastPremium = mostraToastPremium;
+
+        // Customer Supabase Client Helper
+        let _customerSupabaseClient = null;
+        async function getCustomerSupabaseClient() {
+            if (_customerSupabaseClient) return _customerSupabaseClient;
+            try {
+                const res = await fetch('/api/config');
+                if (res.ok) {
+                    const cfg = await res.json();
+                    if (cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase && typeof window.supabase.createClient === 'function') {
+                        _customerSupabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
+                            auth: {
+                                persistSession: true,
+                                autoRefreshToken: true,
+                                storageKey: 'sb-customer-auth-token'
+                            }
+                        });
+                        return _customerSupabaseClient;
+                    }
+                }
+            } catch (err) {
+                console.warn("Impossibile inizializzare Supabase client cliente:", err);
+            }
+            return null;
+        }
+        window.getCustomerSupabaseClient = getCustomerSupabaseClient;
+
         // Auth Modal handlers
         function apriAuthPopup(tab = 'login') {
             const modal = document.getElementById('modal-auth');
@@ -11624,41 +11891,227 @@ function renderizzaProdottiSquadraConFiltri() {
         window.toggleMostraPassword = toggleMostraPassword;
 
         function apriRecuperoPassword() {
-            if (window.mostraToastPremium) {
-                window.mostraToastPremium("Funzione di recupero password inviata via email.", "info");
-            } else {
-                alert("Funzione di recupero password inviata via email.");
+            chiudiAuth();
+            const modalRecupero = document.getElementById('modal-recupero-password');
+            if (modalRecupero) {
+                modalRecupero.style.display = 'flex';
+                const alertBox = document.getElementById('recupero-alert-box');
+                if (alertBox) alertBox.style.display = 'none';
+                const emailInput = document.getElementById('recupero-email');
+                if (emailInput) {
+                    const loginEmail = document.getElementById('login-email')?.value;
+                    if (loginEmail) emailInput.value = loginEmail;
+                }
             }
         }
         window.apriRecuperoPassword = apriRecuperoPassword;
+
+        function chiudiRecuperoPassword() {
+            const modalRecupero = document.getElementById('modal-recupero-password');
+            if (modalRecupero) modalRecupero.style.display = 'none';
+        }
+        window.chiudiRecuperoPassword = chiudiRecuperoPassword;
+
+        async function eseguiRecuperoPassword(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const email = (document.getElementById('recupero-email')?.value || '').trim();
+            const alertBox = document.getElementById('recupero-alert-box');
+            const btnSubmit = document.getElementById('btn-recupero-submit');
+
+            if (!email) return;
+
+            try {
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerText = "Invio in corso...";
+                }
+                const client = await getCustomerSupabaseClient();
+                if (client) {
+                    const { error } = await client.auth.resetPasswordForEmail(email);
+                    if (error) throw error;
+                }
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+                    alertBox.style.color = '#10B981';
+                    alertBox.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                    alertBox.innerText = "Email inviata! Se l'account esiste riceverai le istruzioni per reimpostare la password.";
+                }
+                setTimeout(() => {
+                    chiudiRecuperoPassword();
+                }, 3000);
+            } catch (err) {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                    alertBox.style.color = '#EF4444';
+                    alertBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                    alertBox.innerText = err.message || "Errore durante l'invio dell'email di recupero.";
+                }
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Invia Link";
+                }
+            }
+        }
+        window.eseguiRecuperoPassword = eseguiRecuperoPassword;
+
+        function aggiornaUIAutenticazioneCliente() {
+            const utenteContainer = document.getElementById('utente-container');
+            if (utenteContainer) {
+                if (sessioneUtente && sessioneUtente.email) {
+                    const nomeVisualizzato = sessioneUtente.nome_completo || sessioneUtente.email.split('@')[0];
+                    utenteContainer.innerHTML = `
+                        <div class="icona-utente utente-loggato" onclick="mostraSezioneCompleta('area-cliente')" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--primary);">
+                            <span class="material-icons" style="font-size: 18px;">account_circle</span>
+                            <span id="header-user-name">${nomeVisualizzato}</span>
+                        </div>
+                    `;
+                } else {
+                    utenteContainer.innerHTML = `
+                        <div class="icona-utente" onclick="apriAuthPopup('login')" style="cursor: pointer;">
+                            👤 Accedi
+                        </div>
+                    `;
+                }
+            }
+
+            // Update Area Cliente user names
+            const nome = sessioneUtente ? (sessioneUtente.nome_completo || sessioneUtente.email.split('@')[0]) : 'Utente';
+            document.querySelectorAll('.ac-utente-nome-display').forEach(el => {
+                el.innerText = 'Ciao, ' + nome;
+            });
+            document.querySelectorAll('.ac-saluto-utente').forEach(el => {
+                el.innerText = '👋 Ciao, ' + nome;
+            });
+
+            // Populate profile inputs
+            if (sessioneUtente) {
+                const inputNome = document.getElementById('ac-input-nome');
+                const inputCognome = document.getElementById('ac-input-cognome');
+                const inputEmail = document.getElementById('ac-input-email');
+                const inputTelefono = document.getElementById('ac-input-telefono');
+
+                if (inputEmail) inputEmail.value = sessioneUtente.email || '';
+                if (inputNome && !inputNome.value) {
+                    inputNome.value = sessioneUtente.user_metadata?.nome || sessioneUtente.nome_completo?.split(' ')[0] || '';
+                }
+                if (inputCognome && !inputCognome.value) {
+                    inputCognome.value = sessioneUtente.user_metadata?.cognome || sessioneUtente.nome_completo?.split(' ').slice(1).join(' ') || '';
+                }
+                if (inputTelefono && !inputTelefono.value) {
+                    inputTelefono.value = sessioneUtente.user_metadata?.telefono || sessioneUtente.user_metadata?.phone || '';
+                }
+
+                // Cart prefill
+                const clienteNome = document.getElementById('cliente-nome');
+                if (clienteNome && !clienteNome.value) {
+                    clienteNome.value = sessioneUtente.nome_completo || '';
+                }
+            }
+        }
+        window.aggiornaUIAutenticazioneCliente = aggiornaUIAutenticazioneCliente;
 
         async function eseguiLogin(e) {
             if (e && e.preventDefault) e.preventDefault();
             const email = (document.getElementById('login-email')?.value || '').trim();
             const password = (document.getElementById('login-password')?.value || '').trim();
             const alertBox = document.getElementById('auth-alert-box');
+            const btnSubmit = document.getElementById('btn-login-submit');
 
-            if (!email || !password) return;
+            if (!email || !password) {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                    alertBox.style.color = '#EF4444';
+                    alertBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                    alertBox.innerText = 'Inserisci sia email che password per accedere.';
+                }
+                return;
+            }
+
+            if (alertBox) alertBox.style.display = 'none';
 
             try {
-                sessioneUtente = {
-                    id: 'usr_' + Date.now(),
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerText = "Accesso in corso...";
+                }
+
+                const client = await getCustomerSupabaseClient();
+                if (!client) {
+                    throw new Error("Impossibile connettersi al servizio di autenticazione. Verifica la connessione.");
+                }
+
+                const { data, error } = await client.auth.signInWithPassword({
                     email: email,
-                    nome_completo: email.split('@')[0],
-                    access_token: 'tok_' + Date.now()
+                    password: password
+                });
+
+                if (error) {
+                    let errorMsg = "Credenziali non valide. Verifica l'indirizzo email e la password inseriti.";
+                    const rawMsg = (error.message || '').toLowerCase();
+                    if (rawMsg.includes('email not confirmed')) {
+                        errorMsg = "Indirizzo email non ancora confermato. Controlla la tua casella di posta per confermare l'account.";
+                    } else if (rawMsg.includes('too many requests')) {
+                        errorMsg = "Troppi tentativi falliti. Riprova tra qualche minuto.";
+                    } else if (rawMsg.includes('invalid login credentials')) {
+                        errorMsg = "Credenziali non valide. Verifica l'indirizzo email e la password inseriti.";
+                    } else if (rawMsg.includes('user not found')) {
+                        errorMsg = "Nessun account associato a questo indirizzo email.";
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                if (!data || !data.user) {
+                    throw new Error("Impossibile completare l'autenticazione. Riprova.");
+                }
+
+                const user = data.user;
+                const session = data.session;
+                const meta = user.user_metadata || {};
+                const fullName = meta.full_name || 
+                                 (meta.nome ? `${meta.nome} ${meta.cognome || ''}`.trim() : null) || 
+                                 meta.first_name || 
+                                 email.split('@')[0];
+
+                sessioneUtente = {
+                    id: user.id,
+                    email: user.email,
+                    nome_completo: fullName,
+                    access_token: session ? session.access_token : 'tok_' + Date.now(),
+                    user_metadata: meta
                 };
                 window.sessioneUtente = sessioneUtente;
                 localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+
                 chiudiAuth();
+                aggiornaUIAutenticazioneCliente();
+
                 if (window.mostraToastPremium) {
                     window.mostraToastPremium("Accesso effettuato! Benvenuto " + sessioneUtente.nome_completo, "success");
+                }
+
+                if (typeof window.sincronizzaOrdiniCliente === 'function') {
+                    try {
+                        await window.sincronizzaOrdiniCliente();
+                    } catch (ordErr) {
+                        console.warn("Sincronizzazione ordini completata con avviso:", ordErr);
+                    }
                 }
             } catch(err) {
                 if (alertBox) {
                     alertBox.style.display = 'block';
-                    alertBox.style.background = 'rgba(239, 68, 68, 0.1)';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
                     alertBox.style.color = '#EF4444';
-                    alertBox.innerText = err.message || "Errore durante l'accesso.";
+                    alertBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                    alertBox.innerText = err.message || "Errore durante l'accesso. Verifica le credenziali.";
+                }
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Accedi";
                 }
             }
         }
@@ -11667,26 +12120,240 @@ function renderizzaProdottiSquadraConFiltri() {
         async function eseguiRegistrazione(e) {
             if (e && e.preventDefault) e.preventDefault();
             const nome = (document.getElementById('register-nome')?.value || '').trim();
+            const cognome = (document.getElementById('register-cognome')?.value || '').trim();
             const email = (document.getElementById('register-email')?.value || '').trim();
             const password = (document.getElementById('register-password')?.value || '').trim();
             const alertBox = document.getElementById('auth-alert-box');
+            const btnSubmit = document.getElementById('btn-register-submit');
 
-            if (!email || !password) return;
+            if (!email || !password) {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                    alertBox.style.color = '#EF4444';
+                    alertBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                    alertBox.innerText = 'Compila tutti i campi obbligatori per procedere.';
+                }
+                return;
+            }
 
-            sessioneUtente = {
-                id: 'usr_' + Date.now(),
-                email: email,
-                nome_completo: nome || email.split('@')[0],
-                access_token: 'tok_' + Date.now()
-            };
-            window.sessioneUtente = sessioneUtente;
-            localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
-            chiudiAuth();
-            if (window.mostraToastPremium) {
-                window.mostraToastPremium("Registrazione completata! Benvenuto " + sessioneUtente.nome_completo, "success");
+            if (alertBox) alertBox.style.display = 'none';
+
+            try {
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerText = "Registrazione in corso...";
+                }
+
+                const client = await getCustomerSupabaseClient();
+                if (!client) {
+                    throw new Error("Impossibile connettersi al servizio di registrazione. Verifica la connessione.");
+                }
+
+                const fullName = `${nome} ${cognome}`.trim() || email.split('@')[0];
+                const { data, error } = await client.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                            nome: nome,
+                            cognome: cognome
+                        }
+                    }
+                });
+
+                if (error) {
+                    let errorMsg = error.message;
+                    if (errorMsg.toLowerCase().includes('already registered')) {
+                        errorMsg = "Un account con questo indirizzo email è già registrato. Accedi con le tue credenziali.";
+                    } else if (errorMsg.toLowerCase().includes('password should be at least')) {
+                        errorMsg = "La password deve contenere almeno 6 caratteri.";
+                    }
+                    throw new Error(errorMsg);
+                }
+
+                if (data && data.session && data.user) {
+                    sessioneUtente = {
+                        id: data.user.id,
+                        email: data.user.email,
+                        nome_completo: fullName,
+                        access_token: data.session.access_token,
+                        user_metadata: {
+                            full_name: fullName,
+                            nome: nome,
+                            cognome: cognome
+                        }
+                    };
+                    window.sessioneUtente = sessioneUtente;
+                    localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                    chiudiAuth();
+                    aggiornaUIAutenticazioneCliente();
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium("Registrazione completata! Benvenuto " + sessioneUtente.nome_completo, "success");
+                    }
+                } else {
+                    if (alertBox) {
+                        alertBox.style.display = 'block';
+                        alertBox.style.background = 'rgba(16, 185, 129, 0.15)';
+                        alertBox.style.color = '#10B981';
+                        alertBox.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                        alertBox.innerText = "Account registrato! Controlla la tua email per confermare la registrazione e poi accedi.";
+                    }
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium("Registrazione effettuata. Controlla la tua casella email.", "info");
+                    }
+                }
+            } catch(err) {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.15)';
+                    alertBox.style.color = '#EF4444';
+                    alertBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                    alertBox.innerText = err.message || "Errore durante la registrazione.";
+                }
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = "Crea Account";
+                }
             }
         }
         window.eseguiRegistrazione = eseguiRegistrazione;
+
+        async function eseguiLogout(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            sessioneUtente = null;
+            window.sessioneUtente = null;
+            try {
+                localStorage.removeItem('maglia_doro_user_session');
+                const client = await getCustomerSupabaseClient();
+                if (client) {
+                    await client.auth.signOut({ scope: 'local' });
+                }
+            } catch(err) {
+                console.warn("Errore logout cliente:", err);
+            }
+            aggiornaUIAutenticazioneCliente();
+            
+            const acSezioni = ['area-cliente', 'i-miei-ordini', 'tracking', 'wishlist', 'profilo', 'impostazioni'];
+            const paginaAttiva = document.querySelector('.sezione-pagina.attiva');
+            if (paginaAttiva) {
+                const idPagina = paginaAttiva.id.replace('pagina-', '');
+                if (acSezioni.includes(idPagina)) {
+                    mostraSezioneCompleta('home');
+                }
+            }
+            
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium("Disconnessione effettuata con successo.", "info");
+            }
+        }
+        window.eseguiLogout = eseguiLogout;
+
+        async function salvaProfiloCliente(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (!sessioneUtente) {
+                apriAuthPopup('login');
+                return;
+            }
+            const nome = (document.getElementById('ac-input-nome')?.value || '').trim();
+            const cognome = (document.getElementById('ac-input-cognome')?.value || '').trim();
+            const telefono = (document.getElementById('ac-input-telefono')?.value || '').trim();
+            const newPassword = (document.getElementById('ac-input-password')?.value || '').trim();
+
+            try {
+                const client = await getCustomerSupabaseClient();
+                const fullName = `${nome} ${cognome}`.trim();
+                
+                if (client) {
+                    const updates = {
+                        data: {
+                            full_name: fullName,
+                            nome: nome,
+                            cognome: cognome,
+                            phone: telefono
+                        }
+                    };
+                    if (newPassword && newPassword.length >= 6) {
+                        updates.password = newPassword;
+                    }
+                    await client.auth.updateUser(updates);
+
+                    try {
+                        await client.from('profiles').upsert({
+                            id: sessioneUtente.id,
+                            nome: nome,
+                            cognome: cognome,
+                            email: sessioneUtente.email,
+                            telefono: telefono,
+                            updated_at: new Date().toISOString()
+                        });
+                    } catch (ignore) {}
+                }
+
+                sessioneUtente.nome_completo = fullName || sessioneUtente.nome_completo;
+                if (!sessioneUtente.user_metadata) sessioneUtente.user_metadata = {};
+                sessioneUtente.user_metadata.nome = nome;
+                sessioneUtente.user_metadata.cognome = cognome;
+                sessioneUtente.user_metadata.telefono = telefono;
+                sessioneUtente.user_metadata.full_name = fullName;
+
+                localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                aggiornaUIAutenticazioneCliente();
+
+                const pwdInput = document.getElementById('ac-input-password');
+                if (pwdInput) pwdInput.value = '';
+
+                mostraToastPremium("Profilo aggiornato con successo!", "success");
+            } catch (err) {
+                console.error("Errore salvataggio profilo:", err);
+                mostraToastPremium(err.message || "Errore durante l'aggiornamento del profilo.", "error");
+            }
+        }
+        window.salvaProfiloCliente = salvaProfiloCliente;
+
+        async function inizializzaSessioneCliente() {
+            try {
+                const saved = localStorage.getItem('maglia_doro_user_session');
+                if (saved) {
+                    sessioneUtente = JSON.parse(saved);
+                    window.sessioneUtente = sessioneUtente;
+                    aggiornaUIAutenticazioneCliente();
+                }
+                const client = await getCustomerSupabaseClient();
+                if (client) {
+                    const { data } = await client.auth.getSession();
+                    if (data && data.session && data.session.user) {
+                        const user = data.session.user;
+                        const meta = user.user_metadata || {};
+                        const fullName = meta.full_name || 
+                                         (meta.nome ? `${meta.nome} ${meta.cognome || ''}`.trim() : null) || 
+                                         meta.first_name || 
+                                         user.email.split('@')[0];
+                        sessioneUtente = {
+                            id: user.id,
+                            email: user.email,
+                            nome_completo: fullName,
+                            access_token: data.session.access_token,
+                            user_metadata: meta
+                        };
+                        window.sessioneUtente = sessioneUtente;
+                        localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                        aggiornaUIAutenticazioneCliente();
+                    }
+                }
+            } catch(err) {
+                console.warn("Errore inizializzazione sessione cliente:", err);
+            }
+        }
+        window.inizializzaSessioneCliente = inizializzaSessioneCliente;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inizializzaSessioneCliente);
+        } else {
+            inizializzaSessioneCliente();
+        }
 
         // Register implementations and drain bootstrap queue
         window._selezionaEFiltraClub_impl = selezionaEFiltraClub;

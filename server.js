@@ -1942,10 +1942,42 @@ async function getDbOrders() {
   return Array.from(mergedMap.values());
 }
 
+async function ensureLottoExistsInDb(lottoId) {
+  if (!lottoId || isNaN(Number(lottoId))) return;
+  const numId = Number(lottoId);
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+  try {
+    const { data: existing, error: selErr } = await supabase.from('lotti').select('id').eq('id', numId);
+    if (!selErr && (!existing || existing.length === 0)) {
+      await supabase.from('lotti').upsert({
+        id: numId,
+        numero_lotto: `Lotto #${numId}`,
+        archived_at: 'In corso',
+        numero_ordini: 0,
+        numero_articoli: 0,
+        incasso_totale_eur: 0,
+        costo_prodotti_usd: 0,
+        costo_spedizione_usd: 0,
+        costo_totale_usd: 0,
+        costo_totale_eur: 0,
+        profitto_eur: 0,
+        margine_percentuale: 0
+      });
+      console.log(`✅ [DB SYNC] Record placeholder per Lotto #${numId} verificato su Supabase 'lotti'.`);
+    }
+  } catch (err) {
+    console.warn(`⚠️ ensureLottoExistsInDb #${numId} warning:`, err.message);
+  }
+}
+
 async function insertDbOrder(order) {
   const supabase = getSupabaseClient();
   if (!supabase) {
     throw new Error("Supabase non è configurato.");
+  }
+  if (order.lotto_id !== undefined && order.lotto_id !== null && !isNaN(Number(order.lotto_id))) {
+    await ensureLottoExistsInDb(order.lotto_id);
   }
   const orderData = {
     data: order.data,
@@ -2240,27 +2272,38 @@ app.get('/api/proxy-image', async (req, res) => {
 const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 const DEFAULT_SETTINGS = {
   prezziPredefiniti: {
-    "Kit": 23.99,
-    "Player": 22.99,
-    "Fan": 22.99,
+    "Kit": 26.99,
+    "Player": 21.99,
+    "Fan": 21.99,
+    "Retro": 21.99,
     "Kit Allenamento": 25.99,
-    "Retro": 23.99,
     "Tuta": 44.99,
+    "Polo": 26.99,
+    "Smanicati": 26.99,
+    "Maniche Lunghe": 25.99,
     "Kit Bambino": 19.99
   },
   regolePrezzi: {
-    "Kit_Adulto": 23.99,
-    "Kit_Bambino": 19.99,
-    "Player_Adulto": 22.99,
+    "Kit_Adulto": 26.99,
+    "Kit_Bambino": 21.99,
+    "Player_Adulto": 21.99,
     "Player_Bambino": 19.99,
-    "Fan_Adulto": 22.99,
+    "Fan_Adulto": 21.99,
     "Fan_Bambino": 19.99,
+    "Retro_Adulto": 21.99,
+    "Retro_Bambino": 19.99,
     "Kit Allenamento_Adulto": 25.99,
     "Kit Allenamento_Bambino": 21.99,
     "Tuta_Adulto": 44.99,
     "Tuta_Bambino": 40.00,
-    "Retro_Adulto": 23.99,
-    "Retro_Bambino": 19.99
+    "Polo_Adulto": 26.99,
+    "Polo_Bambino": 21.99,
+    "Smanicati_Adulto": 26.99,
+    "Smanicati_Bambino": 21.99,
+    "Maniche Lunghe_Adulto": 25.99,
+    "Maniche Lunghe_Bambino": 21.99,
+    "Kit Bambino_Adulto": 19.99,
+    "Kit Bambino_Bambino": 19.99
   },
   spedizioneLotto: {
     "range1_min": 1,
@@ -2299,7 +2342,11 @@ const DEFAULT_SETTINGS = {
     { id: 'cat_fan', nome: 'Fan', prezzo_adulto: 21.99, prezzo_bambino: 19.99, ordine: 3, stato: 'attivo' },
     { id: 'cat_retro', nome: 'Retro', prezzo_adulto: 21.99, prezzo_bambino: 19.99, ordine: 4, stato: 'attivo' },
     { id: 'cat_allenamento', nome: 'Kit Allenamento', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 5, stato: 'attivo' },
-    { id: 'cat_tuta', nome: 'Tuta', prezzo_adulto: 44.99, prezzo_bambino: 40.00, ordine: 6, stato: 'attivo' }
+    { id: 'cat_tuta', nome: 'Tuta', prezzo_adulto: 44.99, prezzo_bambino: 40.00, ordine: 6, stato: 'attivo' },
+    { id: 'cat_polo', nome: 'Polo', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 7, stato: 'attivo' },
+    { id: 'cat_smanicati', nome: 'Smanicati', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
+    { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
+    { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' }
   ],
   filtriCatalogo: [
     { id: 'fil_tutti', nome: 'Tutti', ordine: 1, stato: 'attivo' },
@@ -2308,7 +2355,11 @@ const DEFAULT_SETTINGS = {
     { id: 'fil_fan', nome: 'Fan', ordine: 4, stato: 'attivo' },
     { id: 'fil_retro', nome: 'Retro', ordine: 5, stato: 'attivo' },
     { id: 'fil_allenamento', nome: 'Kit Allenamento', ordine: 6, stato: 'attivo' },
-    { id: 'fil_tuta', nome: 'Tuta', ordine: 7, stato: 'attivo' }
+    { id: 'fil_tuta', nome: 'Tuta', ordine: 7, stato: 'attivo' },
+    { id: 'fil_polo', nome: 'Polo', ordine: 8, stato: 'attivo' },
+    { id: 'fil_smanicati', nome: 'Smanicati', ordine: 9, stato: 'attivo' },
+    { id: 'fil_maniche_lunghe', nome: 'Maniche Lunghe', ordine: 10, stato: 'attivo' },
+    { id: 'fil_bambino', nome: 'Kit Bambino', ordine: 11, stato: 'attivo' }
   ],
   regoleImportazioneJson: [
     { id: 'rule_1', valore_json: 'Full Kit', categoria: 'Kit' },
@@ -5842,7 +5893,8 @@ function calculateLottoTotals(orders, settings, extraExpenses = []) {
 async function getProssimoLottoId() {
   try {
     const archive = await getDbLotti();
-    const maxId = archive.reduce((max, l) => {
+    const archivedOnly = archive.filter(l => l.status === 'archived' || (l.archived_at && l.archived_at !== 'In corso' && l.archived_at !== 'Attivo'));
+    const maxId = archivedOnly.reduce((max, l) => {
       const currentId = Number(l.id || 0);
       return currentId > max ? currentId : max;
     }, 0);
@@ -5881,7 +5933,8 @@ async function recalculateCurrentLottoInternal() {
     if (explicitLottoId !== undefined && explicitLottoId !== null) {
       currentLottoId = Number(explicitLottoId);
     } else {
-      const maxArchivedId = archive.reduce((max, l) => {
+      const archivedOnly = archive.filter(l => l.status === 'archived' || (l.archived_at && l.archived_at !== 'In corso' && l.archived_at !== 'Attivo'));
+      const maxArchivedId = archivedOnly.reduce((max, l) => {
         const cId = Number(l.id || 0);
         return cId > max ? cId : max;
       }, 0);
@@ -9595,6 +9648,11 @@ app.post('/api/orders', async (req, res) => {
     // Includiamo il carrello strutturato per l'esportazione ad alta fedeltà
     rigaOrdine.carrello = carrello;
 
+    // Assegnazione dinamica del lotto attivo per i nuovi ordini
+    rigaOrdine.lotto_id = (req.body && req.body.lotto_id !== undefined && req.body.lotto_id !== null && !isNaN(Number(req.body.lotto_id)))
+      ? Number(req.body.lotto_id)
+      : getCurrentActiveLottoId();
+
     // Salva l'ordine e ricalcola il lotto in modo atomico (sincronizzato) per evitare race condition
     const { insertedAdminOrder, finalLotto } = await runWithLottoLock(async () => {
       console.log("📤 Registrazione dell'ordine nel database Supabase (atomica)...");
@@ -10559,7 +10617,12 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
     if (squadra !== undefined) updateData.squadra = squadra;
     if (personalizzazione !== undefined) updateData.personalizzazione = personalizzazione;
     if (taglia !== undefined) updateData.taglia = taglia;
-    if (lotto_id !== undefined) updateData.lotto_id = lotto_id ? Number(lotto_id) : null;
+    if (lotto_id !== undefined) {
+      updateData.lotto_id = lotto_id ? Number(lotto_id) : null;
+      if (updateData.lotto_id) {
+        await ensureLottoExistsInDb(updateData.lotto_id);
+      }
+    }
 
     // Solo se il carrello è effettivamente cambiato o se l'ordine non è ancora presente,
     // andiamo ad aggiornare i dati economici sul database. In questo modo cambiano SOLO per modifiche reali al carrello.

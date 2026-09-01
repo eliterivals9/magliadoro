@@ -85,11 +85,9 @@
             try {
                 // Chiama la funzione centralizzata in auth.js
                 await adminLogin(email, password);
-                
-                setAlert("Accesso effettuato! Reindirizzamento...", "success");
+                setAlert("Accesso effettuato! Reindirizzamento in corso...", "success");
             } catch (err) {
                 setAlert(err.message || "Si è verificato un errore durante l'autenticazione.", "error");
-            } finally {
                 btnSubmit.removeAttribute('disabled');
                 btnSubmit.innerText = "Accedi";
             }

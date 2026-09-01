@@ -946,10 +946,9 @@
             try {
                 if (typeof checkAuth === 'function') {
                     const user = await checkAuth();
-                    if (user) {
-                        const emailDisplay = document.getElementById('user-email-display');
-                        if (emailDisplay) emailDisplay.innerText = user.email;
-                    }
+                    if (!user) return;
+                    const emailDisplay = document.getElementById('user-email-display');
+                    if (emailDisplay) emailDisplay.innerText = user.email;
                 }
             } catch (err) {
                 console.error("Errore verifica sessione admin:", err);

@@ -21,11 +21,9 @@ async function getSupabase() {
             if (!config.supabaseUrl || !config.supabaseAnonKey) {
                 const errorMsg = "Configurazione di Supabase mancante! Assicurati di impostare SUPABASE_URL e SUPABASE_ANON_KEY nel file .env.";
                 console.error("❌ " + errorMsg);
-                alert(errorMsg);
                 throw new Error(errorMsg);
             }
             
-            console.log("SUPABASE_URL =", config.supabaseUrl);
             supabaseInstance = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
                 auth: {
                     storageKey: 'sb-admin-auth-token',
@@ -37,11 +35,6 @@ async function getSupabase() {
             return supabaseInstance;
         } catch (err) {
             console.error("Errore di inizializzazione Supabase:", err);
-            if (typeof showToast === 'function') {
-                showToast("Errore critico Supabase: " + err.message, "error");
-            } else {
-                alert("Errore critico Supabase: " + err.message);
-            }
             supabasePromise = null; // reset to allow retry if requested
             throw err;
         }
@@ -52,63 +45,96 @@ async function getSupabase() {
 
 // Funzione di login dedicata per l'amministratore
 async function adminLogin(email, password) {
+    if (!email || !password) {
+        throw new Error("Inserisci sia l'indirizzo email che la password.");
+    }
+
     const client = await getSupabase();
-    
-    // 1. Esegui il login
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
-    if (error) {
-        throw error;
+    if (!client) {
+        throw new Error("Servizio di autenticazione non disponibile.");
     }
     
-    // 2. Recupera l'utente
-    const { data: { user }, error: userError } = await client.auth.getUser();
-    if (userError || !user) {
-        throw new Error("Impossibile recuperare i dati dell'utente.");
+    // 1. Esegui il login
+    const { data, error } = await client.auth.signInWithPassword({ 
+        email: email.trim(), 
+        password 
+    });
+    
+    if (error) {
+        const msg = error.message ? error.message.toLowerCase() : '';
+        if (error.code === 'invalid_credentials' || msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+            throw new Error("Credenziali non valide. Verifica email e password.");
+        }
+        if (msg.includes('email not confirmed')) {
+            throw new Error("Indirizzo email non confermato.");
+        }
+        throw new Error(error.message || "Si è verificato un errore durante l'autenticazione.");
+    }
+    
+    // 2. Recupera l'utente e la sessione dal risultato
+    const user = data?.user || (data?.session && data.session.user);
+    if (!user || !user.email) {
+        throw new Error("Impossibile recuperare i dati dell'utente autenticato.");
     }
     
     // 3. Verifica whitelist
-    if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-        window.location.href = "/admin";
+    const userEmail = user.email.trim().toLowerCase();
+    const isAuthorized = ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === userEmail);
+    
+    if (isAuthorized) {
+        window.location.replace("/admin");
         return data;
     } else {
         await client.auth.signOut({ scope: 'local' });
-        throw new Error("Accesso negato.");
+        throw new Error("Accesso negato: account non autorizzato all'area amministrativa.");
     }
 }
 
 // Controlla se l'utente è loggato ed è autorizzato
 async function checkAuth() {
-    const isLoginPage = window.location.pathname.includes('admin-login');
+    const pathname = window.location.pathname.toLowerCase();
+    const isLoginPage = pathname.includes('admin-login');
     
     try {
         const client = await getSupabase();
+        if (!client) {
+            if (!isLoginPage) {
+                window.location.replace('/admin-login');
+            }
+            return null;
+        }
+
         const { data: { session }, error } = await client.auth.getSession();
         
-        if (error || !session) {
+        if (error || !session || !session.user || !session.user.email) {
             if (!isLoginPage) {
-                window.location.href = '/admin-login';
+                window.location.replace('/admin-login');
             }
             return null;
         }
         
-        if (!session.user || !session.user.email || !ADMIN_EMAILS.includes(session.user.email.toLowerCase())) {
+        const userEmail = session.user.email.trim().toLowerCase();
+        const isAuthorized = ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === userEmail);
+        
+        if (!isAuthorized) {
             await client.auth.signOut({ scope: 'local' });
             if (!isLoginPage) {
-                window.location.href = '/admin-login';
+                window.location.replace('/admin-login');
             }
             return null;
         }
         
         // Se è autorizzato ed è nella pagina di login, lo mandiamo alla dashboard
         if (isLoginPage) {
-            window.location.href = '/admin';
+            window.location.replace('/admin');
+            return session.user;
         }
         
         return session.user;
     } catch (err) {
         console.error("Errore di verifica autenticazione:", err);
         if (!isLoginPage) {
-            window.location.href = '/admin-login';
+            window.location.replace('/admin-login');
         }
         return null;
     }
@@ -134,11 +160,18 @@ async function signUp(email, password) {
 async function logout() {
     try {
         const client = await getSupabase();
-        await client.auth.signOut({ scope: 'local' });
+        if (client) {
+            await client.auth.signOut({ scope: 'local' });
+        }
     } catch (err) {
         console.error("Errore durante il logout:", err);
+    } finally {
+        try {
+            localStorage.removeItem('sb-admin-auth-token');
+            sessionStorage.removeItem('sb-admin-auth-token');
+        } catch (e) {}
+        window.location.replace('/admin-login');
     }
-    window.location.href = '/admin-login';
 }
 
 // Espone le funzioni a livello globale

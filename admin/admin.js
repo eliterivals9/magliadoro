@@ -498,15 +498,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         if (typeof window.checkAuth === 'function') {
             const user = await window.checkAuth();
-            if (user) {
-                const emailEl = document.getElementById('user-email-display');
-                if (emailEl) {
-                    emailEl.innerText = user.email;
-                }
+            if (!user) {
+                // Non autenticato: checkAuth() avvia il redirect a /admin-login
+                return;
+            }
+            const emailEl = document.getElementById('user-email-display');
+            if (emailEl) {
+                emailEl.innerText = user.email;
             }
         }
     } catch (error) {
         console.error("Errore durante la verifica dell'autenticazione:", error);
+        return;
     }
 
     // 2. Inizializza gli event listeners per i filtri e la ricerca
@@ -5645,7 +5648,11 @@ function assicuratiCategorieDinamiche() {
             { id: 'cat_fan', nome: 'Fan', prezzo_adulto: 21.99, prezzo_bambino: 19.99, ordine: 3, stato: 'attivo' },
             { id: 'cat_retro', nome: 'Retro', prezzo_adulto: 21.99, prezzo_bambino: 19.99, ordine: 4, stato: 'attivo' },
             { id: 'cat_allenamento', nome: 'Kit Allenamento', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 5, stato: 'attivo' },
-            { id: 'cat_tuta', nome: 'Tuta', prezzo_adulto: 44.99, prezzo_bambino: 40.00, ordine: 6, stato: 'attivo' }
+            { id: 'cat_tuta', nome: 'Tuta', prezzo_adulto: 44.99, prezzo_bambino: 40.00, ordine: 6, stato: 'attivo' },
+            { id: 'cat_polo', nome: 'Polo', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 7, stato: 'attivo' },
+            { id: 'cat_smanicati', nome: 'Smanicati', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
+            { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
+            { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' }
         ];
 
         window.appSettings.categorie = defaultCats.map((cat, idx) => {
@@ -5656,8 +5663,8 @@ function assicuratiCategorieDinamiche() {
                 nome: cat.nome,
                 prezzo_adulto: regole[keyA] !== undefined ? parseFloat(regole[keyA]) : cat.prezzo_adulto,
                 prezzo_bambino: regole[keyB] !== undefined ? parseFloat(regole[keyB]) : cat.prezzo_bambino,
-                ordine: idx + 1,
-                stato: 'attivo'
+                ordine: cat.ordine || (idx + 1),
+                stato: cat.stato || 'attivo'
             };
         });
     }
@@ -9971,13 +9978,22 @@ function popolaFiltroLottiGestioneOrdini(preselezionaLottoId = null) {
     optAll.innerText = 'Tutti i lotti';
     select.appendChild(optAll);
 
+    // Aggiungi opzione "Non assegnati" se ci sono ordini senza lotto
+    const hasUnassigned = (window.gestioneOrdiniList || []).some(o => o.lotto_id === null || o.lotto_id === undefined || o.lotto_id === '' || isNaN(Number(o.lotto_id)));
+    if (hasUnassigned) {
+        const optUnassigned = document.createElement('option');
+        optUnassigned.value = 'unassigned';
+        optUnassigned.innerText = 'Non assegnati';
+        select.appendChild(optUnassigned);
+    }
+
     // Determina la selezione predefinita:
     // 1. Se indicato preselezionaLottoId
     // 2. Altrimenti se il valore precedente era ancora valido nel set
     // 3. Altrimenti default = LOTTO CORRENTE (se esistente), altrimenti primo lotto, altrimenti 'all'
-    if (preselezionaLottoId !== null && (lottiMap.has(Number(preselezionaLottoId)) || preselezionaLottoId === 'all')) {
+    if (preselezionaLottoId !== null && (lottiMap.has(Number(preselezionaLottoId)) || preselezionaLottoId === 'all' || preselezionaLottoId === 'unassigned')) {
         select.value = String(preselezionaLottoId);
-    } else if (previousValue && previousValue !== 'all' && lottiMap.has(Number(previousValue))) {
+    } else if (previousValue && (previousValue === 'all' || previousValue === 'unassigned' || lottiMap.has(Number(previousValue)))) {
         select.value = previousValue;
     } else if (currentActiveId && lottiMap.has(currentActiveId)) {
         select.value = String(currentActiveId);
@@ -10040,18 +10056,22 @@ function renderGestioneOrdini() {
 
     const validLottoIds = getValidLottoIds();
 
-    // REGOLA: Mostrare SOLO gli ordini appartenenti a lotti effettivamente presenti nella Cronologia Lotti o nel Lotto Corrente
+    // Filtra gli ordini di base: gli ordini con lotto_id devono appartenere a lotti validi; gli ordini senza lotto_id (null/undefined) vengono preservati come "Non assegnato"
     let filtrate = (window.gestioneOrdiniList || []).filter(ord => {
-        if (ord.lotto_id === null || ord.lotto_id === undefined || ord.lotto_id === '' || isNaN(Number(ord.lotto_id))) {
-            return false;
+        if (ord.lotto_id !== null && ord.lotto_id !== undefined && ord.lotto_id !== '' && !isNaN(Number(ord.lotto_id))) {
+            return validLottoIds.has(Number(ord.lotto_id));
         }
-        return validLottoIds.has(Number(ord.lotto_id));
+        return true;
     });
 
     // Applica Filtro per Lotto specifico
     if (filterLotto !== 'all') {
-        const targetLottoId = Number(filterLotto);
-        filtrate = filtrate.filter(ord => Number(ord.lotto_id) === targetLottoId);
+        if (filterLotto === 'unassigned') {
+            filtrate = filtrate.filter(ord => ord.lotto_id === null || ord.lotto_id === undefined || ord.lotto_id === '' || isNaN(Number(ord.lotto_id)));
+        } else {
+            const targetLottoId = Number(filterLotto);
+            filtrate = filtrate.filter(ord => ord.lotto_id !== null && ord.lotto_id !== undefined && ord.lotto_id !== '' && Number(ord.lotto_id) === targetLottoId);
+        }
     }
 
     // Applica Ricerca
@@ -10183,7 +10203,7 @@ function renderGestioneOrdini() {
                         ? `<span class="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/60 rounded-md text-[10px] uppercase font-bold tracking-wider">Annullato</span>`
                         : (ord.lotto_id 
                             ? `<span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200/60 rounded-md text-[10px] uppercase font-bold tracking-wider">Lotto #${ord.lotto_id}</span>`
-                            : `<span class="px-2 py-0.5 bg-slate-100 text-slate-400 border border-slate-200/60 rounded-md text-[10px] uppercase font-bold tracking-wider">Da assegnare</span>`
+                            : `<span class="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-300 rounded-md text-[10px] uppercase font-bold tracking-wider">Non assegnato</span>`
                           )
                     }
                 </td>
@@ -12875,7 +12895,11 @@ function assicuratiFiltriDinamici() {
             { id: 'fil_fan', nome: 'Fan', ordine: 4, stato: 'attivo' },
             { id: 'fil_retro', nome: 'Retro', ordine: 5, stato: 'attivo' },
             { id: 'fil_allenamento', nome: 'Kit Allenamento', ordine: 6, stato: 'attivo' },
-            { id: 'fil_tuta', nome: 'Tuta', ordine: 7, stato: 'attivo' }
+            { id: 'fil_tuta', nome: 'Tuta', ordine: 7, stato: 'attivo' },
+            { id: 'fil_polo', nome: 'Polo', ordine: 8, stato: 'attivo' },
+            { id: 'fil_smanicati', nome: 'Smanicati', ordine: 9, stato: 'attivo' },
+            { id: 'fil_maniche_lunghe', nome: 'Maniche Lunghe', ordine: 10, stato: 'attivo' },
+            { id: 'fil_bambino', nome: 'Kit Bambino', ordine: 11, stato: 'attivo' }
         ];
 
         window.appSettings.filtriCatalogo = defaultFiltri;
