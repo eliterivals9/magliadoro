@@ -86,6 +86,9 @@
                 </span>
                 <span id="admin-chat-badge" class="hidden px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none animate-pulse">0</span>
             </a>
+            <a href="/admin/accessori" id="nav-admin-accessori" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span>🎒</span> Accessori
+            </a>
         </nav>
 
         <!-- Sidebar Footer & Logout -->
@@ -117,8 +120,8 @@
 
             <!-- Azione Rapida in Header -->
             <div class="flex items-center gap-4">
-                <button id="btn-quick-add" onclick="openAddProductModal()" class="px-4 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl transition-all duration-200 shadow-md shadow-brand-gold/10 flex items-center gap-1.5">
-                    <span>➕</span> Nuovo Prodotto
+                <button id="btn-quick-edit-order" onclick="openModificaPrezzoOrdineModal()" class="px-4 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl transition-all duration-200 shadow-md shadow-brand-gold/10 flex items-center gap-1.5 cursor-pointer">
+                    <span>✏️</span> Modifica Ordine
                 </button>
             </div>
         </header>
@@ -4667,6 +4670,154 @@
                 </button>
                 <button id="btn-salva-modifica" onclick="salvaModificaSuddivisione()" type="button" disabled class="px-5 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5">
                     <span>💾</span> Salva Modifica
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Modifica Prezzo Concordato Ordine -->
+    <div id="modal-modifica-prezzo-ordine" class="fixed inset-0 z-[10010] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md hidden overflow-hidden">
+        <div id="modal-modifica-prezzo-ordine-container" class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden opacity-0 transform scale-95 transition-all duration-300 ease-out flex flex-col max-h-[92vh] my-auto">
+            <!-- Header -->
+            <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">✏️</span>
+                    <div>
+                        <h3 id="modal-prezzo-ordine-title" class="text-sm sm:text-base font-black tracking-tight">
+                            Modifica Prezzo Concordato Ordine
+                        </h3>
+                        <p class="text-[11px] text-slate-400">
+                            Imposta un prezzo personalizzato o fasce di prezzo per gli articoli di questo ordine.
+                        </p>
+                    </div>
+                </div>
+                <button onclick="chiudiModificaPrezzoOrdineModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer" title="Chiudi">
+                    <span class="text-xl font-bold">✕</span>
+                </button>
+            </div>
+
+            <!-- Body (Scrollable) -->
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 text-slate-700 text-xs">
+                
+                <!-- STEP 1: Selezione Ordine -->
+                <div class="space-y-2">
+                    <label for="modal-prezzo-order-select" class="block font-bold text-slate-800 text-xs uppercase tracking-wider">
+                        1. Seleziona Ordine da Modificare *
+                    </label>
+                    <div class="relative">
+                        <select id="modal-prezzo-order-select" onchange="onSelectOrdineModificaPrezzo(this.value)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-brand-gold focus:outline-none shadow-xs transition-colors">
+                            <option value="">-- Seleziona un ordine attivo --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Dettaglio Ordine Selezionato & Configurazione Articoli -->
+                <div id="modal-prezzo-order-content" class="hidden space-y-5">
+                    
+                    <!-- Box Riepilogo Ordine -->
+                    <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 border border-slate-800 space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span id="modal-prezzo-order-badge" class="px-2.5 py-0.5 bg-brand-gold/20 text-brand-gold border border-brand-gold/30 rounded-lg text-xs font-mono font-bold">ORD-#--</span>
+                                    <span id="modal-prezzo-order-customer" class="font-bold text-white text-sm">--</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                                    <span id="modal-prezzo-order-date">📅 --</span>
+                                    <span id="modal-prezzo-order-phone">📞 --</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Totale Attuale Ordine</span>
+                                <span id="modal-prezzo-order-current-total" class="font-mono font-black text-brand-gold text-base">€ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- Indicatori Fornitore & Margine Iniziale -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-1">
+                            <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Costo Fornitore (EUR)</span>
+                                <span id="modal-prezzo-order-supplier-cost-eur" class="font-mono font-bold text-white">€ 0,00</span>
+                            </div>
+                            <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Costo Fornitore (USD)</span>
+                                <span id="modal-prezzo-order-supplier-cost-usd" class="font-mono font-bold text-slate-300">$ 0.00</span>
+                            </div>
+                            <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/50 col-span-2 sm:col-span-1">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block">Margine Iniziale</span>
+                                <span id="modal-prezzo-order-original-profit" class="font-mono font-bold text-emerald-400">+€ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista Articoli dell'Ordine -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="block font-bold text-slate-800 text-xs uppercase tracking-wider">
+                                2. Articoli dell'Ordine & Prezzi Concordati
+                            </label>
+                            <span id="modal-prezzo-items-count" class="text-[11px] font-bold text-slate-500 font-mono">
+                                -- articoli
+                            </span>
+                        </div>
+
+                        <!-- Container Dinamico Articoli -->
+                        <div id="modal-prezzo-items-list" class="space-y-4">
+                            <!-- Popolato dinamicamente da admin.js -->
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Box Ricalcolo Economico in Tempo Reale -->
+                    <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <span class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                                <span>📊</span> Ricalcolo Economico in Tempo Reale
+                            </span>
+                            <span id="modal-prezzo-status-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-slate-200 text-slate-700">
+                                In attesa
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase block">Totale Originale</span>
+                                <span id="modal-prezzo-preview-orig-total" class="font-mono font-bold text-slate-800 text-sm">€ 0,00</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border-2 border-brand-gold shadow-xs">
+                                <span class="text-[10px] font-bold text-brand-gold uppercase block">Nuovo Totale</span>
+                                <span id="modal-prezzo-preview-new-total" class="font-mono font-black text-slate-950 text-sm">€ 0,00</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase block">Differenza / Sconto</span>
+                                <span id="modal-prezzo-preview-diff-total" class="font-mono font-bold text-rose-600 text-sm">-€ 0,00</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-emerald-300 bg-emerald-50/40 shadow-xs">
+                                <span class="text-[10px] font-bold text-emerald-800 uppercase block">Nuovo Margine Reale</span>
+                                <span id="modal-prezzo-preview-new-profit" class="font-mono font-black text-emerald-700 text-sm">+€ 0,00</span>
+                            </div>
+                        </div>
+
+                        <div id="modal-prezzo-error-banner" class="hidden p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700 flex items-center gap-2">
+                            <span>⚠️</span> <span id="modal-prezzo-error-text">Verifica i dati inseriti.</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <button onclick="chiudiModificaPrezzoOrdineModal()" type="button" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                        Annulla
+                    </button>
+                    <button id="btn-ripristina-tutti-prezzi" onclick="ripristinaTuttiPrezziOrdine()" type="button" class="hidden px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl border border-slate-200 transition-all items-center gap-1.5 cursor-pointer">
+                        <span>🔄</span> Ripristina Prezzi Originali
+                    </button>
+                </div>
+                <button id="btn-salva-prezzo-ordine" onclick="salvaPrezzoConcordatoOrdine()" type="button" disabled class="px-5 py-2 bg-brand-gold hover:bg-brand-goldHover disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                    <span>💾</span> Salva Modifica Prezzo
                 </button>
             </div>
         </div>

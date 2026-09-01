@@ -12,6 +12,163 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- BOOTSTRAP PRE-DECLARATION & RESILIENCE PROXY -->
+    <script>
+        window._pendingActionsQueue = window._pendingActionsQueue || [];
+        function _queueOrExecuteAction(fnName, context, args) {
+            if (window['_' + fnName + '_impl']) {
+                return window['_' + fnName + '_impl'].apply(context, args);
+            }
+            window._pendingActionsQueue.push({ fnName: fnName, context: context, args: Array.from(args) });
+        }
+        function toggleDropdownSmartphone(elementoLink, evento) {
+            if (window._toggleDropdownSmartphone_impl) {
+                return window._toggleDropdownSmartphone_impl(elementoLink, evento);
+            }
+            if (evento && typeof evento.stopPropagation === 'function') evento.stopPropagation();
+            if (window.innerWidth <= 768 && elementoLink) {
+                const parentNode = elementoLink.parentElement;
+                if (parentNode) {
+                    let contenitoreDropdown = parentNode.querySelector('.dropdown-content');
+                    if (!contenitoreDropdown) {
+                        contenitoreDropdown = Array.from(document.querySelectorAll('body > .dropdown-content')).find(el => el._originalParent === parentNode);
+                    }
+                    if (contenitoreDropdown) {
+                        const giaAperto = contenitoreDropdown.classList.contains('show-dropdown');
+                        document.querySelectorAll('.dropdown-content.show-dropdown').forEach(d => d.classList.remove('show-dropdown'));
+                        if (!giaAperto) {
+                            contenitoreDropdown._originalParent = parentNode;
+                            document.body.appendChild(contenitoreDropdown);
+                            const rect = elementoLink.getBoundingClientRect();
+                            contenitoreDropdown.style.position = 'fixed';
+                            contenitoreDropdown.style.top = (rect.bottom + 4) + 'px';
+                            contenitoreDropdown.style.left = '5%';
+                            contenitoreDropdown.style.width = '90%';
+                            contenitoreDropdown.style.zIndex = '999999';
+                            contenitoreDropdown.classList.add('show-dropdown');
+                        }
+                    }
+                }
+            }
+        }
+        function toggleSubDropdownSmartphone(elementoLink, evento) {
+            if (window._toggleSubDropdownSmartphone_impl) {
+                return window._toggleSubDropdownSmartphone_impl(elementoLink, evento);
+            }
+            if (evento && typeof evento.stopPropagation === 'function') evento.stopPropagation();
+            if (window.innerWidth <= 768 && elementoLink) {
+                const parentNode = elementoLink.parentElement;
+                if (parentNode) {
+                    const sub = parentNode.querySelector('.sub-dropdown-content');
+                    if (sub) {
+                        const giaAperto = sub.classList.contains('show-sub-dropdown');
+                        const pDrop = elementoLink.closest('.dropdown-content');
+                        if (pDrop) {
+                            pDrop.querySelectorAll('.sub-dropdown-content.show-sub-dropdown').forEach(s => s.classList.remove('show-sub-dropdown'));
+                        }
+                        if (!giaAperto) sub.classList.add('show-sub-dropdown');
+                    }
+                }
+            }
+        }
+        function selezionaEFiltraClub(valoreLega) {
+            if (window._selezionaEFiltraClub_impl) {
+                return window._selezionaEFiltraClub_impl(valoreLega);
+            }
+            _queueOrExecuteAction('selezionaEFiltraClub', this, arguments);
+        }
+        function selezionaEFiltraNazionali(valoreContinente) {
+            if (window._selezionaEFiltraNazionali_impl) {
+                return window._selezionaEFiltraNazionali_impl(valoreContinente);
+            }
+            _queueOrExecuteAction('selezionaEFiltraNazionali', this, arguments);
+        }
+        function selezionaEFiltraSoloCategoria(categoria) {
+            if (window._selezionaEFiltraSoloCategoria_impl) {
+                return window._selezionaEFiltraSoloCategoria_impl(categoria);
+            }
+            _queueOrExecuteAction('selezionaEFiltraSoloCategoria', this, arguments);
+        }
+        function selezionaEFiltraRetro(valoreLega) {
+            if (window._selezionaEFiltraRetro_impl) {
+                return window._selezionaEFiltraRetro_impl(valoreLega);
+            }
+            _queueOrExecuteAction('selezionaEFiltraRetro', this, arguments);
+        }
+        function selezionaEFiltraTute(valoreLega) {
+            if (window._selezionaEFiltraTute_impl) {
+                return window._selezionaEFiltraTute_impl(valoreLega);
+            }
+            _queueOrExecuteAction('selezionaEFiltraTute', this, arguments);
+        }
+        function selezionaSquadraSpecifica(nomeSquadra) {
+            if (window._selezionaSquadraSpecifica_impl) {
+                return window._selezionaSquadraSpecifica_impl(nomeSquadra);
+            }
+            _queueOrExecuteAction('selezionaSquadraSpecifica', this, arguments);
+        }
+        function mostraSezioneCompleta(sezioneId) {
+            if (window._mostraSezioneCompleta_impl) {
+                return window._mostraSezioneCompleta_impl(sezioneId);
+            }
+            _queueOrExecuteAction('mostraSezioneCompleta', this, arguments);
+        }
+        function toggleCarrello() {
+            if (window._toggleCarrello_impl) {
+                return window._toggleCarrello_impl();
+            }
+            _queueOrExecuteAction('toggleCarrello', this, arguments);
+        }
+        function apriAuthPopup(tab) {
+            if (window._apriAuthPopup_impl) {
+                return window._apriAuthPopup_impl(tab);
+            }
+            _queueOrExecuteAction('apriAuthPopup', this, arguments);
+        }
+        function eseguiRicercaDaInput() {
+            if (window._eseguiRicercaDaInput_impl) {
+                return window._eseguiRicercaDaInput_impl();
+            }
+            _queueOrExecuteAction('eseguiRicercaDaInput', this, arguments);
+        }
+        function cancellaRicerca() {
+            if (window._cancellaRicerca_impl) {
+                return window._cancellaRicerca_impl();
+            }
+            _queueOrExecuteAction('cancellaRicerca', this, arguments);
+        }
+        function impostaFiltroCategoria(cat) {
+            if (window._impostaFiltroCategoria_impl) {
+                return window._impostaFiltroCategoria_impl(cat);
+            }
+            _queueOrExecuteAction('impostaFiltroCategoria', this, arguments);
+        }
+        function resettaFiltriRicerca() {
+            if (window._resettaFiltriRicerca_impl) {
+                return window._resettaFiltriRicerca_impl();
+            }
+            _queueOrExecuteAction('resettaFiltriRicerca', this, arguments);
+        }
+        window.toggleDropdownSmartphone = toggleDropdownSmartphone;
+
+        // In the head bootstrap script, _impl properties remain null/undefined until the real implementations are loaded in the body script.
+
+        window.toggleSubDropdownSmartphone = toggleSubDropdownSmartphone;
+        window.selezionaEFiltraClub = selezionaEFiltraClub;
+        window.selezionaEFiltraNazionali = selezionaEFiltraNazionali;
+        window.selezionaEFiltraSoloCategoria = selezionaEFiltraSoloCategoria;
+        window.selezionaEFiltraRetro = selezionaEFiltraRetro;
+        window.selezionaEFiltraTute = selezionaEFiltraTute;
+        window.selezionaSquadraSpecifica = selezionaSquadraSpecifica;
+        window.mostraSezioneCompleta = mostraSezioneCompleta;
+        window.toggleCarrello = toggleCarrello;
+        window.apriAuthPopup = apriAuthPopup;
+        window.eseguiRicercaDaInput = eseguiRicercaDaInput;
+        window.cancellaRicerca = cancellaRicerca;
+        window.impostaFiltroCategoria = impostaFiltroCategoria;
+        window.resettaFiltriRicerca = resettaFiltriRicerca;
+    </script>
+
 
     <!-- 2. CSS Design System con Palette personalizzata estratta dallo Scudetto -->
     <style>
@@ -4603,6 +4760,178 @@ body {
             transform: translateY(-2px);
             filter: brightness(1.1);
         }
+
+        /* ===================================================
+           STILI SEZIONE ACCESSORI (ARCHITETTURA INDIPENDENTE)
+           =================================================== */
+        .accessories-section {
+            width: 100%;
+        }
+        .accessories-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 30px 20px 80px 20px;
+            box-sizing: border-box;
+        }
+        .accessories-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+        .accessories-filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .accessories-filter-btn:hover {
+            background: rgba(214, 164, 58, 0.15);
+            border-color: rgba(214, 164, 58, 0.4);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .accessories-filter-btn.active {
+            background: var(--gold-gradient);
+            color: #000;
+            border-color: #d6a43a;
+            box-shadow: 0 4px 12px rgba(214, 164, 58, 0.35);
+        }
+        .accessories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+        }
+        .accessories-card {
+            background: linear-gradient(145deg, #181818 0%, #121212 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-l);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+        .accessories-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(214, 164, 58, 0.4);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5), 0 0 15px rgba(214, 164, 58, 0.15);
+        }
+        .accessories-card-img-wrap {
+            width: 100%;
+            height: 240px;
+            position: relative;
+            background: #0d0d0d;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .accessories-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .accessories-card:hover .accessories-card-img {
+            transform: scale(1.06);
+        }
+        .accessories-card-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(214, 164, 58, 0.4);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .accessories-card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .accessories-card-cat {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .accessories-card-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+            line-height: 1.35;
+        }
+        .accessories-card-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .accessories-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .accessories-card-price {
+            font-size: 17px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+        .accessories-card-btn {
+            background: var(--gold-gradient);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: var(--radius-m);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .accessories-card-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(214, 164, 58, 0.4);
+        }
+        .accessories-empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 70px 20px;
+            background: linear-gradient(145deg, #161616 0%, #111111 100%);
+            border-radius: var(--radius-xl);
+            border: 1px dashed rgba(214, 164, 58, 0.25);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -4840,6 +5169,10 @@ body {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="dropdown">
+                    <a id="nav-accessori" onclick="mostraSezioneCompleta('accessori')">Accessori</a>
                 </div>
 
                 <div class="dropdown">
@@ -5230,6 +5563,67 @@ body {
 
             <div class="griglia-maglie" id="contenitore-nazionali-griglia"></div>
         </main>
+    </div>
+
+    
+    <!-- SCHEDA PAGINA: ACCESSORI (ARCHITETTURA INDIPENDENTE) -->
+    <div id="pagina-accessori" class="sezione-pagina accessories-section">
+        
+        <!-- VISTA: ACCESSORI IN ALLESTIMENTO (ATTIVA) -->
+        <div id="accessori-allestimento-view" class="accessori-allestimento-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 55vh; padding: 60px 20px 90px 20px; text-align: center; box-sizing: border-box;">
+            <div class="accessori-allestimento-card" style="max-width: 580px; width: 100%; background: linear-gradient(145deg, #141414 0%, #0d0d0d 100%); border: 1px solid rgba(214, 164, 58, 0.22); border-radius: var(--radius-xl, 16px); padding: 48px 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 25px rgba(214, 164, 58, 0.06); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
+                
+                <!-- ICONA ELEGANTE LUXURY -->
+                <div style="width: 76px; height: 76px; border-radius: 50%; background: radial-gradient(circle, rgba(214, 164, 58, 0.18) 0%, rgba(214, 164, 58, 0.04) 70%, transparent 100%); border: 1px solid rgba(214, 164, 58, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 0 20px rgba(214, 164, 58, 0.15);">
+                    <span style="font-size: 34px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">ğŸ’</span>
+                </div>
+                
+                <!-- TAG / EYEBROW COERENTE CON IL SITO -->
+                <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary, #d6a43a); margin-bottom: 12px; display: inline-block;">Maglia d'Oro Collection</span>
+                
+                <!-- TITOLO PRINCIPALE -->
+                <h2 style="font-size: clamp(22px, 3.5vw, 30px); font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; color: #ffffff; margin: 0 0 16px 0; line-height: 1.25;">ACCESSORI IN ALLESTIMENTO</h2>
+                
+                <!-- SOTTOTITOLO -->
+                <p style="font-size: 15px; line-height: 1.6; color: rgba(255, 255, 255, 0.8); max-width: 460px; margin: 0 auto 12px auto; font-weight: 400;">
+                    Stiamo preparando una nuova selezione di accessori. Torna presto per scoprire tutte le novitÃ .
+                </p>
+                
+                <!-- PICCOLO TESTO -->
+                <p style="font-size: 13px; color: rgba(255, 255, 255, 0.45); margin: 0 auto 32px auto; font-weight: 500; letter-spacing: 0.3px;">
+                    La sezione sarÃ  disponibile a breve.
+                </p>
+                
+                <!-- PULSANTE TORNA ALLA HOME -->
+                <button type="button" id="btn-torna-home-accessori" onclick="mostraSezioneCompleta('home')" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 28px; border-radius: var(--radius-m, 8px); background: var(--gold-gradient, linear-gradient(135deg, #d6a43a 0%, #b8860b 100%)); color: #000000; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; border: none; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 10px 25px rgba(214, 164, 58, 0.25);">
+                    <span class="material-icons" style="font-size: 18px; line-height: 1;">home</span>
+                    <span>Torna alla Home</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA CATALOGO ACCESSORI (PRESERVATA PER FUTURA RIATTIVAZIONE) -->
+        <div id="accessori-catalogo-view" style="display: none;">
+            <div class="banner-categoria-premium" id="banner-accessori-premium" style="background-image: linear-gradient(to right, rgba(11, 11, 11, 0.92) 20%, rgba(11, 11, 11, 0.45) 100%), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1400&auto=format&fit=crop&q=80');">
+                <div class="banner-overlay"></div>
+                <div class="banner-content">
+                    <span class="banner-tag">Maglia d'Oro Collection</span>
+                    <h2 class="banner-title" id="titolo-dinamico-accessori">ACCESSORI</h2>
+                    <p class="banner-subtitle">Calze tecniche, calzettoni gara, palloni, guanti, cappellini e accessori di alta qualitÃ  progettati per completare il tuo stile sportivo.</p>
+                </div>
+            </div>
+            <main class="accessories-container">
+                <!-- BARRA FILTRI CATEGORIE ACCESSORI DINAMICHE -->
+                <div class="accessories-filter-container" id="accessori-filtri-container">
+                    <!-- Categorie popolate dinamicamente da databaseAccessori -->
+                </div>
+
+                <!-- GRIGLIA ACCESSORI -->
+                <div class="accessories-grid" id="contenitore-accessori-griglia">
+                    <!-- Articoli caricati dinamicamente da caricaAccessori() -->
+                </div>
+            </main>
+        </div>
     </div>
 
     <!-- SCHEDA PAGINA: RECENSIONI -->
@@ -6900,6 +7294,37 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarÃ 
         </div>
     </div>
 
+    
+    <!-- MODAL DETTAGLIO ACCESSORIO (SEPARATO E INDIPENDENTE) -->
+    <div id="modal-accessorio-dettaglio" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: linear-gradient(145deg, #181818 0%, #111111 100%); border: 1px solid rgba(214, 164, 58, 0.3); border-radius: var(--radius-xl); max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-sizing: border-box; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
+            <button onclick="chiudiAccessorioModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: 700;">âœ•</button>
+            <div style="width: 100%; height: 260px; border-radius: var(--radius-l); overflow: hidden; background: #0a0a0a; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.06);">
+                <img id="modal-acc-img" src="" alt="Accessorio" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <span id="modal-acc-categoria" style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;"></span>
+            <h3 id="modal-acc-nome" style="font-size: 20px; font-weight: 900; color: #fff; margin: 0 0 10px 0; line-height: 1.3;"></h3>
+            <div id="modal-acc-prezzo" style="font-size: 22px; font-weight: 900; color: var(--primary); margin-bottom: 14px;"></div>
+            <p id="modal-acc-descrizione" style="font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.5; margin-bottom: 20px;"></p>
+            
+            <div id="modal-acc-opzioni-container" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;"></div>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px;">
+                <label style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.8);">QuantitÃ </label>
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: var(--radius-m); border: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="modificaModalAccQty(-1)" style="background: none; border: none; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; padding: 4px 8px;">-</button>
+                    <span id="modal-acc-qty" style="font-size: 14px; font-weight: 800; color: #fff; min-width: 20px; text-align: center;">1</span>
+                    <button onclick="modificaModalAccQty(1)" style="background: none; border: none; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; padding: 4px 8px;">+</button>
+                </div>
+            </div>
+
+            <button onclick="confermaAggiungiAccessorioCarrello()" style="width: 100%; background: var(--gold-gradient); color: #000; border: none; padding: 14px; border-radius: var(--radius-m); font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(214, 164, 58, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                <span class="material-icons" style="font-size: 18px;">shopping_cart</span>
+                <span>Aggiungi al Carrello</span>
+            </button>
+        </div>
+    </div>
+
     <div class="modal-personalizza" id="modal-personalizza">
         <div class="modal-content">
             <button class="btn-chiudi-modal" onclick="chiudiPersonalizzazione()">âœ•</button>
@@ -7080,6 +7505,307 @@ function chiudiZoomImmagine(){
             console.error("Errore durante il caricamento del carrello da localStorage:", e);
             carrello = [];
         }
+
+        
+        // =========================================================================
+        // SEZIONE ACCESSORI: ARCHITETTURA COMPLETAMENTE INDIPENDENTE E ISOLATA
+        // =========================================================================
+        // Flag reversibile: impostare a false per riattivare la visualizzazione del catalogo Accessori
+        const ACCESSORI_IN_ALLESTIMENTO = true;
+
+        let databaseAccessori = [];
+        let categorieAccessori = [];
+        let categoriaAccessoriSelezionata = 'tutti';
+        let accessorioInDettaglio = null;
+        let accessorioQtySelezionata = 1;
+
+        function applicaStatoAccessori() {
+            const allestimentoView = document.getElementById('accessori-allestimento-view');
+            const catalogoView = document.getElementById('accessori-catalogo-view');
+            if (ACCESSORI_IN_ALLESTIMENTO) {
+                if (allestimentoView) allestimentoView.style.display = 'flex';
+                if (catalogoView) catalogoView.style.display = 'none';
+            } else {
+                if (allestimentoView) allestimentoView.style.display = 'none';
+                if (catalogoView) catalogoView.style.display = 'block';
+            }
+        }
+
+        async function caricaAccessori(categoriaFiltro = null) {
+            applicaStatoAccessori();
+            if (ACCESSORI_IN_ALLESTIMENTO) {
+                // ModalitÃ  in allestimento: mostra schermata di preparazione senza caricare il catalogo prodotti
+                return;
+            }
+
+            const container = document.getElementById('contenitore-accessori-griglia');
+            if (categoriaFiltro !== null) {
+                categoriaAccessoriSelezionata = categoriaFiltro;
+            }
+
+            if (container && databaseAccessori.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 0; color: rgba(255,255,255,0.5);">
+                        <span class="material-icons" style="animation: spin 1s linear infinite; font-size: 28px; color: var(--primary);">sync</span>
+                        <span style="font-size: 15px; font-weight: 600;">Caricamento catalogo accessori...</span>
+                    </div>
+                `;
+            }
+
+            try {
+                const res = await fetch('/api/accessories');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.accessories)) {
+                    databaseAccessori = data.accessories;
+                } else {
+                    databaseAccessori = [];
+                }
+            } catch (err) {
+                console.error("âš ï¸ Errore fetch /api/accessories:", err);
+                databaseAccessori = [];
+            }
+
+            // Estrai categorie dinamicamente
+            const setCat = new Set();
+            databaseAccessori.forEach(item => {
+                if (item && item.categoria && item.categoria.trim() !== '') {
+                    setCat.add(item.categoria.trim());
+                }
+            });
+            categorieAccessori = Array.from(setCat);
+
+            renderizzaFiltriAccessori();
+            renderizzaAccessori();
+        }
+
+        function renderizzaFiltriAccessori() {
+            const container = document.getElementById('accessori-filtri-container');
+            if (!container) return;
+
+            let html = `
+                <button class="accessories-filter-btn ${categoriaAccessoriSelezionata === 'tutti' ? 'active' : ''}" onclick="filtraAccessori('tutti')">
+                    Tutti gli Accessori
+                </button>
+            `;
+
+            categorieAccessori.forEach(cat => {
+                const activeClass = categoriaAccessoriSelezionata === cat ? 'active' : '';
+                html += `
+                    <button class="accessories-filter-btn ${activeClass}" onclick="filtraAccessori('${cat.replace(/'/g, "\\'")}')">
+                        ${cat}
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function filtraAccessori(cat) {
+            categoriaAccessoriSelezionata = cat;
+            renderizzaFiltriAccessori();
+            renderizzaAccessori();
+        }
+
+        function renderizzaAccessori() {
+            const container = document.getElementById('contenitore-accessori-griglia');
+            if (!container) return;
+
+            const itemsFiltrati = categoriaAccessoriSelezionata === 'tutti'
+                ? databaseAccessori
+                : databaseAccessori.filter(item => item.categoria === categoriaAccessoriSelezionata);
+
+            if (!itemsFiltrati || itemsFiltrati.length === 0) {
+                container.innerHTML = `
+                    <div class="accessories-empty-state">
+                        <div style="display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(214, 164, 58, 0.1); border: 1px solid rgba(214, 164, 58, 0.3); color: var(--primary); margin-bottom: 16px;">
+                            <span class="material-icons" style="font-size: 32px;">sports_soccer</span>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px;">Accessori in arrivo</h3>
+                        <p style="font-size: 13px; color: rgba(255,255,255,0.6); max-width: 440px; margin: 0; line-height: 1.5;">Stiamo selezionando i migliori accessori ufficiali per questa categoria. Torna presto per scoprire le novitÃ !</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            itemsFiltrati.forEach(item => {
+                const img = item.immagine || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80';
+                const prezzoFormatted = (Number(item.prezzo) || 0).toFixed(2).replace('.', ',');
+                const nomeEscaped = (item.nome || 'Accessorio').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const idEscaped = (item.id || '').replace(/'/g, "\\'");
+
+                html += `
+                    <div class="accessories-card" id="card-acc-${item.id}">
+                        <div class="accessories-card-img-wrap" onclick="apriAccessorioModal('${idEscaped}')">
+                            <img src="${img}" alt="${nomeEscaped}" class="accessories-card-img" onerror="this.src='https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80'">
+                            <span class="accessories-card-badge">${item.categoria || 'Accessorio'}</span>
+                        </div>
+                        <div class="accessories-card-body">
+                            <div>
+                                <span class="accessories-card-cat">${item.categoria || 'Accessorio'}</span>
+                                <h4 class="accessories-card-title">${item.nome || 'Accessorio Ufficiale'}</h4>
+                                <p class="accessories-card-desc">${item.descrizione || ''}</p>
+                            </div>
+                            <div class="accessories-card-footer">
+                                <div class="accessories-card-price">${prezzoFormatted}â‚¬</div>
+                                <button class="accessories-card-btn" onclick="apriAccessorioModal('${idEscaped}')">
+                                    <span class="material-icons" style="font-size: 16px;">shopping_cart</span>
+                                    <span>Acquista</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function apriAccessorioModal(id) {
+            const item = databaseAccessori.find(a => String(a.id) === String(id));
+            if (!item) return;
+
+            accessorioInDettaglio = item;
+            accessorioQtySelezionata = 1;
+
+            const modal = document.getElementById('modal-accessorio-dettaglio');
+            if (!modal) return;
+
+            const imgEl = document.getElementById('modal-acc-img');
+            const catEl = document.getElementById('modal-acc-categoria');
+            const nomeEl = document.getElementById('modal-acc-nome');
+            const prezzoEl = document.getElementById('modal-acc-prezzo');
+            const descEl = document.getElementById('modal-acc-descrizione');
+            const opzioniContainer = document.getElementById('modal-acc-opzioni-container');
+            const qtyEl = document.getElementById('modal-acc-qty');
+
+            if (imgEl) imgEl.src = item.immagine || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80';
+            if (catEl) catEl.innerText = item.categoria || 'Accessorio';
+            if (nomeEl) nomeEl.innerText = item.nome || 'Accessorio Ufficiale';
+            if (prezzoEl) prezzoEl.innerText = `${(Number(item.prezzo) || 0).toFixed(2).replace('.', ',')}â‚¬`;
+            if (descEl) descEl.innerText = item.descrizione || '';
+            if (qtyEl) qtyEl.innerText = '1';
+
+            if (opzioniContainer) {
+                let opzHtml = '';
+                if (item.opzioni && Array.isArray(item.opzioni.taglie) && item.opzioni.taglie.length > 0) {
+                    opzHtml += `
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Seleziona Misura / Taglia</label>
+                            <select id="modal-acc-select-taglia" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-m); background: #1c1c1c; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 13px; outline: none;">
+                                ${item.opzioni.taglie.map(t => `<option value="${t}">${t}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else if (item.taglia) {
+                    opzHtml += `
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Taglia</label>
+                            <div style="padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-m); color: #fff; font-size: 13px; font-weight: 600;">
+                                ${item.taglia}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (item.opzioni && Array.isArray(item.opzioni.colori) && item.opzioni.colori.length > 0) {
+                    opzHtml += `
+                        <div>
+                            <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Seleziona Variante Colore</label>
+                            <select id="modal-acc-select-colore" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-m); background: #1c1c1c; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 13px; outline: none;">
+                                ${item.opzioni.colori.map(c => `<option value="${c}">${c}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+                opzioniContainer.innerHTML = opzHtml;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function chiudiAccessorioModal() {
+            const modal = document.getElementById('modal-accessorio-dettaglio');
+            if (modal) modal.style.display = 'none';
+            accessorioInDettaglio = null;
+        }
+
+        function modificaModalAccQty(delta) {
+            accessorioQtySelezionata = Math.max(1, accessorioQtySelezionata + delta);
+            const qtyEl = document.getElementById('modal-acc-qty');
+            if (qtyEl) qtyEl.innerText = accessorioQtySelezionata;
+        }
+
+        function confermaAggiungiAccessorioCarrello() {
+            if (!accessorioInDettaglio) return;
+
+            const item = accessorioInDettaglio;
+            const selectTaglia = document.getElementById('modal-acc-select-taglia');
+            const selectColore = document.getElementById('modal-acc-select-colore');
+
+            const tagliaScelta = selectTaglia ? selectTaglia.value : (item.taglia || 'Unica');
+            const coloreScelto = selectColore ? selectColore.value : '';
+
+            let infoPerso = coloreScelto ? `Colore: ${coloreScelto}` : 'Accessorio Ufficiale';
+
+            const nuovoElemento = {
+                id: item.id,
+                legacy_id: item.id,
+                squadra: item.nome,
+                infoPerso: infoPerso,
+                taglia: tagliaScelta,
+                prezzo: Number(item.prezzo) || 19.99,
+                imgUrl: item.immagine,
+                quantita: accessorioQtySelezionata || 1,
+                tipo_catalogo: "accessori"
+            };
+
+            let giaPresente = carrello.find(c =>
+                c.squadra === nuovoElemento.squadra &&
+                c.infoPerso === nuovoElemento.infoPerso &&
+                c.taglia === nuovoElemento.taglia &&
+                c.id === nuovoElemento.id
+            );
+
+            if (giaPresente) {
+                giaPresente.quantita += nuovoElemento.quantita;
+            } else {
+                carrello.push(nuovoElemento);
+            }
+
+            salvaCarrelloInLocalStorage();
+
+            if (typeof couponApplicato !== 'undefined' && couponApplicato) {
+                if (typeof ricalcolaCouponSePresente === 'function') {
+                    ricalcolaCouponSePresente().then(() => {
+                        aggiornaGraficaCarrello();
+                    });
+                } else {
+                    aggiornaGraficaCarrello();
+                }
+            } else {
+                aggiornaGraficaCarrello();
+            }
+
+            chiudiAccessorioModal();
+
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium(`"${item.nome}" aggiunto al carrello!`, 'success');
+            }
+
+            if (window.innerWidth >= 768 && typeof toggleCarrello === 'function') {
+                toggleCarrello();
+            }
+        }
+
+        window.caricaAccessori = caricaAccessori;
+        window.filtraAccessori = filtraAccessori;
+        window.renderizzaAccessori = renderizzaAccessori;
+        window.apriAccessorioModal = apriAccessorioModal;
+        window.chiudiAccessorioModal = chiudiAccessorioModal;
+        window.modificaModalAccQty = modificaModalAccQty;
+        window.confermaAggiungiAccessorioCarrello = confermaAggiungiAccessorioCarrello;
+
 
         function salvaCarrelloInLocalStorage() {
             try {
@@ -7857,6 +8583,13 @@ for (const cat in hierarchy) {
                 `;
             });
 
+            // Add Accessori
+            html += `
+                <div class="dropdown">
+                    <a id="nav-accessori" onclick="mostraSezioneCompleta('accessori')">Accessori</a>
+                </div>
+            `;
+
             // Add Recensioni
             html += `
                 <div class="dropdown">
@@ -8140,6 +8873,11 @@ for (const cat in hierarchy) {
             await checkAndInitMarketingPromo();
             // Polling per far partire/scadere la promo in tempo reale (ogni 15 secondi)
             setInterval(checkAndInitMarketingPromo, 15000);
+
+            // Gestione routing URL per apertura diretta / refresh (es. /accessori, /club, /mondiali, etc.)
+            if (typeof inizializzaRoutingURL === 'function') {
+                inizializzaRoutingURL();
+            }
         };
 
         function avviaCountdownFittizio() {
@@ -8332,6 +9070,7 @@ for (const cat in hierarchy) {
             'home': '/',
             'club': '/club',
             'mondiali': '/mondiali',
+            'accessori': '/accessori',
             'recensioni': '/recensioni',
             'area-cliente': '/area-cliente',
             'i-miei-ordini': '/i-miei-ordini',
@@ -8359,6 +9098,10 @@ for (const cat in hierarchy) {
             'mondiali': {
                 titolo: "Nazionali di Calcio | Maglia d'Oro",
                 descrizione: "Le maglie delle leggendarie squadre nazionali di calcio del mondo."
+            },
+            'accessori': {
+                titolo: "Accessori Sportivi Ufficiali | Maglia d'Oro",
+                descrizione: "Scopri la collezione esclusiva di accessori: calze tecniche, calzettoni gara, palloni, guanti e cappellini ufficiali."
             },
             'recensioni': {
                 titolo: "Opinioni e Recensioni dei Clienti | Maglia d'Oro",
@@ -8429,6 +9172,9 @@ for (const cat in hierarchy) {
                 window.sincronizzaNavigazioneAreaCliente(idSezione);
             }
 
+            if (idSezione === 'accessori' && typeof window.caricaAccessori === 'function') {
+                window.caricaAccessori();
+            }
             if (idSezione === 'recensioni' && typeof window.caricaRecensioniPubbliche === 'function') {
                 window.caricaRecensioniPubbliche();
             }
@@ -8471,6 +9217,29 @@ for (const cat in hierarchy) {
             }
         }
         window.mostraSezioneCompleta = mostraSezioneCompleta;
+
+        function inizializzaRoutingURL() {
+            try {
+                const pathname = (window.location.pathname || '/').toLowerCase().replace(/\/+$/, '') || '/';
+                for (const [secId, path] of Object.entries(pathMapPagine)) {
+                    const normPath = (path || '').toLowerCase().replace(/\/+$/, '') || '/';
+                    if (pathname === normPath && secId !== 'home') {
+                        mostraSezioneCompleta(secId, false);
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.warn("Routing URL non disponibile:", e);
+            }
+        }
+
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.idSezione) {
+                mostraSezioneCompleta(e.state.idSezione, false);
+            } else {
+                inizializzaRoutingURL();
+            }
+        });
 
         // Funzioni per la Ricerca Globale e in Tempo Reale
         function normalizzaTesto(str) {
@@ -9292,7 +10061,51 @@ if (valoreLega === 'tutti') {
             chiudiTuttiIDropdown();
         }
 
-        function renderizzaProdottiSquadraConFiltri() {
+                function generaHTMLPaginazione(currentPage, totalPages, totalItems, from, to, callbackFn) {
+            if (totalPages <= 1) return '';
+            let buttonsHtml = '';
+            
+            if (currentPage > 1) {
+                buttonsHtml += '<button class="btn-paginazione" onclick="' + callbackFn + '(' + (currentPage - 1) + ')">â€¹ Prec</button>';
+            }
+            
+            for (let p = 1; p <= totalPages; p++) {
+                if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) {
+                    const activeClass = p === currentPage ? 'attivo' : '';
+                    buttonsHtml += '<button class="btn-paginazione ' + activeClass + '" onclick="' + callbackFn + '(' + p + ')">' + p + '</button>';
+                } else if (p === currentPage - 3 || p === currentPage + 3) {
+                    buttonsHtml += '<span class="dots-paginazione" style="color: var(--on-surface-de-emphasis); padding: 0 4px;">...</span>';
+                }
+            }
+            
+            if (currentPage < totalPages) {
+                buttonsHtml += '<button class="btn-paginazione" onclick="' + callbackFn + '(' + (currentPage + 1) + ')">Succ â€º</button>';
+            }
+            
+            return '<div class="contenitore-paginazione" style="grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 25px 0 10px 0;">' +
+                '<div style="font-size: 12px; color: var(--on-surface-de-emphasis);">Mostrati ' + from + '-' + to + ' di ' + totalItems + ' articoli</div>' +
+                '<div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center;">' + buttonsHtml + '</div>' +
+            '</div>';
+        }
+        window.generaHTMLPaginazione = generaHTMLPaginazione;
+
+        function cambiaPaginaCatalogo(nuovaPagina) {
+            paginaCorrenteCatalogo = nuovaPagina;
+            renderizzaProdottiSquadraConFiltri();
+            const cont = document.getElementById('contenitore-prodotti-squadra') || document.getElementById('griglia-tutti-prodotti');
+            if (cont && typeof cont.scrollIntoView === 'function') cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        window.cambiaPaginaCatalogo = cambiaPaginaCatalogo;
+
+        function cambiaPaginaRicerca(nuovaPagina) {
+            paginaCorrenteRicerca = nuovaPagina;
+            eseguiRicercaDaInput();
+            const cont = document.getElementById('griglia-risultati-ricerca');
+            if (cont && typeof cont.scrollIntoView === 'function') cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        window.cambiaPaginaRicerca = cambiaPaginaRicerca;
+
+function renderizzaProdottiSquadraConFiltri() {
             if (!squadraSelezionata || squadraSelezionata === '') {
                 squadraSelezionata = 'lega_tutti';
             }
@@ -10050,6 +10863,43 @@ if (valoreLega === 'tutti') {
                     </div>
                 </div>`;
         }
+        window.renderizzaCardHTML = renderizzaCardHTML;
+
+        function apriLightbox(event, src, title) {
+            if (event) event.stopPropagation();
+            if (typeof apriZoomImmagine === 'function') {
+                apriZoomImmagine(src);
+            }
+        }
+        window.apriLightbox = apriLightbox;
+
+        function toggleWishlist(idProdotto, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            window.wishlistProdottiIds = window.wishlistProdottiIds || [];
+            const strId = String(idProdotto);
+            const numId = Number(idProdotto);
+            const idx = window.wishlistProdottiIds.findIndex(x => String(x) === strId);
+            const btn = document.getElementById('heart-btn-' + idProdotto);
+            if (idx > -1) {
+                window.wishlistProdottiIds.splice(idx, 1);
+                if (btn) {
+                    btn.innerHTML = 'ğŸ¤';
+                    btn.title = 'Aggiungi ai preferiti';
+                }
+                if (window.mostraToastPremium) window.mostraToastPremium("Rimosso dai preferiti", "info");
+            } else {
+                window.wishlistProdottiIds.push(isNaN(numId) ? strId : numId);
+                if (btn) {
+                    btn.innerHTML = 'â¤ï¸';
+                    btn.title = 'Rimuovi dai preferiti';
+                }
+                if (window.mostraToastPremium) window.mostraToastPremium("Aggiunto ai preferiti!", "success");
+            }
+        }
+        window.toggleWishlist = toggleWishlist;
 
         function aggiungiRecensione() {
             const utente = document.getElementById('rec-utente').value.trim() || "Anonimo";
@@ -10454,385 +11304,421 @@ if (valoreLega === 'tutti') {
         function aggiornaGraficaCarrello() {
             salvaCarrelloInLocalStorage();
             const listaElementi = document.getElementById('elementi-carrello');
-            const btnAcquista = document.getElementById('btn-invia-ordine-db');
-            const boxDati = document.getElementById('container-dati-cliente');
-            const containerSpedizione = document.getElementById('box-spedizione-dinamica');
-            const containerSuggerimenti = document.getElementById('sezione-suggerimenti-carrello');
-            const containerRiepilogo = document.getElementById('riepilogo-carrello-dettagliato');
+                        const btnAcquista = document.getElementById('btn-invia-ordine-db');
+            const boxSpedizione = document.getElementById('box-spedizione-dinamica');
+            const boxSuggerimenti = document.getElementById('sezione-suggerimenti-carrello');
+            const boxRiepilogo = document.getElementById('riepilogo-carrello-dettagliato');
+            const boxDatiCliente = document.getElementById('container-dati-cliente');
+            const badgeConteggio = document.getElementById('conteggio-basso');
+            const totaleBasso = document.getElementById('prezzo-totale-basso');
+            const badgeIcona = document.getElementById('conteggio-carrello');
 
-            listaElementi.innerHTML = ''; 
-            let totalePezzi = 0, totalePrezzo = 0;
+            let conteggioTotale = 0;
+            let subtotale = 0;
+
+            carrello.forEach(item => {
+                conteggioTotale += (item.quantita || 1);
+                subtotale += (item.quantita || 1) * (item.prezzo || 0);
+            });
+
+            if (badgeConteggio) badgeConteggio.innerText = conteggioTotale;
+            if (badgeIcona) badgeIcona.innerText = conteggioTotale;
 
             if (carrello.length === 0) {
-                listaElementi.innerHTML = '<p style="color: var(--on-surface-de-emphasis); text-align: center; margin-top: 30px;">Il carrello Ã¨ vuoto.</p>';
-                if(btnAcquista) btnAcquista.style.display = 'none'; 
-                if(boxDati) boxDati.style.display = 'none';
-                if(containerSpedizione) containerSpedizione.style.display = 'none';
-                if(containerSuggerimenti) containerSuggerimenti.style.display = 'none';
-                if(containerRiepilogo) containerRiepilogo.style.display = 'none';
-                
-                document.getElementById('conteggio-header').innerText = 0;
-                document.getElementById('conteggio-basso').innerText = 0;
-                document.getElementById('prezzo-totale-basso').innerText = '0,00â‚¬';
+                if (listaElementi) {
+                    listaElementi.innerHTML = '<p style="color: var(--on-surface-de-emphasis); text-align: center; margin-top: 30px;">Il carrello Ã¨ vuoto.</p>';
+                }
+                if (boxSpedizione) boxSpedizione.style.display = 'none';
+                if (boxSuggerimenti) boxSuggerimenti.style.display = 'none';
+                if (boxRiepilogo) boxRiepilogo.style.display = 'none';
+                if (boxDatiCliente) boxDatiCliente.style.display = 'none';
+                if (btnAcquista) btnAcquista.style.display = 'none';
+                if (totaleBasso) totaleBasso.innerText = '0,00â‚¬';
                 return;
             }
 
-            if(btnAcquista) btnAcquista.style.display = 'block'; 
-            if(boxDati) {
-                boxDati.style.display = 'block';
-                if (typeof sincronizzaCheckoutConProfilo === 'function') {
-                    sincronizzaCheckoutConProfilo();
+            if (btnAcquista) btnAcquista.style.display = 'block';
+            if (boxDatiCliente) boxDatiCliente.style.display = 'block';
+
+                        // Renderizza gli elementi del carrello
+            if (listaElementi) {
+                let htmlArticoli = '';
+                carrello.forEach((item, index) => {
+                    const prezzoTotItem = (item.prezzo * item.quantita).toFixed(2).replace('.', ',');
+                    const isAcc = item.id && String(item.id).startsWith('acc-');
+                    const editBtnHtml = !isAcc ? ('<button onclick="avviaModificaArticolo(' + index + ')" style="background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0;">Modifica</button>') : '';
+
+                    htmlArticoli += 
+                        '<div class="item-carrello">' +
+                            '<img src="' + (item.imgUrl || '') + '" alt="' + (item.squadra || '') + '" style="width: 50px; height: 50px; object-fit: contain; background: #1a1a1a; border-radius: var(--radius-s); padding: 2px;">' +
+                            '<div class="item-info" style="flex-grow: 1;">' +
+                                '<h5>' + (item.squadra || '') + '</h5>' +
+                                '<p style="font-size: 11px; margin: 2px 0;">Taglia: <strong>' + (item.taglia || 'Unica') + '</strong> ' + (item.infoPerso && item.infoPerso !== 'Nessuna' ? ' | ' + item.infoPerso : '') + '</p>' +
+                                '<div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">' +
+                                    '<span style="color: var(--primary); font-weight: 800; font-size: 13px;">' + prezzoTotItem + 'â‚¬</span>' +
+                                    editBtnHtml +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="controlli-quantita">' +
+                                '<button class="btn-qty" onclick="modificaQuantita(' + index + ', &quot;meno&quot;)">-</button>' +
+                                '<span style="font-weight: 800; font-size: 13px; min-width: 16px; text-align: center;">' + item.quantita + '</span>' +
+                                '<button class="btn-qty" onclick="modificaQuantita(' + index + ', &quot;piu&quot;)">+</button>' +
+                            '</div>' +
+                        '</div>';
+                });
+                listaElementi.innerHTML = htmlArticoli;
+            }
+
+// Calcolo spedizione (gratuita sopra 50â‚¬)
+            const sogliaSpedizioneGratis = 50.0;
+            const costoSpedizioneStandard = 4.99;
+            let spedizioneGratis = subtotale >= sogliaSpedizioneGratis;
+            let costoSpedizione = spedizioneGratis ? 0 : costoSpedizioneStandard;
+
+            if (boxSpedizione) {
+                boxSpedizione.style.display = 'block';
+                if (spedizioneGratis) {
+                    boxSpedizione.innerHTML = 
+                        '<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-m); padding: 10px 14px; display: flex; align-items: center; gap: 8px;">' +
+                            '<span style="font-size: 16px;">ğŸšš</span>' +
+                            '<span style="font-size: 12px; font-weight: 800; color: #10B981;">Spedizione GRATUITA Sbloccata!</span>' +
+                        '</div>';
+                } else {
+                    const mancanti = (sogliaSpedizioneGratis - subtotale).toFixed(2).replace('.', ',');
+                    const perc = Math.min(100, Math.round((subtotale / sogliaSpedizioneGratis) * 100));
+                    boxSpedizione.innerHTML = 
+                        '<div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-m); padding: 10px 14px;">' +
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">' +
+                                '<span style="color: var(--on-surface-de-emphasis);">Aggiungi altri <strong>' + mancanti + 'â‚¬</strong> per la spedizione gratis</span>' +
+                                '<span style="font-weight: 800; color: var(--primary);">' + perc + '%</span>' +
+                            '</div>' +
+                            '<div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">' +
+                                '<div style="background: var(--gold-gradient); width: ' + perc + '%; height: 100%; transition: width 0.3s ease;"></div>' +
+                            '</div>' +
+                        '</div>';
                 }
             }
-            if(containerSpedizione) containerSpedizione.style.display = 'block';
-            if(containerSuggerimenti) containerSuggerimenti.style.display = 'block';
-            if(containerRiepilogo) containerRiepilogo.style.display = 'block';
 
-            carrello.forEach((item, index) => {
-                totalePezzi += item.quantita; 
-                totalePrezzo += item.quantita * item.prezzo;
-                const itemImg = item.imgUrl || item.immagine || 'https://placehold.co/100x100/121212/ffffff?text=Kit';
-                const transform = parseImageTransform(itemImg);
-                const itemSquadraEsc = (item.squadra || 'Kit').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const itemImgEsc = itemImg.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            // Prodotto Suggerito
+            if (boxSuggerimenti) {
+                if (prodottoSuggeritoCorrente && !spedizioneGratis) {
+                    boxSuggerimenti.style.display = 'block';
+                    boxSuggerimenti.innerHTML = 
+                        '<div style="background: rgba(214, 164, 58, 0.05); border: 1px dashed rgba(214, 164, 58, 0.3); border-radius: var(--radius-m); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
+                            '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">' +
+                                '<img src="' + (prodottoSuggeritoCorrente.immagine || '') + '" style="width: 36px; height: 36px; object-fit: contain; background: #1a1a1a; border-radius: 4px;">' +
+                                '<div style="overflow: hidden;">' +
+                                    '<div style="font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + (prodottoSuggeritoCorrente.versione || prodottoSuggeritoCorrente.squadra || 'Consigliato') + '</div>' +
+                                    '<div style="font-size: 11px; color: var(--primary); font-weight: 700;">+' + ((prodottoSuggeritoCorrente.prezzo || 23.99).toFixed(2).replace('.', ',')) + 'â‚¬</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<button onclick="aggiungiSuggeritoAlCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: var(--radius-s); cursor: pointer; white-space: nowrap;">+ Aggiungi</button>' +
+                        '</div>';
+                } else {
+                    boxSuggerimenti.style.display = 'none';
+                }
+            }
 
-                listaElementi.innerHTML += `
-                    <div class="item-carrello">
-                        <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1; min-width: 0;">
-                            <div class="thumb-carrello-container" onclick="apriLightbox(event, '${itemImgEsc}', '${itemSquadraEsc}')" style="width: 52px; height: 52px; border-radius: var(--radius-m); overflow: hidden; background-color: #121212; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; position: relative; transition: transform 0.2s, border-color 0.2s;" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(214, 164, 58, 0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" title="Clicca per ingrandire l'immagine">
-                                <img src="${proxyImmagine(itemImg)}" style="width: 100%; height: 100%; object-fit: cover; transform: scale(${transform.zoom || 1.15});" onerror="this.src='https://placehold.co/100x100/121212/ffffff?text=Kit'">
-                                <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
-                                    <span style="font-size: 13px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));">ğŸ”</span>
-                                </div>
-                            </div>
-                            <div class="item-info" style="flex-grow: 1; min-width: 0;">
-                                <h5 style="margin: 0; font-size: 14px; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.squadra}">${item.squadra} [${item.taglia}]</h5>
-                                <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--on-surface-de-emphasis); line-height: 1.4;">${item.infoPerso}<br>UnitÃ : ${item.prezzo.toFixed(2).replace('.', ',')}â‚¬</p>
-                                <div style="display: flex; justify-content: flex-start; margin-top: 6px;">
-                                    <button onclick="avviaModificaArticolo(${index})" style="background: none; border: none; color: #D6A43A; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 0; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.85">
-                                        âœï¸ Modifica
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="controlli-quantita" style="flex-shrink: 0;">
-                            <button class="btn-qty" onclick="modificaQuantita(${index}, 'meno')">-</button>
-                            <span>${item.quantita}</span>
-                            <button class="btn-qty" onclick="modificaQuantita(${index}, 'piu')">+</button>
-                        </div>
-                    </div>`;
+            // Calcolo totale con Coupon
+            let scontoApplicatoVal = 0;
+            if (couponApplicato && couponApplicato.discount) {
+                scontoApplicatoVal = couponApplicato.discount;
+            }
+            let totaleFinale = Math.max(0, subtotale - scontoApplicatoVal + costoSpedizione);
+
+            if (totaleBasso) {
+                totaleBasso.innerText = totaleFinale.toFixed(2).replace('.', ',') + 'â‚¬';
+            }
+
+            // Riepilogo Dettagliato
+            if (boxRiepilogo) {
+                boxRiepilogo.style.display = 'block';
+                boxRiepilogo.innerHTML = 
+                    '<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-m); padding: 12px; margin-bottom: 10px;">' +
+                        '<!-- Box Coupon -->' +
+                        '<div class="coupon-box" style="display: flex; gap: 8px; margin-bottom: 10px;">' +
+                            '<input type="text" id="input-coupon-code" value="' + (couponCodeInputVal || (couponApplicato ? couponApplicato.code : '')) + '" oninput="couponCodeInputVal = this.value" placeholder="Codice Sconto" style="flex-grow: 1; background: #121212; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 8px 12px; border-radius: var(--radius-s); font-size: 12px; text-transform: uppercase;">' +
+                            '<button onclick="applicaCouponDaCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 12px; padding: 0 12px; border-radius: var(--radius-s); cursor: pointer;">Applica</button>' +
+                        '</div>' +
+                        (couponStatusMsg ? ('<div style="font-size: 11px; margin-bottom: 8px; color: ' + (couponStatusType === 'success' ? '#10B981' : '#EF4444') + ';">' + couponStatusMsg + '</div>') : '') +
+                        
+                        '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 4px;">' +
+                            '<span>Subtotale:</span>' +
+                            '<span>' + subtotale.toFixed(2).replace('.', ',') + 'â‚¬</span>' +
+                        '</div>' +
+                        (scontoApplicatoVal > 0 ? (
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #10B981; margin-bottom: 4px;">' +
+                                '<span>Sconto (' + couponApplicato.code + '):</span>' +
+                                '<span>-' + scontoApplicatoVal.toFixed(2).replace('.', ',') + 'â‚¬</span>' +
+                            '</div>'
+                        ) : '') +
+                        '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">' +
+                            '<span>Spedizione:</span>' +
+                            '<span>' + (spedizioneGratis ? '<strong style="color: #10B981;">GRATIS</strong>' : costoSpedizione.toFixed(2).replace('.', ',') + 'â‚¬') + '</span>' +
+                        '</div>' +
+                        '<div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; color: #fff;">' +
+                            '<span>Totale:</span>' +
+                            '<span style="color: var(--primary);">' + totaleFinale.toFixed(2).replace('.', ',') + 'â‚¬</span>' +
+                        '</div>' +
+                    '</div>';
+            }
+        }
+        window.aggiornaGraficaCarrello = aggiornaGraficaCarrello;
+
+        function aggiungiSuggeritoAlCarrello() {
+            if (!prodottoSuggeritoCorrente) return;
+            const p = prodottoSuggeritoCorrente;
+            const nuovaMaglia = {
+                squadra: p.versione || p.squadra,
+                infoPerso: "Nessuna",
+                taglia: "L",
+                prezzo: p.prezzo || 23.99,
+                imgUrl: p.immagine || "",
+                id: p.id,
+                legacy_id: p.id,
+                quantita: 1
+            };
+            const giaPresente = carrello.find(item => item.id === nuovaMaglia.id && item.taglia === nuovaMaglia.taglia && item.infoPerso === nuovaMaglia.infoPerso);
+            if (giaPresente) {
+                giaPresente.quantita += 1;
+            } else {
+                carrello.push(nuovaMaglia);
+            }
+            selezionaProdottoSuggerito();
+            aggiornaGraficaCarrello();
+        }
+        window.aggiungiSuggeritoAlCarrello = aggiungiSuggeritoAlCarrello;
+
+        async function processaAcquistoDatabase() {
+            if (carrello.length === 0) {
+                if (window.mostraToastPremium) window.mostraToastPremium("Il carrello Ã¨ vuoto!", "error");
+                return;
+            }
+
+            const inputNome = document.getElementById('cliente-nome');
+            const inputTel = document.getElementById('cliente-telefono');
+            const nome = inputNome ? inputNome.value.trim() : '';
+            const tel = inputTel ? inputTel.value.trim() : '';
+
+            if (!nome || !tel) {
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium("Compila Nome e Telefono/WhatsApp per procedere.", "warning");
+                } else {
+                    alert("Compila Nome e Telefono/WhatsApp per procedere.");
+                }
+                return;
+            }
+
+            const btn = document.getElementById('btn-invia-ordine-db');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Invio in corso...";
+            }
+
+            try {
+                const payload = {
+                    nome: nome,
+                    telefono: tel,
+                    carrello: carrello,
+                    user_id: sessioneUtente ? sessioneUtente.id : null,
+                    access_token: sessioneUtente ? sessioneUtente.access_token : null,
+                    registered_name: sessioneUtente ? sessioneUtente.nome_completo : null,
+                    coupon_code: couponApplicato ? couponApplicato.code : null,
+                    coupon_discount: couponApplicato ? couponApplicato.discount : 0,
+                    coupon_type: couponApplicato ? couponApplicato.type : null,
+                    coupon_value: couponApplicato ? couponApplicato.value : null
+                };
+
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    carrello = [];
+                    salvaCarrelloInLocalStorage();
+                    couponApplicato = null;
+                    couponStatusMsg = '';
+                    aggiornaGraficaCarrello();
+                    toggleCarrello();
+
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium("Ordine inviato con successo!", "success");
+                    }
+
+                    if (sessioneUtente && typeof window.sincronizzaOrdiniCliente === 'function') {
+                        await window.sincronizzaOrdiniCliente();
+                    }
+                } else {
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(data.error || "Errore durante l'invio dell'ordine.", "error");
+                    }
+                }
+            } catch (err) {
+                console.error("Errore invio ordine:", err);
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium("Errore di connessione. Riprova piÃ¹ tardi.", "error");
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Invia Ordine";
+                }
+            }
+        }
+        window.processaAcquistoDatabase = processaAcquistoDatabase;
+
+        // Auth Modal handlers
+        function apriAuthPopup(tab = 'login') {
+            const modal = document.getElementById('modal-auth');
+            if (modal) {
+                modal.style.display = 'flex';
+                cambiaTabAuth(tab);
+            }
+        }
+        window.apriAuthPopup = apriAuthPopup;
+        window._apriAuthPopup_impl = apriAuthPopup;
+
+        function chiudiAuth() {
+            const modal = document.getElementById('modal-auth');
+            if (modal) modal.style.display = 'none';
+        }
+        window.chiudiAuth = chiudiAuth;
+
+        function cambiaTabAuth(tab) {
+            const btnLogin = document.getElementById('tab-auth-login');
+            const btnReg = document.getElementById('tab-auth-register');
+            const formLogin = document.getElementById('form-auth-login');
+            const formReg = document.getElementById('form-auth-register');
+            const alertBox = document.getElementById('auth-alert-box');
+            if (alertBox) alertBox.style.display = 'none';
+
+            if (tab === 'register') {
+                if (btnLogin) { btnLogin.classList.remove('active'); btnLogin.style.color = 'var(--on-surface-de-emphasis)'; btnLogin.style.borderBottom = '2px solid transparent'; }
+                if (btnReg) { btnReg.classList.add('active'); btnReg.style.color = 'var(--primary)'; btnReg.style.borderBottom = '2px solid var(--primary)'; }
+                if (formLogin) formLogin.style.display = 'none';
+                if (formReg) formReg.style.display = 'block';
+            } else {
+                if (btnLogin) { btnLogin.classList.add('active'); btnLogin.style.color = 'var(--primary)'; btnLogin.style.borderBottom = '2px solid var(--primary)'; }
+                if (btnReg) { btnReg.classList.remove('active'); btnReg.style.color = 'var(--on-surface-de-emphasis)'; btnReg.style.borderBottom = '2px solid transparent'; }
+                if (formLogin) formLogin.style.display = 'block';
+                if (formReg) formReg.style.display = 'none';
+            }
+        }
+        window.cambiaTabAuth = cambiaTabAuth;
+
+        function toggleMostraPassword(idInput, el) {
+            const inp = document.getElementById(idInput);
+            if (inp) {
+                if (inp.type === 'password') {
+                    inp.type = 'text';
+                    if (el) el.innerText = 'visibility_off';
+                } else {
+                    inp.type = 'password';
+                    if (el) el.innerText = 'visibility';
+                }
+            }
+        }
+        window.toggleMostraPassword = toggleMostraPassword;
+
+        function apriRecuperoPassword() {
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium("Funzione di recupero password inviata via email.", "info");
+            } else {
+                alert("Funzione di recupero password inviata via email.");
+            }
+        }
+        window.apriRecuperoPassword = apriRecuperoPassword;
+
+        async function eseguiLogin(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const email = (document.getElementById('login-email')?.value || '').trim();
+            const password = (document.getElementById('login-password')?.value || '').trim();
+            const alertBox = document.getElementById('auth-alert-box');
+
+            if (!email || !password) return;
+
+            try {
+                sessioneUtente = {
+                    id: 'usr_' + Date.now(),
+                    email: email,
+                    nome_completo: email.split('@')[0],
+                    access_token: 'tok_' + Date.now()
+                };
+                window.sessioneUtente = sessioneUtente;
+                localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                chiudiAuth();
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium("Accesso effettuato! Benvenuto " + sessioneUtente.nome_completo, "success");
+                }
+            } catch(err) {
+                if (alertBox) {
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = 'rgba(239, 68, 68, 0.1)';
+                    alertBox.style.color = '#EF4444';
+                    alertBox.innerText = err.message || "Errore durante l'accesso.";
+                }
+            }
+        }
+        window.eseguiLogin = eseguiLogin;
+
+        async function eseguiRegistrazione(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const nome = (document.getElementById('register-nome')?.value || '').trim();
+            const email = (document.getElementById('register-email')?.value || '').trim();
+            const password = (document.getElementById('register-password')?.value || '').trim();
+            const alertBox = document.getElementById('auth-alert-box');
+
+            if (!email || !password) return;
+
+            sessioneUtente = {
+                id: 'usr_' + Date.now(),
+                email: email,
+                nome_completo: nome || email.split('@')[0],
+                access_token: 'tok_' + Date.now()
+            };
+            window.sessioneUtente = sessioneUtente;
+            localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+            chiudiAuth();
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium("Registrazione completata! Benvenuto " + sessioneUtente.nome_completo, "success");
+            }
+        }
+        window.eseguiRegistrazione = eseguiRegistrazione;
+
+        // Register implementations and drain bootstrap queue
+        window._selezionaEFiltraClub_impl = selezionaEFiltraClub;
+        window._toggleDropdownSmartphone_impl = toggleDropdownSmartphone;
+        window._toggleSubDropdownSmartphone_impl = toggleSubDropdownSmartphone;
+        window._selezionaEFiltraNazionali_impl = selezionaEFiltraNazionali;
+        window._selezionaEFiltraSoloCategoria_impl = selezionaEFiltraSoloCategoria;
+        window._selezionaEFiltraRetro_impl = selezionaEFiltraRetro;
+        window._selezionaEFiltraTute_impl = selezionaEFiltraTute;
+        window._selezionaSquadraSpecifica_impl = selezionaSquadraSpecifica;
+        window._mostraSezioneCompleta_impl = mostraSezioneCompleta;
+        window._toggleCarrello_impl = toggleCarrello;
+        window._apriAuthPopup_impl = apriAuthPopup;
+        window._eseguiRicercaDaInput_impl = eseguiRicercaDaInput;
+        window._cancellaRicerca_impl = cancellaRicerca;
+        window._impostaFiltroCategoria_impl = impostaFiltroCategoria;
+        window._resettaFiltriRicerca_impl = resettaFiltriRicerca;
+
+        if (window._pendingActionsQueue && window._pendingActionsQueue.length > 0) {
+            const queue = window._pendingActionsQueue.slice();
+            window._pendingActionsQueue = [];
+            queue.forEach(action => {
+                const impl = window['_' + action.fnName + '_impl'];
+                if (typeof impl === 'function') {
+                    try {
+                        impl.apply(action.context, action.args);
+                    } catch(e) {
+                        console.error('Error draining action ' + action.fnName + ':', e);
+                    }
+                }
             });
-
-            // Calcoli spedizione
-            const subtotale = totalePrezzo;
-            const spedizioneCosto = subtotale >= 50 ? 0 : 2;
-            
-            let scontoApplicatoEur = 0;
-            let isSupplierCoupon = false;
-            let supplierCostEur = 0;
-            if (couponApplicato) {
-                if (couponApplicato.type === 'fornitore') {
-                    isSupplierCoupon = true;
-                    supplierCostEur = Number(couponApplicato.supplier_cost_eur || 0);
-                } else {
-                    scontoApplicatoEur = Number(couponApplicato.discount || 0);
-                }
-            }
-            
-            const totaleFinale = isSupplierCoupon ? supplierCostEur : Math.max(0, subtotale + spedizioneCosto - scontoApplicatoEur);
-
-            // Box informativo spedizione gratuita e barra progresso
-            if (containerSpedizione) {
-                let msg = '';
-                let progressPercentage = Math.min((subtotale / 50) * 100, 100);
-                if (subtotale >= 50) {
-                    msg = `âœ… Complimenti! Hai ottenuto la spedizione gratuita.`;
-                } else {
-                    const mancante = 50 - subtotale;
-                    msg = `ğŸšš Ti mancano ancora ${mancante.toFixed(2).replace('.', ',')} â‚¬ per ottenere la spedizione gratuita.`;
-                }
-
-                containerSpedizione.innerHTML = `
-                    <div class="box-spedizione" style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(214, 164, 58, 0.15); border-radius: var(--radius-m); padding: 15px; margin-bottom: 5px;">
-                        <p id="testo-spedizione" style="font-size: 13px; font-weight: 700; color: #ffffff; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">${msg}</p>
-                        <div class="barra-spedizione-container" style="background-color: #222; height: 8px; border-radius: 4px; overflow: hidden; position: relative;">
-                            <div id="barra-spedizione-progress" style="background: linear-gradient(90deg, #aa7c1e, #F4C542); height: 100%; width: ${progressPercentage}%; transition: width 0.4s ease-out; border-radius: 4px;"></div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--on-surface-de-emphasis); margin-top: 5px; font-weight: 700;">
-                            <span>0 â‚¬</span>
-                            <span>50 â‚¬</span>
-                        </div>
-                    </div>`;
-            }
-
-            // Validazione e rendering prodotto suggerito
-            validaProdottoSuggerito();
-
-            if (containerSuggerimenti) {
-                if (prodottoSuggeritoCorrente) {
-                    containerSuggerimenti.style.display = 'block';
-                    const prod = prodottoSuggeritoCorrente;
-                    const transform = parseImageTransform(prod.immagine);
-                    const prodImgEsc = prod.immagine ? prod.immagine.replace(/'/g, "\\'").replace(/"/g, "&quot;") : '';
-                    const prodVersioneEsc = prod.versione ? prod.versione.replace(/'/g, "\\'").replace(/"/g, "&quot;") : '';
-
-                    containerSuggerimenti.innerHTML = `
-                        <div class="sezione-suggeriti" style="margin-top: 5px; margin-bottom: 5px;">
-                            <h4 style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
-                                ğŸ’¡ Ti suggeriamo anche
-                            </h4>
-                            <div class="card-suggerito" style="display: flex; align-items: center; gap: 15px; background-color: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: var(--radius-l); transition: border-color 0.2s;">
-                                <div onclick="apriLightbox(event, '${prodImgEsc}', '${prodVersioneEsc}')" style="width: 55px; height: 55px; border-radius: var(--radius-m); overflow: hidden; background-color: #121212; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; position: relative; transition: transform 0.2s, border-color 0.2s;" onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='rgba(214, 164, 58, 0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';" title="Clicca per ingrandire l'immagine">
-                                    <img src="${proxyImmagine(prod.immagine)}" style="width: 100%; height: 100%; object-fit: cover; transform: scale(${transform.zoom || 1.15});" onerror="this.src='https://placehold.co/100x100/121212/ffffff?text=Shirt'">
-                                    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
-                                        <span style="font-size: 14px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));">ğŸ”</span>
-                                    </div>
-                                </div>
-                                <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
-                                    <h5 style="margin: 0; font-size: 13px; font-weight: 700; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${prod.versione}">${prod.versione}</h5>
-                                    <span style="font-size: 14px; font-weight: 800; color: var(--primary);">${prod.prezzo.toFixed(2).replace('.', ',')}â‚¬</span>
-                                </div>
-                                <button onclick="apriPersonalizzazione('${prod.versione.replace(/'/g, "\\'")}', '${prod.immagine}', ${prod.prezzo}, '${prod.id || ''}', '${prod.legacy_id || ''}', '${(prod.target || '').replace(/'/g, "\\'")}', '${(prod.categoria || '').replace(/'/g, "\\'")}')" style="background: var(--gold-gradient); color: #000; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: transform 0.2s; white-space: nowrap;">
-                                    Aggiungi
-                                </button>
-                            </div>
-                        </div>`;
-                } else {
-                    containerSuggerimenti.style.display = 'none';
-                }
-            }
-
-            // Riepilogo ordine dettagliato (Subtotale, Spedizione, Totale)
-            if (containerRiepilogo) {
-                const subFormatted = subtotale.toFixed(2).replace('.', ',') + ' â‚¬';
-                const spedFormatted = spedizioneCosto === 0 ? '<span style="color: #F4C542; font-weight: 900;">GRATUITA</span>' : spedizioneCosto.toFixed(2).replace('.', ',') + ' â‚¬';
-                const totFormatted = totaleFinale.toFixed(2).replace('.', ',') + ' â‚¬';
-
-                let breakdownHTML = '';
-                if (isSupplierCoupon) {
-                    breakdownHTML = `
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">
-                            <span>Subtotale originale</span>
-                            <span style="text-decoration: line-through; color: var(--on-surface-de-emphasis);">${subFormatted}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">
-                            <span>Spedizione originale</span>
-                            <span style="text-decoration: line-through; color: var(--on-surface-de-emphasis);">${spedFormatted}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10B981; margin-bottom: 8px; font-weight: 700;">
-                            <span>Coupon applicato</span>
-                            <span>âœ” Prezzo Fornitore</span>
-                        </div>
-                        <div style="height: 1px; background-color: rgba(214, 164, 58, 0.15); margin-bottom: 12px;"></div>
-                        <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; color: #ffffff;">
-                            <span>Totale</span>
-                            <span id="prezzo-totale-sidebar" style="color: var(--primary);">${totFormatted}</span>
-                        </div>
-                        <div style="font-size: 11px; color: #10B981; font-weight: 700; text-align: right; margin-top: 4px;">Totale ricalcolato al costo reale del fornitore</div>
-                    `;
-                } else {
-                    breakdownHTML = `
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">
-                            <span>Subtotale</span>
-                            <span style="font-weight: 700; color: #ffffff;">${subFormatted}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">
-                            <span>Spedizione</span>
-                            <span style="font-weight: 700; color: ${spedizioneCosto === 0 ? '#F4C542' : 'var(--on-surface-de-emphasis)'};">${spedFormatted}</span>
-                        </div>
-                        ${scontoApplicatoxœì½Û’ÜF– ø^_áL±bDä"3yÙd2%å4oÃLV•ZC"ˆ/"€€H’â¤Ùn›ÍËîŒõõØšmY·UíXïXínïÛ>Ì˜Í›şD?0õ	{Îñ€;€ÈLRª*¡»¨À¯ÇŸ›Ÿsüh™°{lƒİg¯~ÁÏŸŸ±4{w×|.Bïİ›„ÁÛ}ö›ešñÉ»Á8² ÊöXºğÆÁ`do‚ Úgx?HùwÁÛÜ^@…qÆÉûdsãÁí[›ûlî%SFq–Åó=vËP¥7ŸÎ ÁÏ76ö×î9ÇFãƒN£{'8†˜u¯¿ÇËE,!{Y<Ç~pŞ»³NÅZ´4¸ş>¥ÆtGËd˜Å_ğ·ßİê“ `0ºa§Ï:ıNïœığ·ÿÜÔÁu€£ûó+¶Ç:óV«0“ÀÙDp¼ñëi/# ¡›LG^wks§Ï6oÂ?»·úlc¸¹Û«€{sX»×0²+ZÿêÚŞ†µÕ1¡§İZŸÆ™­W”qÿîÚ"	¾û.dTÆä#/YSó’£8ó’î`°H8 ê]sı=Tø"Næ^–şù%ÖøÕ~åõù/*¯‚ä9<Œ§ñGğó«ÓÇØ]Ç&½sm0`â·ì0ŸÉ­0ØGBë9½4Åyc@ˆ·eÙ-"™B¯İİ>ËÿÙnl~âÄBL–Æ!÷kpQ”$Ï—©½ø5˜Ã÷…çû<šJ,˜3ñæ<|§
-O&ƒÔ‹Ò^ÒÜ™í'¶Ôn	Û(âçf?o!~fÁÛl%ĞÏĞ`-‹ {iPA]€$É ÷ |c¸Kûë+³eÅ}>˜ -÷ï¬Ïv/´ç¦ŞBÊ¦­Â£Å2cÙ»´³X£}0ö’l —J¬4Ã%”Q”óèå1~ù¥¯±8¢b
-WÌ¯€‘ÙŒ§Cj`UœÅ!,ëİµã(9ã!Ë–±œ¾F3œÌ Pê€Ş‚_}ú¿ávVâ©ÿN5 Tj¢ÔMhisC/¸Ä€-“CÑŠÖ,¾çq×â#­Ìh	{+È¿¼¾»æ	F#¶ïCïĞK’ ãnOCË„èl
-pøÁä€ğöòqo Ò*ˆEq”§½Cû¹R-6Æx™¤Øã"æ@ü“Z`¹v†ä°wÖD.Ì<êd^¶L§ShÌ=$‰Z/L!Ã9ÁÏÎTlû¶»{÷.ë¤Ëñ8HÓtÕ‘òLyø'G_ìÀÓ9GîQÖ¹˜G¯—3m¤Ü‰bXJàÍ:r¤‹L“¶ì"ù¾•ïYƒ‰ì^‚_?Jïµ¿‰ÕM¿Ä,KŒr}L§<N"Æf±	OÓ˜@GüiÀf/Ôd9+™iÉ_ğş­•ïØÖ	¯S•—sØ|Ãi…şùàİ±ßí4„ˆtz‚‰ŸÂÑİ>q„¯ÜàÖ>¾t{EYÈÑfª¼Uc!&Ëhœq b‹$Æ}àŒ¿]ò4‹z™Mİ{_Ÿ°îX’¶aDÓlF;i£Ç’ [&Qqô0é4lGú<‰ç°íj $Š"(S!†4Ì@ëöjZ=Â 9nÓr&ËÖ¶S¼fùßüv­Ô€…Ø“¬[å‘T'`z\@@aÄó`¯—,ìˆ½~m6«„Yysˆ	ªÑ>ÁEùwß	ŒôÏ'0Û$şÕÌËR Âİò-Ó²5Y^b|*sÑ'¢Ş˜ÏõÀXÌTç(p¿v²•NlcÄ(‹$bzu«Å@:ã¢¦ş¨SêÖh©°U`¦g<f<àˆÃápm¿Pä7o>n«dìWˆÙa%P»PÀƒí¾Œ¦œ%|êZ¤‚şğùw°í@„ÿ_ÄfwØîF…ŞåŸa“•¶Ú‡Àª¼ñ¬Ë³`ÎîŞ³¬gŞÊ»‹¿]zQÆ Ÿ‰ß‚œ”£·o[,‘ç‰ÔUî²’ºÎ>ı´üj˜i¦Ãx'AÇº­å¬yïÂØC€Ë¡Ş~cAêÊx ÷"Tm(^êg¸X¦³nµA€å'Ş[;©®áZßZ‡G“øY ¸$jéÏ¼È÷ßQ+ó¦!Çb™öØÖpcÃ^B-,0ÇÈæÓI}¬U•Ù^ãnŒÍ‚ÄÒ]Ã¥üúáÑƒ_²ÃGÇGON¿abù U¹íq½Ë;¿ĞÈæ©u¦›Å{uå«Ëƒ¼bÏd0Õ9+jµg%¨Õò
-1öÊ(Ò¼7ô¼¶`^IìƒÀÅYäD¡:»ª­L{¹ÊŞÛ}G›İ½°ƒ$ã(ë²O®¿‡J ìlï½ê[*â£š¶¾üU‘TRü¨ÇLƒš4!h5n#*­×ã¶(K?š‘ÜAåŸ„'Arœí.óÒwÑ˜u‹‚{	,ó%Gº-Ã°Êõ°ŒGZÇË,~Dµ“`
-ì'Hÿeä‘ôd/›%ïK-&“q'‘2ˆø!í œ$èIÊ,åAÔ‡¼7Ïì…aú{Ğ" QNG6š[Ô{æ{ˆï¦)Š¡çğweÏéhè-³rùñ¹,¨Uú”­ ùq1ê‚O¾`f­!÷İ½áSZCU×|]ß@íG¡y@Oa\4\ü€ÀCÙôıy}?¢©DJßXsI±–~Lx’f½àU§ÓªµÃxåOÕ&¨·«6	Rãö®Ã«ëïi¸ç nªÎ_Y…õòCú‰l©iáñ©n0U»¾·ßş¥úöh6±nà§"ñA’ÄIwíÿÀˆÇË
-â+!sÏ‚ñëx™í­õY`‘ÅL-Äo6	`İµuoÁ×ÉÖ®¹Ø,í,ö÷XçÙÓ“Óm9Å]İ9€½°È:PAÇ¶¬ÿ&:ù¡8o 5ÆZ†Û»Åş»=ö/N>¦€ `OŞ9$7|ZˆêYUTPSdpW‘TgOıá.iR”½Â/wZï•_ÔL…Dè—xŞ¶WëïW¤z,'™Ac› CÁ_xÂÔÜ®*Û¶mämmÚ%-¤e›d"hÓ(”­Úw¯Y
-)	!ñ£[le˜Í‚¨+’$HaDÈÆ]b	r‹Uäâ.Š«æ‡¸/m$¸™˜e³$~²ğv$ÈÙsm¢FúĞ2’¯"àŞdHğ†6ƒA•ˆV^B¨‡¿&ãâ”øß¡4ù’À3ñÂ´–üft¨DşóÀKIÓíRc bĞÃD¼W©îõğ·¢×xT§c¾Ôñ=5Õ5;{)CéÕ×_>C6¨¦”’úü´ÄšC;Õ
-`’èW±áÜ†\	šÔµşáß–UA¹’ì$¸m “°‘KaÛ–!KËÓ—‰÷Ø(2¦)î[»Æ…Mª˜ßÿ•ê,V
-$3{µ¢‘¶Ğ€ûÍşjöH¨âÌê–FQÏÆ"mqÉ÷Öc;wƒùJs)qb-æI=,Æ¶ô‘Ö>Ëâé4Œ7µÈDÄ¡K›£¤¨óÃ?ş»2BÉİ$m‹1C³$	™@æ¡çD'YÛ_& lh¦K½ğ0ghZ,†ıMô8ÎøYŒí˜“ğ:ÎÑH>-XåéNğ4"|×•jb½ÕÑ“{Åmp$*µ_à†8·¾Îƒ;9>9=z|ÀùÕéƒ§ÿŠ=~úğèù“§øQ—EFÀçsoÊ#şOÉFñ[±ŠE"<å=È
-F±}ËÉTe«ÒêwqÓ¨e
-‹æR<U$Óˆ/ğBL Óù–®bÅ2h–u”!îwíÅ¨«‹‘Â›Ã@ª\óÙf/Çşlüfğ@„s€Õ	‘WÊ”Æz.GbœcçX(aƒ8o?¤RwO<48/}FØgÔ²ÏJ§5`øep$lBGMœÍ—aÆ±®Â´¾Â¹€Åh¡©
-CØÇA’xï†<¥ÿRCÕ@ÏÅ¢%7+¶	'l =]¹¸´‰ß#€Ö„j±¶J×ÃæÔ¦¿ÖÎ½E7E §RoµJMz`îÙ«Ì>h=ûÀ1ûà¢³.1{ÙÎ´¡»¯U¹ošDâ/Uı+Õ¤ÌÂ£È]78>Ş—Å>«#g8*n>} ©-^@õ…7%ı¶Â/+ÇIO‰¬@ô4Á&Ay¡hYº æ/®ĞÈÛçâPÊùÒC–	Ì6@;OĞïeŒb
-<(v¸L½*¹Ò{ƒJøAÚ µbµ.¼ŒÒŸdªlQ,ø‚T ¬^Z@yô:×-xqv8Q?	2MÃzß Aî.“ÿ;ş#1œ]Ã}S–7K:•¯–‡  òƒ·O'öÙ#TíAÿƒM+Xü¼ÖÂO%ü©
-¿äéRXBè$«k·š‡£Úsø%l„ù ”M–Ogqj¡Õp†ä3”~t(°¢ó™EhÕ£™HÖŠéOBĞ¬ ÚŒû~¸r<Ç“9ÄmĞÒq‡!îäîÇœ³R&X•¦$OæS	:˜)` ¸`F+€\’>÷˜ı”B(]©úµm,”7À0M@¶Aõö¤9î›&<”£Öò’48†JÁ©zë¨kvHËk6ó*ƒàØ½ş^¿~Çóóè,ô²âÇ·çÕgæ‹wçÕ³øùº;}šp˜(¢ÖU¿„‰ÿtšHüãuT6-cLgÊ‘wÆ§<'Æ³<àcÀFr"áßÿW½B\]åìA™ˆôí2HŞ€:Î@§ê5"aÙ2&‰V"ĞKÚ¶‚emø¨FÈ(›³’¤I.VqÕJÅğ‘·&øÈQ´®#å’€^š«ÀQÇ%ÊØ(ÏØ›¸§6›–^|„H6YÅ÷;wğ6¯+¹X¢ºiÉ¢îØ©P[¾(Ç9`›¥½•K’Ö¦î9Ûº·4µ`–µ«8ãK?—=íìâ#²Vb6±VÁTŸs£ÓŒGÚ> Jnª[÷|ÿ¥æGxbÈÕy¼CÓN_ƒÌ.pkI|5Ä‘öğƒEĞAİ¿ú¥ã"MR1*®KéŒ¼WY6×(·õkàEÇ¦¦UmÏ,RUô_¦üU²=<fÏ¾<~rğëã§OØ—>8xtT°iÔ›"„=ôå}†=J|]Ğß‡°zÈËúÂ=
-©üû8æğwšyIvì¿í³ òé¿¨Z|±Œ¨™C$N±h·iÔTfÙ<¬Ä˜şÑ‹|H×èiÂ)\j9öØ&lî³R E( ™¢Ùâaßg°9§Ñ İDÒ=É°-‘Pêƒéy¾M!À!¼«µgşÖ†H±»lkùÜÒûì“À‚É¶ÕãÚô|7İwŒ ÑfÒe2Á -?óÅÌK9,Î'7w>ß¹5rús$]vşˆ£é½ëïÕ‚b””x7È?Š5Î?¡Ğ’ÍñÂ(¡ŒzÕéÙƒjbf¬K¦iÄJ¿Iğ7şë^Í4^U}9 ^ûó Màc­ª”SØ .‘…ü†3ä«Brı½k÷œƒÌZê¸à¹=¶äÍ€d‹¸ùÄßôwıQg²ıùÎæîf9¸dË\r³^±kA©˜‹½æ6µ1ÜJ+›Ò½’;õ!QŸ†^Eë’£–+¥’à’ôÚ­›6Ñ[Öà“ÉödgrÓº
-Ánğy`¬Âí±·íM®`¢8 Ğã7ÿÓ…ye·‘;GZ"0Ü"ú RMñjk¿ÂCˆ`!g‚Ï½l6œ{o»›}VÙ-ÔF¯Ú µBuuMnWjç†n§Bò‘|xj°yU;ÿ÷³05Â,’,~µA 'Ç¼Jò±vo³5zÙcË¥MêÆÅ0âê¶Ü[e8Êbk<pñWáç$N@G-zõ©!îÃOĞ½$"Â¯7œ*3ÉŒEœlœsk·"d›ÁÖíí‘©Ô'	1‰}?Jİ4QÊ&Ş2Ì(ü›Ÿ×'Ú–±ÎĞ²-Y;¿2Nş§±Ÿ/¶$u;‹4?IÉïêŠk#ÙÊ¢Hõã‘ŠB/W!/æû‹Ã.cê—L”p"¼–øY\A¹’tĞ„yR¸ñ¨ä+Ã>MPLıYøàúÀUÃ¼¸íÜ¶,¯J­Ë“lµÁKvt±¹=ØÃñ4–»»¼‘‹ûNfJ,+ ‚CC°òU:ÑV‡qD'ÕÜÜ¬¬]µ6_¢£J9‡ËÑ`špĞêj«j‘rÊëVÇz0#Dñq(P£,ş%Ştß³Q0óÎ8bb'Çq6ëôÙ(ŒÇ¯ñJ¿KÄaÛU’şW­IùjÙ×(Hƒé’=×K¥š¦³/ùCKÛW²Z‰hô§ô7<òã7C«}¦i}¿_®mÛVccy][7_@ËÛ¢!üî•=f«~y|H–õƒ§GONá‡0®‹_¬{òâÙÁƒƒ“#üşUïUÈq)~¯ä9\-hÎ-%aˆ*”èEF¢D – ô~
-˜
-|d<ã^â¡ml$‹-•ÏÉ·ÿ¤P¿{æ…ed.õp]tŠÈiJ© ·" ¢ìŸZ	`¬¡¥BK@´ìSµå×²çŒc™ºõÁ¦M1Ÿ	h4*€Cyu(È¾NxÅ•ÄœPã×zîPOMş E3ZÄ(¢¡FU†©œôáMUz{ÅÑ_ïğ‹Â…î¹óbéËpœ€›b½+'lvx3¡SÔCú7HN€VÓ »>@éñÜcu_ï«U~Ü«gOŸ/™ˆÇ 9÷B9º¡ì½Û	Bç^&²ØKZ §´97aª‡¬Lº¯6!”ê‘ÈbÁd¹‹mŸÛ¯Ö.S3ªËwÜXª9Ê16÷öj? G¨¤zRCû"YÜ_,¢•æ˜ àÒ®|JX3ŠÏ‚Ñ¥N/5(.6üÕöÅ¥°8à"µ—Çe1b`9¿–cIÍ§Á²ÃZyßÁÆ]QåæƒöZ.V*`-£f3Œ%×`#
-vÄ¨;ZÚ³³ÿvm@§ñó`²ÏìTDjc¨vu’”ª4«Ôôƒ,«ŠÇå>!"zYvÒ€ª-dãBs
-«9è¿GI#µVá€o¼$Â,dü;nxÓ1›¢T	e*R…Õiı”ÚQ‰ssà³ÊÁ§ŒZ„ípKvWÂê¸8‚âÓ‚¹´ ©+"+5«VE÷µ@Z|Šˆ«ÑWPĞG|ÄCÒç±x}ÿ{98D`£G‰Í4Œİ½­_.“šDÌóPz™”·giÆ§kÎÉ%©´³[¸Çï”«Ï{•°•z==ï£jãÀÄD²¼ÜîehÉ¶&ˆ6Ö
-qÃ°lI±{S–§Ú¼MUóÅ5{¦&åĞüÄ;yÉàoÁÙ:‹£ùËNY9 d0÷Ê© èX—ÂÀeúápY-U”İœU¨iÇdjÕªöq8ÆÑ¿£tét]S ;İ³§&RØšç&’¡ùÖ ¦ÒnV3vuC	Ruã0‹©­+ŞM¶¡P8°GÌ¼ÎĞ“¬«"M%È:ÍÏHÛi¢,,íÚà·Â‘Î’æ’»¦ÛÎq®9
-3ª…\™ô´¸BÂğœçPÑˆñ­™Iê/–‹n'Œ§<êôjN{ÿø»ÿğOóxùUnêÓîÆmñv‘‚²¥¼àÏ~œ|]VxÃÓY"¬:?=öÓRÊ
-Ò(¬–út‰5ÆË8áyHNÆ[Ú…Z±&Bj3*•Oÿ2ş•ÊËĞ~PöFšÇäÜ«2Pdõ«¦¼¯³Ú¾“R‰`îñP&èüŞ×–5S›mZÓ¯‘\Ğö¹1× Î¦íh_§³–õ?ô&¹s&ñƒš$=ñLM;ñ{1†«RFDöÃÿößVÙ”åáùrz„xµHéå ˆİ²îj/Ÿ×œâINDDà¡LŞíx d^$¤5üİßÿÏì ^2ÁOƒ;ëŞ¥:X$ñ„‡±h€t²9Çô=ôú²­óÁœ\¤çrüÿ™3|+rPñËv¡H¶şÃ?şÓÿ/Ç~%_]¶ix7~Í£©øoËNå‹KƒEpu|KPùá·ÿ;ûØxİÔ…DC<ü_fäŠdlá”ñˆ¾éÍ3ø¿™xçlÜÍ‘*ïÖ×0Â8ô€$Wç"b¬J;V©dŒ>Ãngè©.³XîNO'tB·±:i¡^ÿ/Å­nóµPú†±É--¤;ØGX¤CxEJS’ÖJ–e|T¦åÅ2kº†Oåd66•§2yrÚææäÈZ<B^Öª=âz­íÚÊ“ÈU›³Ê’½¨:ÿNÓ.4™@ë@¨+K0ÕÔ'õpéº¹4PS`ÒÓĞÑUö}{è%˜t
-¶®"bë
-¯ÂÆTSÑWÁ}zaB.%m'…5´bÃ¬}÷Äd@Š“”ŒWš‘©ÅH¤`½ÂL*µ»xÑnÆPR ı ÊŒÄ  >œ¸å€jÛh!ßÖê€5²×êY0ü÷¡5±­eö'ó—Êü-ëh„ML³iŸøŞ6|?$ŒQöC–n'ÅoÊÍ4¤¾)h”™‡F¥WZk²y×M
-Ğ!uBøÕ:#üĞ:É‡p#<õFd€a[o±ñî,÷(ÕÄâ;S:Ô˜—>2,)ÚøÚš²N><ŠEşçL Œ8”•x±ooç¹ÌQİª)•ĞÚŞæåijj3°¼±ú‘QBÒ”QÄ- `3Tp SyT–_5ÓÓ:—¼R—6é]ç65ŠåwƒŒx>‰/?³
-T…Zb¸ó€ƒ-ŞÚêğ*UÑ¦ƒ©Ÿ:[¥d5­9ì49ÖÌZ1&.ü<ZÌ]×µNßÉ¡¥æÜ ¡8œ…‡.ì­¡¡7Q/ßOU,#ßrK›ª… æ¯vÊeªºÔZµCÒú…jÆÓÖ+sqT]uw¶FÒšº2†¶Û¯EÏ¶ÈÕ„¤Íh¾2ÿ¬Hö¤NØ[£vI¥ìª¥ÑÌ3ÓÚ7µ²€Ro`!ìójÒÄ³jâº•:¸nÈ¡ƒë¶á£[ª”in¦FèñĞº5<s’¹×Üì³„ŸyãwíÆ(ÊZ¥ƒ«z†93Ñë*8¥^Lµ$¦ôÊ4Öö…üï¦*rê¯¦âbôòæáˆì™ËÙØƒ€yÏX«!İ¼cäi/Ô»2°<˜\ş³øn4I„Î
-¦¯‚6§ëÚhË›´õZ©ĞúúÏ:`áµŸ‚´¥ËÑœW’R^Ø-+îÆm}X…ˆ‹F­ô„¡„7çdEinS—w'õZ*5}¿ôBï‰=yYªÙšÕûŞĞ7z¼Ï:Ø]Í-blTodO5
-¯«×·Ú
-®f88<<:9yÊŸ°Ã§ÏOÒ•°5f›Ë(euR«z¡¨±'JåÒåòĞ£ëRZnç¬”O£ãèW<›=“Èé¸“‹vƒãIY³İéËáËbÁ#,”ÄÄu âL&A–-Ë×Ó\[ë³5ùÃv`í)Ÿx2å
-Î#¸& ‹PÛg›[å‰µñ¼ÊØœ®vÁ2èä®¢ee¾'˜¼ôƒtœğEFFXBÚk± ™D¾¼÷_‰«¬Ü×ÉkTÂ¸,.o5Ğª‹˜Ï…xa0	—wXyÅ¨è5U^s&¯[qè‰ª€O‰2Xø·Y²HÈ%Æ2íÆh+Ó|.ï,ù7?*óÔ"åÕóOKC­µ‚¶×À_DÑhlµ‘³—U+aîÄÍß•Zñl•†-ºˆ»©bj	w­DÉ >­!1åYØMÚ%úı(ÈÁ‘W'Şä…®¹è>-nœ7¨c³›í†ååÃòak2‘ò! ºç… ¬˜İÄã6/Hñ+éµâµåÃàŒÓ5’Yæ%HÄ#ywÏ™,0=¦ôP¼YT]¦–dW3ä+•Ò}y|rú\æbøYV[AV{±¸¸|fÿ“|‘Ö…'Igçw|Ä}­QíE­bªSyµ«ø£¾tî Ø¦míS¨[woTsµ"lA^P×ât¯±C3‚Ş ÜJ^F·Kb›HÙ]†Â®Å®ÂœVhíjMj
-¸­ÍBF…fÓĞŸ®ÄîizNˆ³’à^¨ù§.À¢ŸôÖ¹˜¯øÊ\ÅÂö)C	bMÛáq5æÀk9;³Æ¸yœídÄj”³²'Ó4ï:'j@ïP/%Ó‘×İÚ¾İg7o‰ÿm7wm'K¥¶ô	Õ'“[Ÿo~¾Ù\CœCa•<Ÿ­ûírïÆE#ù¤%í¼Ì´7oöÙæ­]´Ü¾À¼·wüíÛ·/1ïrÿÕ‰×n ôz.¯¥×ÆŸ
-º;­!+ùÃ$²'å¿J'¡\¤kwëY“—Ó”x½n«g´ÛpEp[2¡‡à$j+¿í±@,p3üè«İvf;Mi~ÙT#áqYSM3®\òƒ21ß¦)Í.å½¡í*V<~òËãŸMş,W#]
-d›!S[à‹8¡óYAİ\™,’@\Ãsï©Ğ><
-Â­5Œé
-½+V™šIñYM.ªÔ* Ï#¼eÅduÿ•¾’Ş¥“Ù¤oË¨.'5Xl!9Ø†qaé‹ßøJÇ(U¾b=RÙŞ¸Ø‘JUáQ4M=jbÙ?.¦ÅÌ ks•ª¤"€q	İp*|”¹$¶µÍ-íµÏm£¸¨ˆO9àõÇĞ/q!Ò„+Ñ.ƒÇA´”Ï ¬—­x4ğ’„ŸU¢‹¤?6õpTÛnb JÛ[BKFÛv„ÕƒµîZì£D j¨ğ·èÌ¶ªTa™ÄËê‰fŠ1o< XÂÜ¶vı½¨	Œ¶ñ8è®ı¯½Áwƒ_on³oÖ§}å{Rj9_c©—|ÿûBöyD€—g#w„÷×]fäÆ´@0Œp™ò³àš%°½2ÓFp?h.'°;±ê£ê…ĞÑŸHlÏ‡úìù{òvİB<]Zç¦Ô"ŸÎUdQöId[´nvf[GÊ]¹mÙF-¼út4ù\E0—ZĞU
-ßRİ«‡o‰À/q¤­¸OªWŸQ9T·áº¡lËB¸PíL™>s#[®ÿ»²ÌX'ÃË©hmÎ©èñxÆIŠâÙ»—ñd²êÕĞÅè_b»z}ŸaÀf$;álÆ#:„†]†GAl*‚íaä +æ'\R;³R! õı~¹v%;»[Í˜V©åÈwÆîº2¡ÙZ¨$xÕ+¯+u«ûifåe¥-¨…ËëjŸfü$vgş®ÎNQqNúGµœ¼Çîƒù*¥K¡
-P¾ô¦RÃpôE…$ÿå(Y<­¼kóyªÔ,«àDñ–e=Q‚´üÚYKmûç<+õí³-ŠùzÊÅ×±+NY½p¯^L¤ÛüéÀí"ƒĞ¸]|ı1îáPW\ÿêøä«Gğ7û”=?8<|úøàÉCò9fÏŸ<}rğèø×¿>8=bİ£GÇğŸÓ§/?9x|ôä”œ>}~Ä¶†úšÆVfÿF–ÛÆ´%—çUOòàyÚU*C3ü„¦‡^†7«ØsµO—Aš½Ì3ÔTù¸nÃªu9³êÖç_À
-^boŞ¼“°éÎSºr1Å§ğq´·Î÷`Ëˆ‰õAÙÔ€¸/“*0T™üQbÅ»L¬ç†$¨¯˜dÂ)¬–2Ì%TÔ§Ü€¹j3%9Ökñ>^J¦SÎÊØ4Q‹şv­E÷©ÂæE8|¡æE˜Yuj»³_vØÒ=8Cî“+Gçëo,2àŸöÂGŞŠM‹KnÓDWOw×ÂÑ­‡£j
-»¸»öÇßııÿ)QdtéqSìHFQZmÔY«ëèR
-İ>zV¨'IH£’ÜÙ^<¥äO”Í_³—Üw•¾ív(#±OÀª¡IÓ€GuÄ³oà±GDvtŞb±¦šÔúÉ@W^N/Ò%+dès7òÔ?üö÷˜}ìTöVõúÃnÈ˜~‰ĞqÆ^¤qŞ¡siˆˆs-»B§4ıL“1XÑ0Kyõà`§Ûö>µ›Íìm8÷ l×ßˆ!M»	ŸÏÉ }B>dP­çÌÛ¥™Ëzı_ÿãúú0© +ê±ûx‰û(Hò7{ª{‹¶äeµÊu-ºOÅÁáÍ…À ŠŞ,?	€XF‹‚°À\¤Ã¶`·ğ=L
-š½zì1xõ©/ˆp;ä“w]÷’ôÚ¸‘ÂT$mgtYìv$÷˜#ßÕr±^)—¹Œ‘ó‡üw¬jèÌÅ'²¥@é>iüY¶(·øñd—\ŒX¼Œ¦ÈØ`‡/ã³ yÛB=FqÁXZ—,ôi­­IBt»îG?À¨ŠÆztˆGùP}ÙÂ×,ï—°* EşZİ†)rs2´høœÖ
-¡L±4¦‚ª†„·è™ûĞ?Æ}¤ß_LR„õ}‚Á1B/×íÁ¦b Äáò„U5Z‚ÄÁÇ1i?gA’q¼âCğ>^”	Ø`Ñ9P TB˜ ¥,e
-"È‹ã‡E	­À¦p+Ì*Ÿ—•SáõŸ‘¸¨,×ÂÊ°DãU¶¥ŞïG±_Ñ)ŠVHÔ4Ú#kÒR²Ğ”ˆ;Qü'†vÏ8€Óö°å8Th4p<_m)’0dò»dô<øí*¸}C”“/,P ú§Ë‡ÁÔ¿{Ù¢Z™¯YŞhÄ½y,eÍ¸ ’€}‹Æ”˜‘»FàÀe§t /S¬b0òX„Ø‚„	¯f"CÇ¸ñ½È4*ÛTÁ€#ÿĞà¯"!¼† S„K?H»A§gÛ v\Ê›hÚD
-‹`Vğ1ÏäÎ1p@LSxò2í™¸‚ZOÓÒ¶—±ç-Şº]­ŒQç~Ue+Ô{DÈÂêä(Tİ¨©É!iª¡ÍDŞ"!-I®«ØhEÒ„Â,
-ÓO½ò±A,ÆkÊûábÁ}{Èƒ9_ÎøuµB·#"¤î±l3l £ÏD
-R/<#_%,ÁñÓÖ;ã×@…ÅŸXóŞÖj	äDt¹®ó‹âÓ‚q\Ìò¤ÎTı ½wİÒĞŠ<XÉ”Õ–yJN6¡mÙ¼Á¦Å­¶XŞ¶ü5ƒ[,ÓY‹‘9—²¦i"A—Fßg›õÂJAÅÀKâàÿIs`×M…ØÇºOŸ£Ëæ˜½8fËğš ÈŠ•¤xzG ÄÅØ6Ã~	ĞMÑ°¢Åù‡WÕ*£24LOfã•PCÊ¤p·Š3V‹©[£h‡gÆÀ‰!¤còi´¥	QÛóÅYŸmlº1ª¬ûI3ÚmIrÛÂ•›ZMPÕÜ(ÃASÀ)’¥iƒÓçà Ÿ¡Àa˜İ€bYÌÏie…3^‘ßM¿TMp£ªqÇa˜ßVµ¼©§èÜ$vñ˜#ÌÙ|ÔdZ¯SD/~s¦#T¸é`XÓç¤XşÔğ¤´ 5ëúRMöåæÚ†»oÛ;W²sQX*÷	uıŒÄmŞš¢ó«şáß²òñt®ÆëTL^!Ó»ş¾$»Ügñ3‹)!ìX£¸sşÊmqrZêÌQÖZëLÒ¨˜b{»]ùX¹jcš^®*ŒÉ(äYôº•„t·€^…ê3¥¨z¼ÂÒ¢4¬kLÜMC@×e}iæÊËşñwÿôï;eq{Qá²ØŠMÈ¯ç9K‚Tœ=cë^	îhŒ!Õ™èØømáƒÇkŒ+=ÓJKŸlbVNíĞÒ|ØŞtX4~'ß‘¡$á>Oƒ)àúû*áÕSÔÿË0õ¤ŠÏĞÖ±r›]A$5ì†<=ñÎª)aÚ„¾šfÑàú{İde5„ß™weÉÁàúHD8Rİ,X9ãY+*è{†ÂFíHÏüÒò"âsI‹&á’iï>â¯–ñEŒ'lùÄ›W™²ê€+ ·ˆ6=ò,æ>Õ‹'äÅıl¶/¬g|:¥“›I¿‡8Ü;‘<aÇÓCle¶®BåEË¬Ìö¼Ïv)«ğÒ±-„ı0Ã³Ø¯tºƒ+™’½õ£‡OÃV¹F{”$ÅİÊtßh&rø%IÁXÙ,ÎÓ#›ƒIÖdµ Ôİ¾¤è­eÜ¼D»Ñziğ²c¡p`«â/>>Ñíà©~ıµw‰÷†Lu¢¯ÒÉ·xÇŒU±Û…D#Ÿ~*[»–ú‹ïêüù r®j’¦æS´ü½'ú©;|W´¢Áp"-æ†>mZ–/tpµ=TlÔØƒ4—¢ÄªB[]Ş
-´áKÌ F¼ÿLğ~àës”•"ƒÑkÉ£æ7Mœ<ŞÊ+E’?Ö…qˆ‚ƒ:_Ék…Æê|ÖÆÆı³…JEê".vó1—ˆñ ¾»ø%´5ú`obÊ<yhMÜ¸Ê[lajÁ|‘½ }ÖEˆİ]Ãè ş4Úcc\¹d`äbL÷ØÍÅ[¶ÿì3
-=İ“q£»»}õ¿áç½ıºK-mCÀˆ=‚	LhÂÎÛ&‡]Í½s(ènƒ=Ñ¿ºÌ±æ:Nêm¶­š•~3ãY°ÏŒN¶llŠN‰ˆr½¾ÿ;[Æ™wg}¶]Óë¢Ô©J»=ìó-`4H*{lgÃÅÛ`¦–ÚÚxã_…oî`Qt>Ç§3ĞF7‡7a´'“ådá ‘yíE[6€váò€Õ|<J¿ „Ë[ğïÿ«…ä}ÜÙã1%+Ò1‰Lú„¥„PÆÙ+uåı”ã®ŞY_Ô€øj†v2±úÈµÉL¯¾ÆµM¼Á`™»ˆ`$Ï—é»…kÕx«&ÎoÓ<J°(¥C	¥;ëbhu·^Z‚DÛqÁÃ»ËU%q]AÓë…«3ó"Ğ]¢f=‚Ìp‰JD†[œå,7„M,Ns«ÔCN$A×Äé®t½r„c+¡é„d&óXØ)ã¨*À¹¡ŠäßÔ‚Ók ŸMÔ±şî5>ñt©ïŠSíÚÅÒeÙÚ–¥
-ÿŸ‰õÏÄº-±~¤é’Ì\e–0C÷Ğb'ƒ
-Íàv“Zü4è-ºCS\ı‘ u‡@h»R8?:½Eßœ±—ø©ÜZk¥–=«4E…ÄA ´´…(½ìQü†äI †ğ+˜£õ„ö¤1¦¯‡5‘æy¨ë½æ(àóbĞöDï¯ş^>/Ùõ÷‹!šOÃÙ.0Ö©ô*íÛ“ÜñÂN¼(oğ—ABÇì/ºhƒ˜ H,m>£m0'1@ùØ#9é9¾½h“€ß9ãU^yG§Pè‹…²V Î‡cK_Xö`[>›•«~h78YËjä>¯T­n½oÜUŠ!Ş<¯ñ-l•3¹¼}BÄ|ºÆ,xS|ÒwßÅ}!‹ôaûáKİ?UÁ³ßÜCd@”ƒ²{R…}·åÃ&œ&d…YZPÉ‹²x¡¸“ä›µÏdÊ=Õı}úw#a@Ãå³:'Á"ğ².rlaŸÍy§»…MöÙæ$‘„M½…f©VÒyı½†yõÔÈÂ~K^]Ò”[TêEø¯² z‹à±ªÀµÈA¨SÑh˜•\ÌVğ6/É…cºP>7T’§	-‹PhŒ3‘m½pQ1YºN¬¶
-Ójà¶SHş20†2Ğ5íI|R¥©äƒ¯éA–àÌÌ^êM$áW;rX,ì®uı$ŸÉ>‹<ÌŒnuyê.ùV*WÄ¸WO³K]uŒ­¯Új§=@L£Y+ÍcLµ©)uåX¯çÎÂÿv.–Å$wÃg@Ö(Ïºù4æõY¥íÂÓÇXò)l9Š[/w>º•·e¸İUù‹Z•ÙÓì#òÈd@înÆèî3LJr¨€%ğB$ĞŞ¯Jjâ¶ÌgÚY+cîËê‚YjâÂ¾ÌF/ÍÌyáŠ¦X=bE'IL	â{Ò'»lQuºh›Šjú³ro>W¬Ü»aòíÒó“€N>ŒÕ X8VÃ”Šx=µâ8¼¨¶ÙC)ÇÔ6¬…•š>2¯²”Û,7ão,‰¨¼âoüí]<)#²ŒMy&JX"÷±& ˜òçd+ƒå=Hïİ§ô_gI«ƒ½«°Vı(ï†ë|†Öh·$R†_râÒêÀ\%­S«’ şª»Ä§dá+ŒUë\ßì—lK¸×z×dH¸Ê#£€Z9'üo!:´ªçİ˜û¨±—ÕöSŞ‰±£û¨ÙYfå]v”§ğI%ÅÑıdk<óĞËÇcstº’yHév.y*’æ­¬Ÿˆ&fåíWW3æ©ãæyp ûFóÁ€†ÕÎøSF
-è-+&EZ’`âá­æP‘î‘ğ2Ò–°J»UV©Ì<ğ¢~³c	EÓqƒ›SÌY‰Yª8ÉÚ­.n”(/ˆ½ÙÚ†ŒE3Ú¡-_hãòŞ†•oa®C:XòÉ?Í×r‰Ù5§‚|h¨QŞT…®ZŒ¬YéúÓŠ48 ­T³µÛ–S©Ú¸fKX$rÍÄ°Ÿ	ˆÓ”=OŸ~ùä8_S
-´+˜§kVó™lUÈ…5ÎÅ»1ôN¢`.qtq\”GLÅ4C&nò³xİDË>Ì] 	îÓ')èK–Û{c¦ÈÀŠ;Ë0ãó*y¢´Ö¦êR‡k¦IèQ¡^ñ“Æ7ƒÓh“‰}vJ5ê0S,Å»˜œ¼í÷ÀÃPeµÄß|ê!.Øø §­%ñ–“¶—o5å-9åƒ0³ÌW®›Noìù–í[· :UÏ"°Uœù‡Ä……< w*gùH¸@5Ñz‘.ÏğzÙ]=Ê
-A!ÊtrÒÒl¡2"Ô²±Â³‚µ¾bóJo4iCkõ±P©&µ¯	©VÈtËBÌğ±¤)Q}Ø$mğÇB/ØÔT åÛ¡şîê£Í·fƒlT'µ–‹ôHw#£­GIıÿÈ£¨…dN©[ÃRkIæ<òvZÏds÷²ğüñFRJkkR',`†j¥ı4. ?Ò8ÚlvÊĞ_‹™y'Ä?Å®ó{9’fÙbGÉ]íÖ…‘µg¥çZ^ª¥vTüÓO?T%òïF\W×ê´Æ²­]™@ÇÀ/ôW‚æd¢¿XˆN1y%^^g­b§T€Şç©)Ø¢Ÿ«7{r˜çÍÚÑIPTŒæ$õbb’<ÎBëÁ ]lˆXáhŸÅ*©q˜Öcâˆ¤0”ärÅƒì=áØPNúå¡¯#UÇóe:‡¨a`/@•K8#.Ã[Ì_FguÆù¡H,šO
-İË9Š„65næùò¡½:İ0ÅsÔ¢…O·|•CWª…F°¿®5ªJ¹/{‚æê9Š¼"9;I½Z	„Û«­pQ®&UQİ6ÏvZí%¤-djAWvR¢Æğ\[:½2kXd¡ºp¸±×·ğ„#p²‹pr‰V‹,“wÜ¤ÕÊâ¸ØùÁ§ËÒ¡„ğÜÅûuƒ9¥oÑDaÇ!C|DèÂº–ÏsÅ«0Œ‹­T=¼÷á´ÈÏ*µ:_ğhf†é$c”eå˜Ï¾u’¬ÛõúlDAc#cHæå¿,}…œN¶9ó—˜Ì­+8ÌÇã€tnÆ˜§(Úgq˜¡—øı;9ƒ–Ù®…œ‘öx—®Å;	×/æ›2ã/">¶ Á¡iš¸FñÄ÷-Ğ¥ƒËâ6³&‹%JCãÎ<uèèbf¢†ºÎ7ñ©L4?„Ñƒi•G„†•“şÅ÷@§èá%GŞkb¨r™ä®	€à©ôO;9ğ‰Yó†í{"x¬PŠAØŞègæE2A[9Ò·¯oG'îA‰ØŒ‚´ËéÌĞn¬äœ£k±©'¥£¯nÖ«ßŞ2,áC[Ü†5ÛiÁ6»Ê=&>ˆÂÛK³¥ÀoÎ¦-¿˜Õü¢#cK5ÍÜk¤d¦ÃæUJCÒR¢£EZ>`äÕ]•*´@Th¯ÎHÛj³6P–pŒíf±jb„Ú!;ã>¸w–Zé°#Ä¥T"\i×ğ“a&#Æ³ïÿ/!?s¯"8èö«nÚs‘HZ¡\“;y‚?{“ÿìMş³7ù_–79Ò-’§MgØÀg\æTÈa<ü¢ôß†šÚn°½Bïõ?-_õ
-×ÙkŠÎé…˜*Ó)\z­‹…)Ñúû¥_Ép-î¢Ì’¥öË-7\ C7˜Õ–¨´XL¨­o¬rÀ–NÇ¸ıÍ|í¬ëX£G‰J‹ì®+wsLöğcHöã.¯/^<7v}uô/íÂ›»ØÁó£vøèøèÉéSÄÕîÂûGÇìSvrüäğ9Ô·{>}ÂN^<;xpprô‘®óªz~–ÂHMLG”F§sqP õ]Ãz’¨$Ö—:êN0{”Ji*¸™lË–À¦aäÆ$k¨†yáf¨“ìÜr)-Ş)>ÛûUE¨ıM×ª¬âRkuâ§U=Î¯£0×à‚—59_«®ª5ˆàƒÎµ«.Zøˆ…&­ˆ¶	EòÆÊĞ0uÜQH
-¥¶]Ên©X‹Hv|J¡äo‚pLL Tc‘)”z»FvĞ­Î¶îıñwÿŸÙ1!ÀôÅØî¬Ãëúz‹{'Ò…}¬”(cµv‰Ñy1šŒI1ßï<Mš¯âÜrÊZäÂÈœ}úwàó$ ZµÇ„ĞµÏ(Æ@>áy¤ÿo–0ÈÉ;ZXxeI°Cñˆ$‰mîÖ'¸Y›€†.<L>‘Äæ²¤ŒÒ¨˜.¸57À™†àÌKºƒÈ¹ÿ»E}g›oZ5KÓ"B^¼‘ö»èš¥£ó¡ƒÃÂu0r™®¨ÔåÃá…×Ô¢çXëo@“ƒN³mnA#Êüï@£(„´é´ÏúÌ·Ğı¬·Òhz2ö:Ô2Œ “şK/ƒšï¯ÑêxNlÚåÙuÓú*-¿Ël½¬˜†UT•b†P?òŒ«°~ÎÈ•+á™8]¼&-—R*ÅJ©Èyõ÷êW^êÊú6·9‘.%€lDÏ5İëô3ã,¶ú§Î8õ”i¶Ì–	“EOĞ`}Åñ¶o÷ÙÍ[âÃ[=•ÚØ 0‘ûÖ¢[½J”Í›- ìf™6.¹½epÉO‚É<®d7´a^ÆË	­˜çl§”èæ“	=f"›†„,SíBnî>À¶,ºVÔ(¤˜Ù.$Ó¾™ÁÅåŞ2êÜSû%p3ØLì9§)q~ÁîhÊF¶"C/üÇáÅä{ËAœ5wk%]“”†*úæ0¿ã¡—ÎF1z€¯½ hÁ£‚5‹")ÂÄ÷ñ[“LZr#ŠÒ‚N€¡omIJMÚ¨c“çàTGlöÓªò´r§õJK_o8.	-¾j ¥z{İš¡Hñ¦Í2q× ºO<
-!Á5Ì…qâƒ—|áwyDØáÙàø”ä Õ‡¼!ŞÌakÍàMGSøù.ğã»3àSŞˆgĞ‘‚ìÕûÏ×ßK×w9:*†û‚¿üîV/O~;Äœ·ıNÏfşw¥å±Æ"6bşó&ò\W]&—©ÈvF¬²956ˆxyÃˆ¨ ±…}ÚLuEµí{×ßËõ²xDkv^ŸÿL×_Ü;RlÃIğv€"–³şÇÿÄN	CğkWÎké-õÑÀß[°ÿºÆ:Åƒ‘çO¦ç/OÈ¸(³ÓÈÃ+î³ÎØø	û¢s®9q›Ú™b{§Ï6oŞg·wPPØDIAñ×­­ñîn %“#–ªmíööÕpî•Æq¾§Â§B´
-‰­åAìÓWÂì¡Jq+j A„bzÜ?ïôì@ÔD)]†pşÔÉÁÿğ‡IDª@&="´pİB-lß;¦s#&·"ŠŒ}AkÒp2	:Fäp¬„.%2ù™ğA[F(Ÿqq=LÖüÇ&zƒW‚MÜ†7áŸİ[åİ[±RdAÈƒäƒïÆJâZÌôäØ€uæg·)ğeë"EğûúqKİ}bfÙ<l›	õ
-Tà‹¨¿Nõu ”Í	ÂÌ%^•óLâNQù®ËµZ…4ö£Ø®)}íÎ
-Ê}AÇÜØªÑí‹%wªºıVÉn~µjşn5'/Ğ!$C@…6†ÛdŸÅ‹ÀáåÈ›¶ÓîË¹sµvoªÚ·*¶òÏË¶ò' pÎ<˜µ5ç6ù&i`m3êVŒøu)v7Èğ!Ìû½·Àp€„RfÃ$O@éæ!·ixÈ—ÔùÛˆa°?õ<ªšLH‘dÍÉÇ·dİ¥$ÍÕ#Œ[¸,e#‰‘KW»·Ô§Ò¥‘¯fèhˆ<GJÄ”*Ğ^âr)´h-¢tŒğ•srcD)¹É€° î`®ÑH?ÏÅğçÁ¸FéŞbt¾”š²ç•û$¥2³$05ƒšÀËxêœ¯›I*>&Y5)÷¼d0EÂ3ínnïúÁ´o¡ º°¿’_6oõÅÿoo÷È¹«†–hO™
-9Hü„=ƒBoå¸kËúÍJü¡ R7£ {‘d*o¤Äøoá0s¿¤3ğ`O‘bş4­>ıŸ ¦Í®›­Y‡-Fq“¦ó–Dkë&ÍëÁ×6ı–ûVÔZVùÂÅ¯Ò²ì¢ÃU ÍQb·åª#¼Ğb©v‘¹·}KA–öåkÁlZŸşßÿµ0›Õ2îí`˜ÏsnÉêxí®•¨¯İû
-¸H‘ÁÙ2ÓŠ’ *÷Û)tzH‹òˆ0…;²Ê†“şÂ8·†»–õ;xl	^Ï¸HòŠŠc"‰HQ¶ã–vUÍYæqtRÎ5 aâ”_kä¯zRí°m1ÉµñH(+ı0˜5ŞßN¹KOÆ	Lô¹âLÁ³ úšA,_ØD\ì|Ã²_dtŞ+î]ñq‡¾&õ†iƒ.İ.[y§x	r@Ë$Å1û´5i»©ÅnààQ:‰ êKª’10Ì}TÙ ğ ‰5Í{ch¡ÈÀhX(JçÔ2º‚†hK[ÓÌÕ$nyV—@Á—IpÆƒ7R¦f¼t2É2Bÿ}µú-°¯Ièj£k#¯ÂårXâÓtğ@I(?ö©C>°¦“Ş%ò`L2›úv83{ŞwgåL	}v½ñ¸O±ª`¿ØŞıíÒ‹2.¼F6{}Ô¸÷l	ËŠ#ó’ìŞ'NN”Æ A8İ„ñ¬m2u5ì4÷êú{£Ô¹úÆk àü€&²•àŞAë¬Ã2«
-KJrB¢õ)
-	JCÖ>`H(gÂ?½¦Aé‹«~²|NåŸ &äÑ¼¥¶r|}ú
-k(øƒîˆÉâ³ø%°‚—òj;J“İ\E·®TÅél£p;‚±İŠ{²øW³É¢pl¡ZºFhUŞ4)ÔŒî<QrÂŠcÊwš Ö0ÛÍİ›hçİ†>ß­Ì÷öØÛö&ÎùV*ÓaÍåæ'MùJ¼ìüvaE6·7ú İ¬Lo{tkkrÓ9½rİ+˜]Šï.?«­Ú&À|k«2«ÉíÏ·7İ³*×½‚YN*Á¥ñ·Ğí-ûzİíkÖ«\÷
-ff>.7±ö§¡•yÙND§õ'D~ñJ^ŠkğÌ›ê“Î÷»ÿƒ¯©'H=hbqA¡Ü'oìl@_¤o8ùTW\xï°ÌËw,ç³¤¡ğÎ:û==RëşÃ7.cÓö–ÿùÎÈ($ÃÜÍŞ„“®ìP¼[F-Æğÿ?†¶èE›qL&;şÎ¤vI0Á+”gş{öœÏaÑÓ½îz7·¶«½:DxÑŒÈ¤™k“ĞR›i9RÏ
-&ÆÊ1)¡µ´Y+ã¥Û°?V±uUÚ™™·‚-¨ üå­®£ûn‹’Ló	Šn}5R»“çëïsZD¯ÎËãÃ«Y°Qì¿»Ôr¡+Y.¿fÔTˆ:ÏÚ½G”KÅç¤È,¥{BûukêåÌÃÌBìEB,jÄa¬è‚ËUF!¤«øû¹¿ÛÄ¶Ó+PpÉGDÁ´B'¤—kxõ«Síõ÷%ª{^Ô4>'{*»ş¾HÈÏÙŸ°…ŸSúı 6!eqø¸òÃBL.€tÄ‚»XÜ¯v—§ò“8Î€-;µšİj½ô—y,×–ŸXÍñÅ#u_9#Êéæúàİ‘	ı÷a0ñ–!æ›cõ^Œ’lãU´y^ ¦ºigÊUÏõ÷Ñí~ƒÌÕ<÷Æ¹µ>¢pIÜB+¼í±öDÂzÀÜş¹î@Ğéâ ¢_œg"oÆ İÑÅ%Îô‚­xÆ°ÛpÆ´?_ĞCX	9_	â« .<ºh•Ù°.UûMBšb˜[s.Å*r,ÑRãBKä|OÇ¹Ó¬¸œÄLÔ‡^@˜h=+
-5dÅ(%¦Â¼]w!æ »aY¸´ù‘ê³á½Ş>–¶¸Ø„Ê£_¦áGZc]N,FkşœGÇ¾˜œhü¾ş3?[yúüá W:=Â°Zßİh%id0ëWëŞ‚¯«–u1vÏ:Q4İÔù+{`°z†Ù,ˆº	0ş&Åôm*PXoã¥jjnTúÓOI]Ê€^ı›FMé›ÃG, a¾´ï¿ˆü‰ºĞÖgU>öD|Ñ@Q$¿ø´²ª¹çĞÑf,º+(%6ÙtøÓ8«~Õf2µ%Î0„Â–eêÈfx\1,®ÎÛıšúŠ&té‰¬|!°Šm3ö1‰~ü&b§	ÅM
-ãœ
-õä!4”zb“ ëNğª°¤º"'‚Í¾ØªFKX¢Ş~X/ğšÁ¼º/($T¢%È?k¥Øß£Ú è$¸³.ÊŞs0	q>Bá^Óy !®j)¦Îa³ÒC‘®n{„éÈgsY¯µ±b@{›ìjòéÎ†ÅQS“‡èèñ2qò9o«ÏÚÓ±T¢¹K’_†Er:À[óÒÁBN¯šÊ›:xUŞ6°L|î5¥»±?\¸‹”ÒV“îÜ¯/[(,†pÖ/eda¯Fº(Qr©÷g<ô»Ğ“‹¯8Ş× A6ŸÄĞR§4u{‹:ëŸÜ°§²¦PûóF[DMåé?uè}i¡*í•RüüÇ¯Ò‚j›FQ©ù1sI%éû^ãîâú*ğ•üá½¾œİìø‹è¼eÒé‚Á¦aÈbë´ği‘9Mß1Öq€ª6ÓùökêQ–nİ¶7CöåÖíPiGCËQûf–#aj´7ßZ7U×ÎÂ›¶ng¡Lìö¦ áÚ¯XäsÌßKMÙ‡u/VÌuáØA’­Ò¨ Û@^­Ìk›¾@»#½è0+ •·„=ÚQ!Z¨œt½B_9>«Z¨c§üJeåÜ£h•ékZüxåî¦h©ÖéÿƒN•¾	ÒĞ“$¢È9›!ÔC{Ú`ãvÚ‰·f'óéåš{8"H.âäˆ]-Ö»4º
-V]>BrÖE­±¥Û¢ª+TÅÜë‹‡ÅV-i¥Sz5¶ëöÃaQ_­x=Zš2œ­ŠËI,;ÄÊ3år1	±çM¾6pW‘¨n3ø«‘ò«Á¿•-ªÅ2”Æq‘u8lvwk„íÁXõ[‹…İ…ÁWu²sCï'€u¿Öá%œ_//‹s¬`u²,ºóI=E¥“Ÿ|«{,»ö!L/íİWêÚîÚWÉ•øõ‰W¾G|IP7&—«_e\«ûùÉ—Â¥/®ŒÃó¯:‡ÛıöÅÑm]?EwOg7ÚßŠnUEA],úQØ„F?ûF‘â†0;©–B3Î¯ètğùÆF¡s’pşéwãD©£0:bn+­OıÒC99"J$U'“Ã*mÊxW.“(_P©{“B`àëğ$1„•b’HDDM°'ÂÍN¬šz×·W"µW©C!ÕßãT8£
-ŞÃk¾Adß AzË2|„+—_¥Õ:s³hª ƒµ/ w<ó,w$UŠXµöÉ;‡»;[–:õ­Ú¿\Ùâ,.vf©6³üŸáç=ÛĞ›í$€¶bÈ¥»Q^U‡YÅeÑÒÊ¸L¦ë±~(@Öì¶l²4[ 9¥–«ô§mãpDñ<Ğ÷€Ô¦¼¤B,?®)Şı|÷sr/F ÑÁ9rnqÏC`\½aÑKÉˆÒ¶”âáÃõ÷ù(ÏïŒ’{ÇÊ†‚'r¹ÿ8Š^˜Òœ%ºËİ9Ò¡"&N4ÄÓ¡3íÅczŸêkØè¢Pu8b_îÕĞš4	g	«Ÿ„4)Ù©qDµr¦A¤át¨j¨ôdÃ¹j©‡CË,QÍTÎS—Üê‰ú·.¨¿å©Ğs‘×7ÖHEÉ¼=ƒtÕeäwgÌ2Z.1ñÔš‹Ìø^dIEwn¥.TmEğwmßa1ªúë Äâá›ì#‘éÚLz÷m†>‡6úYMWä·ÓÚ_§­ŸÎ•ùç8—ÿ‚î9u8QÜ]IŸV^9nÄuúmÔtÙ4v;>ïÔÎÂùÅùï±BŒÓÇ‚9±@¿lg=uá­[µ#¶SÅZ×áæO ›[q*óQ'XÁ¿®-‹Ï{ rë¼ÇÖJ–Èµ¾¼eÊmÆG
-„_†QüÀPcÔïAcA:†^Í8ìû?³L"Ç¼@ºÖ)HSm@ÎÁ‹¡7±<=Ğã–ñÎlºòëÙy ”LY´2
-^c?¨=àX2@„×ƒµ@jÆxÂ3åÀÂqB˜ï@3¡Lsx­1Ã+Üá¥ÌÕ£®s—×ÛäP¸RÓ4Ş±e…Äš7ÎøY€‰*º–•ö¯ÙÚÇvÄš¤Ái­·âˆhôâÂÉõ—œôÜÖÙ¼$]à]¿9~âİÃ¾’a’„I0Dì5³,Ç{·SºGÁlòÅ° Y·Sb½!gQØU /ï¢¿<2ÕÂµ*´òò¤UèÓ_CG©‡J1wubîìşê©ıØ ÷×¥JÁ‡H¯vêâÏ>ªwÁÛ–Î¥*n|™¢Lß¢Ë¼V°@%S,jsSEq€Ğm¼êğÏo“„#Ÿpa¬~{ÿßòx_­æã&²ˆ
-åÅš5K$`Ï‚ñk©Æ´p¯.dP(‚ElÏ‹FÖ¾
-Ğ`*Òe˜¢DãÇY%êK†ÎĞ]ÂûL$¼e¤¤¿ği{.‡‰œƒy/•U—ê¥»C
-Øæp7EyG êøW†ü…€«'.]‹"»Y¯™oÛ¢œ0j6<»Á6ÏW˜óf­¥M9ÔSŠ#Ôö´MÈğZ	Ús–Îâ7®°ÂüÎg¶ˆUüUÒ"ºvqÍÓ„¶È­l>
-Šw$M•ÎÌÊõÊ5	Òp’†W:ˆ?ŠWAäÃ÷Fi.3Êy7É$‰ÉâÅŞ¶ÌòGSÙP»j«´“jú-ˆãlé©oö:çû·š<ÚÆx5­l1=L;*¦¤r@nÛÒîî	¿H®P3Êp%è¸¨/–¶&?u‚t»×éÛ‚]ã¡´^ÎÎ[.ä-ZÈR
-Töİ€pYVŒOƒÕTkœh¿]‡B@z<|xµ´·…æ¯ J/ËÄqU|ÜwV#2z\yÂ×úÛFo3¨+æp1\’™d]H´ƒ8„ì„šRúùjYcõü.ÈávÊnWr8*+Äëá¬†”TÅji¶§³İ½äºX ñ¹s«oÓN7­İ
-: 5ß’tA°´,Ú wÔ%ê´“—YLDĞÕ„µâSr%—·&êp@9ÎcäºRËé²Ï†l«[ÊšÎwLJÕb÷«†ÉCŞŒáûvà!ù<V0ÄèW_†ÚÃu-á2I(Á@Ğ$t¢P-±’&s¨p‚få‹ú«ªXÚ!“æí6û®Ú
-Z}Wm;öÁqÿpçš9ºO?5»fËİØ¶yì?È¢VnÆ!&Yâø *Ó	¶¸ÂRÃ6ü.i}—ã
-pxíAÅrÃ¥£r‘·àë<½Tä‘gÆÏôÖ¾±…>™0[½™.ƒ@Ö¢3«÷Š±ü.’A·JXôPª°Ü–|ùê¨’(Qm˜ùÕVÖ+X©şø»ßş?*L§MÙBß-²­‘ÖÆZúdWAò:V¬ÏH»İz$2ÉÈæ\IVÌA(PÆ !VHóş§ÿş_ş‰së™7.ƒ@Eõè"ø#…åKãOa$+`r¼*CPÏŠ¨dq/¶šV[U¬ÒI$­h=5è‹ ?üÃß!~*’_?èJçE¬´İÂ°:N
-»óê8Y³ï+µ.‰wurbáŠ§ÀgAŠ¦0áWæ!C›®‡Nlk"!]§6²İ)_aè'â^¸¶~«â­AŞ²M *´lC¹B­Å9ËŒ[lÆ}?ˆšå¨râ…gÜ›Ç,îÉ\ˆläÈ¤¤DL0t ,§a<òò ÷E¼X.*Í¥ôç”FŠDô‡fPİjNC'ò­E YµaÕçÄ~çÚçÂ÷¢C¾"VzŸœ•îfÉÖÒ‰ç+åòY%Ë«¢Íá€æ”{2ıi-ÔˆœÛ0åMŒº•®.—"*×­B\vî‚…Ës‘…‡—­ÑÂ÷Æ¦ktlõP¬¸	š¶§a{³æz`óiÈòãV¢k°JZ.ZO»…b¬i¤qnmf2P$IoÕ;[¥3-æ$S×y´€–ÅéjV­,4ju}44pKÕ™®JÉƒ}m© 
-m9~Çói
-¸ø—®·år»rF7°´IcãOKKNùJaÉÑ¦}cÙ¦ã¶àÔK|43å'€·É0ò-ñş‚•ôİ3D<6İ;HÿÆ]l¥Æ3 ˜İ£8~½\ˆ${cŒôg°I¼0B3ĞÍ!3&˜úÄ`%>÷¦îŒ‡ˆsÜnÿŒf¬X RW4éëmpßõE$ºX‰.åD9ö—’¬ê²a0õÆïÊ4¸\Å(£°~HÍ¹ £q¹‰D¶‚ˆ1ïÅğ,HHJ¢)ĞØ1V ç¹¦€~â?­læÅ§O°ÏRÿ]s2÷Í©åƒŞcu³Q]6ÙË‰šs7­æ¼Çº4ª!ğu;lÀ:½¯7¾!¹Gd&ª˜Ö,]zY0¥ÛKåìÆúEıór0Ç¿æÎDUæô€¼ˆ¥]¥êw}Oºt´µ±usşù¼¹;>Ÿ¾HÂ,sÍ¦ùö0J³÷í¯÷Ø«Y–-Ò½õuò(Ÿ
-ÑúæÆÆÛÍ­õMzÖıo{ûö}Lu÷úû BßºÏñ’\w”uÕÖÃëéé4ù8ènôÙvoøĞ}º^íU_M@~–è}V¤œñÒÿgiÊZ®+“M_ò’2Š(“cãjÄŸ	Z½JmË ‹.<V7YwğŞUo©,6.Şõîö:)œ‹£öÌK²«¼.üfÃ¹s3—›¸´œtm·œ¢X_²H‰ŠY@w,J§¼½·ÕùõØÊ,MÆx}ØÕçkx	'ş¦-u¾fƒ,-İˆùë8Ë½É¥ecFriåBfú‹Ü¦ÄËñè7Àôíã3ò÷(Àª ª4zÌ‡›½’×],¹Q¼éWx^Î:—ôw0Ÿ
- ní¦û'>—i€C½»–Íx*½"w;)ºiw7ÉB™WXfå±ğÊÜóU‰&qÅ³¢ìxCÓõy"T¨=<á^Î#¹!Vp{¸¬«ƒ¾ş¶z-¨™¶÷T¨ñ
-±_	}K^6ZÙ7…3@ıe¸jBÛt{îMyË|û#zrv¸ƒ×ÉGÓ{R8Ù»³._0˜¼|¹²cD±i-„¼8Ê¶½è!€ÂÒ£Óíªñ]n˜J~)@¾ı 7M”fšpŸş K€wÆ„â&IÑ/qxYM§H¯úx“÷Ü{ÛİDÒÒg›Tß5r5³ÍÆšŒĞµpeo=×iw¹+m
-,=¥È‘=&´¤([ïºŞRÛÅ¨LD „=èœk,¸ˆÛÙ…çğ/³ÿ[á½ôÑ,pT &¹¹Eäø¤8od¿ø¢,ÊM	(¾Ø]vc^â)L¡®Ø—Ê«˜Ş˜]Ğ‹Æmµ²œ¥æuAÿ9BO)Ì/# Ï	]Ëj©~Kí’úa®âE.¾q…lWÙ¿‹‘ˆÛwĞ¿Î¥}üHå|È»,¬&J#ÑdÏÌ:YÎUAÖ7û‘‹Ê ÙÓ¹ [TvÚ’ñ@¯ÎŒ‚')lÂ–Ìi?’·3/ÃƒømCƒåk|@ûykÍL©ØÓCmå!]ü` =9 ÷rù€ó M9è^ÆÙxF™-äq#[ãƒ9¸àÀÇÎx*\õCLùYñº{²qˆ:Å\ .åuzÚº›c´ÛÁ†$ü?‚©ƒê== GtÊ‡RµòdÏ¨Áº%]
-ó±æ¦7Ú³&Z1¾cš›´ŞGgÜ¢ï – ê³xLá0Ô%Æ¶âø˜†7Ããä±'¡¥9CÌÌ3(·†=¶÷I!ûè³á<Æ5Ä™7Œ²ÈXôE»­]Àœtc¼j eK7¯HåY&yq¤ë×mÀF‡K?H»kâê¬õÜGĞiø2ölÅS†RSçÜ­·¼…¥q:ãiØiÜ}OÁ1l£ÏFÁÌ;ãÈ+:é<³Y§@T4‘m íáE˜ñ¹L³ıĞKg£ØÃLë:!w·"‘½æ$Ù@È2¯ÛiÄ{gFíÜjï¼=áıĞ©&W¸«Å¯7¾©fÚ02’ïW€4Ü;Œ}>Ö)ÏëÀ#8öòòÀ¾À[XóÄXÅNş)$ú®jó¾ü#çOÒ— ƒs×ªp§Ú cú/ùÓâ‹BÂ
-3™æ &L §ù‚°eø&=#¡ÎzÂI î&1¯QVpN±ä~Âê şïên›Õû>)¿ô4”ç‘#Ó«Émm•ŸV½¡L(fø+;DtÊâk5'í©p‹—Y«ëpÊ£4çZsæÔg[.³{›[`ô_Æñ0aQÌ¿şÎ !§T/®2’áÛoµÒ÷4l°V÷Å¨ák©^1·[Ú®C¨fM3†ª2í[6qœ'ö¡®Ği¼d€ÆáJ&ˆ&ÆÍ$k(<“ÔREñÆ»é•7_«~ãÚ±¥KdW+vÜ-¶A·­ÖáI™Æ÷šÖ^mc¶Ú+vbÉĞ{ì¸=¤fÜÈš…}=hâ!RÒwZ6ÙSm;Å}kIÁæQ«ÿâ¸[XVJ[ë(®nÑ.°X´'*™ùe².v£PŠD›¦æe2
-£lŠ¹iDMg‚«â§›;!Y8ÿ}åÙûo°W}vı½lÊè@ÿU¼LRÌ¡³ğü<ŞënõYg£Ó;ßsÔxÌ# `ö:åÔˆJÈYn™¹Â´‡Ê×ß“}½‚‡(eÔé¢Â4„ 1ŞÏÉóàˆåÈßbŞ¡…™w¨ñ u.O“€r ØiÚZ)~i{J˜5^ÂÛr””Yg Ä¶»-•Jí8Jåib Ğnu/»f­œlïêù]:¹|lY¨ŠÌöµuDnYÇ%ËY¥!á•Î„#|§@·œVs^ë:ÑIzôVu–ùv4ø€‡nó‰L;v©ÌŞnUrj5ì$#Ok‰˜ì*wÁ¤Ÿ¼ Ó<éU˜Ì‰oáÄM“4¦”Kêë=ñMi—}Íóê­õVğV)±S©—jÊ¦+¾Î‡Õ t“¼}ˆX+,ÍvÍÒĞ75§Ë¬Ë¶s]¶?ÊºÀ¸•c}+¢ Îf”å-…W&ĞuÊ§H)C/;½Atâ­Õ`§fv®poì8×`ç£¬™îl52.I-ãY{PcÒuM=Œ"4[SµTXKıº¤ÌœWèÏI„‚Z$ŸÏaŠ`lóâtË]1=ä_ü+iæ¥9]ƒ+Ò½KëV¥&J`k—ƒ…ÛHœ+ê9³çZdïûN±¼6®–ÏË’^9Ü´a5N‡ê%ïœ2fBw”{o<­’øÔâ…©aM„*Â®Òaüº^iA9r@XAÄò¸ÕÂUcs>ˆ~ª£uÔ?m—‹ÇùÁ+µ‹ú'r`‘áßI³)à•]/Ş=¸´µl”ÙÀ»:<¿œ¹Vya‘Õæ\?Îúà#1P‚K»‘RÑ
-2•‡{Ÿud>?
-‘Bï†ØÑæ¡¶XaAdWD Q©
-©lŸ’ÈËˆ›Äû½¹SÒ›À¢nëÃ™µY$U¶xeKÍ•`öÎŠº¼°]æÃŠ	%-×^mnŒnßÚl>g&·tÌĞİ/?´í[#rëª†&—Öd4šlÕ¥¢(ë’İİŞñ¶G­ Ğ°«W`#è˜{…İ‹gÅM{·`Ù„òmB±ûœ“-“V»³³á,	&¶5ÃµÒT…‡›DöŠÑ¢¾ãÔœz¼ ½¯Á™öâwİ·H+¶€XûhKnŒbråÚo
-ğÂ]tYÊCt6‰ST‡òKkP3›òï%2—	œ¯øö…¶†¶5´·aÂy—c•¾1<ø—D]ĞÔ&13.#ÔaWÛç
-{1^”£ùD&ÿ’qÃÃ9¿Ş”„;œ±ó¬Órcye)Wªİ/ 3Ò5æ¦Òd¡éz"	å–­¾EåBQÇÊ¥İ>öJ9³/”'{µÜØ?™|Ø—Ë½jŞë¿”\×<cåœÖ?<Ö.S·åkƒWHQı³Sÿœ‘ºUFêŸ³PÿYe¡^)ótı«Ï0ıSÊ*ıç˜Iú'=ºm„ÈŸi–è†é×|¶%¦)Ÿ›à³şNĞñ`é”€Dà„Ò7~á®Á>[ÿÅ/ŠiƒªÒ€Å‘¿Ìí)Š¤˜,§+œüME€fcq]Õ³Ä*eŸz¼ÛB©œËÙglóz¦ş¢ÆéÔ¢ˆ„:N@ÅEó	y)¤@¥”÷Àv¹/ıÖíÚ™7Ÿ1Ô×*Tã>+y¸Ã¥Ÿáßox:£DPğ÷"‰'<Œ©Î¤ˆL¤©ë|SÕÚ®é.ó(…|S©¼Nİò];”M‘ºeÆùJÆ°À¶¾sFZsi!…BMÑ"­"CŠSºl„ˆ9!K¤È+ÌÂ Öá¼óÊ(¢ÕFÔÓî¢ÉUHtëv=ÁQã‚Ëx¡(õü¼–W¿–áC”ÒMAC6Cw¬A),•ÏK¡6åÓeËõ¿¥®4™´çECÔ_ÉRâæí½¬B¬¿±SZí¤û‡…¾	ùáW‡c˜â'è·.Z¨¸‡’óÂ­Û[=ÛÕ×ä¦ÒÙÜa–”û3LuªŞ(Ò¥rŸ¤¥är”ÉˆáÎûÏ›»ıK¹V…€.+”;LğD¯7÷Y÷—<õØgğ°­­­ªLR´çr ¥«á¡İÇ"«Á	ĞL4ü˜‡  oŞ¾ukıÖmöÉMö Ö<ÅµÍdú„Îcø!â´ÅğoïÒè1å¼X5cux;ì8œÔXŸy&ç‹Æ¸Òb¤O“˜‘y„°cÜ½ÔOfq’¥›?QIûUÜÛ¹µu»÷¶ÚãòŸjw;»µx÷ÿ  ÿÿì½ÛrG’(øŞ_,±U…ªP7\ÅKC (aŒAv÷ŒFF%ª@¶
-•Õ™Y (ÌÎÃîyÙ‡ÙcvöbcÇlzÍvÍföeÖÎyÖŸôœù„u÷ˆÈŒÌğˆÌÈ–º‡Ù3"*3Âãæááîá!ïƒ·ÇÁLt.Û~ÂzQö>îY°ˆgbÜÖÆÎ¶ødĞOaX˜ú¤² ºï7\QÙ*¢İVƒe-hÏçCÌúGÕ“ğ<p¬½Lâõµ®Ã±°±‚æq~Š¦~3#¬j4uøÀR6‚…y0„³áPi åis0zğ à[cP>8°9ÃÉ7R—Â)¬
-ã8G¬c4¬4în c\D^Ğ7€[ÓÓ›v“¿€›a¶DÉ¦Eo1{‡IÔ_S[ TéÛÃ³3ØŞKÔD3Ô¢¨ÀÀ¤ØùÖ†¥ğŸãwÔ'Æ3J*_xiĞ,Á§¶v±Ûº=w¾ŠÁx] fWlÊŒ'CWv€2¨Üè£¢¡mRW*‡4¶C6_…—ÿ¯ë›Øİ^»ãõ“áp²¹éºã«c¥}Ç‡>9U”v“°üiøxyQ(šê@ø¹1/œÒ–·xµ/zí5ıú2¬âİ——¶){±RMÚHÒ×$e/››°çE5?{vHù÷ƒ8%85«hbŞE_àµİ}ê„Ë©×‚ê‹ä-A•æ õedË(Z“UÊhÙúäñø`s<dêø·‹İ¾ZÙò(nG•ïi®/ÅP™Ìuİ'æÇ†Üjé>«®ªã¬±qYBZ—‰§X“¬E5’‘ËLµ"ŒCÉµ”f«Ò?Ü1’svÃšÇXË¹ ÌüQÊÂ/ğ†³ñ^¤*òV”áo@tm,}nËÃ/ê‘eåFéÄ'ÃÑª»¥ä _‹ÅœÊö(¥pv ¢§ñä;™%¿ràxz+ÿcS6«AT³t”Z*\¢ÛõT	Ë­²¢ßû]O 2}S¾1ãwŠ!°¤G_a,Î8ÁíÕ§ÅpåyäÔT¸}AkÇ ;…líyÌ#ls>§ŞŸ‘\BqÌÉRø›¤éÂ3tåæ~“ªƒöN#z]6K]Gÿ«n·´
-M<)‹>zš²¼ŒÄôrk0˜­S²ÃpfíÜåĞğp¾ñØlsqY“Èõ£aáGÃÂ†…e†…Ş=ÿ¾,|4/üh^øÑ¼ğ£yáGóÂæ…ÍíÇa^XúmIè_EÓPè\÷t[(3»§°œ	|Ğò{*NÃI°æ&»ßŠ€¼©2òÓÓSU†‘í+iä
-öÒR®«ûÅÉõÀ|\Ør
-û&±y!ëÓ:jåYÆ®QÆC3Û¡#©a5¡¡Ìë{ë¬…©¸®BøôVX NÑíıe(¼I¦>oæAOæ½"§·ê{K§w0[ºŒÆ˜<z+$Íó÷¿È—·jv<Ü÷“o!Ÿ¯`äXÍPgß]Éên~aUiîC¤³»y*»“Æßß7IU÷1MİMÒÔİ&C]Yˆ+eVê9Áæ³Ó15šÊJú9ÁçŸë[	èê³ˆıäÉß~f‰ßşB’¾} „oÉŞ>H¢·¦‚ÖÇoöDü%&wû‹Jìö3Mêö,^u0·ÙeáÙÚş2µı³´İ>õÚí”Hø°&0ó¯yò¯UGúçN¿ö1]šÓaŸ÷‘N+w¸púÉ±®˜Êkk‚©wxÎù¶Ü¾s¶ÍVaxÓ®ØkµµMû‰4RJ¢ÉEb¾»J8é °	¸| íuŞEo]ôw÷Ãvnm£î!£›ÇÚ®ÑÑS:”ßŞ¿‰ ”ŒÈjz¶¹bÏ,¿Bİ­#‘¢9…jûØiá,
-m»0¼<©¼èMu)“äi±açéõ`¼7ê½Ö×3ş~+Û1£¿Újê*L’ÿX¶™*"Å…)Fv§ĞîÀNÍiÔh¬şè«'FóàµF¿´IGMÇ
-S°ÒçÁã5ªnÀÜæ\˜ÀŠ:”Å;SêË7n7ÀŸ|+Ë>Øë¯Š¬h1=ÛYµgÆyèş „“`Q¶é;Ó‹V Ñåi0›á9ì¸@¤xU?£ùf¸¼]ŞŞë÷Wì²µƒiû˜ûw…8üPµ'a6!Ü_Y¶L ğ‘ht¼côlTéYõ•üMÍ	Ô›XZÌæ[JNâé0">?GÖÊ*?‡·+Sn3ëwâ,"Ê³#3ª†˜=öpÜpóÇ%çìéÊÓVãïY“kÍçøYNæóÿü‰òz.u\ŸşÒBq–¦û£åìGËÙ–³7œ9	â½Ì£†ZZëMRı|ÃwŞÌš/Òsü3²0<§oÿŒÖ„æM2]kúÌ½n»ã¼cÜıà`ÔÛ¬*c®µV7lı[›r¦›@g9êjhtXnÿÆÚ6ĞÙKãv²_6!ôÆ?33¾â/›”á>P±¼OÑÏ£#-::4Pµ”sÙ³‹w.EQÈ:G†3·†²ZÖÒÂ9ìÍ`‹ØøìÆ4Ìï÷y÷+[}wËéÕÊ½Ÿh‚¹ét«ÑŠ ˆÁì*x¶Œ¯â¢¯áãI/ÑÈ	ÿ}ËYVuÅŒmßTª$×0aŒ],Ö^ãjK0WQĞ 
-”ò™DYÖ•ó
-MÀE_5€‚Å¢ùÄ?²,œ5 ¥B {q‰…w¤‘2êÒ…ªË?º}jÑ2ËlG&>VMuÚ@9ÓE¬%ÕøÏ2°,oüÌªeÊO<_T=İ
-¸eÇ•:»<0ÔÙ;¡'gøÜ—“ƒµÖƒ“<€8	‘– ºøNÀ
-›Sô·Lj÷]{'ŒüÀÃ›Ü}'7æõ½ÓÄWJn˜küKíÁkÑ!†+½àÕb¡ó]¯y¡MMà-ò’®SiKğœäM¦Cš{æâ4*åıÖ<ÎÈJ&qm?UÆëEêÏ6¬½~{oC‚ñ´cŞ<{j şcÿdu:‰.á0(.Û×É.¢ ½ßü]tÌ-Ã½ }è·.¢Ù´ƒÛÔï˜PsÆzN£q¼J5‰øÛÏºC‰Ñˆ4=ŠV­Z:~V®\:«VµNšUTÏN3$™Ğ—qfÇò. ÓÎWPgê)Ç=¸ƒÃêG»æ†•EßS;ß_é‚ïp¦Äi˜f2¼uå@aÎ6BU>(èTña1Ú^’ÏE»ï:“dÉÂŒ¨M‚YØé÷v¹KLüìj‘¶ºwØÿû×¦1Æë¥&Ë/FÅé7a™ƒôí|RaAePl‰ûÆ,¨\ØSÊ|)ËK€jöKIÂ¾ÎŞ.€Š¦ËÓË(k}Ã_šÇI„Ö3¥5FØ	g
-]2Ş‡à(„"ãUÕ…@Nâƒ`Ngã'Kªü.TâfJG‚OU5Ø2tUÃÚİ†•¡W®-ìÀßBxº˜UVhhûÒE4ıŞNJòr
-?¼`Íà ›uIU²'.£étV8\&ÊhŠ”"êø4¹]aôz½o½gD!wÔ²±‹eV+yLâóÆ°TÙN½(›W·a-€Ky'õì:Ô…Ì?ŸÊ1UËŞËùP¡ËPJr™’aıy‡ÓS¡³£CG8ä?Qğ\JÖ~‡éÖÃ‘AóÃCü%®séi/Xf½å5P¯Ò0qèğ‘wjîïøÈX¯ø_wjoÙ½sYTıá/­Wsÿr–tñv^®˜Ó²&²‹$~Sš*OU½®ÖRWºÃÖê-aâ_c®Jœâºøé@ EÏµ[…ïÖ7€İSÛÿq7ÑPAÔ_·§‘é~èğ.t\Ğµ"eñ™™åâ /­€W8ˆçêx•×Qúäõ_Hùà¸6­§{šşÔ§/ö<T¹Õ†ÇG·»—ÿåF«š$äyò¦_¬4 Šì«Ëx#÷%ÉılyŸ…&÷%ác]uö–šxÜøR,T®Ä¿=ˆ‚x]HÍËĞ5O5>=?doÑÅû—ÿô?‰¦ılÌüê¢í$
-!æSœÊGxä®x,ó05ŞÄµ¸SB£û.MÍÔ¬À¢J*S BÿçH ØjEN¯èœ€ä6“»`­Édƒ¸±Ó¯Šô¡ÌÖ$ª¨t±Dr:vnWÇx¾¥mOvû•ô°2§OŠ‰dÃ|´IØ¾şÆD­XÇÒhæbÀ¢>qá,€eç§«,¯Ü/	5µsè¿÷`Õ\}¬ö›™IYSrÌÏâ:ñ^·¥µeGEş¤ğM6T*0 ²0Í€şdÑ"&¡]ª4.ƒ/Ò:ºÖŠ/T±°ÛŠ[ÚU• ²ÆCÎ&›iÙËõ{t!Àõ®¶¦Šš¦šv³¸YDç:Cwq«Ûr
-Å–HŒRl<êÑ.=C¬tßÏqxú²eåµÿĞÕ¥EL†Ä]RU¤(xT#¼ãÃœoùŠ¢ICI‹ZA²2ÕXK¨Šu#ñƒRvyÔ¸)N¿;Ïc‹vÖ…şÿ~oÇ
--Nåe°X¨RõH«_qµÑ5÷ Q t&É.„bXâßşåŸşcöFîûûO%Ä?ı—e¶Jã!«C2,ÍŠ¨£Å×şãÿ¯ÿ´ROF»ëbkGş?3·lG$÷õãøo«ö£w{`!I±%~Ö“Ÿr\8ÀJFêÄ2Ó$^tÉĞqøt¶L:h8ÈÎî›ğô»(ë®TI{$Cè/¦yœ*…ËL‘"zÆC9šSq—°…È6æ,¸Œfo1íü1+	0yaÌÓ.üŠÎÕ/H¾€öŠD[›ªù‰/çÑjòPÜrÔ2UÄÓBtíà›Ì2U‰5:²Û¥”Ş‹ïb„ ?Ñ?şï:ƒdMäŠ®i3ê°Š¸7S1YF“îiøCb0ì
-4˜§
-ÿV€T£­ÈâÖ"öQ[Êe÷¯6ÈR‘ÓÂEµrNU˜ëªŠgI‚cšík5òã§´anqã®eàâJ¸Ëcúzi©ö³(äèwÔ¤s„ %¹ùålÏ};‚ÕÈ¾ÇYã~IÜ2.H”‡éó¢ÏâÓ`†\C¡ÊĞª¯ºì«0äÚ2ŸW¡²)¬0F÷ŞªíğÇDå ÿÅ‚àòª@}•ã“cì•v>ö«s<.XŞï4Æ4×È~kÕäna¡*÷šoµ|¨[-¿µGÏ	¢¤èeŞ;ks¢¥„ûìXQS`ÌÒ|iÕËâóóYø”
-—;Ük«®#%*§ù/N\>ÂCî,˜L¢R%¥%šíNlÜ¹Eécã]¦Ay¿sÎP5ÊmÖX •õE°Á²&Ÿ‘Ò±xáôdƒS7X¬|ğ0È};‹’4{=TDÁ6º¸—à è¯@¤«ƒo\TpòÏ
- tŸÏj®UUºVuCËu„À¼ôß¨j(Å…*—sM÷Çm¯ˆ½P™8ğ¯éÒOOõ7=Éæw¾ˆãYÌ×z¿^±Óí58Ó£KîœÅvM ._Ş·\åkÖj®»+'íÓOó•dÅ5U.oV®
-^Å_öFI¤I¦±Ã[Œ„“##¤çd™$dëQ	,Àl7UÕëf˜ç®TĞåM„¤`’X>t~’!Ccd«tÂ²š·¢È[d0£.ğñA›æÂ¼Œ§~K^*‡ÀU1XE!•ô6F>”Ïèxòµ§AÌÉ…×íy©Á­å€Ë77Š½Ê³ÒŒ½¨§ óV%à*‰6#äY›ä4ÒšÊ,…ËTÜAuƒZT1§½ÆÑ‰”2è±LqóšY	Ê4'7*ÂOâ7Ú•oÃîéÉEüfã"š†òbR¼	’9òêfÀÒ6©ï5Ñ8Œ¹—©¨T5v¹Üvæl¦.ê*]°³_vİ¤áĞ³xRÀ‰‘}Ô$	;ğõ¢ğ0æ$:…ÃüÜ…š¹ºş¡717|¿lCï²Blà	YY.9\+b4†gcxÌhŸÃ<lb]„Ğ’Åvû[ı>å¼âq&ƒRÀBe„¥Ãƒ5Œæõ·(§çi«ğîğÇ‹èÇÿ–‡§ë¯E˜L.~ü¿E4“ÉÃŒğr+ÊôUòU4¿Šä¿2>´L`Å¯Qcccé99oN}€êÃ…«€ê˜®¥‹–¿túé¸¥¬3äğäXFÌş‚ì‰®;sCî@5ğÄhwZŸÄ5ÛÖwR©!n'•
-XQ&³ÕÄ q$;ÕuS$-*/µE¥g‚Òà*\ajH˜Ì-5Kl	?/
->›W~z¿s¡Ùøw†%Î#Ë{¯'¾‹ÃIãhê`EU¬Èó/N–@€Ex-vùN×¯¿aØ_ü˜Û€Û±SeåÅe¬º^oN«å¿“xS¾Šãp‘’MWàqß§Ø;G×øşÕN+ÊÀÈ®[8lê?ÖŞ1ĞÖÃÏ¢QÖJÜM‚B†y‹i÷,F“ä m×«¿]ª¹Î¨ÆPv\e°÷Ù“;¯™j•{®–6Ü*U¹–›İã09»ìSÙ`W¼×êœˆ“L¦ l½•â›–ét‚õS‡
-]i ]öqÍï¾t2†kÑøS'”¸ş¶,K¸ˆ(ÂúBÂ:-Ã:]–Ü²c=i×…:`º;Ô@•şUÕ (”Äœğô«ìrÆ}cöŠ!¾IŠRy“mÑ“O?yÎ„ªøŒz*3ÈküG^v“·¯T©$ô "|Bü3›æL`{ò… ]…ÇGIˆ@æ]“räu‹ìÌ»2Ì¬,*ÿÖ_Tä§Òz}‡²wßóDªşV™âøj‹¥cxF’ug‘ç¦(2\¯İÛcªŞÚY˜¡wbœiéeLkùPN Š?Å¬²z8Ï¢Œ©©¿ˆ½jeH	£‘µ:yä‚Wã5{¾øşíºŠìÙJJ¤î~I±†z&3©a8ó®¢HÃ~ßÕã‰¹V€å©cD®–_¢¯ì„r=øo±qFôAoƒzáè¡D¶<ŠR<-NCùIâg…ÇÕ¦ˆ
-E+9"ˆJ—®OôØéšåØôÅww‡„·¢5ç7öÌú½mÍ€Ò§9â»ïŠár:–3gqˆ³6õI–/°lççŠd2¨ıQLÒ”(V°òt‚Óce$t'mî 8É)}SØOØOYØOW†ı„ı„…ıdeØ¿ã€ÿ‡ş»€çá»¨káßAø[yÖÿøG?M ;'–$hf¡%¤Ë®¼4háàï·ğoğııÖîn«àĞÆãú#)Y¯¼lş\ËJŞqSCÆP#v±%(aÙE<ƒå¹ß:L{âÅógûO=Û–)&õ#†ù1L…‘Ó+°átÈş=®üU½7™,aÉÑ=Pšc‰¸˜şæjWRå]¯š7:ŸN3!›ÌŒBøgNaui*~ŠƒZ%\©¼ºi=˜ÂÉ‘…®è.|„F'ÂXf‚ìÓ,Æ;RÙ.¯”Ê9YÂˆ·áÔ¸1j@ì£n@y7hl‚¿ø)¬`0©©Ädœ)Wœ²<O=ò+}>#®åáÔz^E‚nj£$dÕ‰iwò+Š›­®Æ{­uÑ"„–S5ÕäÆ#€‰œÍb2/Dİ7–ÖµP=:¹•OJ¼¸OÈQ¹ê1-mÌ€NŸKfğ¾zÑSß×ê§.v„>FÌ…GõmJ¸£j1ÁÌÂvÊÑroP³¾ŸeIÛ*ì´Í“;É¨Ue¶¢*Û^ãlÂ
-JÔ`ÊeI>¶E/W©	8šgZĞº’N}f:¦&ÆrbnÑeÃ4ñ··X¦çôhº§0¡&|OÿÁ—ÊTê8ù/_FOÇ^ş_N"Íú—/ƒ=ÄoíÉyCdx7ˆ›ÉkWB4=mJ¿¤‡.0¹_s|3Be÷ü%¢#¡ˆk&Dl¤ù™‰üÖt8
-TˆN ÓeôÄáÙæRÄĞ[„ÒÒx”[d>Œ:¡B´öOÃ|ÄĞ Èí`mÈŒïÊª«o„»ôº½î¸à½³‹xŠI$Ÿ¼lóØwg“( ŸÖ}	üdÓ1,3•§~ã÷ °‰ğAoÉ=ñ7'ÏŸõRºC ®Ï@BİcCÏÔÉíó¢÷ş^™
-¸+ä8ø:‹¿1`’\Şù–­z½Æî7÷R-gY¾Pzåz8I.£TY§§<]f©*û>WÄIõƒÃJêµû6¯ Çå0qï`ü,o 4Îü<7äd¬|ÜDhO´Ägj-d¤ßîü³00È#Pøw	¹$ ©lËIFš0Öá,ºŒæ?¥İ¯68‹"¡˜Y`Ç8ì+˜µDs´p`&ş`Ú´=O´Õ'†Ü1%T4W–jû²NÓ³ÆŠ#Mùİ'à­NÀŸúŒ“Bø¿£3î¯øÈÒ[ºœå«Á‰õñ z/ĞŠ'íTÊ;óûy}^…æpVATä¿Xœìºá¹¾ÙığØå)o7×g–GYWxd6‚äT“i÷Lî›Åæ	 ºıÒÙîµîâKàaèŒ${àéª§'”]3˜ÍÚğ9LæÀåˆöb$ÿ&A#W;Óé!Æ9Àt¹á<L:íGÏŸª3éIÇÔN:ÎÏ\®Ç	º˜>fp/OO¡#Q•€›]Æ”Ÿ‹x<¹ˆyá.‚+Ô^l`dæóäÍ¡ğ)êÃ¤PO©Õ{{zmû0¾p’†ÇAvñ4XˆjrYı´7ğT¾@çDşÄloLfËS,Dÿº
-]¢G6 ,ÌÿvNÂI8ÇS—Š¿\€³ºÊ’¸ó·«R9ë2Ô*¿pUÓè°Fş·«ğ›(½ ÌP8ÿÛUX†4±¬şÓÙ÷Â1[vİüíìy˜\ªôÉ2UeŞ:;Ï"ŒjÜ…3–ê–_¸ª/£i µ¡´:¥ßN„	3 ´İ4ÏA˜c½tUO—‹Eœd±Âê­õÎæ	œÔ /ô¾CÃSÒ"ãk´;uzLOBí[_Şp_cÕoH¹H›ËÅM¨ú:[j'‡¸®ÌÓk”&éI€1@o=Xí"$º }!3ü91ÅIS*ãö«Oq¨<‚#…#^²QK2“‹•HÅÊdâ$¢1yhL’…•IÂ­ÈÁHÁÊdà$à&Û¿²õ‹moày³í_ÙúF}~}m¶Â¤˜µ!¡%°õ’Œ€iÇ±\ÍÂæğí‘íU²m¿£îkNòLÜ2æ-Ul³ê£¼cL-ÑFsó×Ù¸+GK#(›£¿9Ùøsõ-€ogÔqWZSŞl¶†Øë‘ñD¿ñâÁ€ë&Ë7ì$œƒÄb¦v$9‘³d€İ³­7˜õÚÎ£QİH¦ÂNJaH˜dgÑ9Hûé$eñş2»¨Ë’s@ì»€áG†XHöı™ôH(*amG\
- /òÚÇyåúèãÎºnÃnj	qAT.yø7yn†×®ĞG8¤‚Ëh[cP„,* œP½c¬Æ:—û*Ü¼×x@™®~‘„ÓògÄÃ,Œ ¿jR:ûòp´Øøe @ ÊrªØ&‚¨gğŞzöóºãá®ø8§T5€nĞ¶§Y&Î„–?ÈœKœ-ã$Ó °K8ÓËEZªæ”	D½œ‰}N’>F8×Ş±¼ÛJ-Æ‚\•Á[uÚ=*–Ç`çµ©Ô18ğ_é‰cë){±´ÓFmØ¾Pä,£¿„*ÛÎš<YÌ>…53uœK¥ÊÒKõ‚S_º&=e‘Ö»ßâõ…szr08GúGÕ÷¾vÆRzŒô:¯âLœBšBX×Hç$–¸~ˆ‰*éAŸ7‡«Ç¬_¬8n]Í?v]JG;[}æûI]5˜‡hŞ¨¨wü9<=~ıbÅñëjşñëR«ûdõpşêRÑn~Ì»éA°üÍŠS×óÏÁÓRYÕE~BJ¿LëÕµ²vôşûzJ*×Ã“—GÏŸŠ‡‡ÏNàÏ#qğäèğÙË#ÑO÷¿|r´/Áiôüƒw¥ÛíŠ“£“—‡O÷ÍŞ¿úâ‹'G_bKù<›“'Ö‹ğ*
-ÉôÔ4»,_È›%SÄ3
-Tª˜ú¼R)ü×ŒCso,"Ğ]Ñåù«d¶Šé£Ëà<$ò^E
-ÊoÌeƒÃGfxK³xìÖ"8'áÓÏtE—Ğ°Rº[0 ØkÁÛ^”Ò¿Jo–»§½-ÊZ‚ÿ`5ÉùÒKŠ
-N÷®„ÿğN’Újax°: ÿZşõ¼üú›*g’Ç$Üiâ*6º[A¢Ú??S@ö½éøÈol»}ï´ü…1Ó~SNuÓ@hÈZn#(¹ìĞí{²j­ÇìÔ¥lº3Ÿ®ÆÚ}ÌNk£–è§œ2@Å&¾
-“³æ·/¢é4œ[‘iŠ¿šîo²€îÀ¹r4}ĞÚëGSø—İÊï{k¥,‚£¸4k2®_'N¿_3Âû%ÕøæxÖ¤Â@n"åe_úÎ™»$xâ¹‚Â!±èTëED¿Œ¿€”¿Xr¢¸tö €²½¼@ÊÁK*Ôqøª;ÎZ[ 0¯\6:ø­w¶œÍhRáïìf”35¿^ËÉ/vWS]›æš·ÍFü”ÓPqŒà‡9/dİF´º#ñ^< ø¤œ”?ï‰Rû@~±ÂÆ$¬fş½VuEAºÃ˜S‡Ñ—jÇpk²¢G8Ñt_"[ç›[(Ó•àPˆèJ6%:Pò7şˆPXW˜b­İÜ È§)@º´¹ŠRóC]…'¸ĞB«ìR¹Å¸TÊxŠ¦£t²<gÓî9–Â³­ğdÔvK¡wò7ÊÓpŞÌ]!«®v^ˆaúy‹=^æïaX\¼¨Í5ŸãîöÚçvŞ÷0ı®k7œkËkì^ËñÜŠæ%qG’0‰Ù(
-S¸WR›®H¤_SÈïm@¢{8}½X&“‹ ½QchJ+ÿõ6–^	4~¿€VÃùdµÆJ?ä½GŸü\×ç^âç†šH(²Çˆ²‰Ù,·-…«Ãè P”Ü Vs1ì–äiˆ)Ã˜dÑ0÷ŸõäG.î¼3:¡ÿÔÌV‚ÌVÒ“sùÏ~dDK¿]XŒ<jO[ã*$¥ ÏU>Ù¾¨›ËhlÌ¦ÙC¾jÃkFç'Jy×ê¼uù(õáŒ¹€¿ù)0ÆH6Åÿd0Äÿù£|?óB.Ÿã5oŒ›ÕœáÇ˜%ŞsøPD„JØ:oZ şZ®²Ë‹>ïÔB7íOajã"\ rô­ûóIœ½0–ó ¸[•–Ê÷DRé8‰"tÄáú2P¼Ìn(f@—¿0•xøCpçŞÆÂ_¦i”äz¯ê™³b
-D*ŸiD:ŠÃòWo¢+#	
-G zû‹ŒB†`œ‡oÄ#X­Î©Šç9}däÚ¼&ºÅ×Àúêcôì^øÂªÎåŞæ(j¯’ñ¿¯±…"x=”0¡h‚¡Q……·¸!Ñ
-ã=ºhÑ~*öT+®‹>À\Ø°20’Ã°¦|-‰•$?mS}Ù3œ¨ó·¤ÈØt5•fálL iyÿôÿüÏm ‹˜äNŞFoKR0×è-„Y‡‚,S6!rÚd!ˆ:â¬`éÙ11Öyc@İEúãC¥"o}aukJa61x&QšŸv”u^¢cTÀ”x”!šÀ›KØóğf£-›x‰ñÍ”m[|°3&9PœÅ˜?¸Öˆí P€§ÁbˆóY„;>D­æeÀù‚EE|~à0e¤ÍY¤àa<L­ÔÑåyÚT3…¥²Ón˜E:*ŸaÁU£ØÃºr(ô'g‹oÉ¤a9+Ú(T`¦n¬í°éÅ'ï“K“Æw”AÏ\Çö=Nü÷t“ÿ½‚$õiğ{ÙR°5Á™Bë†Ël29ì%>Š
-Á"ÍÂ#\5O¾î316ŒJÁYø’ú|M~¾{$õxa''Çä²3·ÏZác²W¥è@$Ok%Ğ* ‹‹ZAøíï¬•Ó3`È³<Ü(~p“¬‹Ô9îHlˆ#1—³`Uî‰rúËÑZY².Â·T„ÀÜ¯ëÁWT¼ÿ¼e¯}y${w³³G)»ƒşPÈß
-f€Xw³ßßØì·üàŠŒËˆöİw¥ƒùˆu_ßFxRZcÜéi2Áp_9Z]·Ä,u¾ßš?¼m‰i8‰åorƒn±Ñ¾ò¬ô+>ı=®×Y„§pøF,+>­Ô5»ßzwXŒÉÇAóL>ãgÈ[öÖ|P·1'	i8#Ïíoõ/R·U§›i<èr(*—€Ñ< :Dr¥vÜc[ôÊ½ó£š="ÒÍv¼
-Âˆ¹d·hæË+©÷¾ÿ½Ú¯Êv¦ŸËóésß‘²ÂÆü3nÄ»ïäò^ÿ;Ûø86ÆµÎ ÇÙäàó¾-&Ê~õ”©jå¬|@½\­ĞWqıªÂæäÔÄİ}WëöZ/ ôo;ïfá,Zw°dı4¼®"Ü(íô2³‹öõZİ©¤k^‚SØ“ËæE7A{[MÒhhîûpq³æQg½—ÿ×ïíz´'ƒñ:¦‚ßÜQJ¥‚êTÉÛµfkârhQ•ºdR]g¹.YvYÉÏ¦.Õ|³e(Ó¢ó‚)>tY§3˜ÕÜÂçÓYüaÉäJ,!!4Ñ*…{'š"é10±¥ûKWMê}Ë
-‰*§HPİïU6q!º[`°DàÊ¦ÔYæóú²í¸,^N.LÅ¬V¿nâcŒ‡bŠÙò’5*òŞvõ‡ÜÔ‰ÄØ»ú/oW'ïeW¯È17ÓŞèÀıÖnéü%è.çâ·+àn ›ÜDvš\üWQúôhË˜xÇØ€ÀiŒ®eV»3ªy~Ãµ¤ñbİ|}œ×İ3­ı7ÖŞ‚=`$çØÀYÏÏëov°ÛÄT—0ézOÔ^o¬ˆÿœ2c‰/‚i%Ñ)>y* º@S
-ñÊu[å÷ÂÊ–¯ÜòêÒÍ¥)EĞÔEµ‰ò.=lpuÖxçŒÙ³¹».#8Ä†ã-LJÂœcïTË×*‡¹<©8[÷w³VÂßOF§;Ã³- /³çÔb”kSô­|¥dRiÆ!h+t½›b„r/z#÷¿ıËú?Åa~)¦¯ÌÒÀ×W× Ú‡Ç\àÁæºØŞ¬EˆrÑŸ>§ÛãS ¯oü?FÈ†n‚ú/ÿYìOş°Œğb57'‹o‚ÎPeY”Í49A:D¿‘Ü»W(wÊß½¿—ŒÀô½1”}1Tü{Kyjãºuoãbüà[•¼ªÚ;ëÅ…ÎcæFk…
-ÀˆO— —CŠ¥i%#£\^ÎM<ïêk‚g‡ãº¬«ÙT˜Ybd‡–F›¶£ì°ut´k·j¶1eÅlueü>×¤Y¬:"m²^ö&Ä†K4Dªî² É>·ELZoT+¤Q)“£‘^¢erà´V4ÙªÙ«É@*¶cÄë<w,r/teu Â\7aÄòEY•<7˜Åºy’×ä-kÇoî†ıS&¿Q³aû†ì5€\(Eìq‚ò‹øÆsQô—¡º?s:â™Ó»ïÊ×åÍ×¥® ¾ˆ÷ãİw%öÎ­»¨iÈùĞÄŞ|Á`G†¦=UäÈg]ÿ‘*&Ã{ù<€ÿY)Ş·*6ÆİùæğÆâºw±R±ßâKTÀ¨¤•N#¢šI1S÷¼ ‚_k¦]ÉñšØ*UÍ)ª¦EŒU|¬µi%V±'ğÄÍÓ@»Ñ¦6€«ÒD§:ÉĞZ–mû5rîêyoD0ğàn4g“àøexXX/›ç"‹ò8’Pdà#Šø¤×ë¹3ïXxü­gQUÄ4¼\d¶ƒ%ì_à&;úû=1b=häçÏ>³Ù@>¾1>y¤]6¼±2šv]=©€»½ø;ŸåŒ2É’fUy(_g_8UÙÿ­‹é«·Í8AIæçÜãı¸±!yŒƒiJf²Õsg1/÷²˜Ô"RKÀO3øÁ= ‰Náş«Ù¬Œ¿n2õóg41«ŞøJÓ-ÎGÜ÷6b2
-—nÆ?~2@oíÜŞ²jA&İ÷”_·Ëv«á uŸóVa#”ğàØ$Å—.Ğ#!!ım”]Èt={ş]!‘fVhEI>ï¾­Ê=
-D/M&–ù…îğŠ ÍÁsTÎõøï¯V+…RZ„÷Åæš8MÂà»úùÛ(âkÃªù‹r\A}CLˆ±šŞøàkıHê8sœÄ—QJ¯
-#°^²,©ø•>­8ƒAGWË +ƒ]s&Èë1r{¼mo¯oïj7nB—å<JB`OÇg7à•8öHŞWVdm)çR„õ×°$(x™¤…óîÄtk8B?Õ4:ENE²Ğè£PŠÌÄeLìTO¼ˆ€$\) [Ó¨ÇJ~6ÊÏ[©Àíö‡Ï›Õ'‹%'újAò¿sË”:÷_2’ö)G¾Ù§p”…B™È;öÓ A½ú$ËYq{£íÿ*±„¤M½s:m*bmºN7šŠnmÊi'±·×µúd›\xAOXq‡ŸdÁ<óy­”ša`v/SÃ„;^¨;©ovÈ@à|2Q_XÊ¾©gÏY€œ ädyze¯3
-¾~|g±Ö“-æ  JÊw(*.G-Y÷z„Yü^3ŠÙ äÁƒ€SÀÊ•W\ÈQ>^O«¸‚’yíby®¹ÎZRfêì=b¥3Ş¦%ı¦:÷s—ß ¾òÇ¹!u­{‹^h¨Z½u/-¼1åÚ’g	ƒ!¹òuøQdi”å9$QŸÖ4L;¸e
-f»qñ’îušDÔë’–Pİpı°ÖLÉ·(ív¾Wµ—_±g+“¬úõ(LÄyÃnM¡¤¯WiM,÷éE0!.kÙ®‡”+ç©Lú9ı‡öst]|"Å‚)oC´a~†e//—ó({{‡Ÿd ÑÉ3à|Á+ƒ‰…9‡’]µxíµ‡EŸ¢‹&îî´¢ ^íu”½òœÕ‘ëf×ü(–ñ¥f´Õ•Ù²·1ù0StjöC/¼¢Çb7éU6zåi¢z6•~¥~¡™äà×©†!öCå’¨‘…e¡c¥ƒpœ„«ï!ha°pM‚¬ââŠkåˆ?èJ`Í¹W^ëÒ‰”’×=ÁœQùÊŠ«%tÛS^ÄºÕ4¶íÉ×'×¤a^º¿RVÀOpKV@%¿¦·ç(Ó’	ÕFßbã»ïò†ª47:m´²¿ôÏáV;ó'<‚å~è¢oÈ‘¿Ñæ#?İ9\=WÓ¥ØF.âÇ¥DÎQœ_ |HóS|%i†–ß†è;yeqGZpˆy>[n™2²…ÍÚ
-Ñı7‘uŠæE]&fÁÔ!õÅC×ÄoaDï[T£÷å]È­$± à}^˜'o_7©‡!<yWcµi#STFÆ[ë˜#}h»‡	0hi1E¤ÚNB‘~OØoHô~i
-1B¯YİJ„•ó×{âÛ‹,[¤{Ä:]Ä³iooúıïÃşÆ€é8v¢\ÿî;¥âiøêÅædˆ1¹CGO%ñS=ØÕQÖi´çŸEÀõ×ÅH»5}Ö^[»æ«V—„¸²gë&òÑÂæíšw±"&ÉuºÉ€‰¬…Ijuëf kRf ÎD“·Uoºí»)PN~}‹ÒŞ8®P%Û[ÌÏoÒ9×âx‡Í²oE©¢ÔÏ_”:™3OwËD.-€LÆ)ó~V×ßøVø¯»¢gI‰­º¾&b(bƒ¡ˆ«EŞé‚‡ˆË\iG„}øìº`óJ”’UãïÒ<2,_Áu»X½‚3qRªy'”áuO
-´Ÿ‘™Pe=ÅA²â*‡EŞ” ¬Hş6'¤³ÛB©ùiã†ÇĞŸ©Üh"&kTL¾à$4HÇÄşlÖiBÉş´›ªh¸<¯NÁ*âeáÏuÉhÙÎØÒô]ÜühMĞ¥+ŞöŸş÷ÿÑ‘EŒÊªğ—	Jòhk<Ú¯¯¼í	æbµŠiî`¼.ĞkS y.úm2ğ¼ù¹¹aüÇ†Á6¹xÆà'u¾Œ±5[’<6›aíGd“³øsAÕšwÕ…vXÅªSJÅ¢Ó¡ñW§ZÕå¶;PjŠAÅÄ÷³½¦“H2\ÁÃ8DØôZ12#CIiıv–Ä—²´JlÓ£ïÌ©áàğ4{ò™\p+›MÕÀÇËXG]KB²¯à¼½ŒÅ¦@‘ä&J`óWé‡aƒ‡İE#<9^¦¯uö¦hw1ı"HÃ­qn:‰/Ñv2Òfbû¸h5\Ç0:}ÄâíMËbè­ v8&¨[+…VA5–ÙÌúR´ë!ÇãÁb™^tüvz*"œÑ;>2
-œÙOgq.4!½÷)|´u)ê0•©àãğ…Ï^PVéÅs²½ïNW®tãÉÃGM NB…—ËYæŸD|äDVªyk¹æ³ˆOŠsB­Nüg?EaàÕ‹'„àp~XWØÂU:ŞÄ´1(†³‹h”¾Õ’;V¥3%:fÉİ’† ›',—--¦Ê„?’ùiĞ—‘RNğg€Äm&‰ÏŠJÌM”Qáğ‘ %š¯Üwb¶N	ÒÄDí
-'´¯©«–BÁWÖÌACf´Ÿ†ÎzFÔÕ¸¥g@ëçìÚVÔ5ï¨¯äø0°Ô57íš¯æÍ]‹Îiáğ×hâSÄ[ĞV5¶æ/gÆñÈÏŒ+y€ô¦Ú¤.*6õøêQ¹_XÕã/¯Y½r=‰®<v‹ğ•«
-¯e¦ÑgéO[ÚQX AğBUp8íÎÎ‹ØMÒoXÙúj“ßt†LÛı¾8=W?vá‡ôúlñK¬
-±ém=½%¥ÿŸ§([·AÌx3¾^2¹¾Yä<—-3|®ˆÇ¤í•û:ŞZ?ÑÔgL³µ{÷¶.©ÎİºpH\ãï­bY!¶ŞoÉ­"²{²Ü}G{àzÓìåsh@&u©¤x)\¨KÎ 2Ô}5¦SŒa²·ö`ƒüoÿ¡AÀ#ÿXxRªs“i»ğ‡}±¥ªãÃ0ÿË­GT³:¶Åù_ÿ?ÿPšì/È¶i<µ«'	ÆÑü**ÌÒCåwÏ‹ÄFª>)ãéÿ>
-Ï`‘½ÙåÍøõïQ9@²¶zYË
-Ñ@«Ï‚+à<×*2üÀ62•Á,š« øïU¨Öç¼ôÀnvÊ«Ò±ç5ÜU²éD<)e£ <‹åÿ¯ NóM\-ã,xOfeåÍ†m^z†lBn:ğ£9ŒB˜k#[Æ‚Œ4Ğ\f‘Äix¾îş,;İ6}é>’¾ˆ¦!L(T¬ĞRH®ÌòÔ½rgœÅİPÏ«¦•ª–2 k¯lŠÇÁ,ìJš˜Á•í|ğšlÎÂÛG4ohÜMÓ‚…ª–í5ZÖBåÌkƒÓ¬6Ÿ¼tTñ)cào™)³	„ûÿkSì‰ö0lûÚ65:	)ƒ¦AÅxBLb8ø{½Ãc%`KƒÓÅ¾ËN÷‚…TÖHÉ1ĞåSoÛy…hM%¯ymæå¿îĞÒ\†ÙE<Ec´ç'/™'¤%cº'Ş‘÷²Ù]ŒØ†jÀ™ÌĞfy½şÛâš‚Y3÷Äßœ<Ö“²0íÕ¦n%IÜ¥Š]]_w_H¸ÜÅJ‡”»Ñ|÷gƒ*{
-;äşNç…§§’ƒpÎü{.]€gªL‚Â+!í1œjÕ%ô77¡ãLÔÅ—àÃ2˜èQ&=a¤ø8	’ÿ(®"e1±˜á†@kb,‰¯P8Î‚Fä³yXáê"ñE6?‘Û|wf]iÑM¥vÓcaNg©…µrƒl$ğñ^?¸}"Ät™h6kã’Ä{¢…úY\`âŞ|\\E…\£Àæ•×Ôh#…µoBŸ+¸›õ¼gxĞÍ8šï9Àğ©bæ¡É¯lå;`yÜ%­clPıÌI¨âÏóüY¬¡”¢)/h8p»ü]•·ëóçNXÕ]gª~k%·{óËYp=T]Ìİ_-Hö¥: °_Zõ8Ã¨É½¶êr¶táĞ ]ßı=Àğ}¶ÇÎ¨„pôÌk«.« ƒÊì{«6¯l¡K%îÃç¿(mŠûïë1¼<|º/Ní?Ç/?,=Ûztğ\¼8ÜğÏ®xºÿå“£}ñ¨ıüÅóÛ/tIãIÌ“8>ÃH"tİ\r»ÀBËY]ÆÚcâ¤¨Bi‰ìòY´ˆãÅraÍÍŠbáÏñäĞß‡¢'`>´y€¡ï«ßEœ®ôÀ‰ÚÌíº§„óH{ªü&˜ñİm4n]‘JÃåbµË¦œ7Ve2²­‰éµÛ“†r¿-ÜVTwäÈrgÑKÿ°¦	…ê‚_¤=‘jW–µ¼cC}µÅ¢¦ŠËè˜Åè‡ß|Á,<7BV$|äyæ¿2ùõe8™²cäcÛÂÈx®3ø‰Ö(…Çgİ9„Ê€±}Q)òU—2MËçiq›VP#Äl%Ê³2	f“Î ß¿z”ƒÔ¬ÕB¨är‡äkØVe:@QHú¾ƒh23)E-ê7BE€…Š¼ .yÂ}ØW@S…ç1ğİ%0Uğ&<ê;§hª äã¹Tæß#¼Û¸î3†N¤Ë€Œ¼1ØJ8Ú„9¥Ğë¼†Š¬Ô ÷ÅÓ »èÍbè&ı	Lü4¾„iû•èŒ6aòS;øïgb ää3ù«²ö1Ñ`iíşÔ\ä×¯o:BÜ#pÙä€½É§/ÍB¥9ı&‘İl{ÄT|P¡0îSòÜ%9º ]>úÒÎâs™4ÉqJaé~-Â,ú"GáHÂÉ’®ßA&Ì½
-JÍÉ‚€rSLA{¿2ğ¦z xvyx	·+	eíæ¯9L‘ö|E·U:]‹Ãõ3Ñ~İ†ÿvŠcKÈóÖGM«
-.åvŒĞ
-=Ò’‡9ùº@ƒË 4ZÊ«~í¡y!mÅ8ßY8ÑÏŞdº«¸Ş˜7´§ 9QT
-{ÒòPkX×ÿû}‹¹Å¸EQ=^a~­Ñêèß?¨ËB¼0Óû›¶²µ7ÕÄÊ$âÅ<«ˆÕÒzÎuq{¨¦r‰|uvá@«Š$„„eõº?ÊÕN|‹Œ®"k”¥¬àoÂä XåºgNfËi˜5Ê%Ø œ|¾½û®€rÇİİwFÃÕx×ÖŠhg9ı%âÊ \î.¾(Ü¿ijI£ûz™ÌØXRnÂ{Ã¯´İ/·z§]»­2ßÑ=6x`ô´Éw2—ašççQü’¢0ºd^I[‡Ãh{Şa’aBö
-Ã².†ëbä éñ‚ ª‡„íkUœÉ9-+Ì——Çá?ĞIkÖõQ¶RAƒºYMT§ş‘1æÿ(PïÙÁ)ğ)­ÈŸşùÿ¯¼<zz(^=;zùãà²’U—èOÿüÇÿş_ÿ‰s’.Í”^­b0±7ÿe¨o%Xñğ£YÀğ t±–á·ü_o-Æ+Ô~E§‚]MÌÃ™˜áş¬àX £d—²-)RôãúqÇóXÂ¹ûNÏçµÑÏ¨Éäğ@´6ÍAÑLE·á˜+fv³¨‰nö•s0Î«Œñ§¨­a´" ä(•èÈæºÀl}ôVÁÔşmòJ ‚R­ç£,y­”Ã—W!-ûI¡•Şkgh¹lŸÃ§DWşí_şóÿ%Ÿ?²ÿâ°	MÁ
-)ŠcÃP£„—r×zq.‚ù<ŠƒÁpTœô/€&‚1`”ko·9Hº_‹DxvfÙyç9E‘'v5Ã1”;Äâ6(Õö˜¢2ßËUfói8²`’O&1$¬É–Q³>›R1ÇfâÖ1—ijàJÍnØ~~Ò?íŸv­êº6o›ºµIvÖ‘3³MaÂ-§øZe.<´ùĞ›šxàRQ¹t¿•]Dio ¨¡”…Öô~ÛL¹ñé–qöya<K™êäËĞY“VèCm—-y³¬1.:ÿa1Ì"n"ÉÀ—=µ„Måœ@4[·Ã®
-N{°¨º·Y„2)!eV^ıî»|ì–Í•ÁÁ$~..£¹Ö5;ÇåIˆ³R~¶R^œ-&àú°IFWr.;×Z5µZ)»Ó<–yálªFáî‹×pÊD‹4J)”yö×&órõwÇÛİjFë›¢ä–±Ål/ãë‘{RGrSˆó’37ŞIñd+!§¹´=;ãã¶g¶n½ÆÍ+“MP“]nÇÊ}¼Õ·3š6‹D£<ï™wDeNÈ5˜fÙèu5ı<Hér£¤2_Õw„™‘q%íÛõ&‘Ô'ggåäŠìÈ{Âr~®¾Ï¦}O^ocÛÇ,\?TÍÍÜ7#ª?‹KyŞÈÛ\5£‡è¶‚¦±m¼Ë¬°¦fùœx`Yúî|×é¯‰t¼ogP±aÖöØB™ÅäU–:-€ísÁ”s¨í_†—‹º»´y•¶eŞ¤mÙiÅ­ƒëëåkp‚İ,?\`Ì›à¦òÕèĞïíZQWÑoÀhš@ò–ÿ¡L:˜‰G½œı–1MâÌ)È4‰û ëÃ9I¢Eö@âÀ½;İ®xrôåW/¿xş;ñTªí?9Ç‡/ÄÑÓ§û_=;İ®¤FtTFÓû-iİ©<+­<!qõ}N£³RÒ8¢‚ìR€‚„yÃzÊo.ÅÔŒfö(½îı@Ö”Îø$¾ œ¥L<ŒYœ†FÏl D…Ë¼„>^ªÀĞ¡Î„\FÖòç0Ñ¥ôÁ§³4 Áés›À›ù‰]Cm0•Ş¹ vPÎÄåË-)y*ó‘
-ü†Ál%»aÎgùèuÍÉ8œú9¡)I¸)1š!­1?;$=¿9:ü- ìñ‹Ã§G¯şÂY‡p9ÇcVî‡pVN…ä~¡eb~‘{>ŸEß‡ÓÏ8f{@.Â÷{»ÀÓ·i/º’4ì] ş>UE%üÂYô»ºäùº·KÏç¿hé­‹ø™/E™ÿ”gr[kåÅôğôï|`¹Gwş)‹{˜—»x#•F¥w#„6TÅ{É>Gl¼”L’æ‘ò÷MTS®¿¸{RS0Ú˜¿Ğ—ÀõÌWÒ9äÂÂi·õæóÒ{ÅĞÂ‡‹âƒ¡HQÉ˜$<SägH2©ƒÔùyœ66ıcT;¡Ø
-e£Ï¿#£OñìùË£ÇGû/?CÍî«c›`Û§rN³KŸ¨Jo¹E¨- ?äòóØ\~ÅŞ–ŞiDFı”ÉÊ”Åúüµ+½z^@¦¸-5¡´	£2.ºlÚÆr3æ#©
-»˜Ó{@ÁÙ(Ûóf¥¬¹·mnìŒYÈ-ôš‘	‡›VB7µc$—ĞüÏ¬cêÁP@
-õ½Íµu™¿|Ó$±¿³VÁm)…›¬S¿_áŒ’{ĞÂœ ÍÒü›§h#}¥°_N£I÷4ü!
-»î¶Ö%X¡ÿÿºnH–Å¶®Ú)Ş³&ÉM—ÌTÉwåÉ~	§UM>¼ª¸³à2šÁ¸¢ùE˜D
-Ís·¦ô¨CCKX$¨0‰Åy8¼|˜âoNŠMYİÕŸ<‡ÍûìKqğÕşKñÛ£G_¾Ÿ¿(pÕis­oüJœœˆG‡OtÕGGÒÁ“£Ãg/Å¯6òÂŸh¿¶îä"Èp_ Qfô›]N·áñQÆ¬ö‡|çÓ	†ı=	1zìŠEˆ`Š¬G‰PŠtV@b³ãÖb´É°½.R@.:‡ŸU{ê_ZÓåWâx	ìZŞ<Æ+eúËh½G³uŠéúÂ.:«–gL÷«C¿È•&Õ/•¾Ùÿeå»A¤¦é<M»çXã”Kk}c¿ß·äÄ’b£\«¢µ°§/'+@ˆ(ß¦+ºêz©“³øM¥ƒ*§¨-péÆËÂ˜AM‚Ù‰…MG¶‰”ïìĞ?#¼Éí­p…úëpB•ï…Â¦ô^åé¬Nôµ‰öÈ	Ç²9ÎÉ®ÒW Y6IpwT"£öZÑ0rRùM{±àlMâJ`Ng¯ƒ	ÙxÖt»r6TááUE7½:ç7ÒpÇµ‘ì/@ùgæ—w÷¨$Îo_)nÆ,Dk/ç£¯KZe']´Ùeš`™Ewè ‹ö‡Òfx6†‡ßÕêÁ¦…F€û£VØîV	‚¥³÷&¸¦'Ãœ¯ÁXø_¹˜q½3°ÉëëAèaéNu8Ú][;òÿIë"édòö$*<Å,/CÓQˆ§‚«-¶>·­	Ìã_q˜=rŸ›Cë“!”¼ëZÙcÙ*¨a`w˜òµL,>:ákã
-7á|‹z9êÙóQ¡sHâ69Vw«–Õ­FôœO$|`ğÈ‰ÄØ•ËËŠÊÒºæ)Ÿp¨`—•S˜ğÕâq0wkXİ34¿ş.|{–@ğJ-–Qƒ#³9ÆŸA88ÃóË¾”@ÆÛ©fŞ(52p5RŞøÊ@Šİë2F¥;æÖÁ3<HrF«3mNÃóuîtsMô¹o¶^­ÓÁGF<vç>\5›£Ê•˜Â³5<\sS¾3V±Gpğró?«®ımXA)ô—NRGÃÁUY©©5v²ö—÷Ë§p6ØÇ¼3ÏéMã–iw»E@ÿéWÙõŞ£Ïæ$
-‹¥ÛÌú'ƒşéîÎ€àeRˆ#£sU(¥ÁlYâ­eNÑ˜‡ÓWæ•*È™¢j©É½Q„O—§u]T»®;ÇÍ }ŸïõV¿Ğµ#;›KIç€´Kk,Ãú.ê3ams¯(lÊ–2…ĞçÔAŸÇÖ*ŸVt¡Lù;ˆ“ELùy|¬-†kªbRp˜ñ7ÖyšÉ}+]†]bÏ—y8|nÁa•~’„v)jaÎ·óÂ¥Z,ÙøøiÂé±'Ù=İ¯XœÀ| qv©ƒ%õÛez®ï÷Şo/÷Îğ—<>ºzÒC«•Jw,s–p>]jœ]X£tXÉ4,UÕƒ+g“¿rkm¹ÓÛ¬~®Ø5m2•Ye°~šl„7ğ¾{
-˜	ıÓ}SJÖ|šN
-kÇW’†ªÜæM%8ßiWU, KÿéW.4V@§›Ï@5÷NŸFí)°*VåêÍœˆ†s@nÎc~×qÊ3Gäh­J6È:YüÖÑØÏc#ŞŞ2C2uDÄXº(îã8Æ»Œv€IÉÙsğL–q‹¡Zvµh:4(æ±_ÍNS£‹©²&ïãLb$—zZÔTš£µˆhz›2¶\un¼åªÛÊRµ+İg…¦šVæÈp¨ıñ±ï$ª\c½JÇµ{g1ì¢*™“ JŞºªYy™¶<z|t/Ÿ\ü”lı­9÷/“käsrå™ô	£s'´´šUùP·Šµ›ñZ˜¾F+\…’‡×Ğ©X®òõD )ÖkÊâG®“§£ÃRvÎX:×î ¤Û-Ÿ®û0„obŸ’Øe±}ÂJÜÅË{ß¦ÿ2”õ7=lõx	ï,2·!ƒ•6ªK!c,·1Ÿv|%R7Âjgğ1¤ÃáØæ9?–ò‰ç½ìpù·pãLÂK(i¢Ï‡:HøûUß¦·86Hn9òÛp6Á˜'ÖöPáĞv#ä±ùg§Ó%î×OÂùf…Ä£¢ŞóÚéÿUÓ-©Å–ùÉ®EZóZ¸:Iæ‹ƒ(¤h%šŠ©€}¹ŠÄÓC+˜(Â$ï0	›XnÉµ“ªùİÍrŒ@y#R´.$âÊø
-P-IBŠ	ş›D;Š®Q±½Â§I¸ÂòÅŸÿİìî¶…„F‹]‹˜ããThÍ=€w,TÆÇ}Ï¾c_{^W°èŞ†2È“¿Ê.ååªÚ>Å2¨îÒ’^›øQe]oÃ’ÃÂ>‹ÏÏgá*„Ê`ôtÓ.eó–’(èÎ‚Ópv¿µÇ‡ÀÎóÒ¦Æ¨ú…İÓV¦Ü^ùKÕ—hQëAŸsØ¼‡FA&(m)ÔÈW|¿…×Ã1ü_‹¬î·`K|9›C­‹,[ìml¼yó¦÷fÔ‹“ó!PÅÁ¸.‚ìBÀÈ†bx°Õoo6ü-6{;Ãşş yílQşÛŞÙ„w½İİşäH(²9ãŞÖ`w ¿·z£á`ç`ÜÇ›À†bÔ;P{··9ÜİßıÑö`€¿·F›£ƒaog<ÜŞÆß»}ø~oú»b4kg´õ¡1øµ9ÜÜ=õ†ãá€¾nmíáëx¸»E¿·Çãü–Q¿¡üöÖÖ–ñ>öåïş ûŞÃ˜Ü`4Â¾o#j-¶zıíÁövn8‚f·{[ãÁmÔv{ıÁ`{ˆ¿·w·h®ÆÛ£-,Şß†^†úÏƒÁ6`¸“Â§ÍŞp;gLr>ñº<N»ş=.¼ú;5õ[ÀÄÃ.À.|Ğ¹­Î(¬çÎÖè`5‚Åß}˜›íŞîhõğ÷`{~o·7·ğ7¬ÇVo{¸…¿¶{xıÃ¢oâï ‡Ëİßoâ˜‡ÛÃM˜²İñæˆz‚À Ëvwit;Ã-BÍŞ`V~ÃTí"úì6±üÖpmm·°öh›~Âº ìáx·°F½Ñ ¿	Ë‡³´ŞÉ»ƒÑ ø­¦Oÿ†1Œ7·0²Ñ'°bwˆ}ê?`°[[;ùXğñôR×Ô¿ó…Ñ¿Ç R";V×KP¬Îßë]©’~ wÒÚ¨lsÜ¦g‘v *HºØ‚=OÖÕ2Íf‰FòÄ¶ä‘V:€œ´¨Ü¹¼ieIb¶™·[m@Şíq4¦ZÚ°ğÅ=`ªH«†Ú@ªæ%Hw	úv M[Œû·PQá[Rà»àpœÃú5‹5 š´Zná–ïiôbÌÍİ€·œÈşÇB…œ¶Ÿ'ñ½‹±à‚ƒ§/Õd\ÆBõK÷§©Ëzı9^½?.ŸæäüEç¹Ç•Üt?Èß!Ækùå7(¿w§‹(“¦²ÑÍòÏ(?Ğ¿GBëâ©mïF¼—vlF—ÊÛ#…“¹]ûP5É Z!Aúî˜ +n3xÆ7‚ºR¨—ú¦©k)@ÆÂ	|-¹¹×Jóìİ_#.èƒØ‚Zâ‰ÆaŞÉ:¼LÖz°Ÿs•B¥P8ªQ¡»ŒğLÄ³ÕÄººõPI#™ æŒEÄEY-‰&á¦R,˜a\½öó ™;ÎÎk6ILÏAVcANPön’[0{ÛÅïÈúK‰õ~Ëğö†3ƒ‘ÊP_b¼3•üÓŞh2„k£6%…ç¬òĞU¢MVNgñä»º4³mÅƒ„UÙÇ[>ì<’É$ŸÁLßÛ ®úÂtÑ˜Ì[›‘“3³PX†a¶u^Ä3 Ù÷[aÚ\I¢X¼ÀĞØ-À¦?`ÒÊ)Ì«r59æcT•/!G Uå’;k0XU
-PÕóTn»JZ•R›-ˆ¡tA¥bÉ 	²ñƒ÷Û6Û\kc=´*¯«VÎŠ1ÇşòÑvÛ6Â€¨‡˜€n5Ô¥œunÜUŸ-ä½DäíQş_Ÿc™œïÑø§FãR6my*”Ù­B·™ŸÖé…çˆ(!îØ÷6«ò•$I=UFy’»lÈCæ–|n&Rp&ÍÄ¼¼ƒ¹)a‚1Tq_!;€N» oÉ€)v½£•–(Ê0¥á`åî“†*öXõû•ÆÜİU;ãé}«Wî÷çèİ±ø\ÑË;cÓŒ4·£¯ï¸¿(G…Şîx¸}~~Ô 1ŞD7Ïñîš­Úï—Rö]ó˜ˆ§M6 pmCFæaœ»a¨ÑÕÉ˜O òô
-Ôê5*mëÁ4”›hœWxrŸôrÎtÊ•£ìålªÂ©ÜWæÂúÚ(BåöˆPiŞ)6å‘R«8BuœÄç	Ğ_ñE€&|'
-3Ê’©Òºp8!!uOÏk6a‰7P ÍiŒØmêY×&]GÅiuËÙÎ¾6´	+C ĞRBÅÄÀ%ñs½ZÏ‚äz¬`‰ü}æ¨äˆ†.‹½÷_56# îx:®pwcÛéêŞºuöèÇŒÑzUHMÂúæ–™éê<:cì•±&”ÜC{­GU«jÃÂ¶¬%³IßoÉÅ)ƒÇâøÑã÷§XÈãT6ü{èW»‚¾šÂ‚âN„b\<’&“p*Ì²±˜Ÿ¯ËÔØ¿_„ùßoÂÓÅº0Ó¡/¦gt×zÌÏªÎ\ZÅnŠÀæ˜Àúa¹Ô	…ÁgE"“	c1eWI“ÚCG¿ßNã7s#N¼‘éW)dÊšÌ^š;ªØû³Úô*£ª"q£¶´i[GXë½£#6s3<dÈ_5µÎğ£.êrï3ÿj)1ì“ç_ì«È?¯N^>Š!Ÿ‰—‡OebØCÑ)E:yu|üüÅËµÔ·,e}3n5öe+?uµÜ«4LyaÍb¨¼«-Dz’ÚRZüÅß åãøŸù¹NJX[>§E0w…'Aš)©ù CºÚ7¢ SvÇ\÷+”C'MT–âNŠY|NbüïsÂb­¹¼¬ MƒŞ¥L®[¤Wñ™HUâsJ’RÖº6œØá&Ó6¦ä*—`3òqk]®Ö‹˜ŒwÌâWjal½×—a`ÊÜ‡y*2©³(I³×dpi—%­X”(ë´İ^ûºÏå€aƒÃ:9së–~•-éd¦Üà*œÒÌÍâI0;Éâ0Y†#àE:íKºŸx=“ø5İãÍÀëhZËk€S“º@œcH=+Á¤Éªµ0RÏ â\Ş{ıƒÚm|T3”Óm5Äƒ¼7ïgõù\Í×%ñ”B}ÃæW…âLÄQWÅy…J’\î6š	@ĞFÃÚ²Ï`cB+@¢BcqUZiW§:Gß}š]t¾h#Ï$CbO-{™¬ş©ù¦OW&`âÂOD­'ßÙÓÌÊzçÕ´º«N°5úèJvMíÉaÂl—kÌ®LUÃdãcÇ÷wŒ±ã$–	´|'SƒÀáğ\cn8·¦9ˆY«ÌQÃJÊn®	®Ğ„©b^±ö% øA€ Tàv(¯Í³ˆ­¼	"Ì Œu´L —”(™#E.û’ˆ€“ys­wÑ4<Ÿç½x‚ûÑƒ]øğY*ø^ü¢ØÃê@èÎ¬Gø¼'½=úÔbèí7A†:Z(¯Œs6äß¶‰Ğ¢Ò+%ñå"j¶ì|ğª2S)qa‡•„çQJ)›]gvk†§W¤¶ uëğï£ğ,XÎ²j·™ó9?yáÕø¤*¬$x–‘¿ÁlÆ2Ş)ú¬ş¢¹Æ)ÛçJèÔpz ÿ-1åDtY2cHP£hËS…ïpÑ×İTú’â‹£G‚Øi±œGWñ&H¥1Ân4/qäL¿©*1ÇmÉ”cÂíRÊ’^ŸÀ æçÑlÙå)àhg¸.v×òİp|‡ …½ñ³$¤õòËºî[èJp×ioF¢İº\]ï–áÄ5ª£”­â°¤NÒ`DÌÒÇñ|@NçÃq8¥«2(Ïù2‰¯òL˜PÈµ‹®óJ£™Ò"¡HÂö;6º5É¹“TcFá#ÉAbæ9Mga6¹è´7‚E´³¿kÓa%@ÉpWñüÌe˜]ÄÓ=Ñ>~~ò²Í§a•†Îéx'Ú*ÊË·‹°ÕLåüïÓxŞ×<´Ùsòü ¨èìmÇÍ’:(‚Ù“ÆÃÇ·äµWİåisîÙû–g8×¬××÷˜‹NA¾4°L=œ›U¥ h÷d8æb½šR01Ş²ª»¢»šèªùo8ä¾ftklÏñuBŠòcûñ_)N Kc$RL¬=_ÆWQi»ÍÚÁô2š¯«dhRŒu
-w>ğÓOİŠÚ¢ßõˆT¾^xíªá“UälQwŸ…o¦ç8c9èvBØqÂUy©:—âşqÙKÉ¾IêH"HÙ9~¾õ”Z‡Ñùú[ôù=k/ªòj2ìŞäŞHR•¾’8·¬SÑ`¬!şõı­ãc+>J|VZ±¦à¬ãŠìM•~x©Ôıe)VÚÃU|ëB@·Ú‹íô~¶Ë{í=W1•ŞÖ‹¤p`M.@ÔJV1	8ÃÚS‚æNëÿ	ùc¯l&@i&N¾ÈM‘DÎ0:*~51Ì‹æ¬FÃ5w0Jã//6Şú†QKˆ5ÃULBzÇÒ,	µ&³1>u®CÍÓ…
-çd•—Ckú®½Ë9\½]ûÆ1A>@Ab6ÜèÎDK¸=tz´•­øØŒÉnà’BÙ&Õ®xÑ%: l83`›0å„ÈpúWu§ûÖŞlZxîNğšõ‚OsŸãÎYœÀŞ^¦çxxºøá(=Áv@ÒóÒù*oa9¥’<ĞtáY@b‚ñP´1<^[ Ká•Ñø:È²pŠ	@Q.ßˆíIî{ú:ÈP2‚Rlˆå”Œşõ7À—‹‹x	¸Òv§Ñy”«‡ÕhKñŠå4­8“ºÕşŠŸQ|hWBß
-‹¯×Ë„½–s”Æ[g9¯‹é{µ£ŸJoøı¬s_›Fñ[¥Ì¼;¬… Lö's¾ßØW2$«10¤AİÀ6æ¶¶²¥öq‘„g÷[wßÙk~İ2måıÖëÓY0ÿ®Uqùcİ#§á$NT
-å$Zë‚ÓzğH>dÛvo#¨±ÍôÛF2T¯æŸ÷‡’Ùº¦!îNDl‚Zh0NùBk;‹Ü3pT?¼m	\7ù›~kr
-9-ª¾V–åf)ª²F	 _Ì¤—’Th¦½ö®Z Óf ¼Ç5®ç;•d7^„sOÑ:kß›aT+‰Oí¹ Eì¶:Ğàt1~õ’¬	;ÿ0ß8_í{§É «{,õ¶^ĞÙù™—Y*%æâ]ß}—¾yôS¡püËp÷]y^Šo–¦ˆÁßzP)xŒÉ·4'nK6`nrwÙ:ëk“nó!rË}„×7ˆ®PÁ»ê9ÏğóQºŸ}A|$²H¦…x6ûŠö®è–ß¾Œâ^^RrBªäg¸éË2\8"XİˆD@^/úçáò‹®±chz;‡ìnÁëÖjnæ¯|nu@º/½
-#]>Ëº†Øø^K“‹ûEo<÷TÔˆ®2|YSV±v¼¥æy¼ÅÓzÆ¶+«oWQİºÔ¶|i5#{ú¾Tù@Ùó[Š>ô~î  ThLZÛ™·kŒ˜qÙš}V58>*˜å\^$hpUAçjy~¦7
-á^w 7±àyª0¤£±Ax'7Q† Z°¸ ­ ˜7Òù’(7 v‘tr±î
-®j¢ÄD:ĞØ—ïº¨7ÿ™â°÷^#Ÿ
-‹l—çÉ}›&.{ú6ƒç§ë7ĞÍPÒ‰«!å—èP2-Kç³HË‹‘ÂB§©Ë)’Ç=Ç_ ™U"éÅ©eÅN‹Ÿ3Qz<EıVêjšŠU…¾ëªG—’×È+÷(LúÛ(4—YõÆ<²È~(ˆÜbI%ÕÉK¿—qf*$‘‹Ú9+tZq2Ñ*Ki8a	z@`f!XËyÛğ­[ÎQÑ¼hµVµfa’ñ²°ìá×·+êPS&±gÍYV;l o†áVü yxª±£Ëó"˜`ãN³¾şuíÜ¼(üºÔ	ê@x°Òñø‹•úšûYû²®€%hlíó×`«Kìàöm^¬±	¬„U¶b?œ§q"­'{½C§mÌôÉ¸‹¢5V»í5a«šÒ½êú¿¼™Í=ÁC2‹QÚ;‡†›#ºñpÀ§g`­~ím´µ’2>pâaQô¥T ­ıĞGcÁÑ>+ˆ744×7±Y°Üâ×!ğ16°	Ş>T^Ğ í–/\—Ğøõ0K§x;°<ì?³½4™ `OjÚ{Ğßå,s·ÉÈl\wÍÜOÁ,¼zñ¤CLBc¦ïlk€bï©jğÂ‹S« d‰Œ,¢	œªáë }msAùªœÂ¼‰;Òpkü2>¶ØsW³å9rx ĞŞMñ©´¯dE¬]FZõ¾|,¡Ï:ê)Èv5Q‰Ùİ2YõÂÑmá³÷®¹êñ8t¼l>¸û“ø2JÃNúÏ®ê6´Ö`¬L?t¨V;šĞ1¬©¨í3ÑJV%XØ›¯Zv‘Äoh¥wtI6”è Ä§s´T ÁŸÄŸ¶^&¼ZĞ$i4Ÿ$hhˆÜ
-“IÈ{G™#ÿÁÏ%EÔY"PHÑFÉAQ‹ß€e¾¿Ğøò»§O¾Ê²Å‹ğäüÁŒ
-Êª.©R±°¤aÁO2ğá«¥a¦ ËÙ²Ş`Ñ4ÑB!hÙ< Şé(*©·ãåSBeğƒÄj™˜²!WVÌŸZ+e¥Q?wxÀÛÿ6§bØ8 ì¯Ä6—¹^?¢Umğ3Ñæˆ˜~Ôø¶Œâî»úŞá]»şeóÈ†k—“|Á|ëEˆD‘ÂIg0ì{KùcÏ|ä
-Jüy$5¡¤"[Oj-‘™YB²ô¬71-@iµ("”ùõîÿøF›¤W9†ù_knš*Iò«¥¥F°ëíIk¢NÔ÷º•È;çÖÂ™¼]™‡ÿ?   ÿÿì]ÍN„0~<¹$›¬ÑxQcâA@Ÿ bH»ìÁÄwñ]|1ûuÚRÚiâÆ‹½¬ÂÒ¥Ó¡Óùfæƒ²uA•PN }tTü‚Öbü™¼&²}Õ“öC7á<gæÒ¿ë;|Á<ê&v®v—³.·E/Ã!Ù¢ šòü„£`şÈ–zD8û9O>Éœİ<»~/_µ$|
-ÊJ¨l_Tås‘º«Hu¶Û(ö1`·%¦,2
-ƒv¶´‰¡Œv›a‹K)9_7ÌyC\bøô6y’å[,Œ¦®•7–=÷|ı\u¬vNIÁLÊÔá#³rC?ršœÅ|­<¤‹±§ô‘»€ßÏB2$ùs|æW&àÅÂ'èâ4q³á!í	õáÆyæMi1R`hfâ‰M:è‡L‡ùĞw0øpÀHÂ6ÎcĞ0cc‘/°ûã°áÍ^Øİ¤ëzRÅ–êP³æµ.³saÁùÃ”xD‹VİöLZƒ8=Ê¨Õ«U ás_ôcŸœØn÷ä¤Àí#£`£ê¥èÌÀb3nû>9#¯w}MZğZ5@h{Vˆ°È}‡O„ê‹V¿²ÅYQòn%8Ç(KÛóºÏ“@é~P_ù‚'´jšünåK:ÕšN²,³m¯Ìù¦²®T€õ9‡.C×pß•eáBI‹@©r÷õ)çÏLT2ÎZœİ7n·ş‘¼çôn'Ê2f_òÏ3½1y²æ¸wu ™Ôü_¸¬„¨Ùc"ÅdV ıüMHø	ŞC¶-‰;¡û8e®P·m°Ó¬~¦—ÔÊ¶€:Ñ®5¶h#pG–øO³¥Yä«OƒõîK²Ü†ef‘™²Up)’([ P]Ö©ÃÌ›¢ËÚ™Š%›
-¬…ZµI¹­Hoú]Pcüj¬"M¶ÌöàO}µÑl¸W¤‹á©Ş×ß   ÿÿ ÓQ¥
+        }
+    </script>
+</body>
+</html>

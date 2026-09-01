@@ -67,6 +67,7 @@ const PORT = 3000;
 
 // Local fallback database file and custom uploads configuration
 const LOCAL_PRODUCTS_FILE = path.join(__dirname, 'products_local.json');
+const LOCAL_ACCESSORIES_FILE = path.join(__dirname, 'accessories_local.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -78,6 +79,11 @@ app.use(express.json({ limit: '20mb' }));
 
 // Serve custom uploaded files
 app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Rotte dirette per le aree amministrative (supporta accesso con o senza slash finale)
+app.get(['/admin/accessori', '/admin/accessori/'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
+});
 
 // Serve static files from root directory
 app.use(express.static(__dirname));
@@ -2380,7 +2386,15 @@ async function loadSettingsFromSupabase() {
       const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
       Object.keys(settings).forEach(key => {
         if (data[key] !== undefined) {
-          settings[key] = data[key];
+          if (key === 'sicurezza' && typeof data[key] === 'object') {
+            settings.sicurezza = {
+              conferma_elimina_prodotto: data[key].conferma_elimina_prodotto !== undefined ? data[key].conferma_elimina_prodotto : DEFAULT_SETTINGS.sicurezza.conferma_elimina_prodotto,
+              conferma_elimina_ordine: data[key].conferma_elimina_ordine !== undefined ? data[key].conferma_elimina_ordine : DEFAULT_SETTINGS.sicurezza.conferma_elimina_ordine,
+              conferma_elimina_recensione: data[key].conferma_elimina_recensione !== undefined ? data[key].conferma_elimina_recensione : DEFAULT_SETTINGS.sicurezza.conferma_elimina_recensione
+            };
+          } else {
+            settings[key] = data[key];
+          }
         }
       });
     }
@@ -2449,6 +2463,19 @@ async function loadSettingsFromSupabase() {
       if (Array.isArray(catalogMap.regoleImportazioneJson)) {
         settings.regoleImportazioneJson = catalogMap.regoleImportazioneJson;
       }
+      if (catalogMap.sicurezza && typeof catalogMap.sicurezza === 'object') {
+        settings.sicurezza = {
+          conferma_elimina_prodotto: catalogMap.sicurezza.conferma_elimina_prodotto !== undefined
+            ? catalogMap.sicurezza.conferma_elimina_prodotto
+            : (settings.sicurezza?.conferma_elimina_prodotto !== undefined ? settings.sicurezza.conferma_elimina_prodotto : DEFAULT_SETTINGS.sicurezza.conferma_elimina_prodotto),
+          conferma_elimina_ordine: catalogMap.sicurezza.conferma_elimina_ordine !== undefined
+            ? catalogMap.sicurezza.conferma_elimina_ordine
+            : (settings.sicurezza?.conferma_elimina_ordine !== undefined ? settings.sicurezza.conferma_elimina_ordine : DEFAULT_SETTINGS.sicurezza.conferma_elimina_ordine),
+          conferma_elimina_recensione: catalogMap.sicurezza.conferma_elimina_recensione !== undefined
+            ? catalogMap.sicurezza.conferma_elimina_recensione
+            : (settings.sicurezza?.conferma_elimina_recensione !== undefined ? settings.sicurezza.conferma_elimina_recensione : DEFAULT_SETTINGS.sicurezza.conferma_elimina_recensione)
+        };
+      }
 
     } catch (eCat) {
       console.error("⚠️ Eccezione durante il caricamento da catalog_settings:", eCat.message);
@@ -2492,6 +2519,7 @@ function getSettings() {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+      const secData = (data && typeof data.sicurezza === 'object') ? data.sicurezza : {};
       cachedSettings = {
         prezziPredefiniti: { ...DEFAULT_SETTINGS.prezziPredefiniti, ...(data.prezziPredefiniti || {}) },
         regolePrezzi: { ...DEFAULT_SETTINGS.regolePrezzi, ...(data.regolePrezzi || {}) },
@@ -2500,7 +2528,11 @@ function getSettings() {
         alibabaFee: { ...DEFAULT_SETTINGS.alibabaFee, ...(data.alibabaFee || {}) },
         contatti: { ...DEFAULT_SETTINGS.contatti, ...(data.contatti || {}) },
         valoriPredefiniti: { ...DEFAULT_SETTINGS.valoriPredefiniti, ...(data.valoriPredefiniti || {}) },
-        sicurezza: { ...DEFAULT_SETTINGS.sicurezza, ...(data.sicurezza || {}) },
+        sicurezza: {
+          conferma_elimina_prodotto: secData.conferma_elimina_prodotto !== undefined ? secData.conferma_elimina_prodotto : DEFAULT_SETTINGS.sicurezza.conferma_elimina_prodotto,
+          conferma_elimina_ordine: secData.conferma_elimina_ordine !== undefined ? secData.conferma_elimina_ordine : DEFAULT_SETTINGS.sicurezza.conferma_elimina_ordine,
+          conferma_elimina_recensione: secData.conferma_elimina_recensione !== undefined ? secData.conferma_elimina_recensione : DEFAULT_SETTINGS.sicurezza.conferma_elimina_recensione
+        },
         categorie: Array.isArray(data.categorie) ? data.categorie : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.categorie)),
         filtriCatalogo: Array.isArray(data.filtriCatalogo) ? data.filtriCatalogo : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.filtriCatalogo)),
         regoleImportazioneJson: Array.isArray(data.regoleImportazioneJson) ? data.regoleImportazioneJson : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.regoleImportazioneJson))
@@ -2522,9 +2554,13 @@ function getSettings() {
 
 function saveSettings(settings) {
   try {
-    // Le impostazioni vengono conservate nella cache in memoria e salvate su Supabase.
-    // Non viene più scritto il file locale settings.json per evitare doppia persistenza.
+    // Le impostazioni vengono conservate nella cache in memoria e sincronizzate su file locale e Supabase.
     cachedSettings = JSON.parse(JSON.stringify(settings));
+    try {
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(cachedSettings, null, 2), 'utf8');
+    } catch (fsErr) {
+      console.warn("⚠️ Impossibile scrivere settings.json:", fsErr.message);
+    }
     return true;
   } catch (err) {
     console.error("⚠️ Errore aggiornamento in memoria delle impostazioni:", err.message);
@@ -2765,6 +2801,14 @@ app.post('/api/settings', async (req, res) => {
           { key: 'filtriCatalogo', value: settingsCopy.filtriCatalogo || [], updated_at: nowIso },
           { key: 'regoleImportazioneJson', value: settingsCopy.regoleImportazioneJson || [], updated_at: nowIso }
         ];
+
+        if (settingsCopy.sicurezza !== undefined) {
+          catalogRowsToUpsert.push({
+            key: 'sicurezza',
+            value: settingsCopy.sicurezza,
+            updated_at: nowIso
+          });
+        }
 
         console.log("[DEBUG] Salvo la configurazione catalogo (categorie, filtriCatalogo, regoleImportazioneJson) su Supabase tabella 'catalog_settings'...");
         const { error: catUpsertErr } = await supabase.from('catalog_settings').upsert(catalogRowsToUpsert, { onConflict: 'key' });
@@ -4273,6 +4317,501 @@ app.delete('/api/products/bulk/delete_unconfigured', async (req, res) => {
     return res.json({ success: true, source: 'supabase', deletedCount });
   } catch (err) {
     console.error("🔴 [BACKEND DEBUG] ERRORE IN BULK DELETE:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =========================================================================
+// MODULO SEPARATO & INDIPENDENTE: CATALOGO ACCESSORI
+// =========================================================================
+function getLocalAccessories() {
+  try {
+    if (fs.existsSync(LOCAL_ACCESSORIES_FILE)) {
+      const raw = fs.readFileSync(LOCAL_ACCESSORIES_FILE, 'utf8');
+      if (raw && raw.trim()) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    }
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore lettura accessories_local.json:", err.message);
+  }
+  return [];
+}
+
+function saveLocalAccessories(accessories) {
+  try {
+    fs.writeFileSync(LOCAL_ACCESSORIES_FILE, JSON.stringify(accessories, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore salvataggio accessories_local.json:", err.message);
+    return false;
+  }
+}
+
+// GET /api/accessories - Endpoint dedicato esclusivamente al catalogo accessori
+app.get('/api/accessories', (req, res) => {
+  try {
+    const accessories = getLocalAccessories();
+    return res.json({
+      success: true,
+      count: accessories.length,
+      accessories
+    });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore GET /api/accessories:", err.message);
+    return res.status(500).json({ success: false, error: err.message, accessories: [] });
+  }
+});
+
+// GET /api/accessories/categories - Categorie dinamiche estratte dagli accessori
+app.get('/api/accessories/categories', (req, res) => {
+  try {
+    const accessories = getLocalAccessories();
+    const categoriesSet = new Set(['Calze', 'Calzettoni', 'Guanti', 'Palloni', 'Cappellini', 'Sciarpe', 'Borse', 'Fasce Capitano', 'Altri Accessori']);
+    accessories.forEach(item => {
+      if (item && item.categoria && String(item.categoria).trim() !== '') {
+        categoriesSet.add(String(item.categoria).trim());
+      }
+    });
+    return res.json({
+      success: true,
+      categories: Array.from(categoriesSet)
+    });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore GET /api/accessories/categories:", err.message);
+    return res.status(500).json({ success: false, error: err.message, categories: [] });
+  }
+});
+
+// POST /api/accessories - Inserimento nuovo accessorio (struttura scalabile e indipendente)
+app.post('/api/accessories', (req, res) => {
+  try {
+    const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche } = req.body;
+    if (!nome || !categoria) {
+      return res.status(400).json({ success: false, error: "Campi obbligatori mancanti: nome, categoria." });
+    }
+
+    const accessories = getLocalAccessories();
+    const cleanNome = String(nome).trim();
+    const cleanCategoria = String(categoria).trim();
+    
+    // Generazione ID univoco isolato per accessori
+    let generatedId = req.body.id;
+    if (!generatedId) {
+      const maxNum = accessories.reduce((max, item) => {
+        if (item && item.id && typeof item.id === 'string' && item.id.startsWith('accessorio-')) {
+          const num = parseInt(item.id.replace('accessorio-', ''), 10);
+          return !isNaN(num) && num > max ? num : max;
+        }
+        return max;
+      }, 0);
+      generatedId = `accessorio-${String(maxNum + 1).padStart(3, '0')}`;
+    }
+
+    const newAccessory = {
+      id: generatedId,
+      codice: codice ? String(codice).trim() : (req.body.cod_art ? String(req.body.cod_art).trim() : generatedId),
+      categoria: cleanCategoria,
+      nome: cleanNome,
+      descrizione: descrizione !== undefined ? String(descrizione).trim() : "",
+      immagine: immagine ? String(immagine).trim() : "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80",
+      prezzo: (prezzo !== undefined && prezzo !== null && !isNaN(Number(prezzo))) ? Number(prezzo) : 0,
+      prezzo_fornitore: (prezzo_fornitore !== undefined && prezzo_fornitore !== null && !isNaN(Number(prezzo_fornitore))) ? Number(prezzo_fornitore) : 0,
+      disponibile: disponibile !== undefined ? Boolean(disponibile) : true,
+      stato: stato !== undefined ? (String(stato).toLowerCase() === 'disattivato' || stato === false ? 'disattivato' : 'attivo') : 'attivo',
+      tipo_catalogo: "accessori",
+      taglia: taglia ? String(taglia).trim() : "Unica",
+      opzioni: opzioni || specifiche || null,
+      created_at: new Date().toISOString()
+    };
+
+    accessories.push(newAccessory);
+    saveLocalAccessories(accessories);
+
+    console.log(`[ACCESSORI] Nuovo accessorio aggiunto: #${newAccessory.id} - ${newAccessory.nome} (${newAccessory.categoria})`);
+    return res.json({ success: true, accessory: newAccessory });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore POST /api/accessories:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// PUT /api/accessories/:id - Modifica accessorio esistente
+app.put('/api/accessories/:id', (req, res) => {
+  try {
+    const accId = req.params.id;
+    if (!accId) {
+      return res.status(400).json({ success: false, error: "ID accessorio mancante." });
+    }
+
+    const accessories = getLocalAccessories();
+    const index = accessories.findIndex(a => a && (a.id === accId || String(a.id) === String(accId)));
+
+    if (index === -1) {
+      return res.status(404).json({ success: false, error: "Accessorio non trovato." });
+    }
+
+    const current = accessories[index];
+    const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche } = req.body;
+
+    const updatedAccessory = {
+      ...current,
+      id: current.id,
+      tipo_catalogo: "accessori",
+      categoria: categoria !== undefined ? String(categoria).trim() : current.categoria,
+      nome: nome !== undefined ? String(nome).trim() : current.nome,
+      descrizione: descrizione !== undefined ? String(descrizione).trim() : (current.descrizione || ""),
+      immagine: immagine !== undefined ? String(immagine).trim() : (current.immagine || ""),
+      prezzo: prezzo !== undefined && prezzo !== null && !isNaN(Number(prezzo)) ? Number(prezzo) : current.prezzo,
+      prezzo_fornitore: prezzo_fornitore !== undefined && prezzo_fornitore !== null && !isNaN(Number(prezzo_fornitore)) ? Number(prezzo_fornitore) : current.prezzo_fornitore,
+      disponibile: disponibile !== undefined ? Boolean(disponibile) : (current.disponibile !== undefined ? Boolean(current.disponibile) : true),
+      stato: stato !== undefined ? (String(stato).toLowerCase() === 'disattivato' || stato === false ? 'disattivato' : 'attivo') : (current.stato || 'attivo'),
+      codice: codice !== undefined ? String(codice).trim() : (current.codice || current.id),
+      taglia: taglia !== undefined ? String(taglia).trim() : (current.taglia || "Unica"),
+      opzioni: opzioni !== undefined ? opzioni : (specifiche !== undefined ? specifiche : current.opzioni),
+      updated_at: new Date().toISOString()
+    };
+
+    accessories[index] = updatedAccessory;
+    saveLocalAccessories(accessories);
+
+    console.log(`[ACCESSORI] Accessorio aggiornato: #${updatedAccessory.id} - ${updatedAccessory.nome}`);
+    return res.json({ success: true, accessory: updatedAccessory });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore PUT /api/accessories/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/accessories/:id - Eliminazione sicura e isolata di un singolo accessorio
+app.delete('/api/accessories/:id', (req, res) => {
+  try {
+    const accId = req.params.id;
+    if (!accId) {
+      return res.status(400).json({ success: false, error: "ID accessorio mancante." });
+    }
+
+    const accessories = getLocalAccessories();
+    const initialLen = accessories.length;
+    const filtered = accessories.filter(a => a && (a.id !== accId && String(a.id) !== String(accId)));
+
+    if (filtered.length === initialLen) {
+      return res.status(404).json({ success: false, error: "Accessorio non trovato per l'eliminazione." });
+    }
+
+    saveLocalAccessories(filtered);
+    console.log(`[ACCESSORI] Accessorio eliminato con successo: ID ${accId}`);
+    return res.json({ success: true, message: `Accessorio ${accId} eliminato con successo.`, remainingCount: filtered.length });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore DELETE /api/accessories/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/batch-delete - Eliminazione multipla accessori selezionati
+app.post('/api/accessories/batch-delete', (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, error: "Nessun ID fornito per l'eliminazione multipla." });
+    }
+
+    const idsSet = new Set(ids.map(id => String(id)));
+    const accessories = getLocalAccessories();
+    const initialLen = accessories.length;
+    const filtered = accessories.filter(a => a && !idsSet.has(String(a.id)));
+    const deletedCount = initialLen - filtered.length;
+
+    saveLocalAccessories(filtered);
+    console.log(`[ACCESSORI] Eliminati ${deletedCount} accessori selezionati.`);
+    return res.json({ success: true, deletedCount, remainingCount: filtered.length });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore POST /api/accessories/batch-delete:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/batch-status - Aggiornamento stato multiplo (attivo/disattivato) per accessori selezionati
+app.post('/api/accessories/batch-status', (req, res) => {
+  try {
+    const { ids, stato, disponibile } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, error: "Nessun ID fornito per l'aggiornamento multiplo." });
+    }
+
+    const idsSet = new Set(ids.map(id => String(id)));
+    const accessories = getLocalAccessories();
+    let updatedCount = 0;
+
+    const updatedList = accessories.map(a => {
+      if (a && idsSet.has(String(a.id))) {
+        updatedCount++;
+        return {
+          ...a,
+          stato: stato !== undefined ? (String(stato).toLowerCase() === 'disattivato' || stato === false ? 'disattivato' : 'attivo') : a.stato,
+          disponibile: disponibile !== undefined ? Boolean(disponibile) : a.disponibile,
+          updated_at: new Date().toISOString()
+        };
+      }
+      return a;
+    });
+
+    saveLocalAccessories(updatedList);
+    console.log(`[ACCESSORI] Aggiornato stato per ${updatedCount} accessori.`);
+    return res.json({ success: true, updatedCount });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore POST /api/accessories/batch-status:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/batch-update - Modifica massiva campi accessori selezionati
+app.post('/api/accessories/batch-update', (req, res) => {
+  try {
+    const { ids, updates } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, error: "Nessun ID fornito per la modifica massiva." });
+    }
+    if (!updates || typeof updates !== 'object') {
+      return res.status(400).json({ success: false, error: "Dati di aggiornamento non validi." });
+    }
+
+    const idsSet = new Set(ids.map(id => String(id)));
+    const accessories = getLocalAccessories();
+    let updatedCount = 0;
+
+    const updatedList = accessories.map(a => {
+      if (a && idsSet.has(String(a.id))) {
+        updatedCount++;
+        const item = { ...a };
+        if (updates.categoria !== undefined && updates.categoria !== '') item.categoria = String(updates.categoria).trim();
+        if (updates.prezzo !== undefined && updates.prezzo !== '' && !isNaN(Number(updates.prezzo))) item.prezzo = Number(updates.prezzo);
+        if (updates.prezzo_fornitore !== undefined && updates.prezzo_fornitore !== '' && !isNaN(Number(updates.prezzo_fornitore))) item.prezzo_fornitore = Number(updates.prezzo_fornitore);
+        if (updates.disponibile !== undefined && updates.disponibile !== '') item.disponibile = updates.disponibile === 'true' || updates.disponibile === true;
+        if (updates.stato !== undefined && updates.stato !== '') item.stato = updates.stato === 'disattivato' ? 'disattivato' : 'attivo';
+        if (updates.taglia !== undefined && updates.taglia !== '') item.taglia = String(updates.taglia).trim();
+        item.updated_at = new Date().toISOString();
+        return item;
+      }
+      return a;
+    });
+
+    saveLocalAccessories(updatedList);
+    console.log(`[ACCESSORI] Modifica massiva completata su ${updatedCount} accessori.`);
+    return res.json({ success: true, updatedCount });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore POST /api/accessories/batch-update:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/import_batch - Importazione massiva JSON catalogo Accessori
+app.post('/api/accessories/import_batch', (req, res) => {
+  try {
+    const { accessories } = req.body;
+    if (!Array.isArray(accessories) || accessories.length === 0) {
+      return res.status(400).json({ success: false, error: "Nessun accessorio fornito per l'importazione." });
+    }
+
+    const currentAccessories = getLocalAccessories();
+    let countImportati = 0;
+    let countAggiornati = 0;
+    let countDuplicati = 0;
+    let countErrori = 0;
+    const erroriDettagli = [];
+
+    // Helper per pulire numeri/prezzi
+    const parsePrice = (val) => {
+      if (val === undefined || val === null || val === '') return null;
+      if (typeof val === 'number') return isNaN(val) ? null : val;
+      let str = String(val).trim();
+      if (str.includes('-')) {
+        const parts = str.split('-');
+        const v1 = parsePrice(parts[0]);
+        const v2 = parsePrice(parts[1]);
+        if (v1 !== null && v2 !== null) return Math.max(v1, v2);
+        if (v1 !== null) return v1;
+        if (v2 !== null) return v2;
+      }
+      if (str.includes(',') && !str.includes('.')) str = str.replace(/,/g, '.');
+      str = str.replace(/[^0-9.]/g, '');
+      const parts = str.split('.');
+      if (parts.length > 2) str = parts[0] + '.' + parts.slice(1).join('');
+      const n = parseFloat(str);
+      return (isNaN(n) || n < 0) ? null : n;
+    };
+
+    // Helper per dedurre categoria se assente o generica
+    const deduceCategory = (rawCat, rawName) => {
+      const lowerCat = String(rawCat || '').toLowerCase().trim();
+      if (lowerCat.includes('calzetton') || lowerCat.includes('socks knee')) return 'Calzettoni';
+      if (lowerCat.includes('calz') || lowerCat.includes('grip') || lowerCat.includes('sock')) return 'Calze';
+      if (lowerCat.includes('guant') || lowerCat.includes('glove')) return 'Guanti';
+      if (lowerCat.includes('pallon') || lowerCat.includes('ball')) return 'Palloni';
+      if (lowerCat.includes('cappellin') || lowerCat.includes('cap') || lowerCat.includes('hat') || lowerCat.includes('beanie')) return 'Cappellini';
+      if (lowerCat.includes('sciarpa') || lowerCat.includes('scarf')) return 'Sciarpe';
+      if (lowerCat.includes('borsa') || lowerCat.includes('bag') || lowerCat.includes('zaino') || lowerCat.includes('backpack')) return 'Borse';
+      if (lowerCat.includes('fascia') || lowerCat.includes('capitano') || lowerCat.includes('armband')) return 'Fasce Capitano';
+
+      if (rawCat && rawCat.toLowerCase() !== 'accessori' && rawCat.toLowerCase() !== 'accessories' && rawCat.toLowerCase() !== 'other') {
+        return rawCat.trim();
+      }
+
+      const lowerName = String(rawName || '').toLowerCase();
+      if (lowerName.includes('calzetton') || lowerName.includes('knee sock')) return 'Calzettoni';
+      if (lowerName.includes('calz') || lowerName.includes('grip') || lowerName.includes('sock') || lowerName.includes('anti-slip')) return 'Calze';
+      if (lowerName.includes('guant') || lowerName.includes('glove')) return 'Guanti';
+      if (lowerName.includes('pallon') || lowerName.includes('ball')) return 'Palloni';
+      if (lowerName.includes('cappellin') || lowerName.includes('cap') || lowerName.includes('hat') || lowerName.includes('beanie')) return 'Cappellini';
+      if (lowerName.includes('sciarpa') || lowerName.includes('scarf')) return 'Sciarpe';
+      if (lowerName.includes('borsa') || lowerName.includes('bag') || lowerName.includes('zaino') || lowerName.includes('backpack')) return 'Borse';
+      if (lowerName.includes('fascia') || lowerName.includes('capitano') || lowerName.includes('armband')) return 'Fasce Capitano';
+
+      return 'Altri Accessori';
+    };
+
+    // Helper per trovare accessorio esistente
+    const findExistingIndex = (item, list) => {
+      const targetId = item.id !== undefined && item.id !== null ? String(item.id).trim() : '';
+      const targetCodice = item.codice !== undefined && item.codice !== null ? String(item.codice).trim().toLowerCase() : '';
+      const targetNome = (item.nome || item.name || item.title || item.versione || item.nome_finale || '').trim().toLowerCase();
+      const targetCat = deduceCategory(item.categoria || item.category, targetNome).toLowerCase();
+      const targetTaglia = (item.taglia || item.size || '').trim().toLowerCase();
+
+      return list.findIndex(acc => {
+        if (!acc) return false;
+        const accId = String(acc.id || '').trim();
+        const accCodice = String(acc.codice || '').trim().toLowerCase();
+        const accNome = String(acc.nome || '').trim().toLowerCase();
+        const accCat = String(acc.categoria || '').trim().toLowerCase();
+        const accTaglia = String(acc.taglia || '').trim().toLowerCase();
+
+        // 1. Corrispondenza per ID esplicito
+        if (targetId && accId && targetId === accId) return true;
+        // 2. Corrispondenza per Codice articolo esplicito
+        if (targetCodice && accCodice && targetCodice === accCodice) return true;
+        // 3. Corrispondenza per Nome + Categoria (+ Taglia se specificata)
+        if (targetNome && accNome && targetNome === accNome && targetCat === accCat) {
+          if (targetTaglia && accTaglia) return targetTaglia === accTaglia;
+          return true;
+        }
+        return false;
+      });
+    };
+
+    let updatedList = [...currentAccessories];
+
+    accessories.forEach((item, index) => {
+      const riga = index + 1;
+      const nome = (item.nome || item.name || item.title || item.versione || item.nome_finale || item.product_title || item.product_name || item.item_name || '').toString().trim();
+      const categoria = deduceCategory(item.categoria || item.category || item.cat, nome);
+      
+      const rawPrice = item.prezzo !== undefined ? item.prezzo : (item.price !== undefined ? item.price : (item.prezzo_vendita !== undefined ? item.prezzo_vendita : item.sale_price));
+      let pPrezzo = parsePrice(rawPrice);
+      if (pPrezzo === null) {
+        pPrezzo = 0;
+      }
+
+      const rawCost = item.prezzo_fornitore !== undefined ? item.prezzo_fornitore : (item.costo_fornitore !== undefined ? item.costo_fornitore : (item.costo !== undefined ? item.costo : item.supplier_price));
+      let pCosto = parsePrice(rawCost);
+      if (pCosto === null) {
+        pCosto = 0;
+      }
+
+      // Validazione base
+      const errori = [];
+      if (!nome || typeof nome !== 'string' || nome.trim() === '') {
+        errori.push("Nome accessorio mancante");
+      }
+      if (pPrezzo === null || pPrezzo < 0) {
+        errori.push("Prezzo non valido o mancante");
+      }
+
+      if (errori.length > 0) {
+        countErrori++;
+        erroriDettagli.push({ riga, nome: nome || `Elemento #${riga}`, errore: errori.join(', ') });
+        return;
+      }
+
+      const pDisponibile = item.disponibile !== undefined ? (item.disponibile === true || String(item.disponibile).toLowerCase() === 'true' || item.disponibile === 1 || String(item.disponibile) === '1') : (item.disponibilita !== undefined ? (item.disponibilita === true || String(item.disponibilita).toLowerCase() === 'true') : true);
+      const pStato = (item.stato && String(item.stato).toLowerCase() === 'disattivato') ? 'disattivato' : 'attivo';
+      const pTaglia = (Array.isArray(item.taglia) ? item.taglia.join(', ') : (item.taglia || item.size || 'Unica')).toString().trim();
+      
+      let pImmagine = item.immagine || item.image || item.imgUrl || item.img || item.product_image || item.foto || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&auto=format&fit=crop&q=80';
+      if (Array.isArray(pImmagine)) pImmagine = pImmagine[0] || '';
+      else if (typeof pImmagine === 'object') pImmagine = pImmagine.url || pImmagine.src || '';
+      pImmagine = String(pImmagine).trim();
+      if (pImmagine.startsWith('//')) pImmagine = 'https:' + pImmagine;
+
+      const pDescrizione = (item.descrizione || item.description || '').toString().trim();
+
+      const existingIdx = findExistingIndex(item, updatedList);
+
+      if (existingIdx !== -1) {
+        // Aggiorna accessorio esistente
+        const old = updatedList[existingIdx];
+        updatedList[existingIdx] = {
+          ...old,
+          nome: nome.trim(),
+          categoria: categoria.trim(),
+          codice: item.codice || old.codice || old.id,
+          prezzo: pPrezzo,
+          prezzo_fornitore: isNaN(pCosto) ? old.prezzo_fornitore : pCosto,
+          taglia: pTaglia || old.taglia,
+          immagine: pImmagine || old.immagine,
+          descrizione: pDescrizione || old.descrizione,
+          disponibile: pDisponibile,
+          stato: pStato,
+          tipo_catalogo: 'accessori',
+          updated_at: new Date().toISOString()
+        };
+        countAggiornati++;
+      } else {
+        // Crea nuovo accessorio
+        const newId = (item.id && !updatedList.some(a => String(a.id) === String(item.id))) 
+          ? String(item.id).trim() 
+          : `acc_${Date.now()}_${Math.floor(Math.random() * 1000)}_${index}`;
+        
+        const newCodice = item.codice ? String(item.codice).trim() : `ACC-${String(updatedList.length + 1).padStart(4, '0')}`;
+
+        const newAccessory = {
+          id: newId,
+          codice: newCodice,
+          nome: nome.trim(),
+          categoria: categoria.trim(),
+          prezzo: pPrezzo,
+          prezzo_fornitore: isNaN(pCosto) ? 0 : pCosto,
+          taglia: pTaglia,
+          immagine: pImmagine,
+          descrizione: pDescrizione,
+          disponibile: pDisponibile,
+          stato: pStato,
+          tipo_catalogo: 'accessori',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        updatedList.push(newAccessory);
+        countImportati++;
+      }
+    });
+
+    saveLocalAccessories(updatedList);
+    console.log(`[ACCESSORI IMPORT] Importazione completata: ${countImportati} creati, ${countAggiornati} aggiornati, ${countErrori} errori.`);
+
+    return res.json({
+      success: true,
+      analizzati: accessories.length,
+      importati: countImportati,
+      aggiornati: countAggiornati,
+      duplicati: countDuplicati,
+      errori: countErrori,
+      errori_dettagli: erroriDettagli,
+      totalCount: updatedList.length
+    });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI IMPORT] Errore POST /api/accessories/import_batch:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -6752,6 +7291,216 @@ app.post('/api/orders/unarchive', async (req, res) => {
   }
 });
 
+// POST /api/orders/update-pricing & PUT /api/orders/:id/update-pricing - Modifica prezzo concordato o fasce di prezzo di uno specifico ordine
+const handleUpdateOrderPricing = async (req, res) => {
+  try {
+    const { order_id, orderId, items, ripristina_tutto } = req.body || {};
+    const targetId = order_id !== undefined ? order_id : (orderId !== undefined ? orderId : req.params.id);
+
+    if (targetId === undefined || targetId === null || targetId === '') {
+      return res.status(400).json({ success: false, error: "Identificativo ordine mancante." });
+    }
+
+    const allOrders = await getDbOrders();
+    const targetIdStr = String(targetId).trim().replace(/^#/, '');
+    const order = allOrders.find(o => 
+      (o.id !== undefined && String(o.id).trim() === targetIdStr) || 
+      (o.data && String(o.data).trim() === targetIdStr)
+    );
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: "Ordine non trovato." });
+    }
+
+    if (order.is_archived) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Non è possibile modificare il prezzo di un ordine archiviato. Riporta prima l'ordine tra quelli attivi." 
+      });
+    }
+
+    let cartItems = order.carrello;
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      cartItems = ricostruisciCarrelloDaStringhe(order);
+    }
+
+    // Se l'amministratore richiede di ripristinare tutti i prezzi originali
+    if (ripristina_tutto === true) {
+      cartItems.forEach(item => {
+        if (item.prezzo_originale !== undefined && item.prezzo_originale !== null) {
+          item.prezzo = Number(item.prezzo_originale);
+        }
+        delete item.prezzo_concordato;
+        delete item.fasce_prezzo;
+        delete item.ha_prezzo_concordato;
+        delete item.prezzo_originale;
+        delete item.totale_concordato;
+      });
+    } else if (Array.isArray(items)) {
+      // Aggiorna ciascun articolo con i parametri inviati
+      for (let i = 0; i < cartItems.length; i++) {
+        const item = cartItems[i];
+        const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+        if (isSped) continue;
+
+        // Cerca l'aggiornamento corrispondente per ID, legacy_id o indice
+        const update = items.find(u => 
+          (u.id && item.id && String(u.id) === String(item.id)) ||
+          (u.legacy_id && item.legacy_id && String(u.legacy_id) === String(item.legacy_id)) ||
+          (u.index !== undefined && Number(u.index) === i)
+        );
+
+        if (!update) continue;
+
+        const totalItemQty = parseInt(item.quantita, 10) || 1;
+
+        if (update.ripristina === true) {
+          if (item.prezzo_originale !== undefined && item.prezzo_originale !== null) {
+            item.prezzo = Number(item.prezzo_originale);
+          }
+          delete item.prezzo_concordato;
+          delete item.fasce_prezzo;
+          delete item.ha_prezzo_concordato;
+          delete item.prezzo_originale;
+          delete item.totale_concordato;
+        } else if (Array.isArray(update.fasce_prezzo) && update.fasce_prezzo.length > 0) {
+          let sumQty = 0;
+          let calculatedItemTotal = 0;
+          const validatedTiers = [];
+
+          for (const f of update.fasce_prezzo) {
+            const q = parseInt(f.quantita, 10);
+            const p = parseFloat(String(f.prezzo_unitario).replace(',', '.'));
+            if (isNaN(q) || q <= 0) {
+              return res.status(400).json({ success: false, error: `Quantità non valida nella fascia: ${f.quantita}` });
+            }
+            if (isNaN(p) || p < 0) {
+              return res.status(400).json({ success: false, error: `Prezzo unitario non valido nella fascia: ${f.prezzo_unitario}` });
+            }
+            sumQty += q;
+            calculatedItemTotal += (q * p);
+            validatedTiers.push({ quantita: q, prezzo_unitario: Number(p.toFixed(2)) });
+          }
+
+          if (sumQty !== totalItemQty) {
+            return res.status(400).json({ 
+              success: false, 
+              error: `La somma delle quantità delle fasce (${sumQty}) non coincide con la quantità totale dell'articolo (${totalItemQty}).` 
+            });
+          }
+
+          if (item.prezzo_originale === undefined || item.prezzo_originale === null) {
+            item.prezzo_originale = Number(item.prezzo) || 0;
+          }
+          item.fasce_prezzo = validatedTiers;
+          item.prezzo_concordato = validatedTiers.length === 1 ? validatedTiers[0].prezzo_unitario : Number((calculatedItemTotal / totalItemQty).toFixed(2));
+          item.prezzo = Number((calculatedItemTotal / totalItemQty).toFixed(4));
+          item.ha_prezzo_concordato = true;
+          item.totale_concordato = Number(calculatedItemTotal.toFixed(2));
+        } else if (update.prezzo_concordato !== undefined && update.prezzo_concordato !== null && update.prezzo_concordato !== '') {
+          const p = parseFloat(String(update.prezzo_concordato).replace(',', '.'));
+          if (isNaN(p) || p < 0) {
+            return res.status(400).json({ success: false, error: "Prezzo concordato non valido." });
+          }
+          if (item.prezzo_originale === undefined || item.prezzo_originale === null) {
+            item.prezzo_originale = Number(item.prezzo) || 0;
+          }
+          item.prezzo = Number(p.toFixed(2));
+          item.prezzo_concordato = Number(p.toFixed(2));
+          item.fasce_prezzo = [{ quantita: totalItemQty, prezzo_unitario: Number(p.toFixed(2)) }];
+          item.ha_prezzo_concordato = true;
+          item.totale_concordato = Number((totalItemQty * p).toFixed(2));
+        }
+      }
+    }
+
+    order.carrello = cartItems;
+
+    // Ricalcola il totale dell'ordine
+    let itemsSubtotal = 0;
+    cartItems.forEach(ci => {
+      const isSped = ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra);
+      if (isSped) return;
+      if (ci.totale_concordato !== undefined && ci.ha_prezzo_concordato) {
+        itemsSubtotal += Number(ci.totale_concordato);
+      } else if (Array.isArray(ci.fasce_prezzo) && ci.fasce_prezzo.length > 0) {
+        itemsSubtotal += ci.fasce_prezzo.reduce((a, f) => a + (f.quantita * f.prezzo_unitario), 0);
+      } else {
+        itemsSubtotal += (Number(ci.prezzo) || 0) * (parseInt(ci.quantita, 10) || 1);
+      }
+    });
+
+    const squadraStr = String(order.squadra || '').toLowerCase();
+    const haSpedCliente = squadraStr.includes('spedizione');
+    const spedizioneCliente = haSpedCliente ? 2.00 : 0.00;
+    const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
+    const newOrderTotal = Math.max(0, Number((itemsSubtotal + spedizioneCliente - couponDiscount).toFixed(2)));
+
+    // Mantieni intatti i costi fornitore reali
+    const settings = getSettings();
+    const orderRate = getOrderEffectiveExchangeRate(order, settings);
+    const rawProdCostUSD = parseItalianFloat(String(order["Costo prodotti (USD)"] || order.costo_prodotti_usd || '0'));
+    const rawShipUSD = parseItalianFloat(String(order["Costo spedizione (USD)"] || order.costo_spedizione_usd || '0'));
+    const totalCostUSD = Number((rawProdCostUSD + rawShipUSD).toFixed(2));
+    const costEur = order["Costo totale (EUR)"] ? parseItalianFloat(String(order["Costo totale (EUR)"])) : convertUsdToEur(totalCostUSD, orderRate, 'updatePricing');
+    const newProfitEUR = Number((newOrderTotal - costEur).toFixed(2));
+
+    const newTotaleStr = `${newOrderTotal.toFixed(2).replace('.', ',')}€`;
+    const newProfitStr = newProfitEUR.toFixed(2).replace('.', ',');
+
+    order.totale = newTotaleStr;
+    order["Profitto (EUR)"] = newProfitStr;
+    order.profitto_eur = newProfitStr;
+
+    // Persistenza Supabase
+    const supabase = getSupabaseClient();
+    if (supabase && order.id) {
+      try {
+        await supabase.from('orders').update({
+          totale: newTotaleStr,
+          carrello: order.carrello,
+          profitto_eur: newProfitStr
+        }).eq('id', order.id);
+
+        const { data: custOrd } = await supabase.from('customer_orders').select('id').eq('admin_order_id', order.id).maybeSingle();
+        if (custOrd) {
+          await supabase.from('customer_orders').update({
+            subtotal: itemsSubtotal,
+            total: newOrderTotal,
+            updated_at: new Date().toISOString()
+          }).eq('id', custOrd.id);
+        }
+      } catch (dbErr) {
+        console.warn("⚠️ Errore salvataggio pricing ordine su Supabase:", dbErr.message);
+      }
+    }
+
+    // Persistenza locale
+    const localOrders = getLocalOrders();
+    const idx = localOrders.findIndex(lo => (lo.id && String(lo.id) === String(order.id)) || (lo.data && lo.data === order.data));
+    if (idx !== -1) {
+      localOrders[idx] = { ...localOrders[idx], ...order };
+      fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+    }
+
+    // Ricalcolo economico completo del lotto
+    const updatedLotto = await recalculateCurrentLotto();
+
+    return res.json({
+      success: true,
+      order,
+      lotto: updatedLotto,
+      message: "Prezzo concordato aggiornato con successo."
+    });
+  } catch (err) {
+    console.error("⚠️ Errore in update-pricing:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+app.post('/api/orders/update-pricing', handleUpdateOrderPricing);
+app.put('/api/orders/:id/update-pricing', handleUpdateOrderPricing);
+
 // ==========================================
 // SISTEMA COUPON - UTILS & API ENDPOINTS
 // ==========================================
@@ -8546,6 +9295,7 @@ app.post('/api/orders', async (req, res) => {
 
     // Carica tutti i prodotti da Supabase per reperire prezzo_fornitore
     let localProducts = getLocalProducts();
+    let localAccessories = getLocalAccessories();
     let supabaseProducts = [];
 
     // Tenta di ottenere prodotti aggiornati da Supabase
@@ -8558,7 +9308,7 @@ app.post('/api/orders', async (req, res) => {
       console.warn("⚠️ Impossibile caricare prodotti da Supabase per l'ordine, utilizzo fallback locale:", e.message);
     }
 
-    const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+    const allDbProducts = [...(supabaseProducts.length > 0 ? supabaseProducts : localProducts), ...localAccessories];
 
     // PRE-VALIDAZIONE RIGIDA SERVER-SIDE: Ogni articolo nel carrello (eccetto voci tecniche di spedizione/servizio) DEVE esistere realmente nel catalogo
     for (let index = 0; index < carrello.length; index++) {
@@ -8650,7 +9400,7 @@ app.post('/api/orders', async (req, res) => {
       }
 
       if (matchedProd) {
-        matchLog.push(`Prodotto trovato su Supabase: "${matchedProd.versione}" (id: ${matchedProd.id}, legacy_id: ${matchedProd.legacy_id}) tramite ${matchMethod}`);
+        matchLog.push(`Prodotto trovato nel catalogo: "${matchedProd.versione || matchedProd.nome || 'Articolo'}" (id: ${matchedProd.id}, legacy_id: ${matchedProd.legacy_id}) tramite ${matchMethod}`);
         const prezzoFornUnitarioUSD = matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null
           ? Number(matchedProd.prezzo_fornitore)
           : 0;
@@ -11460,6 +12210,15 @@ app.get('/api/catalog/no-filter-audit', async (req, res) => {
 // Catch-all per tutte le rotte API non trovate (evita di restituire l'HTML di index.html per le chiamate /api/*)
 app.all('/api/*', (req, res) => {
   res.status(404).json({ success: false, error: `Endpoint API non trovato: ${req.method} ${req.path}` });
+});
+
+// Rotte esplicite per il Pannello Admin Accessori e Admin Principale
+app.get(['/admin/accessori', '/admin/accessori/*'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
+});
+
+app.get(['/admin', '/admin/*'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
 });
 
 // Fallback all routes to index.html

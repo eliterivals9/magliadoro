@@ -1,0 +1,158 @@
+[
+  {
+    "id": "accessorio-001",
+    "categoria": "Calze",
+    "nome": "Calze Grip Performance Pro",
+    "descrizione": "Calze tecniche antiscivolo con cuscinetti grip esagonali in silicone ad alta aderenza. Tessuto traspirante con supporto plantare ed elastico a compressione graduata per prevenire vesciche e massimizzare la reattività.",
+    "immagine": "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=700&auto=format&fit=crop&q=80",
+    "prezzo": 14.99,
+    "prezzo_fornitore": 4.8,
+    "disponibile": true,
+    "tipo_catalogo": "accessori",
+    "taglia": "Unica (38-45)",
+    "opzioni": {
+      "taglie": [
+        "S (35-38)",
+        "M (39-42)",
+        "L (43-46)"
+      ],
+      "colori": [
+        "Bianco Gold",
+        "Nero Stealth",
+        "Rosso Fuoco",
+        "Blu Royal"
+      ]
+    }
+  },
+  {
+    "id": "accessorio-002",
+    "categoria": "Calzettoni",
+    "nome": "Calzettoni Gara Ufficiali Maglia d'Oro",
+    "descrizione": "Calzettoni anatomici da competizione con inserti in mesh traspirante su polpaccio e collo del piede. Ammortizzazione rinforzata su tallone e punta.",
+    "immagine": "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=700&auto=format&fit=crop&q=80",
+    "prezzo": 12.99,
+    "prezzo_fornitore": 4.2,
+    "disponibile": true,
+    "tipo_catalogo": "accessori",
+    "taglia": "M (39-42)",
+    "opzioni": {
+      "taglie": [
+        "S (35-38)",
+        "M (39-42)",
+        "L (43-46)"
+      ],
+      "colori": [
+        "Bianco / Oro",
+        "Nero / Oro",
+        "Blu Notte"
+      ]
+    }
+  },
+  {
+    "id": "accessorio-003",
+    "categoria": "Palloni",
+    "nome": "Pallone Ufficiale Match Pro FIFA Quality",
+    "descrizione": "Pallone da gara termo-incollato a 32 pannelli con camera d'aria in butile bilanciata. Grip testurizzato 3D per traiettorie stabili e massima precisione in tutte le condizioni meteo.",
+    "immagine": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=700&auto=format&fit=crop&q=80",
+    "prezzo": 29.99,
+    "prezzo_fornitore": 9.5,
+    "disponibile": false,
+    "tipo_catalogo": "accessori",
+    "taglia": "Misura 5",
+    "opzioni": {
+      "taglie": [
+        "Misura 4 (Junior)",
+        "Misura 5 (Standard Ufficiale)"
+      ],
+      "colori": [
+        "Gold & White Match Edition",
+        "Hyper Neon Champions"
+      ]
+    },
+    "stato": "attivo",
+    "codice": "accessorio-003",
+    "updated_at": "2026-08-31T23:45:40.647Z"
+  },
+  {
+    "id": "accessorio-004",
+    "categoria": "Guanti",
+    "nome": "Guanti da Portiere Elite Contact Grip",
+    "descrizione": "Lattice tedesco Contact da 4mm per presa eccezionale su bagnato e asciutto. Taglio negativo aderente con fascia elastica a doppio giro sul polso per massimo supporto.",
+    "immagine": "https://images.unsplash.com/photo-1606902965551-dce093cda6e7?w=700&auto=format&fit=crop&q=80",
+    "prezzo": 34.99,
+    "prezzo_fornitore": 11,
+    "disponibile": true,
+    "tipo_catalogo": "accessori",
+    "taglia": "Taglia 9",
+    "opzioni": {
+      "taglie": [
+        "Taglia 7",
+        "Taglia 8",
+        "Taglia 8.5",
+        "Taglia 9",
+        "Taglia 9.5",
+        "Taglia 10"
+      ],
+      "colori": [
+        "Black Out Stealth",
+        "Gold Luxury Edition"
+      ]
+    }
+  },
+  {
+    "id": "accessorio-005",
+    "categoria": "Cappellini",
+    "nome": "Cappellino Maglia d'Oro Curved Snapback",
+    "descrizione": "Cappellino strutturato a 6 pannelli in cotone pettinato premium con logo Maglia d'Oro ricamato 3D in filo dorato satinato. Chiusura regolabile posteriore.",
+    "immagine": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=700&auto=format&fit=crop&q=80",
+    "prezzo": 19.99,
+    "prezzo_fornitore": 6,
+    "disponibile": true,
+    "tipo_catalogo": "accessori",
+    "taglia": "Taglia Unica Regolabile",
+    "opzioni": {
+      "taglie": [
+        "Taglia Unica Regolabile"
+      ],
+      "colori": [
+        "Nero / Oro",
+        "Bianco / Oro",
+        "Verde Foresta"
+      ]
+    }
+  },
+  {
+    "id": "accessorio-006",
+    "categoria": "Sciarpe",
+    "nome": "Sciarpa Maglia d'Oro HD Jacquard Edition",
+    "descrizione": "Sciarpa da stadio a doppia maglia ad alta definizione jacquard in morbido filato acrilico caldo con frange lavorate a mano. Perfetta per le serate di coppa.",
+    "immagine": "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=700&auto=format&fit=crop&q=80",
+    "prezzo": 18.99,
+    "prezzo_fornitore": 5.5,
+    "disponibile": true,
+    "tipo_catalogo": "accessori",
+    "taglia": "140 x 18 cm",
+    "opzioni": {
+      "taglie": [
+        "Standard (140x18 cm)"
+      ],
+      "colori": [
+        "Black & Gold Limited",
+        "Classic Heritage"
+      ]
+    }
+  },
+  {
+    "id": "accessorio-007",
+    "categoria": "Fasce Capitano",
+    "nome": "Fascia Capitano Elasticizzata Gold Leader",
+    "descrizione": "Fascia capitano ufficiale con logo dorato.",
+    "immagine": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80",
+    "prezzo": 9.99,
+    "prezzo_fornitore": 2.5,
+    "disponibile": true,
+    "tipo_catalogo": "accessori",
+    "taglia": "Unica",
+    "opzioni": null
+  }
+]

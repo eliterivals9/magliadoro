@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maglia d'Oro - Admin Accessori</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            gold: '#D6A43A',
+                            goldHover: '#aa7c1e',
+                            dark: '#0B0B0B',
+                            bgLight: '#0B0B0B',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body class="bg-brand-bgLight text-white font-sans min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar Laterale (Sleek Dark Theme per creare contrasto) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-brand-dark text-slate-300 flex flex-col border-r border-slate-800/60 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <!-- Logo Header con Contesto Chiaro ADMIN ACCESSORI -->
+        <div class="h-20 flex items-center px-6 border-b border-zinc-800/60 gap-3">
+            <img src="https://i.postimg.cc/fy73GrmK/logo-jpeg.jpg" alt="Maglia d'Oro" class="h-10 w-10 rounded-full object-cover border border-[#D6A43A] shadow-[0_0_8px_rgba(214,164,58,0.2)]">
+            <div>
+                <h1 class="text-white font-extrabold tracking-wide uppercase text-xs leading-none">Maglia d'Oro</h1>
+                <span class="text-[9px] font-bold text-brand-gold uppercase tracking-[2px] mt-1 block" style="text-shadow: 0 0 10px rgba(214, 164, 58, 0.25);">ADMIN ACCESSORI</span>
+            </div>
+        </div>
+
+        <!-- Navigazione Principale Accessori -->
+        <nav class="flex-grow py-6 px-4 space-y-1 overflow-y-auto max-h-[calc(100vh-180px)]">
+            <!-- Nav Item: Gestione Accessori (Attivo FASE 2) -->
+            <a href="#" onclick="switchAccessoriTab('elenco')" id="nav-acc-elenco" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-white bg-brand-gold/15 border-l-4 border-brand-gold">
+                <span class="flex items-center gap-3">
+                    <span>🎒</span> Gestione Prodotti
+                </span>
+                <span id="accessories-total-count" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold">0</span>
+            </a>
+
+            <!-- Nav Item: Panoramica & Architettura -->
+            <a href="#" onclick="switchAccessoriTab('panoramica')" id="nav-acc-panoramica" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span>📊</span> Panoramica & Info
+            </a>
+
+            <!-- Placeholder Voci Future (Fasi 3-4) -->
+            <a href="#" onclick="switchAccessoriTab('importazione')" id="nav-acc-importazione" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-3">
+                    <span>📥</span> Importazione JSON
+                </span>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Fase 3</span>
+            </a>
+
+            <a href="#" onclick="switchAccessoriTab('prezzi')" id="nav-acc-prezzi" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-3">
+                    <span>🏷️</span> Prezzi & Categorie
+                </span>
+                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Fase 4</span>
+            </a>
+
+            <div class="pt-4 pb-2">
+                <div class="border-t border-slate-800/60 my-2"></div>
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Navigazione Rapida</p>
+            </div>
+
+            <!-- Collegamento di ritorno ad Admin Generale -->
+            <a href="/admin" id="nav-back-admin" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-brand-gold hover:bg-brand-gold/10 border-l-4 border-transparent">
+                <span>←</span> Admin Principale
+            </a>
+
+            <!-- Collegamento rapido al negozio pubblico accessori -->
+            <a href="/accessori" target="_blank" id="nav-public-accessori" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span>🌐</span> Store Accessori
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer & Logout -->
+        <div class="p-4 border-t border-slate-800/60 space-y-3">
+            <div class="px-4">
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Autenticato come:</p>
+                <p id="user-email-display" class="text-xs text-brand-gold font-mono truncate">Caricamento...</p>
+            </div>
+            <button onclick="window.logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 hover:text-red-300 font-bold text-xs rounded-xl transition-all duration-200 cursor-pointer">
+                <span>🚪</span> Esci dal Pannello
+            </button>
+        </div>
+    </aside>
+
+    <!-- Overlay per Sidebar Mobile -->
+    <div id="sidebar-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm hidden md:hidden"></div>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-grow md:pl-64 flex flex-col min-h-screen">
+        
+        <!-- Header Navigazione -->
+        <header class="h-20 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileSidebar()" class="p-2 -ml-2 text-slate-600 hover:text-slate-900 md:hidden focus:outline-none cursor-pointer">
+                    <span class="text-2xl">☰</span>
+                </button>
+                <div>
+                    <h2 id="current-section-title" class="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">Gestione Accessori</h2>
+                    <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Pannello di controllo esclusivo per i prodotti Accessori</p>
+                </div>
+            </div>
+
+            <!-- Pulsanti di Azione in Header -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="esportaAccessori('json')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer" title="Esporta l'intero catalogo accessori in formato JSON">
+                    <span>📤</span> <span>Esporta JSON</span>
+                </button>
+                <label class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer" title="Importa catalogo accessori da file JSON">
+                    <span>📥</span> <span>Importa JSON</span>
+                    <input type="file" id="import-accessories-file-header" accept=".json" onchange="handleAccessoryImportFile(event)" class="hidden">
+                </label>
+                <button onclick="openAddAccessoryModal()" class="px-3.5 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-md transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
+                    <span>➕</span> <span>Nuovo Accessorio</span>
+                </button>
+                <a href="/admin" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs rounded-xl border border-slate-700 transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
+                    <span>←</span> <span class="hidden sm:inline">Admin Principale</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="flex-grow p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6">
+            
+            <!-- SECTION: GESTIONE PRODOTTI ACCESSORI (FASE 2 - ATTIVA) -->
+            <section id="section-elenco" class="space-y-6">
+                
+                <!-- Stat Cards Sintetiche -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Accessori Totali</p>
+                            <h3 id="accessories-total-count-card" class="text-2xl font-black text-slate-900 font-mono mt-0.5">0</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-gold/10 text-brand-gold flex items-center justify-center text-lg">
+                            🎒
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Accessori Attivi</p>
+                            <h3 id="metric-active-count" class="text-2xl font-black text-emerald-600 font-mono mt-0.5">0</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-lg">
+                            ✅
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Categorie</p>
+                            <h3 id="metric-categories-count" class="text-2xl font-black text-blue-600 font-mono mt-0.5">0</h3>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-lg">
+                            🏷️
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra di Controllo: Ricerca, Filtro Categoria e Paginazione -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <div class="flex flex-col sm:flex-row items-center gap-3 flex-grow">
+                        <!-- Barra Ricerca -->
+                        <div class="relative w-full sm:w-72 md:w-80">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 pointer-events-none text-sm">🔍</span>
+                            <input type="text" id="search-accessory-input" placeholder="Cerca accessorio per nome, codice o categoria..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold transition-all">
+                        </div>
+
+                        <!-- Filtro Categorie Accessori -->
+                        <div class="w-full sm:w-56">
+                            <select id="filter-category-select" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold transition-all cursor-pointer">
+                                <option value="all">Tutte le Categorie</option>
+                                <option value="Calze">Calze</option>
+                                <option value="Calzettoni">Calzettoni</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Elementi Per Pagina -->
+                        <div class="w-full sm:w-44 flex items-center gap-1.5">
+                            <label for="accessories-per-page-select" class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Mostra:</label>
+                            <select id="accessories-per-page-select" onchange="cambiaElementiPerPagina(this.value)" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold transition-all cursor-pointer">
+                                <option value="10">10 / pagina</option>
+                                <option value="25">25 / pagina</option>
+                                <option value="50">50 / pagina</option>
+                                <option value="100">100 / pagina</option>
+                                <option value="all">Tutti</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end gap-2 text-slate-500 text-xs">
+                        <span id="accessories-filtered-count" class="font-medium text-[11px] text-slate-400">Caricamento...</span>
+                        <button onclick="loadAccessories()" title="Ricarica elenco" class="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
+                            <span class="text-sm">🔄</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabella Principale Accessori -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+                    <!-- Barra Modifica Massiva (visibile quando ci sono elementi selezionati) -->
+                    <div id="batch-edit-action-bar" class="hidden px-6 py-3.5 bg-amber-500/10 border-b border-amber-200 flex flex-wrap items-center justify-between gap-3 transition-all">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">☑️</span>
+                            <span id="batch-selected-count" class="text-xs font-bold text-amber-900 font-mono">0 accessori selezionati</span>
+                        </div>
+                        <div class="flex items-center flex-wrap gap-2">
+                            <button type="button" onclick="apriPannelloModificaMassivaAccessori()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>✏️</span> Modifica Selezionati
+                            </button>
+                            <button type="button" onclick="batchToggleStatoAccessori('attivo')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center gap-1 cursor-pointer" title="Attiva tutti i selezionati">
+                                <span>👁️</span> Attiva
+                            </button>
+                            <button type="button" onclick="batchToggleStatoAccessori('disattivato')" class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-800 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center gap-1 cursor-pointer" title="Disattiva tutti i selezionati">
+                                <span>🚫</span> Disattiva
+                            </button>
+                            <button type="button" onclick="apriConfermaEliminazioneMassivaAccessori()" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center gap-1 cursor-pointer" title="Elimina tutti i selezionati">
+                                <span>🗑️</span> Elimina
+                            </button>
+                            <button type="button" onclick="deselezionaTuttiAccessori()" class="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 font-bold transition-colors cursor-pointer">
+                                Deseleziona tutti
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table id="accessories-table" class="w-full text-left border-collapse min-w-full">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                                    <th class="py-3.5 px-4 text-left min-w-[155px]">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" id="select-all-accessories-checkbox" onchange="toggleSelectAllAccessories(this.checked)" title="Seleziona/Deseleziona tutti" class="rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4 cursor-pointer">
+                                            <div class="inline-flex bg-slate-200/80 p-0.5 rounded-lg text-[10px] font-bold text-slate-600 border border-slate-300/50" title="Ambito di selezione: Pagina corrente oppure Tutti i risultati">
+                                                <button type="button" id="btn-select-scope-pagina" onclick="cambiaModalitaSelezioneAccessori('pagina')" class="px-1.5 py-0.5 rounded-md text-slate-500 hover:text-slate-800 transition-all font-semibold cursor-pointer">
+                                                    Pagina
+                                                </button>
+                                                <button type="button" id="btn-select-scope-tutti" onclick="cambiaModalitaSelezioneAccessori('tutti')" class="px-1.5 py-0.5 rounded-md bg-white text-slate-900 shadow-xs font-bold transition-all cursor-pointer">
+                                                    Tutti
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <th class="py-3.5 px-4 w-28">Codice</th>
+                                    <th class="py-3.5 px-4">Prodotto</th>
+                                    <th class="py-3.5 px-4 w-36">Categoria</th>
+                                    <th class="py-3.5 px-4 w-28">Prezzo Vendita</th>
+                                    <th class="py-3.5 px-4 w-28">Costo Forn.</th>
+                                    <th class="py-3.5 px-4 w-32">Disponibilità</th>
+                                    <th class="py-3.5 px-4 w-28">Stato</th>
+                                    <th class="py-3.5 px-4 w-28 text-right">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accessories-table-body" class="divide-y divide-slate-100">
+                                <!-- Righe generate dinamicamente da accessori.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Accessories Pagination Container -->
+                    <div id="accessories-pagination" class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <!-- Dynamic pagination markup -->
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="accessories-loading" class="p-12 text-center space-y-3">
+                        <div class="w-8 h-8 border-3 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <p class="text-xs text-slate-500 font-bold">Caricamento catalogo accessori...</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="accessories-empty" class="hidden p-12 text-center space-y-3">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-2xl mx-auto">
+                            🎒
+                        </div>
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-extrabold text-slate-800">Nessun accessorio trovato</h4>
+                            <p class="text-xs text-slate-400 max-w-sm mx-auto">Nessun prodotto corrisponde ai criteri di ricerca o filtro selezionati.</p>
+                        </div>
+                        <button onclick="openAddAccessoryModal()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
+                            <span>➕</span> Crea Primo Accessorio
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: PANORAMICA & INFO ARCHITETTURA -->
+            <section id="section-panoramica" class="hidden space-y-8">
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-slate-900 to-brand-dark p-6 md:p-8 rounded-3xl border border-slate-800 shadow-xl text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl"></div>
+                    <div class="space-y-2 relative z-10">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-[10px] font-extrabold uppercase tracking-wider">
+                            <span>🛡️</span> Sezione Indipendente & Isolata
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-black">Gestione Accessori</h3>
+                        <p class="text-xs md:text-sm text-slate-400 max-w-2xl">
+                            Pannello di controllo separato dedicato esclusivamente agli Accessori. I dati sono completamente isolati dal catalogo principale Club/Nazionali.
+                        </p>
+                    </div>
+                    <div class="relative z-10 shrink-0">
+                        <span class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-extrabold text-xs rounded-xl">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            Fase 2: Gestione Prodotti Attiva
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Box Informativo Architettura & Roadmap Fasi -->
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Pannello Operativo Modulare Accessori</h3>
+                            <p class="text-xs text-slate-500">Mappa di sviluppo delle funzionalità separate</p>
+                        </div>
+                        <span class="text-xs font-bold text-brand-gold bg-brand-gold/10 px-3 py-1 rounded-full border border-brand-gold/20">
+                            /admin/accessori
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Box Fase 1 (Attuale) -->
+                        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-emerald-600 uppercase tracking-wider">Fase 1</span>
+                                <span class="text-lg">✅</span>
+                            </div>
+                            <h4 class="font-extrabold text-sm text-slate-900">Struttura Base & Routing</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Area autonoma <code class="text-emerald-600 font-mono">/admin/accessori</code> con medesimo design system e protezione autenticazione.
+                            </p>
+                        </div>
+
+                        <!-- Box Fase 2 (Attuale) -->
+                        <div class="p-5 rounded-2xl border-2 border-emerald-500/50 bg-emerald-500/5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-emerald-600 uppercase tracking-wider">Fase 2 (Attiva)</span>
+                                <span class="text-lg">✅</span>
+                            </div>
+                            <h4 class="font-extrabold text-sm text-slate-900">Gestione Prodotti Accessori</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Visualizzazione, ricerca, filtri categorie, aggiunta, modifica, eliminazione e gestione disponibilità/stato.
+                            </p>
+                        </div>
+
+                        <!-- Box Fase 3 (Successiva) -->
+                        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Fase 3 (Successiva)</span>
+                                <span class="text-xs font-mono text-slate-400">In arrivo</span>
+                            </div>
+                            <h4 class="font-extrabold text-sm text-slate-800">Importazione Dati JSON</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Parser automatizzato Yupoo per gli accessori con rilevamento intelligente e categorizzazione.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEZIONE: IMPORTAZIONE JSON ACCESSORI (FASE 3 - ATTIVA) -->
+            <section id="section-importazione" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-gold/10 text-brand-gold flex items-center justify-center text-2xl shrink-0">
+                                📥
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900">Importazione JSON Accessori</h3>
+                                <p class="text-xs text-slate-500">Importa, aggiorna ed integra il catalogo accessori in modo atomico con validazione e anteprima pre-database.</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl self-start sm:self-auto">
+                            <span>🔒</span> <span>Isolato al Catalogo Accessori</span>
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Box Input JSON & File Upload -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-700 flex items-center justify-between">
+                                    <span>Incolla JSON Accessori o carica file .json</span>
+                                    <button type="button" onclick="caricaEsempioJsonAccessori()" class="text-[11px] text-brand-gold hover:underline font-semibold cursor-pointer">
+                                        Carica JSON di Esempio
+                                    </button>
+                                </label>
+                                <textarea id="import-accessories-textarea" rows="8" placeholder='[&#10;  {&#10;    "nome": "Calzettoni Milan",&#10;    "categoria": "Calzettoni",&#10;    "prezzo": 8,&#10;    "prezzo_fornitore": 3,&#10;    "taglia": "Unica",&#10;    "immagine": "https://...",&#10;    "disponibile": true&#10;  }&#10;]' class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold transition-all"></textarea>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row items-center gap-3">
+                                <label class="w-full sm:flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl cursor-pointer text-center flex items-center justify-center gap-2 border border-slate-200 transition-colors">
+                                    <span>📂</span> <span>Seleziona File .JSON</span>
+                                    <input type="file" id="import-accessories-file-section" accept=".json" onchange="handleAccessoryImportFile(event)" class="hidden">
+                                </label>
+                                <button type="button" onclick="processaImportazioneJSONAccessoriDaTextarea()" class="w-full sm:flex-1 py-3 px-4 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-md shadow-brand-gold/15 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <span>📋</span> <span>Analizza ed Elabora Anteprima</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card Informativa Schema & Validazione -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-4 text-xs">
+                            <h4 class="font-extrabold text-slate-900 flex items-center gap-2">
+                                <span>ℹ️</span> <span>Struttura e Regole Dati</span>
+                            </h4>
+                            <div class="space-y-2 text-slate-600 leading-relaxed">
+                                <p><strong>Campi Supportati:</strong></p>
+                                <ul class="list-disc pl-4 space-y-1 font-mono text-[11px] text-slate-700">
+                                    <li><span class="font-bold text-slate-900">nome</span> (obbligatorio)</li>
+                                    <li><span class="font-bold text-slate-900">categoria</span> (es. Calze, Calzettoni, Guanti, Palloni...)</li>
+                                    <li><span class="font-bold text-slate-900">prezzo</span> (vendita in €)</li>
+                                    <li><span class="font-bold text-slate-900">prezzo_fornitore</span> (costo fornitore $)</li>
+                                    <li><span>taglia</span> (es. Unica, S/M, L/XL, Taglia 5)</li>
+                                    <li><span>codice</span> (identificativo facoltativo)</li>
+                                    <li><span>immagine</span> (URL o percorso)</li>
+                                    <li><span>disponibile</span> (true / false)</li>
+                                    <li><span>stato</span> (attivo / disattivato)</li>
+                                </ul>
+                            </div>
+                            <div class="pt-2 border-t border-slate-200/60 text-[11px] text-slate-500 space-y-1">
+                                <p>✅ <strong>Anti-duplicazione:</strong> Se un accessorio esiste già (per ID, codice o nome+categoria), verrà aggiornato senza creare doppioni.</p>
+                                <p>✅ <strong>Anteprima Obbligatoria:</strong> Nessun dato viene scritto prima della tua conferma esplicita.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-prezzi" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-8 shadow-sm text-center space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-3xl mx-auto">
+                        🏷️
+                    </div>
+                    <div class="max-w-md mx-auto space-y-2">
+                        <h3 class="text-lg font-black text-slate-900">Prezzi & Categorie Accessori</h3>
+                        <p class="text-xs text-slate-500">
+                            Questa sezione verrà attivata nella <strong>Fase 4</strong> per definire i prezzi di vendita e le categorie degli accessori.
+                        </p>
+                    </div>
+                    <button onclick="switchAccessoriTab('elenco')" class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl transition-all cursor-pointer">
+                        Torna all'Elenco Accessori
+                    </button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODALE AGGIUNTA / MODIFICA ACCESSORIO -->
+    <div id="modal-accessory-container" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 text-slate-900 animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div>
+                    <h3 id="modal-accessory-title" class="text-lg font-black text-slate-900">Nuovo Accessorio</h3>
+                    <p class="text-xs text-slate-500">Inserisci o modifica i dati dell'accessorio</p>
+                </div>
+                <button onclick="closeAccessoryModal()" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
+                    <span class="text-lg leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Modal Form -->
+            <form id="form-accessory" class="p-6 space-y-5">
+                <input type="hidden" id="modal-acc-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Nome Prodotto -->
+                    <div class="sm:col-span-2 space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Nome Accessorio *</label>
+                        <input type="text" id="modal-acc-nome" required placeholder="Es. Calzettoni Gara Ufficiali" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Categoria -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Categoria *</label>
+                        <select id="modal-acc-categoria" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                            <option value="Calze">Calze</option>
+                            <option value="Calzettoni">Calzettoni</option>
+                            <option value="Guanti">Guanti</option>
+                            <option value="Palloni">Palloni</option>
+                            <option value="Cappellini">Cappellini</option>
+                            <option value="Sciarpe">Sciarpe</option>
+                            <option value="Borse">Borse</option>
+                            <option value="Fasce Capitano">Fasce Capitano</option>
+                            <option value="Altri Accessori">Altri Accessori</option>
+                        </select>
+                    </div>
+
+                    <!-- Codice Articolo / SKU -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Codice / SKU (Opzionale)</label>
+                        <input type="text" id="modal-acc-codice" placeholder="Es. ACC-001 o automatico" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Prezzo Vendita -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Prezzo Vendita (€) *</label>
+                        <input type="number" step="0.01" min="0" id="modal-acc-prezzo" required placeholder="Es. 8.00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Costo Fornitore -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Costo Fornitore ($) *</label>
+                        <input type="number" step="0.01" min="0" id="modal-acc-costo" required placeholder="Es. 3.00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Taglia / Formato -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Taglia / Misura</label>
+                        <input type="text" id="modal-acc-taglia" placeholder="Es. Unica (38-45), Misura 5, etc." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Disponibilità -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Disponibilità Stock</label>
+                        <select id="modal-acc-disponibile" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                            <option value="true">Disponibile</option>
+                            <option value="false">Non Disponibile (Esaurito)</option>
+                        </select>
+                    </div>
+
+                    <!-- Stato Visibilità -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Stato Visibilità</label>
+                        <select id="modal-acc-stato" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                            <option value="attivo">Attivo</option>
+                            <option value="disattivato">Disattivato (Nascosto)</option>
+                        </select>
+                    </div>
+
+                    <!-- URL Immagine & Anteprima -->
+                    <div class="sm:col-span-2 space-y-1">
+                        <label class="text-xs font-bold text-slate-700">URL Immagine</label>
+                        <div class="flex gap-3 items-start">
+                            <input type="url" id="modal-acc-immagine" placeholder="https://..." class="flex-grow px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                            <div class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                                <img id="modal-acc-preview-img" src="" alt="Preview" class="w-full h-full object-cover hidden">
+                                <span id="modal-acc-preview-placeholder" class="text-slate-400 text-xs">🖼️</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Descrizione -->
+                    <div class="sm:col-span-2 space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Descrizione Prodotto</label>
+                        <textarea id="modal-acc-descrizione" rows="3" placeholder="Dettagli e specifiche tecniche..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Modal Footer Actions -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeAccessoryModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" id="modal-accessory-submit-btn" class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
+                        Salva Accessorio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE CONFERMA ELIMINAZIONE -->
+    <div id="modal-delete-confirm" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-slate-900 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-xl">
+                🗑️
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-base font-black text-slate-900">Elimina Accessorio</h3>
+                <p class="text-xs text-slate-500">
+                    Sei sicuro di voler eliminare <span id="delete-accessory-name" class="font-bold text-slate-800"></span>? L'azione è irreversibile e non influenzerà gli altri cataloghi.
+                </p>
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onclick="closeDeleteConfirmModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="btn-execute-delete" onclick="executeDeleteAccessory()" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition-colors cursor-pointer">
+                    Elimina Definitivamente
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE ANTEPRIMA IMMAGINE GRANDE -->
+    <div id="modal-image-preview" onclick="closeImagePreview()" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden cursor-pointer">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-4 max-w-lg w-full text-center space-y-3" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-2">
+                <h4 id="modal-image-preview-title" class="text-xs font-bold text-slate-300">Anteprima Immagine</h4>
+                <button onclick="closeImagePreview()" class="text-slate-400 hover:text-white text-base">✕</button>
+            </div>
+            <div class="rounded-2xl overflow-hidden bg-black max-h-[60vh] flex items-center justify-center">
+                <img id="modal-image-preview-img" src="" alt="Anteprima" class="max-h-[60vh] w-auto object-contain">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE MODIFICA MASSIVA ACCESSORI SELEZIONATI -->
+    <div id="batch-edit-accessories-modal" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-md hidden overflow-hidden">
+        <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto">
+            <!-- Modal Header -->
+            <div class="px-5 sm:px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">✏️</span>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Modifica Massiva Accessori</h3>
+                        <p id="batch-edit-subtitle" class="text-xs text-slate-500">Applicazione modifiche comuni agli accessori selezionati</p>
+                    </div>
+                </div>
+                <button type="button" onclick="chiudiPannelloModificaMassivaAccessori()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="batch-edit-accessories-form" onsubmit="eseguiModificaMassivaAccessori(event)" class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+                <p class="text-xs text-slate-500 bg-amber-50 border border-amber-200/80 rounded-xl p-3">
+                    ℹ️ Compila solo i campi che desideri aggiornare. I campi lasciati vuoti manterranno il valore originale di ciascun accessorio.
+                </p>
+
+                <!-- Categoria -->
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Categoria</label>
+                    <select id="batch-acc-categoria" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                        <option value="">-- Nessuna modifica --</option>
+                        <option value="Calze">Calze</option>
+                        <option value="Calzettoni">Calzettoni</option>
+                        <option value="Guanti">Guanti</option>
+                        <option value="Palloni">Palloni</option>
+                        <option value="Cappellini">Cappellini</option>
+                        <option value="Sciarpe">Sciarpe</option>
+                        <option value="Borse">Borse</option>
+                        <option value="Fasce Capitano">Fasce Capitano</option>
+                        <option value="Altri Accessori">Altri Accessori</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Prezzo Vendita -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Nuovo Prezzo Vendita (€)</label>
+                        <input type="number" step="0.01" min="0" id="batch-acc-prezzo" placeholder="Invariato" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Costo Fornitore -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Nuovo Costo Fornitore ($)</label>
+                        <input type="number" step="0.01" min="0" id="batch-acc-costo" placeholder="Invariato" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Disponibilità -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Disponibilità Stock</label>
+                        <select id="batch-acc-disponibile" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                            <option value="">-- Nessuna modifica --</option>
+                            <option value="true">Disponibile</option>
+                            <option value="false">Non Disponibile (Esaurito)</option>
+                        </select>
+                    </div>
+
+                    <!-- Stato Visibilità -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Stato Visibilità</label>
+                        <select id="batch-acc-stato" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                            <option value="">-- Nessuna modifica --</option>
+                            <option value="attivo">Attivo</option>
+                            <option value="disattivato">Disattivato (Nascosto)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Footer Azioni -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" onclick="chiudiPannelloModificaMassivaAccessori()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" id="btn-submit-batch-edit" class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2">
+                        <span>💾</span> <span>Applica Modifiche Massive</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE CONFERMA ELIMINAZIONE MASSIVA -->
+    <div id="batch-delete-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center text-2xl shrink-0">
+                    🗑️
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900">Eliminazione Massiva</h3>
+                    <p class="text-xs text-slate-500 font-medium">Questa operazione è irreversibile</p>
+                </div>
+            </div>
+            
+            <p id="batch-delete-modal-msg" class="text-xs text-slate-600 leading-relaxed">
+                Sei sicuro di voler eliminare definitivamente tutti gli accessori selezionati?
+            </p>
+
+            <div class="pt-2 flex items-center justify-end gap-3">
+                <button type="button" onclick="chiudiConfermaEliminazioneMassivaAccessori()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="btn-execute-batch-delete" onclick="eseguiEliminazioneMassivaAccessori()" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition-colors cursor-pointer flex items-center gap-1.5">
+                    <span>🗑️</span> <span>Elimina Selezionati</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ANTEPRIMA IMPORTAZIONE ACCESSORI (FASE 3) -->
+    <div id="accessory-import-preview-modal" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-[96vw] lg:max-w-6xl h-[92vh] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200" id="accessory-import-modal-container">
+            
+            <!-- Header Modal -->
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">📋</span>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900">Anteprima Importazione Accessori</h3>
+                        <p class="text-xs text-slate-500 font-medium">Controlla, filtra e conferma i dati prima di registrarli nel catalogo Accessori.</p>
+                    </div>
+                </div>
+                <button onclick="chiudiAnteprimaImportazioneAccessori()" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer" title="Chiudi">
+                    <span class="text-lg leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Dashboard Sintesi / Statistiche File -->
+            <div class="px-6 py-3.5 bg-white border-b border-slate-100 grid grid-cols-2 sm:grid-cols-5 gap-3 shrink-0">
+                <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-200/70">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">File di Origine</p>
+                    <p id="prev-acc-filename" class="text-xs font-black text-slate-800 truncate" title="accessories.json">accessories.json</p>
+                </div>
+                <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-200/70">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Totale Trovati</p>
+                    <p id="prev-acc-totale" class="text-sm font-black text-slate-900 font-mono">0</p>
+                </div>
+                <div class="bg-emerald-50/60 rounded-2xl p-2.5 border border-emerald-200/60">
+                    <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">➕ Nuovi</p>
+                    <p id="prev-acc-nuovi" class="text-sm font-black text-emerald-700 font-mono">0</p>
+                </div>
+                <div class="bg-blue-50/60 rounded-2xl p-2.5 border border-blue-200/60">
+                    <p class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">🔄 Da Aggiornare</p>
+                    <p id="prev-acc-aggiornati" class="text-sm font-black text-blue-700 font-mono">0</p>
+                </div>
+                <div class="bg-red-50/60 rounded-2xl p-2.5 border border-red-200/60">
+                    <p class="text-[10px] font-bold text-red-700 uppercase tracking-wider">⚠️ Errori Dati</p>
+                    <p id="prev-acc-errori" class="text-sm font-black text-red-700 font-mono">0</p>
+                </div>
+            </div>
+
+            <!-- Filtri Tabella Anteprima -->
+            <div class="px-6 py-2.5 bg-slate-50/60 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-1.5 overflow-x-auto text-xs">
+                    <button type="button" onclick="impostaFiltroAnteprima('tutti')" id="prev-tab-tutti" class="px-3 py-1.5 bg-slate-900 text-white font-bold rounded-lg cursor-pointer transition-all">
+                        Tutti (<span id="prev-count-all">0</span>)
+                    </button>
+                    <button type="button" onclick="impostaFiltroAnteprima('new')" id="prev-tab-new" class="px-3 py-1.5 bg-slate-200/70 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer transition-all">
+                        Nuovi (<span id="prev-count-new">0</span>)
+                    </button>
+                    <button type="button" onclick="impostaFiltroAnteprima('update')" id="prev-tab-update" class="px-3 py-1.5 bg-slate-200/70 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer transition-all">
+                        Da Aggiornare (<span id="prev-count-update">0</span>)
+                    </button>
+                    <button type="button" onclick="impostaFiltroAnteprima('error')" id="prev-tab-error" class="px-3 py-1.5 bg-slate-200/70 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer transition-all">
+                        Errori (<span id="prev-count-error">0</span>)
+                    </button>
+                </div>
+                <div id="prev-acc-categories-tags" class="flex items-center gap-1 text-[11px] text-slate-500 overflow-x-auto py-1">
+                    <!-- Badges categorie generate dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Tabella Prodotti in Anteprima -->
+            <div class="flex-grow overflow-auto p-4 bg-slate-100/40">
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-3 w-10 text-center">#</th>
+                                <th class="py-3 px-3">Stato</th>
+                                <th class="py-3 px-3 w-14 text-center">Foto</th>
+                                <th class="py-3 px-3">Nome Accessorio</th>
+                                <th class="py-3 px-3">Categoria</th>
+                                <th class="py-3 px-3 text-right">Prezzo (€)</th>
+                                <th class="py-3 px-3 text-right">Costo ($)</th>
+                                <th class="py-3 px-3 text-center">Taglia</th>
+                                <th class="py-3 px-3 text-center">Disp.</th>
+                                <th class="py-3 px-3">Note / Errori</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accessory-import-preview-tbody" class="divide-y divide-slate-100 text-slate-700 font-medium">
+                            <!-- Righe inserite via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer Azioni Modal -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <div class="text-xs text-slate-500 font-medium flex items-center gap-2">
+                    <span class="text-amber-500">ℹ️</span>
+                    <span>I prodotti con errori verranno automaticamente esclusi dal salvataggio.</span>
+                </div>
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button type="button" onclick="chiudiAnteprimaImportazioneAccessori()" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="button" id="btn-confirm-import-accessories" onclick="confermaEdEseguiImportazioneAccessori()" class="px-6 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-md shadow-brand-gold/20 transition-all cursor-pointer flex items-center gap-2">
+                        <span>📥</span> <span id="btn-confirm-import-label">Conferma Importazione (0)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REPORT RIEPILOGO IMPORTAZIONE (FASE 3) -->
+    <div id="accessory-import-results-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-md shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-center space-y-4">
+            <div class="w-16 h-16 rounded-2xl bg-brand-gold/15 text-brand-gold flex items-center justify-center text-3xl mx-auto">
+                🚀
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-black text-slate-900">Importazione Accessori Completata!</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Resoconto dettagliato dell'operazione nel catalogo accessori:</p>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-4 text-left text-xs space-y-2.5 border border-slate-200/80 font-medium">
+                <div class="flex justify-between items-center text-slate-700">
+                    <span>📋 Accessori analizzati:</span>
+                    <span id="res-acc-analizzati" class="font-bold text-slate-900 font-mono">0</span>
+                </div>
+                <div class="flex justify-between items-center text-emerald-700">
+                    <span>➕ Nuovi creati:</span>
+                    <span id="res-acc-importati" class="font-bold font-mono">0</span>
+                </div>
+                <div class="flex justify-between items-center text-blue-700">
+                    <span>🔄 Aggiornati:</span>
+                    <span id="res-acc-aggiornati" class="font-bold font-mono">0</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-500">
+                    <span>⏭️ Saltati / Duplicati:</span>
+                    <span id="res-acc-duplicati" class="font-bold font-mono">0</span>
+                </div>
+                <div class="flex justify-between items-center text-red-600">
+                    <span>⚠️ Errori riscontrati:</span>
+                    <span id="res-acc-errori" class="font-bold font-mono">0</span>
+                </div>
+            </div>
+
+            <!-- Box dettaglio errori se presenti -->
+            <div id="res-acc-errori-box" class="hidden text-left bg-red-50 border border-red-200 rounded-xl p-3 max-h-36 overflow-y-auto text-[11px] text-red-700 space-y-1">
+                <p class="font-bold">Dettagli errori:</p>
+                <ul id="res-acc-errori-list" class="list-disc pl-4 space-y-0.5 font-mono"></ul>
+            </div>
+
+            <div class="pt-2">
+                <button type="button" onclick="chiudiReportImportazioneAccessori()" class="w-full py-3 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer">
+                    Chiudi e Visualizza Accessori
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts con riutilizzo del modulo di autenticazione e modulo accessori isolato -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/admin/auth.js"></script>
+    <script src="/admin/accessori/accessori.js"></script>
+    <script>
+        // Toggle Sidebar Mobile
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar && overlay) {
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                    overlay.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebar.classList.remove('translate-x-0');
+                    overlay.classList.add('hidden');
+                }
+            }
+        }
+        window.toggleMobileSidebar = toggleMobileSidebar;
+
+        // Switch Tab Interni ad Admin Accessori
+        function switchAccessoriTab(tabName) {
+            const tabs = ['elenco', 'panoramica', 'importazione', 'prezzi'];
+            tabs.forEach(t => {
+                const sec = document.getElementById('section-' + t);
+                const nav = document.getElementById('nav-acc-' + t);
+                if (sec) {
+                    if (t === tabName) {
+                        sec.classList.remove('hidden');
+                    } else {
+                        sec.classList.add('hidden');
+                    }
+                }
+                if (nav) {
+                    if (t === tabName) {
+                        nav.classList.add('text-white', 'bg-brand-gold/15', 'border-brand-gold');
+                        nav.classList.remove('text-slate-400', 'hover:text-white', 'border-transparent');
+                    } else {
+                        nav.classList.remove('text-white', 'bg-brand-gold/15', 'border-brand-gold');
+                        nav.classList.add('text-slate-400', 'hover:text-white', 'border-transparent');
+                    }
+                }
+            });
+
+            // Chiude sidebar su mobile
+            const overlay = document.getElementById('sidebar-overlay');
+            if (overlay && !overlay.classList.contains('hidden')) {
+                toggleMobileSidebar();
+            }
+        }
+        window.switchAccessoriTab = switchAccessoriTab;
+
+        // Inizializzazione Autenticazione all'avvio
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                if (typeof checkAuth === 'function') {
+                    const user = await checkAuth();
+                    if (user) {
+                        const emailDisplay = document.getElementById('user-email-display');
+                        if (emailDisplay) emailDisplay.innerText = user.email;
+                    }
+                }
+            } catch (err) {
+                console.error("Errore verifica sessione admin:", err);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -4570,11 +4570,18 @@ function estraiArticoliOrdineConImmagini(order) {
             }
 
             items.push({
+                id: c.id || null,
+                legacy_id: c.legacy_id || null,
                 nome: sq,
                 categoria: c.categoria || '',
                 quantita: parseInt(c.quantita, 10) || 1,
                 taglia: c.taglia || 'N/D',
                 prezzo: parseFloat(c.prezzo) || 0,
+                prezzo_originale: (c.prezzo_originale !== undefined && c.prezzo_originale !== null) ? parseFloat(c.prezzo_originale) : (parseFloat(c.prezzo) || 0),
+                prezzo_concordato: (c.prezzo_concordato !== undefined && c.prezzo_concordato !== null) ? parseFloat(c.prezzo_concordato) : null,
+                fasce_prezzo: Array.isArray(c.fasce_prezzo) ? c.fasce_prezzo : null,
+                ha_prezzo_concordato: !!c.ha_prezzo_concordato,
+                totale_concordato: (c.totale_concordato !== undefined && c.totale_concordato !== null) ? parseFloat(c.totale_concordato) : null,
                 infoPerso: pers,
                 imgUrl: imgUrl
             });
@@ -4613,11 +4620,18 @@ function estraiArticoliOrdineConImmagini(order) {
             }
 
             items.push({
+                id: null,
+                legacy_id: null,
                 nome: cleanName,
                 categoria: '',
                 quantita: qty,
                 taglia: itemSize,
                 prezzo: 0,
+                prezzo_originale: 0,
+                prezzo_concordato: null,
+                fasce_prezzo: null,
+                ha_prezzo_concordato: false,
+                totale_concordato: null,
                 infoPerso: itemPers,
                 imgUrl: orderMainImg
             });
@@ -4643,6 +4657,16 @@ function renderOrderItemsHTML(order) {
         const displayImg = item.imgUrl || placeholderImg;
         const safeName = (item.nome || 'Prodotto').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         const safeImgUrl = (item.imgUrl || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+        const hasCustomPrice = item.ha_prezzo_concordato || (item.prezzo_concordato !== null && item.prezzo_concordato !== undefined) || (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 0);
+        const origUnit = item.prezzo_originale || item.prezzo || 0;
+        const origTot = origUnit * item.quantita;
+
+        let itemTot = (item.totale_concordato !== null && item.totale_concordato !== undefined) ? item.totale_concordato : (item.prezzo * item.quantita);
+        let tiersSummary = '';
+        if (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 1) {
+            tiersSummary = item.fasce_prezzo.map(f => `${f.quantita}x€${Number(f.prezzo_unitario).toFixed(0)}`).join(', ');
+        }
 
         return `
             <div class="flex items-center gap-3 py-2.5 border-b border-[rgba(255,255,255,0.08)] last:border-0">
@@ -4673,7 +4697,15 @@ function renderOrderItemsHTML(order) {
                     <div class="flex items-center flex-wrap gap-x-2.5 gap-y-0.5 text-[10px] text-[rgba(255,255,255,0.65)] font-sans">
                         ${item.categoria ? `<span class="inline-flex items-center gap-1">Categoria: <strong class="text-slate-200 font-semibold">${item.categoria}</strong></span>` : ''}
                         <span class="inline-flex items-center gap-1">Quantità: <strong class="text-white font-mono font-bold">${item.quantita}</strong></span>
-                        ${item.prezzo > 0 ? `<span class="inline-flex items-center gap-1">Prezzo: <strong class="text-white font-mono font-semibold">€${(item.prezzo * item.quantita).toFixed(2).replace('.', ',')}</strong></span>` : ''}
+                        ${hasCustomPrice ? `
+                            <span class="inline-flex items-center gap-1">
+                                Prezzo:
+                                <span class="line-through text-slate-500 font-mono text-[9px]">€${origTot.toFixed(2).replace('.', ',')}</span>
+                                <strong class="text-brand-gold font-mono font-bold">€${itemTot.toFixed(2).replace('.', ',')}</strong>
+                                <span class="px-1 py-0.2 bg-brand-gold/15 text-brand-gold rounded text-[8px] font-bold">CONCORDATO</span>
+                                ${tiersSummary ? `<span class="text-[9px] text-slate-400 font-mono">(${tiersSummary})</span>` : ''}
+                            </span>
+                        ` : (item.prezzo > 0 ? `<span class="inline-flex items-center gap-1">Prezzo: <strong class="text-white font-mono font-semibold">€${(item.prezzo * item.quantita).toFixed(2).replace('.', ',')}</strong></span>` : '')}
                     </div>
 
                     <div class="text-[10px] text-[rgba(255,255,255,0.65)] flex items-center gap-1 font-sans">
@@ -4912,7 +4944,9 @@ function renderOrdini() {
             const statusClass = isArchived 
                 ? 'bg-[#0B0B0B] text-[rgba(255,255,255,0.88)] border-[rgba(255,255,255,0.08)]' 
                 : 'bg-emerald-950/20 text-emerald-400 border-emerald-900/30';
-            statusBadgeHTML = `<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span>`;
+            const hasOrderAgreedPrice = Array.isArray(order.carrello) && order.carrello.some(ci => ci.ha_prezzo_concordato || ci.prezzo_concordato || (Array.isArray(ci.fasce_prezzo) && ci.fasce_prezzo.length > 0));
+            const agreedBadge = hasOrderAgreedPrice ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/30 uppercase tracking-wider font-sans">🏷️ Prezzo Concordato</span>` : '';
+            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
         }
 
         const costoFornitoreEur = order["Costo totale (EUR)"] || '';
@@ -4953,6 +4987,11 @@ function renderOrdini() {
         } else {
             footerActionHTML = `
                 <div class="px-4 py-3 border-t border-[rgba(255,255,255,0.08)] bg-[#0B0B0B] flex gap-2">
+                    ${!isArchived ? `
+                        <button onclick="openModificaPrezzoOrdineModal('${safeOrderId}')" class="px-2.5 py-1.5 bg-[#1A1A1A] hover:bg-[#252525] text-brand-gold hover:text-white font-bold text-[10px] rounded-xl transition-all border border-brand-gold/30 flex items-center justify-center gap-1 font-sans cursor-pointer" title="Modifica Prezzo Concordato">
+                            <span>✏️ Prezzo</span>
+                        </button>
+                    ` : ''}
                     <button onclick="gestisciArchiviazione('${order.data}', ${isArchived})" class="flex-1 py-1.5 bg-[#111111] hover:bg-[#0B0B0B] text-[rgba(255,255,255,0.88)] font-bold text-[10px] rounded-xl transition-all border border-[rgba(255,255,255,0.08)] flex items-center justify-center gap-1 font-sans cursor-pointer">
                         <span>${isArchived ? '📥 Ripristina' : '🗄️ Archivia'}</span>
                     </button>
@@ -16037,6 +16076,719 @@ window.copiaRisultatiSenzaFiltro = copiaRisultatiSenzaFiltro;
 window.esportaReportSenzaFiltroCSV = esportaReportSenzaFiltroCSV;
 window.selezionaFiltroSquadraRapido = selezionaFiltroSquadraRapido;
 window.selezionaFiltroCategoriaRapido = selezionaFiltroCategoriaRapido;
+
+// =========================================================================
+// MODIFICA PREZZO CONCORDATO ORDINE (MODALE & GESTIONE PREZZI / FASCE)
+// =========================================================================
+
+let selectedPrezzoOrdine = null;
+let itemsPrezzoOrdineState = [];
+
+function openModificaPrezzoOrdineModal(orderIdToSelect = null) {
+    const modal = document.getElementById('modal-modifica-prezzo-ordine');
+    const container = document.getElementById('modal-modifica-prezzo-ordine-container');
+    const select = document.getElementById('modal-prezzo-order-select');
+    const content = document.getElementById('modal-prezzo-order-content');
+    const saveBtn = document.getElementById('btn-salva-prezzo-ordine');
+
+    if (!select) return;
+
+    // Filtra gli ordini attivi non archiviati
+    const ordiniAttivi = ordini.filter(o => !archivedKeys.includes(o.data) && !o.is_archived);
+
+    // Ordine cronologico per mostrare displayIndex corretto
+    const ordiniCronologici = [...ordini].sort((a, b) => {
+        const tA = getOrderTimestampForSorting(a);
+        const tB = getOrderTimestampForSorting(b);
+        if (tA !== tB) return tA - tB;
+        return (Number(a.id) || 0) - (Number(b.id) || 0);
+    });
+
+    select.innerHTML = '<option value="">-- Seleziona un ordine attivo --</option>';
+
+    ordiniAttivi.forEach(o => {
+        const cronoIndex = ordiniCronologici.findIndex(x => (x.id && o.id ? Number(x.id) === Number(o.id) : x.data === o.data));
+        const dispIdx = cronoIndex !== -1 ? (cronoIndex + 1) : 'N/D';
+        const orderIdVal = String(o.id !== undefined && o.id !== null ? o.id : o.data);
+        const numArt = estraiNumeroArticoli(o);
+        const totalStr = typeof o.totale === 'number' ? `€ ${o.totale.toFixed(2).replace('.', ',')}` : (String(o.totale).includes('€') ? String(o.totale) : `€ ${o.totale}`);
+        const hasCustomPrice = Array.isArray(o.carrello) && o.carrello.some(ci => ci.ha_prezzo_concordato || ci.prezzo_concordato || (Array.isArray(ci.fasce_prezzo) && ci.fasce_prezzo.length > 0));
+        
+        const opt = document.createElement('option');
+        opt.value = orderIdVal;
+        opt.textContent = `ORD-#${dispIdx} — ${o.nome || 'Cliente'} — ${totalStr} (${numArt} art.)${hasCustomPrice ? ' [🏷️ Prezzo Concordato]' : ''}`;
+        select.appendChild(opt);
+    });
+
+    if (content) content.classList.add('hidden');
+    if (saveBtn) saveBtn.disabled = true;
+    selectedPrezzoOrdine = null;
+    itemsPrezzoOrdineState = [];
+
+    if (orderIdToSelect) {
+        select.value = String(orderIdToSelect);
+        onSelectOrdineModificaPrezzo(String(orderIdToSelect));
+    }
+
+    if (modal && container) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('opacity-0', 'scale-95');
+            container.classList.add('opacity-100', 'scale-100');
+        }, 10);
+    }
+}
+
+function chiudiModificaPrezzoOrdineModal() {
+    const modal = document.getElementById('modal-modifica-prezzo-ordine');
+    const container = document.getElementById('modal-modifica-prezzo-ordine-container');
+    if (modal && container) {
+        container.classList.remove('opacity-100', 'scale-100');
+        container.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            selectedPrezzoOrdine = null;
+            itemsPrezzoOrdineState = [];
+        }, 200);
+    }
+}
+
+function onSelectOrdineModificaPrezzo(orderId) {
+    const content = document.getElementById('modal-prezzo-order-content');
+    const saveBtn = document.getElementById('btn-salva-prezzo-ordine');
+    const resetAllBtn = document.getElementById('btn-ripristina-tutti-prezzi');
+
+    if (!orderId) {
+        selectedPrezzoOrdine = null;
+        itemsPrezzoOrdineState = [];
+        if (content) content.classList.add('hidden');
+        if (saveBtn) saveBtn.disabled = true;
+        if (resetAllBtn) resetAllBtn.classList.add('hidden');
+        return;
+    }
+
+    const orderIdStr = String(orderId).trim().replace(/^#/, '');
+    const order = ordini.find(o => 
+        (o.id !== undefined && String(o.id).trim() === orderIdStr) || 
+        (o.data && String(o.data).trim() === orderIdStr)
+    );
+
+    if (!order) {
+        showToast("Ordine selezionato non trovato.", "error");
+        return;
+    }
+
+    selectedPrezzoOrdine = order;
+
+    // Recupera indice cronologico reale
+    const ordiniCronologici = [...ordini].sort((a, b) => {
+        const tA = getOrderTimestampForSorting(a);
+        const tB = getOrderTimestampForSorting(b);
+        if (tA !== tB) return tA - tB;
+        return (Number(a.id) || 0) - (Number(b.id) || 0);
+    });
+    const cronoIndex = ordiniCronologici.findIndex(x => (x.id && order.id ? Number(x.id) === Number(order.id) : x.data === order.data));
+    const dispIdx = cronoIndex !== -1 ? (cronoIndex + 1) : (order.id || 'N/D');
+
+    // Popola Header Riepilogo Ordine
+    const badgeEl = document.getElementById('modal-prezzo-order-badge');
+    const custEl = document.getElementById('modal-prezzo-order-customer');
+    const dateEl = document.getElementById('modal-prezzo-order-date');
+    const phoneEl = document.getElementById('modal-prezzo-order-phone');
+    const currentTotEl = document.getElementById('modal-prezzo-order-current-total');
+    const suppEurEl = document.getElementById('modal-prezzo-order-supplier-cost-eur');
+    const suppUsdEl = document.getElementById('modal-prezzo-order-supplier-cost-usd');
+    const origProfitEl = document.getElementById('modal-prezzo-order-original-profit');
+
+    const totFormatted = typeof order.totale === 'number' ? `€ ${order.totale.toFixed(2).replace('.', ',')}` : (String(order.totale).includes('€') ? String(order.totale) : `€ ${order.totale}`);
+    const costEurStr = order["Costo totale (EUR)"] || order.costo_totale_eur || '0,00';
+    const costUsdStr = order["Costo totale (USD)"] || order.costo_totale_usd || '0,00';
+    const profitStr = order["Profitto (EUR)"] || order.profitto_eur || '0,00';
+
+    if (badgeEl) badgeEl.textContent = `ORD-#${dispIdx}`;
+    if (custEl) custEl.textContent = order.nome || 'Cliente';
+    if (dateEl) dateEl.textContent = `📅 ${order.data || 'N/D'}`;
+    if (phoneEl) phoneEl.textContent = `📞 ${order.telefono || 'N/D'}`;
+    if (currentTotEl) currentTotEl.textContent = totFormatted;
+    if (suppEurEl) suppEurEl.textContent = `€ ${costEurStr}`;
+    if (suppUsdEl) suppUsdEl.textContent = `$ ${costUsdStr}`;
+    if (origProfitEl) origProfitEl.textContent = `+€ ${profitStr}`;
+
+    // Estrai articoli
+    let extractedItems = estraiArticoliOrdineConImmagini(order);
+    
+    // Inizializza stato articoli per la modifica
+    let hasAnyCustomPrice = false;
+    itemsPrezzoOrdineState = extractedItems.map((item, idx) => {
+        const qty = parseInt(item.quantita, 10) || 1;
+        const origPrice = (item.prezzo_originale !== undefined && item.prezzo_originale !== null) 
+            ? Number(item.prezzo_originale) 
+            : (Number(item.prezzo) || 0);
+
+        let mode = 'singolo';
+        let fasce = [];
+        let unitPrice = origPrice;
+
+        if (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 1) {
+            mode = 'fasce';
+            fasce = item.fasce_prezzo.map(f => ({ quantita: parseInt(f.quantita, 10) || 1, prezzo_unitario: Number(f.prezzo_unitario) || 0 }));
+            hasAnyCustomPrice = true;
+        } else if (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length === 1) {
+            mode = 'singolo';
+            unitPrice = Number(item.fasce_prezzo[0].prezzo_unitario);
+            fasce = [{ quantita: qty, prezzo_unitario: unitPrice }];
+            if (item.ha_prezzo_concordato || unitPrice !== origPrice) hasAnyCustomPrice = true;
+        } else if (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null) {
+            mode = 'singolo';
+            unitPrice = Number(item.prezzo_concordato);
+            fasce = [{ quantita: qty, prezzo_unitario: unitPrice }];
+            hasAnyCustomPrice = true;
+        } else {
+            unitPrice = Number(item.prezzo) || origPrice;
+            fasce = [{ quantita: qty, prezzo_unitario: unitPrice }];
+            if (item.ha_prezzo_concordato) hasAnyCustomPrice = true;
+        }
+
+        return {
+            index: idx,
+            id: item.id || null,
+            legacy_id: item.legacy_id || null,
+            nome: item.nome,
+            taglia: item.taglia,
+            quantita: qty,
+            imgUrl: item.imgUrl,
+            prezzo_originale: origPrice,
+            mode: mode, // 'singolo' | 'fasce'
+            prezzo_unitario: unitPrice,
+            fasce: fasce
+        };
+    });
+
+    if (resetAllBtn) {
+        if (hasAnyCustomPrice) {
+            resetAllBtn.classList.remove('hidden');
+            resetAllBtn.classList.add('inline-flex');
+        } else {
+            resetAllBtn.classList.add('hidden');
+            resetAllBtn.classList.remove('inline-flex');
+        }
+    }
+
+    const countItemsEl = document.getElementById('modal-prezzo-items-count');
+    if (countItemsEl) {
+        const totalItemsQty = itemsPrezzoOrdineState.reduce((a, it) => a + it.quantita, 0);
+        countItemsEl.textContent = `${itemsPrezzoOrdineState.length} tipolog.${itemsPrezzoOrdineState.length === 1 ? 'ia' : 'ie'} (${totalItemsQty} pz totali)`;
+    }
+
+    renderItemsPrezzoOrdineUI();
+    ricalcolaTotaliModalePrezzoOrdine();
+
+    if (content) content.classList.remove('hidden');
+}
+
+function renderItemsPrezzoOrdineUI() {
+    const listContainer = document.getElementById('modal-prezzo-items-list');
+    if (!listContainer) return;
+
+    const placeholderImg = "https://placehold.co/100x120/111111/d6a43a?text=Maglia";
+
+    listContainer.innerHTML = itemsPrezzoOrdineState.map((item, idx) => {
+        const displayImg = item.imgUrl || placeholderImg;
+        const isFasceMode = item.mode === 'fasce';
+        const origSubtotal = item.prezzo_originale * item.quantita;
+
+        return `
+            <div id="item-prezzo-card-${idx}" class="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-3">
+                <!-- Info Articolo -->
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                    <img src="${displayImg}" alt="${escapeHtml(item.nome)}" class="w-12 h-14 object-contain rounded-lg bg-slate-900 p-1 border border-slate-200 shrink-0" onerror="this.src='${placeholderImg}'">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-2">
+                            <h4 class="text-xs font-black text-slate-900 leading-tight truncate">${escapeHtml(item.nome)}</h4>
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-700 font-mono font-bold text-[10px] rounded-md shrink-0">
+                                TGL: ${item.taglia}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 text-[11px] text-slate-500 mt-1">
+                            <span>Quantità totale: <strong class="text-slate-900 font-mono font-black text-xs">${item.quantita} pz</strong></span>
+                            <span>Prezzo listino: <strong class="text-slate-700 font-mono font-semibold">€ ${item.prezzo_originale.toFixed(2).replace('.', ',')}</strong> / pz</span>
+                            <span class="text-slate-400 font-mono">(Tot: € ${origSubtotal.toFixed(2).replace('.', ',')})</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selettore Modalità Prezzo -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold text-slate-700 uppercase">Modalità Prezzo:</span>
+                        <div class="inline-flex p-0.5 bg-slate-100 rounded-xl border border-slate-200">
+                            <button type="button" onclick="impostaModalitaPrezzoItem(${idx}, 'singolo')" class="px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${!isFasceMode ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'}">
+                                Prezzo Unitario Unico
+                            </button>
+                            <button type="button" onclick="impostaModalitaPrezzoItem(${idx}, 'fasce')" class="px-2.5 py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${isFasceMode ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'}">
+                                Fasce di Prezzo
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="ripristinaPrezzoItem(${idx})" class="text-[11px] text-slate-500 hover:text-brand-gold font-bold flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer" title="Reimposta al prezzo di listino originale">
+                        <span>🔄</span> Ripristina Listino Originale
+                    </button>
+                </div>
+
+                <!-- Configurazione Input Prezzo Singolo -->
+                <div id="item-${idx}-singolo-sec" class="${isFasceMode ? 'hidden' : 'block'} pt-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div class="w-full sm:w-64">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                                Prezzo Unitario Concordato (€ / pz)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center font-bold text-slate-400 font-mono text-xs">€</span>
+                                <input type="number" step="0.01" min="0" 
+                                    id="item-price-input-${idx}"
+                                    value="${item.prezzo_unitario !== undefined ? item.prezzo_unitario : item.prezzo_originale}" 
+                                    oninput="onInputPrezzoSingoloItem(${idx}, this.value)"
+                                    class="w-full pl-7 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-brand-gold focus:outline-none shadow-xs">
+                            </div>
+                        </div>
+
+                        <div class="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-500 text-[11px]">Subtotale Calcolato (${item.quantita} pz):</span>
+                            <span id="item-${idx}-calculated-subtotal" class="font-black text-slate-900 text-sm">€ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configurazione Fasce di Prezzo -->
+                <div id="item-${idx}-fasce-sec" class="${!isFasceMode ? 'hidden' : 'block'} pt-1 space-y-2.5">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-bold text-slate-700">Dettaglio Fasce di Quantità & Prezzo:</span>
+                        <span id="item-${idx}-qty-badge" class="font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md text-[10px]">
+                            Totale fasce: ${item.fasce.reduce((a, f) => a + (Number(f.quantita) || 0), 0)} / ${item.quantita} pz
+                        </span>
+                    </div>
+
+                    <div id="item-${idx}-fasce-list" class="space-y-2">
+                        ${renderFasceRowsHTML(item, idx)}
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="aggiungiFasciaPrezzo(${idx})" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-[10px] rounded-xl border border-slate-200 transition-all flex items-center gap-1 cursor-pointer">
+                            <span>➕</span> Aggiungi Altra Fascia
+                        </button>
+                        <div class="text-xs font-mono text-right">
+                            <span class="text-slate-500 text-[11px]">Subtotale Fasce: </span>
+                            <strong id="item-${idx}-fasce-calculated-subtotal" class="font-black text-slate-900">€ 0,00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Riepilogo Risparmio / Differenza per questo articolo -->
+                <div class="pt-1 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                    <span class="text-slate-500 font-medium">Impatto articolo:</span>
+                    <span id="item-${idx}-diff-badge" class="font-mono font-bold text-slate-700">
+                        Invariato
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderFasceRowsHTML(item, itemIdx) {
+    if (!item.fasce || item.fasce.length === 0) {
+        item.fasce = [{ quantita: item.quantita, prezzo_unitario: item.prezzo_originale }];
+    }
+
+    return item.fasce.map((fascia, fIdx) => {
+        return `
+            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <div class="w-1/3">
+                    <label class="block text-[9px] font-bold text-slate-500 uppercase">Quantità (pz)</label>
+                    <input type="number" min="1" max="${item.quantita}" 
+                        value="${fascia.quantita}" 
+                        oninput="onInputFasciaQty(${itemIdx}, ${fIdx}, this.value)"
+                        class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:border-brand-gold focus:outline-none">
+                </div>
+                <div class="w-1/2">
+                    <label class="block text-[9px] font-bold text-slate-500 uppercase">Prezzo Unitario (€)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-2 flex items-center font-bold text-slate-400 font-mono text-[11px]">€</span>
+                        <input type="number" step="0.01" min="0" 
+                            value="${fascia.prezzo_unitario}" 
+                            oninput="onInputFasciaPrice(${itemIdx}, ${fIdx}, this.value)"
+                            class="w-full pl-6 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:border-brand-gold focus:outline-none">
+                    </div>
+                </div>
+                <div class="pt-3">
+                    ${item.fasce.length > 1 ? `
+                        <button type="button" onclick="rimuoviFasciaPrezzo(${itemIdx}, ${fIdx})" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Elimina fascia">
+                            🗑️
+                        </button>
+                    ` : `
+                        <span class="text-slate-300 p-1.5 block">🔒</span>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function impostaModalitaPrezzoItem(itemIdx, mode) {
+    if (!itemsPrezzoOrdineState[itemIdx]) return;
+    const item = itemsPrezzoOrdineState[itemIdx];
+    item.mode = mode;
+
+    if (mode === 'fasce' && (!item.fasce || item.fasce.length === 0)) {
+        item.fasce = [{ quantita: item.quantita, prezzo_unitario: item.prezzo_unitario || item.prezzo_originale }];
+    }
+
+    renderItemsPrezzoOrdineUI();
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function onInputPrezzoSingoloItem(itemIdx, val) {
+    if (!itemsPrezzoOrdineState[itemIdx]) return;
+    const p = parseFloat(String(val).replace(',', '.'));
+    itemsPrezzoOrdineState[itemIdx].prezzo_unitario = isNaN(p) ? 0 : p;
+    itemsPrezzoOrdineState[itemIdx].fasce = [{ quantita: itemsPrezzoOrdineState[itemIdx].quantita, prezzo_unitario: itemsPrezzoOrdineState[itemIdx].prezzo_unitario }];
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function onInputFasciaQty(itemIdx, fasciaIdx, val) {
+    if (!itemsPrezzoOrdineState[itemIdx] || !itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx]) return;
+    const q = parseInt(val, 10);
+    itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx].quantita = isNaN(q) ? 0 : q;
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function onInputFasciaPrice(itemIdx, fasciaIdx, val) {
+    if (!itemsPrezzoOrdineState[itemIdx] || !itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx]) return;
+    const p = parseFloat(String(val).replace(',', '.'));
+    itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx].prezzo_unitario = isNaN(p) ? 0 : p;
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function aggiungiFasciaPrezzo(itemIdx) {
+    if (!itemsPrezzoOrdineState[itemIdx]) return;
+    const item = itemsPrezzoOrdineState[itemIdx];
+    const sumCurrent = item.fasce.reduce((a, f) => a + (Number(f.quantita) || 0), 0);
+    const rem = Math.max(1, item.quantita - sumCurrent);
+    item.fasce.push({ quantita: rem, prezzo_unitario: item.prezzo_originale });
+    
+    renderItemsPrezzoOrdineUI();
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function rimuoviFasciaPrezzo(itemIdx, fasciaIdx) {
+    if (!itemsPrezzoOrdineState[itemIdx]) return;
+    const item = itemsPrezzoOrdineState[itemIdx];
+    if (item.fasce.length <= 1) return;
+    item.fasce.splice(fasciaIdx, 1);
+    
+    renderItemsPrezzoOrdineUI();
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function ripristinaPrezzoItem(itemIdx) {
+    if (!itemsPrezzoOrdineState[itemIdx]) return;
+    const item = itemsPrezzoOrdineState[itemIdx];
+    item.mode = 'singolo';
+    item.prezzo_unitario = item.prezzo_originale;
+    item.fasce = [{ quantita: item.quantita, prezzo_unitario: item.prezzo_originale }];
+    
+    renderItemsPrezzoOrdineUI();
+    ricalcolaTotaliModalePrezzoOrdine();
+}
+
+function ricalcolaTotaliModalePrezzoOrdine() {
+    if (!selectedPrezzoOrdine || itemsPrezzoOrdineState.length === 0) return;
+
+    const saveBtn = document.getElementById('btn-salva-prezzo-ordine');
+    const errorBanner = document.getElementById('modal-prezzo-error-banner');
+    const errorText = document.getElementById('modal-prezzo-error-text');
+    const statusBadge = document.getElementById('modal-prezzo-status-badge');
+
+    let isValid = true;
+    let validationErrorMessage = '';
+    let itemsNewSubtotal = 0;
+    let itemsOrigSubtotal = 0;
+
+    itemsPrezzoOrdineState.forEach((item, idx) => {
+        const origItemTot = item.prezzo_originale * item.quantita;
+        itemsOrigSubtotal += origItemTot;
+
+        let itemTot = 0;
+
+        if (item.mode === 'singolo') {
+            const p = Number(item.prezzo_unitario);
+            if (isNaN(p) || p < 0) {
+                isValid = false;
+                validationErrorMessage = `Prezzo non valido per l'articolo "${item.nome}".`;
+            }
+            itemTot = p * item.quantita;
+
+            const calcSubEl = document.getElementById(`item-${idx}-calculated-subtotal`);
+            if (calcSubEl) calcSubEl.textContent = `€ ${itemTot.toFixed(2).replace('.', ',')}`;
+        } else {
+            let sumQty = 0;
+            let tiersTot = 0;
+            for (const f of item.fasce) {
+                const q = parseInt(f.quantita, 10);
+                const p = parseFloat(f.prezzo_unitario);
+                if (isNaN(q) || q <= 0) {
+                    isValid = false;
+                    validationErrorMessage = `Quantità non valida nella fascia dell'articolo "${item.nome}".`;
+                }
+                if (isNaN(p) || p < 0) {
+                    isValid = false;
+                    validationErrorMessage = `Prezzo non valido nella fascia dell'articolo "${item.nome}".`;
+                }
+                sumQty += (q || 0);
+                tiersTot += ((q || 0) * (p || 0));
+            }
+
+            if (sumQty !== item.quantita) {
+                isValid = false;
+                validationErrorMessage = `La somma delle quantità delle fasce (${sumQty} pz) non coincide con il totale dell'articolo "${item.nome}" (${item.quantita} pz).`;
+            }
+
+            itemTot = tiersTot;
+
+            const qtyBadge = document.getElementById(`item-${idx}-qty-badge`);
+            if (qtyBadge) {
+                if (sumQty === item.quantita) {
+                    qtyBadge.className = "font-mono font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md text-[10px]";
+                    qtyBadge.textContent = `Totale fasce: ${sumQty} / ${item.quantita} pz ✓`;
+                } else {
+                    qtyBadge.className = "font-mono font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md text-[10px]";
+                    qtyBadge.textContent = `Totale fasce: ${sumQty} / ${item.quantita} pz (differenza: ${sumQty - item.quantita})`;
+                }
+            }
+
+            const calcFasceSubEl = document.getElementById(`item-${idx}-fasce-calculated-subtotal`);
+            if (calcFasceSubEl) calcFasceSubEl.textContent = `€ ${itemTot.toFixed(2).replace('.', ',')}`;
+        }
+
+        itemsNewSubtotal += itemTot;
+
+        // Impatto / Diff per articolo
+        const diffItem = itemTot - origItemTot;
+        const diffBadge = document.getElementById(`item-${idx}-diff-badge`);
+        if (diffBadge) {
+            if (Math.abs(diffItem) < 0.01) {
+                diffBadge.className = "font-mono font-bold text-slate-500";
+                diffBadge.textContent = `Prezzo di listino (€ ${itemTot.toFixed(2).replace('.', ',')})`;
+            } else if (diffItem < 0) {
+                diffBadge.className = "font-mono font-bold text-emerald-600";
+                diffBadge.textContent = `Concordato: € ${itemTot.toFixed(2).replace('.', ',')} (Sconto: -€ ${Math.abs(diffItem).toFixed(2).replace('.', ',')})`;
+            } else {
+                diffBadge.className = "font-mono font-bold text-amber-600";
+                diffBadge.textContent = `Concordato: € ${itemTot.toFixed(2).replace('.', ',')} (+€ ${diffItem.toFixed(2).replace('.', ',')})`;
+            }
+        }
+    });
+
+    // Spedizione cliente & coupon
+    const squadraStr = String(selectedPrezzoOrdine.squadra || '').toLowerCase();
+    const haSpedCliente = squadraStr.includes('spedizione');
+    const spedizioneCliente = haSpedCliente ? 2.00 : 0.00;
+    const couponDiscount = (selectedPrezzoOrdine.coupon_discount !== undefined && selectedPrezzoOrdine.coupon_discount !== null) ? Number(selectedPrezzoOrdine.coupon_discount) : 0;
+
+    const newOrderTotal = Math.max(0, itemsNewSubtotal + spedizioneCliente - couponDiscount);
+    const origOrderTotal = parseFlexibleDecimal(selectedPrezzoOrdine.totale);
+    const diffTotal = newOrderTotal - origOrderTotal;
+
+    const costEur = parseFloat((selectedPrezzoOrdine["Costo totale (EUR)"] || selectedPrezzoOrdine.costo_totale_eur || '0').replace(/\./g, '').replace(',', '.')) || 0;
+    const newProfit = Math.max(-999999, newOrderTotal - costEur);
+
+    // Aggiorna anteprima economica
+    const origTotalEl = document.getElementById('modal-prezzo-preview-orig-total');
+    const newTotalEl = document.getElementById('modal-prezzo-preview-new-total');
+    const diffTotalEl = document.getElementById('modal-prezzo-preview-diff-total');
+    const newProfitEl = document.getElementById('modal-prezzo-preview-new-profit');
+
+    if (origTotalEl) origTotalEl.textContent = `€ ${origOrderTotal.toFixed(2).replace('.', ',')}`;
+    if (newTotalEl) newTotalEl.textContent = `€ ${newOrderTotal.toFixed(2).replace('.', ',')}`;
+
+    if (diffTotalEl) {
+        if (Math.abs(diffTotal) < 0.01) {
+            diffTotalEl.className = "font-mono font-bold text-slate-700 text-sm";
+            diffTotalEl.textContent = "€ 0,00";
+        } else if (diffTotal < 0) {
+            diffTotalEl.className = "font-mono font-bold text-rose-600 text-sm";
+            diffTotalEl.textContent = `-€ ${Math.abs(diffTotal).toFixed(2).replace('.', ',')}`;
+        } else {
+            diffTotalEl.className = "font-mono font-bold text-emerald-600 text-sm";
+            diffTotalEl.textContent = `+€ ${diffTotal.toFixed(2).replace('.', ',')}`;
+        }
+    }
+
+    if (newProfitEl) {
+        newProfitEl.textContent = `${newProfit >= 0 ? '+' : ''}€ ${newProfit.toFixed(2).replace('.', ',')}`;
+    }
+
+    // Gestione validazione ed errori
+    if (errorBanner && errorText) {
+        if (!isValid) {
+            errorBanner.classList.remove('hidden');
+            errorText.textContent = validationErrorMessage;
+            if (saveBtn) saveBtn.disabled = true;
+            if (statusBadge) {
+                statusBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-rose-100 text-rose-800";
+                statusBadge.textContent = "Errore di validazione";
+            }
+        } else {
+            errorBanner.classList.add('hidden');
+            if (saveBtn) saveBtn.disabled = false;
+            if (statusBadge) {
+                if (Math.abs(diffTotal) > 0.001) {
+                    statusBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-amber-100 text-brand-gold";
+                    statusBadge.textContent = "Prezzo modificato";
+                } else {
+                    statusBadge.className = "px-2 py-0.5 rounded-md text-[10px] font-bold font-mono bg-slate-200 text-slate-700";
+                    statusBadge.textContent = "Prezzo originale";
+                }
+            }
+        }
+    }
+}
+
+async function salvaPrezzoConcordatoOrdine() {
+    if (!selectedPrezzoOrdine || itemsPrezzoOrdineState.length === 0) return;
+
+    const saveBtn = document.getElementById('btn-salva-prezzo-ordine');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span>⏳</span> Salvataggio in corso...';
+    }
+
+    try {
+        const payloadItems = itemsPrezzoOrdineState.map(item => {
+            if (item.mode === 'fasce') {
+                return {
+                    id: item.id,
+                    legacy_id: item.legacy_id,
+                    index: item.index,
+                    fasce_prezzo: item.fasce.map(f => ({
+                        quantita: parseInt(f.quantita, 10),
+                        prezzo_unitario: Number(parseFloat(f.prezzo_unitario).toFixed(2))
+                    }))
+                };
+            } else {
+                return {
+                    id: item.id,
+                    legacy_id: item.legacy_id,
+                    index: item.index,
+                    prezzo_concordato: Number(parseFloat(item.prezzo_unitario).toFixed(2))
+                };
+            }
+        });
+
+        const targetId = selectedPrezzoOrdine.id !== undefined && selectedPrezzoOrdine.id !== null 
+            ? selectedPrezzoOrdine.id 
+            : selectedPrezzoOrdine.data;
+
+        const response = await fetch('/api/orders/update-pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                order_id: targetId,
+                items: payloadItems
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            showToast("Prezzo concordato salvato con successo!", "success");
+            chiudiModificaPrezzoOrdineModal();
+            await caricaOrdini();
+            if (typeof caricaLotto === 'function') caricaLotto();
+            if (typeof caricaSuddivisioneConti === 'function' && currentActiveTab === 'suddivisione-conti') {
+                caricaSuddivisioneConti(currentSelectedProfitLottoId);
+            }
+        } else {
+            showToast(result.error || "Errore durante il salvataggio del prezzo.", "error");
+        }
+    } catch (err) {
+        console.error("Errore salvataggio prezzo concordato:", err);
+        showToast("Errore di connessione durante il salvataggio.", "error");
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<span>💾</span> Salva Modifica Prezzo';
+        }
+    }
+}
+
+async function ripristinaTuttiPrezziOrdine() {
+    if (!selectedPrezzoOrdine) return;
+
+    if (!confirm("Sei sicuro di voler ripristinare tutti gli articoli di questo ordine ai prezzi di listino originali?")) {
+        return;
+    }
+
+    const resetBtn = document.getElementById('btn-ripristina-tutti-prezzi');
+    if (resetBtn) {
+        resetBtn.disabled = true;
+        resetBtn.innerHTML = '<span>⏳</span> Ripristino...';
+    }
+
+    try {
+        const targetId = selectedPrezzoOrdine.id !== undefined && selectedPrezzoOrdine.id !== null 
+            ? selectedPrezzoOrdine.id 
+            : selectedPrezzoOrdine.data;
+
+        const response = await fetch('/api/orders/update-pricing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                order_id: targetId,
+                ripristina_tutto: true
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            showToast("Prezzi originali ripristinati con successo!", "success");
+            chiudiModificaPrezzoOrdineModal();
+            await caricaOrdini();
+            if (typeof caricaLotto === 'function') caricaLotto();
+            if (typeof caricaSuddivisioneConti === 'function' && currentActiveTab === 'suddivisione-conti') {
+                caricaSuddivisioneConti(currentSelectedProfitLottoId);
+            }
+        } else {
+            showToast(result.error || "Errore durante il ripristino dei prezzi.", "error");
+        }
+    } catch (err) {
+        console.error("Errore ripristino prezzi originali:", err);
+        showToast("Errore di connessione durante il ripristino.", "error");
+    } finally {
+        if (resetBtn) {
+            resetBtn.disabled = false;
+            resetBtn.innerHTML = '<span>🔄</span> Ripristina Prezzi Originali';
+        }
+    }
+}
+
+// Esportazione funzioni su window
+window.openModificaPrezzoOrdineModal = openModificaPrezzoOrdineModal;
+window.chiudiModificaPrezzoOrdineModal = chiudiModificaPrezzoOrdineModal;
+window.onSelectOrdineModificaPrezzo = onSelectOrdineModificaPrezzo;
+window.impostaModalitaPrezzoItem = impostaModalitaPrezzoItem;
+window.onInputPrezzoSingoloItem = onInputPrezzoSingoloItem;
+window.onInputFasciaQty = onInputFasciaQty;
+window.onInputFasciaPrice = onInputFasciaPrice;
+window.aggiungiFasciaPrezzo = aggiungiFasciaPrezzo;
+window.rimuoviFasciaPrezzo = rimuoviFasciaPrezzo;
+window.ripristinaPrezzoItem = ripristinaPrezzoItem;
+window.ricalcolaTotaliModalePrezzoOrdine = ricalcolaTotaliModalePrezzoOrdine;
+window.salvaPrezzoConcordatoOrdine = salvaPrezzoConcordatoOrdine;
+window.ripristinaTuttiPrezziOrdine = ripristinaTuttiPrezziOrdine;
+
 
 
 
