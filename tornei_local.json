@@ -1,0 +1,104 @@
+[
+  {
+    "nome": "Torneo Audit Fase 9",
+    "organizzatore_nome": "Organizzatore Test",
+    "organizzatore_contatto": "test@example.com",
+    "quantita_totale_autorizzata": 50,
+    "prezzo_concordato_unitario": 22,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "is_active": true,
+    "note": null,
+    "updated_at": "2026-09-02T21:05:30.109Z",
+    "created_at": "2026-09-02T21:05:30.109Z",
+    "id": "11b1d557-a5f8-46a9-aac7-a43b7213d46c"
+  },
+  {
+    "nome": "Torneo Audit Fase 9",
+    "organizzatore_nome": "Organizzatore Test",
+    "organizzatore_contatto": "test@example.com",
+    "quantita_totale_autorizzata": 50,
+    "prezzo_concordato_unitario": 22,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "is_active": true,
+    "note": null,
+    "updated_at": "2026-09-02T21:04:54.882Z",
+    "created_at": "2026-09-02T21:04:54.882Z",
+    "id": "a9b37727-5262-4ce6-98b3-b44e9434136c"
+  },
+  {
+    "nome": "Torneo Test Fase 4",
+    "organizzatore_nome": "ewq",
+    "organizzatore_contatto": "312",
+    "quantita_totale_autorizzata": 100,
+    "prezzo_concordato_unitario": 22,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "is_active": true,
+    "note": null,
+    "updated_at": "2026-09-02T13:31:54.592Z",
+    "created_at": "2026-09-02T13:29:31.379Z",
+    "id": "262e6114-36c7-46ac-af4b-09805fd44c26"
+  },
+  {
+    "nome": "Torneo Test Fase 4",
+    "organizzatore_nome": null,
+    "organizzatore_contatto": null,
+    "quantita_totale_autorizzata": 50,
+    "prezzo_concordato_unitario": 22,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "is_active": true,
+    "note": null,
+    "updated_at": "2026-09-02T13:29:15.106Z",
+    "created_at": "2026-09-02T13:29:15.106Z",
+    "id": "91f0cc2e-94af-4ddc-92de-b06b8bb401fd"
+  },
+  {
+    "nome": "Champions Cup 8030",
+    "organizzatore_nome": "Mario Rossi",
+    "organizzatore_contatto": "+39 333 1234567",
+    "quantita_totale_autorizzata": 130,
+    "prezzo_concordato_unitario": 20,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": true
+    },
+    "is_active": false,
+    "note": "Torneo aziendale",
+    "updated_at": "2026-09-02T13:09:15.673Z",
+    "created_at": "2026-09-02T13:05:18.195Z",
+    "id": "a4cd558c-3c9b-4953-9d01-e5709cf49ac2"
+  },
+  {
+    "nome": "ETNA GOLD",
+    "organizzatore_nome": "Mario Rossi",
+    "organizzatore_contatto": "+39 333 1234567",
+    "quantita_totale_autorizzata": 130,
+    "prezzo_concordato_unitario": 20,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "is_active": true,
+    "note": "Torneo Etna Gold",
+    "updated_at": "2026-09-02T13:11:39.947Z",
+    "created_at": "2026-09-02T13:04:37.563Z",
+    "id": "ea378156-a006-4af9-91a7-409fa275617e"
+  }
+]

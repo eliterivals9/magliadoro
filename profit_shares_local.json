@@ -258,13 +258,6 @@
       "sergio_percentage": 66,
       "riccardo_percentage": 34
     },
-    "2": {
-      "lotto_id": "2",
-      "split_mode": "manual",
-      "updated_at": "2026-08-26T18:01:24.733Z",
-      "sergio_percentage": 100,
-      "riccardo_percentage": 0
-    },
     "3": {
       "lotto_id": "3",
       "split_mode": "manual",

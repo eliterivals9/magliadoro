@@ -77,6 +77,17 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 // Enable JSON body parsing for API requests
 app.use(express.json({ limit: '20mb' }));
 
+// CORS middleware to support iframe preview, admin panel, and cross-origin tools
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Serve custom uploaded files
 app.use('/uploads', express.static(UPLOADS_DIR));
 
@@ -1944,6 +1955,7 @@ async function getDbOrders() {
           "Costo totale (EUR)": o.costo_totale_eur,
           "Profitto (EUR)": o.profitto_eur,
           is_archived: o.is_archived,
+          status: o.status || null,
           lotto_id: o.lotto_id,
           carrello: o.carrello,
           coupon_code: o.coupon_code || null,
@@ -1984,11 +1996,13 @@ async function getDbOrders() {
     
     if (matchedKey) {
       const existing = mergedMap.get(matchedKey);
+      const mergedStatus = dbo.status || existing.status || null;
+      const mergedIsArchived = (dbo.is_archived !== undefined && dbo.is_archived !== null) ? dbo.is_archived : existing.is_archived;
       if (keyById && matchedKey !== keyById) {
         mergedMap.delete(matchedKey);
-        mergedMap.set(keyById, { ...existing, ...dbo });
+        mergedMap.set(keyById, { ...existing, ...dbo, status: mergedStatus, is_archived: mergedIsArchived });
       } else {
-        mergedMap.set(matchedKey, { ...existing, ...dbo });
+        mergedMap.set(matchedKey, { ...existing, ...dbo, status: mergedStatus, is_archived: mergedIsArchived });
       }
     } else {
       const finalKey = keyById || keyByData || `item_${Math.random()}`;
@@ -2079,6 +2093,13 @@ console.log(JSON.stringify(data, null, 2));
 console.log("==========================================================\n");
 
 console.log("✅ Order inserted successfully in Supabase 'orders' table.");
+if (data && data.length > 0) {
+  try {
+    saveLocalOrder(data[0]);
+  } catch (eLoc) {
+    console.warn("⚠️ Errore salvataggio local orders in insertDbOrder:", eLoc.message);
+  }
+}
 return data && data.length > 0 ? data[0] : null;
 }
 
@@ -6074,29 +6095,41 @@ async function recalculateCurrentLottoInternal() {
 
       const prevShippingStr = String(ord["Costo spedizione (USD)"] || ord.costo_spedizione_usd || '');
       const newShippingStr = newShippingUSD.toFixed(2).replace('.', ',');
+      const newTotalCostUSDStr = newTotalCostUSD.toFixed(2).replace('.', ',');
+      const newTotalCostEURStr = newTotalCostEUR.toFixed(2).replace('.', ',');
+      const newProfitEURStr = newProfitEUR.toFixed(2).replace('.', ',');
 
-      if (prevShippingStr !== newShippingStr || !ord.costo_totale_eur || ord.costo_spedizione_usd !== newShippingStr) {
+      const orderHasChanged = (
+        prevShippingStr !== newShippingStr ||
+        !ord.costo_totale_eur ||
+        String(ord.costo_spedizione_usd || '') !== newShippingStr ||
+        String(ord.costo_totale_usd || '') !== newTotalCostUSDStr ||
+        String(ord.costo_totale_eur || '') !== newTotalCostEURStr ||
+        String(ord.profitto_eur || '') !== newProfitEURStr
+      );
+
+      if (orderHasChanged) {
         hasOrderChanges = true;
       }
 
       ord["Costo spedizione (USD)"] = newShippingStr;
       ord["osto spedizione (USD)"] = newShippingStr;
-      ord["Costo totale (USD)"] = newTotalCostUSD.toFixed(2).replace('.', ',');
-      ord["Costo totale (EUR)"] = newTotalCostEUR.toFixed(2).replace('.', ',');
-      ord["Profitto (EUR)"] = newProfitEUR.toFixed(2).replace('.', ',');
+      ord["Costo totale (USD)"] = newTotalCostUSDStr;
+      ord["Costo totale (EUR)"] = newTotalCostEURStr;
+      ord["Profitto (EUR)"] = newProfitEURStr;
 
       ord.costo_spedizione_usd = newShippingStr;
-      ord.costo_totale_usd = newTotalCostUSD.toFixed(2).replace('.', ',');
-      ord.costo_totale_eur = newTotalCostEUR.toFixed(2).replace('.', ',');
-      ord.profitto_eur = newProfitEUR.toFixed(2).replace('.', ',');
+      ord.costo_totale_usd = newTotalCostUSDStr;
+      ord.costo_totale_eur = newTotalCostEURStr;
+      ord.profitto_eur = newProfitEURStr;
 
-      if (supabase && ord.id) {
+      if (supabase && ord.id && orderHasChanged) {
         try {
           await supabase.from('orders').update({
             costo_spedizione_usd: newShippingStr,
-            costo_totale_usd: newTotalCostUSD.toFixed(2).replace('.', ','),
-            costo_totale_eur: newTotalCostEUR.toFixed(2).replace('.', ','),
-            profitto_eur: newProfitEUR.toFixed(2).replace('.', ',')
+            costo_totale_usd: newTotalCostUSDStr,
+            costo_totale_eur: newTotalCostEURStr,
+            profitto_eur: newProfitEURStr
           }).eq('id', ord.id);
         } catch (supErr) {
           console.warn(`⚠️ Errore aggiornamento ordine ${ord.id} su Supabase durante ricalcolo lotto:`, supErr.message);
@@ -6104,17 +6137,19 @@ async function recalculateCurrentLottoInternal() {
       }
     }
 
-    try {
-      const localOrders = getLocalOrders();
-      activeOrders.forEach(ao => {
-        const idx = localOrders.findIndex(lo => (lo.id && String(lo.id) === String(ao.id)) || (lo.data && lo.data === ao.data));
-        if (idx !== -1) {
-          localOrders[idx] = { ...localOrders[idx], ...ao };
-        }
-      });
-      fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
-    } catch (errLocal) {
-      console.warn("⚠️ Errore salvataggio local orders durante ricalcolo lotto:", errLocal.message);
+    if (hasOrderChanges) {
+      try {
+        const localOrders = getLocalOrders();
+        activeOrders.forEach(ao => {
+          const idx = localOrders.findIndex(lo => (lo.id && String(lo.id) === String(ao.id)) || (lo.data && lo.data === ao.data));
+          if (idx !== -1) {
+            localOrders[idx] = { ...localOrders[idx], ...ao };
+          }
+        });
+        fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+      } catch (errLocal) {
+        console.warn("⚠️ Errore salvataggio local orders durante ricalcolo lotto:", errLocal.message);
+      }
     }
   }
 
@@ -6148,8 +6183,27 @@ async function recalculateCurrentLottoInternal() {
   return updatedLotto;
 }
 
-async function recalculateCurrentLotto() {
-  return runWithLottoLock(() => recalculateCurrentLottoInternal());
+let lastLottoRecalcTime = 0;
+let cachedLottoResult = null;
+
+function invalidateLottoCache() {
+  lastLottoRecalcTime = 0;
+  cachedLottoResult = null;
+}
+
+async function recalculateCurrentLotto(force = false) {
+  const now = Date.now();
+  if (!force && cachedLottoResult && (now - lastLottoRecalcTime < 3000)) {
+    return cachedLottoResult;
+  }
+  return runWithLottoLock(async () => {
+    if (!force && cachedLottoResult && (Date.now() - lastLottoRecalcTime < 3000)) {
+      return cachedLottoResult;
+    }
+    cachedLottoResult = await recalculateCurrentLottoInternal();
+    lastLottoRecalcTime = Date.now();
+    return cachedLottoResult;
+  });
 }
 
 let isArchivingInProgress = false;
@@ -7286,7 +7340,11 @@ app.delete('/api/reviews/:id', async (req, res) => {
 // GET /api/orders - Ottieni tutti gli ordini registrati con cache locale resiliente
 app.get('/api/orders', async (req, res) => {
   try {
-    await recalculateCurrentLotto();
+    try {
+      await recalculateCurrentLotto();
+    } catch (lottoErr) {
+      console.warn("⚠️ Avviso durante il ricalcolo del lotto in GET /api/orders:", lottoErr.message);
+    }
     const orders = await getDbOrders();
     // Determina dinamicamente le chiavi archiviate dalle proprietà degli ordini, con fallback locale
     let archivedKeys = orders.filter(o => o.is_archived === true).map(o => o.data);
@@ -7296,7 +7354,14 @@ app.get('/api/orders', async (req, res) => {
     return res.json({ success: true, orders, archivedKeys });
   } catch (err) {
     console.error("⚠️ Errore nel caricamento degli ordini:", err.message);
-    return res.status(500).json({ success: false, error: err.message, orders: [], archivedKeys: [] });
+    try {
+      const localOrders = getLocalOrders();
+      let archivedKeys = localOrders.filter(o => o.is_archived === true).map(o => o.data);
+      if (archivedKeys.length === 0) archivedKeys = getArchivedKeys();
+      return res.json({ success: true, orders: localOrders, archivedKeys, fallback: true });
+    } catch (fbErr) {
+      return res.status(500).json({ success: false, error: err.message, orders: [], archivedKeys: [] });
+    }
   }
 });
 
@@ -8037,6 +8102,975 @@ app.delete('/api/coupons/:id', async (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     console.error("⚠️ Errore DELETE /api/coupons/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================
+// FUNZIONALITÀ FORNITURA TORNEI (ANAGRAFICA)
+// ==========================================
+const LOCAL_TORNEI_FILE = path.join(__dirname, 'tornei_local.json');
+
+function getLocalTornei() {
+  if (!fs.existsSync(LOCAL_TORNEI_FILE)) {
+    return [];
+  }
+  try {
+    const raw = fs.readFileSync(LOCAL_TORNEI_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("⚠️ Errore lettura tornei_local.json:", err.message);
+    return [];
+  }
+}
+
+function saveLocalTornei(torneiList) {
+  try {
+    fs.writeFileSync(LOCAL_TORNEI_FILE, JSON.stringify(torneiList, null, 2), 'utf8');
+  } catch (err) {
+    console.error("⚠️ Errore scrittura tornei_local.json:", err.message);
+  }
+}
+
+async function getTornei() {
+  const localList = getLocalTornei();
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      console.log(`[TORNEI DEBUG] Operazione: SELECT FROM public.tornei`);
+      const { data, error } = await supabase
+        .from('tornei')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        // Fondi con i dati locali per preservare eventuali record non ancora sincronizzati
+        const merged = [...data];
+        localList.forEach(localItem => {
+          if (!merged.some(m => String(m.id) === String(localItem.id))) {
+            merged.push(localItem);
+          }
+        });
+        saveLocalTornei(merged);
+        return merged;
+      }
+    } catch (err) {
+      console.warn(`[TORNEI DEBUG] Supabase SELECT fallback to local: ${err.message}`);
+    }
+  }
+
+  return localList;
+}
+
+async function saveTorneo(torneoData) {
+  const supabase = getSupabaseClient();
+  let savedRecord = null;
+
+  const payload = {
+    nome: (torneoData.nome || '').trim(),
+    organizzatore_nome: torneoData.organizzatore_nome ? torneoData.organizzatore_nome.trim() : null,
+    organizzatore_contatto: torneoData.organizzatore_contatto ? torneoData.organizzatore_contatto.trim() : null,
+    quantita_totale_autorizzata: torneoData.quantita_totale_autorizzata !== undefined && torneoData.quantita_totale_autorizzata !== null && torneoData.quantita_totale_autorizzata !== '' ? parseInt(torneoData.quantita_totale_autorizzata, 10) : 0,
+    prezzo_concordato_unitario: torneoData.prezzo_concordato_unitario !== undefined && torneoData.prezzo_concordato_unitario !== null && torneoData.prezzo_concordato_unitario !== '' ? parseFloat(torneoData.prezzo_concordato_unitario) : 0,
+    configurazione_personalizzazione: torneoData.configurazione_personalizzazione || { permetti_nome: true, permetti_numero: true, permetti_patch: false },
+    is_active: torneoData.is_active !== false,
+    note: torneoData.note ? torneoData.note.trim() : null,
+    updated_at: new Date().toISOString()
+  };
+
+  if (!payload.nome) {
+    throw new Error("Il nome del torneo è obbligatorio.");
+  }
+
+  const isUpdate = Boolean(torneoData.id);
+
+  if (supabase) {
+    try {
+      if (isUpdate) {
+        const id = torneoData.id;
+        console.log(`[TORNEI DEBUG] UPDATE torneo ID: ${id}`);
+        const { data, error } = await supabase
+          .from('tornei')
+          .update(payload)
+          .eq('id', id)
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          savedRecord = data;
+        } else {
+          console.warn(`[TORNEI DEBUG] Supabase UPDATE fallito (${error ? error.message : 'no data'}), uso fallback locale`);
+        }
+      } else {
+        console.log(`[TORNEI DEBUG] CREATE nuovo torneo: ${payload.nome}`);
+        payload.created_at = new Date().toISOString();
+
+        const { data, error } = await supabase
+          .from('tornei')
+          .insert([payload])
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          savedRecord = data;
+        } else {
+          console.warn(`[TORNEI DEBUG] Supabase INSERT fallito (${error ? error.message : 'no data'}), uso fallback locale`);
+        }
+      }
+    } catch (sbErr) {
+      console.warn(`[TORNEI DEBUG] Eccezione Supabase: ${sbErr.message}, uso fallback locale`);
+    }
+  }
+
+  // Gestione/Fallback locale
+  const localList = getLocalTornei();
+  if (savedRecord) {
+    const idx = localList.findIndex(t => String(t.id) === String(savedRecord.id));
+    if (idx !== -1) {
+      localList[idx] = savedRecord;
+    } else {
+      localList.unshift(savedRecord);
+    }
+    saveLocalTornei(localList);
+    return savedRecord;
+  }
+
+  if (isUpdate) {
+    const idx = localList.findIndex(t => String(t.id) === String(torneoData.id));
+    if (idx !== -1) {
+      savedRecord = { ...localList[idx], ...payload, id: torneoData.id };
+      localList[idx] = savedRecord;
+    } else {
+      savedRecord = { ...payload, id: torneoData.id };
+      localList.push(savedRecord);
+    }
+  } else {
+    savedRecord = {
+      ...payload,
+      id: crypto.randomUUID ? crypto.randomUUID() : `torneo_${Date.now()}`,
+      created_at: payload.created_at || new Date().toISOString()
+    };
+    localList.unshift(savedRecord);
+  }
+  saveLocalTornei(localList);
+  return savedRecord;
+}
+
+async function toggleTorneo(id) {
+  const supabase = getSupabaseClient();
+  let updatedRecord = null;
+
+  if (supabase) {
+    try {
+      const { data: curr, error: getErr } = await supabase
+        .from('tornei')
+        .select('is_active')
+        .eq('id', id)
+        .single();
+
+      if (!getErr && curr) {
+        const newStatus = !curr.is_active;
+        const { data, error } = await supabase
+          .from('tornei')
+          .update({ is_active: newStatus, updated_at: new Date().toISOString() })
+          .eq('id', id)
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          updatedRecord = data;
+        }
+      }
+    } catch (err) {
+      console.warn(`[TORNEI DEBUG] Supabase toggle fallback: ${err.message}`);
+    }
+  }
+
+  const list = getLocalTornei();
+  const item = list.find(t => String(t.id) === String(id));
+  if (updatedRecord) {
+    if (item) {
+      item.is_active = updatedRecord.is_active;
+      item.updated_at = updatedRecord.updated_at;
+      saveLocalTornei(list);
+    }
+    return updatedRecord;
+  }
+
+  if (!item) throw new Error("Torneo non trovato");
+  item.is_active = !item.is_active;
+  item.updated_at = new Date().toISOString();
+  saveLocalTornei(list);
+  return item;
+}
+
+async function deleteTorneo(id) {
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      console.log(`[TORNEI DEBUG] DELETE torneo ID: ${id}`);
+      await supabase
+        .from('tornei')
+        .delete()
+        .eq('id', id);
+    } catch (err) {
+      console.warn(`[TORNEI DEBUG] Supabase DELETE exception: ${err.message}`);
+    }
+  }
+
+  const list = getLocalTornei().filter(t => String(t.id) !== String(id));
+  saveLocalTornei(list);
+  return true;
+}
+
+// API Routes per Fornitura Tornei
+app.get('/api/tornei', async (req, res) => {
+  try {
+    const tornei = await getTornei();
+    return res.json({ success: true, tornei });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/tornei:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/tornei', async (req, res) => {
+  try {
+    const {
+      id,
+      nome,
+      organizzatore_nome,
+      organizzatore_contatto,
+      quantita_totale_autorizzata,
+      prezzo_concordato_unitario,
+      configurazione_personalizzazione,
+      is_active,
+      note
+    } = req.body;
+
+    if (!nome || !nome.trim()) {
+      return res.status(400).json({ success: false, error: "Il nome del torneo è obbligatorio." });
+    }
+
+    const saved = await saveTorneo({
+      id,
+      nome,
+      organizzatore_nome,
+      organizzatore_contatto,
+      quantita_totale_autorizzata,
+      prezzo_concordato_unitario,
+      configurazione_personalizzazione,
+      is_active,
+      note
+    });
+
+    return res.json({ success: true, torneo: saved });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/tornei:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.patch('/api/tornei/:id/toggle', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID torneo mancante." });
+    }
+
+    const updated = await toggleTorneo(id);
+    return res.json({ success: true, torneo: updated });
+  } catch (err) {
+    console.error("⚠️ Errore PATCH /api/tornei/:id/toggle:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/tornei/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID torneo mancante." });
+    }
+
+    await deleteTorneo(id);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("⚠️ Errore DELETE /api/tornei/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ==========================================
+// FUNZIONALITÀ SQUADRE TORNEO (torneo_squadre)
+// ==========================================
+const LOCAL_TORNEO_SQUADRE_FILE = path.join(__dirname, 'torneo_squadre_local.json');
+
+function getLocalTorneoSquadre() {
+  if (!fs.existsSync(LOCAL_TORNEO_SQUADRE_FILE)) {
+    return [];
+  }
+  try {
+    const raw = fs.readFileSync(LOCAL_TORNEO_SQUADRE_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("⚠️ Errore lettura torneo_squadre_local.json:", err.message);
+    return [];
+  }
+}
+
+function saveLocalTorneoSquadre(squadreList) {
+  try {
+    fs.writeFileSync(LOCAL_TORNEO_SQUADRE_FILE, JSON.stringify(squadreList, null, 2), 'utf8');
+  } catch (err) {
+    console.error("⚠️ Errore scrittura torneo_squadre_local.json:", err.message);
+  }
+}
+
+async function getAllTorneoSquadre() {
+  const localList = getLocalTorneoSquadre();
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('torneo_squadre')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && Array.isArray(data)) {
+        const merged = [...data];
+        localList.forEach(localItem => {
+          if (!merged.some(m => String(m.id) === String(localItem.id))) {
+            merged.push(localItem);
+          }
+        });
+        saveLocalTorneoSquadre(merged);
+        return merged;
+      }
+    } catch (err) {
+      console.warn(`[TORNEO SQUADRE DEBUG] Supabase SELECT ALL fallback to local: ${err.message}`);
+    }
+  }
+  return localList;
+}
+
+async function getTorneoSquadreByTorneoId(torneoId) {
+  const all = await getAllTorneoSquadre();
+  return all.filter(s => String(s.torneo_id) === String(torneoId));
+}
+
+async function saveTorneoSquadra(torneoId, squadraData) {
+  const {
+    id,
+    nome_squadra,
+    codice_univoco,
+    quantita_assegnata,
+    configurazione_personalizzazione,
+    categorie_autorizzate,
+    prodotti_autorizzati,
+    note
+  } = squadraData;
+
+  const allSquadre = await getAllTorneoSquadre();
+  const existingRecord = id ? allSquadre.find(s => String(s.id) === String(id)) : null;
+
+  const nomeNormalized = nome_squadra !== undefined ? String(nome_squadra).trim() : (existingRecord ? existingRecord.nome_squadra : '');
+  if (!nomeNormalized) {
+    throw new Error("Il nome della squadra è obbligatorio.");
+  }
+
+  const codiceNormalized = codice_univoco !== undefined ? String(codice_univoco).trim().toUpperCase() : (existingRecord ? existingRecord.codice_univoco : '');
+  if (!codiceNormalized) {
+    throw new Error("Il codice univoco della fornitura è obbligatorio.");
+  }
+
+  const quantitaInt = quantita_assegnata !== undefined ? parseInt(quantita_assegnata, 10) : (existingRecord ? parseInt(existingRecord.quantita_assegnata, 10) : NaN);
+  if (isNaN(quantitaInt) || quantitaInt < 0) {
+    throw new Error("La quantità assegnata deve essere un numero intero maggiore o uguale a 0.");
+  }
+
+  // 1. Verifica Torneo di appartenenza
+  const allTornei = await getTornei();
+  const torneo = allTornei.find(t => String(t.id) === String(torneoId));
+  if (!torneo) {
+    throw new Error(`Torneo genitore con ID '${torneoId}' non trovato.`);
+  }
+
+  const quotaTotaleTorneo = parseInt(torneo.quantita_totale_autorizzata, 10) || 0;
+
+  // 2. Verifica Unicità Globale Codice
+  const existingWithCode = allSquadre.find(s => 
+    s.codice_univoco && 
+    s.codice_univoco.toUpperCase() === codiceNormalized &&
+    String(s.id) !== String(id || '')
+  );
+  if (existingWithCode) {
+    throw new Error(`Il codice fornitura '${codiceNormalized}' è già stato utilizzato dalla squadra '${existingWithCode.nome_squadra}'.`);
+  }
+
+  // 3. Controllo Quota Torneo (somma quote altre squadre + nuova quota <= quota totale torneo)
+  const otherTeamsInTorneo = allSquadre.filter(s => 
+    String(s.torneo_id) === String(torneoId) && 
+    String(s.id) !== String(id || '')
+  );
+  const quotaGiaAssegnataAltre = otherTeamsInTorneo.reduce((sum, s) => sum + (parseInt(s.quantita_assegnata, 10) || 0), 0);
+  const quotaDisponibileRimanente = Math.max(0, quotaTotaleTorneo - quotaGiaAssegnataAltre);
+
+  if (quotaGiaAssegnataAltre + quantitaInt > quotaTotaleTorneo) {
+    throw new Error(`La quota totale assegnata alle squadre (${quotaGiaAssegnataAltre + quantitaInt}) supererebbe la quota autorizzata del torneo (${quotaTotaleTorneo}). Massimo assegnabile: ${quotaDisponibileRimanente} completini.`);
+  }
+
+  const payload = {
+    torneo_id: torneoId,
+    nome_squadra: nomeNormalized,
+    codice_univoco: codiceNormalized,
+    quantita_assegnata: quantitaInt,
+    configurazione_personalizzazione: configurazione_personalizzazione !== undefined 
+      ? configurazione_personalizzazione 
+      : (existingRecord ? existingRecord.configurazione_personalizzazione : { permetti_nome: true, permetti_numero: true, permetti_patch: false }),
+    categorie_autorizzate: categorie_autorizzate !== undefined 
+      ? (Array.isArray(categorie_autorizzate) ? categorie_autorizzate : [])
+      : (existingRecord && Array.isArray(existingRecord.categorie_autorizzate) ? existingRecord.categorie_autorizzate : []),
+    prodotti_autorizzati: prodotti_autorizzati !== undefined
+      ? (Array.isArray(prodotti_autorizzati) ? prodotti_autorizzati : [])
+      : (existingRecord && Array.isArray(existingRecord.prodotti_autorizzati) ? existingRecord.prodotti_autorizzati : []),
+    note: note !== undefined ? (note ? String(note).trim() : null) : (existingRecord ? existingRecord.note : null),
+    updated_at: new Date().toISOString()
+  };
+
+  const isUpdate = Boolean(id);
+  const supabase = getSupabaseClient();
+  let savedRecord = null;
+
+  if (supabase) {
+    try {
+      if (isUpdate) {
+        console.log(`[TORNEO SQUADRA DEBUG] UPDATE squadra ID: ${id}`);
+        const { data, error } = await supabase
+          .from('torneo_squadre')
+          .update(payload)
+          .eq('id', id)
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          savedRecord = data;
+        } else {
+          console.warn(`[TORNEO SQUADRA DEBUG] Supabase UPDATE fallito (${error ? error.message : 'no data'}), uso fallback locale`);
+        }
+      } else {
+        console.log(`[TORNEO SQUADRA DEBUG] CREATE nuova squadra: ${nomeNormalized} (${codiceNormalized})`);
+        payload.created_at = new Date().toISOString();
+
+        const { data, error } = await supabase
+          .from('torneo_squadre')
+          .insert([payload])
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          savedRecord = data;
+        } else {
+          console.warn(`[TORNEO SQUADRA DEBUG] Supabase INSERT fallito (${error ? error.message : 'no data'}), uso fallback locale`);
+        }
+      }
+    } catch (sbErr) {
+      console.warn(`[TORNEO SQUADRA DEBUG] Eccezione Supabase: ${sbErr.message}, uso fallback locale`);
+    }
+  }
+
+  // Gestione / Fallback Locale
+  const localList = getLocalTorneoSquadre();
+  if (savedRecord) {
+    const idx = localList.findIndex(s => String(s.id) === String(savedRecord.id));
+    if (idx !== -1) {
+      localList[idx] = savedRecord;
+    } else {
+      localList.push(savedRecord);
+    }
+    saveLocalTorneoSquadre(localList);
+    return savedRecord;
+  }
+
+  if (isUpdate) {
+    const idx = localList.findIndex(s => String(s.id) === String(id));
+    if (idx !== -1) {
+      savedRecord = { ...localList[idx], ...payload, id };
+      localList[idx] = savedRecord;
+    } else {
+      savedRecord = { ...payload, id };
+      localList.push(savedRecord);
+    }
+  } else {
+    savedRecord = {
+      ...payload,
+      id: crypto.randomUUID ? crypto.randomUUID() : `sq_${Date.now()}`,
+      created_at: payload.created_at || new Date().toISOString()
+    };
+    localList.push(savedRecord);
+  }
+  saveLocalTorneoSquadre(localList);
+  return savedRecord;
+}
+
+async function deleteTorneoSquadra(torneoId, squadraId) {
+  // 1. Verifica se la squadra esiste
+  const all = await getAllTorneoSquadre();
+  const squadra = all.find(s => String(s.id) === String(squadraId) && String(s.torneo_id) === String(torneoId));
+  if (!squadra) {
+    throw new Error("Squadra non trovata.");
+  }
+
+  // 2. Controllo ordini associati per non lasciare ordini orfani
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data: ords } = await supabase
+        .from('orders')
+        .select('id')
+        .or(`squadra.ilike.%${squadra.codice_univoco}%,squadra.ilike.%${squadra.nome_squadra}%`)
+        .limit(1);
+
+      if (Array.isArray(ords) && ords.length > 0) {
+        throw new Error(`Impossibile eliminare la squadra '${squadra.nome_squadra}': esistono già ordini registrati associati.`);
+      }
+    } catch (checkErr) {
+      if (checkErr.message.includes("Impossibile eliminare la squadra")) {
+        throw checkErr;
+      }
+    }
+  }
+
+  // 3. Esecuzione cancellazione
+  if (supabase) {
+    try {
+      console.log(`[TORNEO SQUADRA DEBUG] DELETE squadra ID: ${squadraId}`);
+      await supabase
+        .from('torneo_squadre')
+        .delete()
+        .eq('id', squadraId);
+    } catch (err) {
+      console.warn(`[TORNEO SQUADRA DEBUG] Supabase DELETE exception: ${err.message}`);
+    }
+  }
+
+  const list = getLocalTorneoSquadre().filter(s => String(s.id) !== String(squadraId));
+  saveLocalTorneoSquadre(list);
+  return true;
+}
+
+// API Routes per Squadre Torneo
+app.get('/api/tornei/:id/squadre', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID torneo mancante." });
+    }
+    const squadre = await getTorneoSquadreByTorneoId(id);
+    return res.json({ success: true, squadre });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/tornei/:id/squadre:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/tornei/:id/squadre', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID torneo mancante." });
+    }
+
+    const saved = await saveTorneoSquadra(id, req.body || {});
+    return res.json({ success: true, squadra: saved });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/tornei/:id/squadre:", err.message);
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.patch('/api/tornei/:id/squadre/:squadraId', async (req, res) => {
+  try {
+    const { id, squadraId } = req.params;
+    if (!id || !squadraId) {
+      return res.status(400).json({ success: false, error: "Parametri torneo o squadra mancanti." });
+    }
+
+    const saved = await saveTorneoSquadra(id, { ...(req.body || {}), id: squadraId });
+    return res.json({ success: true, squadra: saved });
+  } catch (err) {
+    console.error("⚠️ Errore PATCH /api/tornei/:id/squadre/:squadraId:", err.message);
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/tornei/:id/squadre/:squadraId', async (req, res) => {
+  try {
+    const { id, squadraId } = req.params;
+    if (!id || !squadraId) {
+      return res.status(400).json({ success: false, error: "Parametri torneo o squadra mancanti." });
+    }
+
+    await deleteTorneoSquadra(id, squadraId);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("⚠️ Errore DELETE /api/tornei/:id/squadre/:squadraId:", err.message);
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Helper per recuperare il prodotto autoritativo dal database/catalogo
+async function getAuthoritativeProduct(item) {
+  if (!item || typeof item !== 'object') return null;
+  const supabase = getSupabaseClient();
+  let dbProducts = [];
+  if (supabase) {
+    try {
+      dbProducts = await getAllProductsFromSupabase(supabase);
+    } catch (e) {
+      console.warn("⚠️ getAuthoritativeProduct Supabase fallback locale:", e.message);
+    }
+  }
+  const allProds = [...(dbProducts.length > 0 ? dbProducts : getLocalProducts()), ...getLocalAccessories()];
+  
+  if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
+    const found = allProds.find(p => String(p.id) === String(item.id));
+    if (found) return found;
+  }
+  if (item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
+    const found = allProds.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+    if (found) return found;
+  }
+  return null;
+}
+
+// Helper e API per validazione server-side della configurazione personalizzazione e categorie fornitura tornei
+async function validaPersonalizzazioneFornitura(item, reqBody = {}, providedProduct = null) {
+  try {
+    if (!item || typeof item !== 'object') {
+      return { isFornitura: false, valid: true };
+    }
+
+    let squadraRef = null;
+    let codiceRef = null;
+
+    if (item.fornitura) {
+      if (typeof item.fornitura === 'object') {
+        squadraRef = item.fornitura.squadra_id || item.fornitura.id || item.fornitura.torneo_squadra_id || null;
+        codiceRef = item.fornitura.codice_univoco || item.fornitura.codice_fornitura || item.fornitura.codice || null;
+      } else if (typeof item.fornitura === 'string') {
+        codiceRef = item.fornitura;
+      }
+    }
+
+    if (!squadraRef && !codiceRef) {
+      squadraRef = item.squadra_id || item.torneo_squadra_id || reqBody.squadra_id || reqBody.torneo_squadra_id || null;
+      codiceRef = item.codice_fornitura || item.fornitura_codice || reqBody.codice_fornitura || reqBody.fornitura_codice || null;
+    }
+
+    // Se non è specificata alcuna fornitura, è un ordine standard normale (validazione superata)
+    if (!squadraRef && !codiceRef) {
+      return { isFornitura: false, valid: true };
+    }
+
+    // Recupera le squadre torneo dal database/server autoritativo
+    const tutteSquadre = await getAllTorneoSquadre();
+    let squadraTrovata = null;
+
+    if (squadraRef) {
+      squadraTrovata = tutteSquadre.find(s => String(s.id) === String(squadraRef));
+    }
+    if (!squadraTrovata && codiceRef) {
+      const codClean = String(codiceRef).trim().toUpperCase();
+      squadraTrovata = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.toUpperCase() === codClean);
+    }
+
+    if (!squadraTrovata) {
+      return {
+        isFornitura: true,
+        valid: false,
+        error: `Codice fornitura o squadra non trovata nel sistema.`
+      };
+    }
+
+    // =========================================================================
+    // FASE 6: VALIDAZIONE CATEGORIE AUTORIZZATE DALLA CONVENZIONE TORNEO
+    // =========================================================================
+    // Recupera categorie_autorizzate authoritative da squadra o torneo (NON fidarsi del payload client)
+    let rawCategorieAutorizzate = [];
+    if (Array.isArray(squadraTrovata.categorie_autorizzate) && squadraTrovata.categorie_autorizzate.length > 0) {
+      rawCategorieAutorizzate = squadraTrovata.categorie_autorizzate;
+    } else {
+      const tuttiTornei = await getTornei();
+      const torneo = tuttiTornei.find(t => String(t.id) === String(squadraTrovata.torneo_id));
+      if (torneo && Array.isArray(torneo.categorie_autorizzate) && torneo.categorie_autorizzate.length > 0) {
+        rawCategorieAutorizzate = torneo.categorie_autorizzate;
+      }
+    }
+
+    // Recupera il prodotto autoritativo reale dal database
+    const authoritativeProduct = providedProduct || await getAuthoritativeProduct(item);
+    const rawProdCat = authoritativeProduct ? authoritativeProduct.categoria : (item.categoria || null);
+    const prodNome = item.squadra || (authoritativeProduct ? (authoritativeProduct.versione || authoritativeProduct.nome) : 'Prodotto');
+
+    // Se il prodotto ha categoria null/vuota/sconosciuta -> considerarlo NON autorizzato
+    if (!rawProdCat || typeof rawProdCat !== 'string' || !rawProdCat.trim()) {
+      return {
+        isFornitura: true,
+        valid: false,
+        squadra: squadraTrovata,
+        error: `Prodotto non autorizzato dalla convenzione torneo: "${prodNome}" (Categoria mancante o non valida).`
+      };
+    }
+
+    const catProdNorm = normalizzaCategoria(rawProdCat);
+    const authCatsNorm = rawCategorieAutorizzate.map(c => normalizzaCategoria(c)).filter(Boolean);
+
+    const isCatAuth = authCatsNorm.some(auth => auth.toLowerCase() === catProdNorm.toLowerCase());
+    if (!isCatAuth) {
+      return {
+        isFornitura: true,
+        valid: false,
+        squadra: squadraTrovata,
+        error: `Prodotto non autorizzato dalla convenzione torneo: "${prodNome}" (${rawProdCat}). Categorie consentite: ${rawCategorieAutorizzate.join(', ') || 'Nessuna'}.`
+      };
+    }
+
+    // =========================================================================
+    // VALIDAZIONE PERSONALIZZAZIONE AUTORIZZATA
+    // =========================================================================
+    // Recupera la configurazione autorizzata dal database/server (NON fidarsi del client)
+    const cfg = (squadraTrovata.configurazione_personalizzazione && typeof squadraTrovata.configurazione_personalizzazione === 'object')
+      ? squadraTrovata.configurazione_personalizzazione
+      : { permetti_nome: true, permetti_numero: true, permetti_patch: false };
+
+    const permettiNome = cfg.permetti_nome !== false;
+    const permettiNumero = cfg.permetti_numero !== false;
+    const permettiPatch = Boolean(cfg.permetti_patch);
+
+    // Estrai i dettagli di personalizzazione effettivi dell'articolo
+    const custom = parseCustomizationDetails(item.infoPerso, item);
+
+    if (!permettiNome && custom.nome && custom.nome.trim() !== '' && custom.nome.toLowerCase() !== 'nessuno') {
+      return {
+        isFornitura: true,
+        valid: false,
+        squadra: squadraTrovata,
+        error: `La personalizzazione con Nome ("${custom.nome}") non è consentita per la fornitura della squadra "${squadraTrovata.nome_squadra}".`
+      };
+    }
+
+    if (!permettiNumero && custom.numero && custom.numero.trim() !== '' && custom.numero.toLowerCase() !== 'nessuno') {
+      return {
+        isFornitura: true,
+        valid: false,
+        squadra: squadraTrovata,
+        error: `La personalizzazione con Numero ("${custom.numero}") non è consentita per la fornitura della squadra "${squadraTrovata.nome_squadra}".`
+      };
+    }
+
+    if (!permettiPatch && Array.isArray(custom.patches) && custom.patches.length > 0) {
+      return {
+        isFornitura: true,
+        valid: false,
+        squadra: squadraTrovata,
+        error: `La personalizzazione con Patch ("${custom.patches.join(', ')}") non è consentita per la fornitura della squadra "${squadraTrovata.nome_squadra}".`
+      };
+    }
+
+    return {
+      isFornitura: true,
+      valid: true,
+      squadra: squadraTrovata,
+      configurazione: cfg,
+      categorie_autorizzate: rawCategorieAutorizzate
+    };
+  } catch (err) {
+    console.error("⚠️ Errore durante validaPersonalizzazioneFornitura:", err.message);
+    return { isFornitura: false, valid: true };
+  }
+}
+
+// Helper per calcolo quantita_ordinata dinamica di una squadra torneo dagli ordini reali
+async function calcolaQuantitaOrdinataSquadra(squadra) {
+  if (!squadra) return 0;
+  try {
+    const orders = await getDbOrders();
+    let quantitaTotale = 0;
+    const codiceClean = (squadra.codice_univoco || '').toUpperCase();
+    const squadraIdStr = String(squadra.id || '');
+
+    // Recupera eventuali ID ordini annullati da customer_orders per coerenza massima con lo stato utente
+    const canceledAdminOrderIds = new Set();
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        const { data: cOrders } = await supabase
+          .from('customer_orders')
+          .select('admin_order_id, status')
+          .or('status.eq.annullato_dal_cliente,status.eq.Annullato dal Cliente');
+        if (Array.isArray(cOrders)) {
+          cOrders.forEach(co => {
+            if (co.admin_order_id) canceledAdminOrderIds.add(String(co.admin_order_id));
+          });
+        }
+      } catch (e) {
+        // Fallback silenzioso
+      }
+    }
+
+    for (const order of orders) {
+      if (!order) continue;
+
+      // Se l'ordine è esplicitamente annullato (in orders o in customer_orders), NON consuma quota!
+      const statusStr = String(order.status || order.data_status || order.stato || (order.data && order.data.status) || '').trim().toLowerCase();
+      const isCanceled = statusStr === 'annullato_dal_cliente' || 
+                         statusStr === 'annullato dal cliente' || 
+                         statusStr === 'annullato' || 
+                         statusStr.includes('annullat') || 
+                         statusStr === 'canceled' || 
+                         statusStr === 'cancelled' ||
+                         (order.id !== undefined && order.id !== null && canceledAdminOrderIds.has(String(order.id)));
+
+      if (isCanceled) {
+        continue;
+      }
+
+      // NOTA BENE: Gli ordini con order.is_archived === true CONTINUANO a consumare quota (non vengono esclusi)
+
+      if (Array.isArray(order.carrello) && order.carrello.length > 0) {
+        for (const item of order.carrello) {
+          if (!item) continue;
+          let isMatch = false;
+          if (item.fornitura) {
+            if (typeof item.fornitura === 'object') {
+              if (item.fornitura.squadra_id && String(item.fornitura.squadra_id) === squadraIdStr) isMatch = true;
+              else if (item.fornitura.id && String(item.fornitura.id) === squadraIdStr) isMatch = true;
+              else if (item.fornitura.torneo_squadra_id && String(item.fornitura.torneo_squadra_id) === squadraIdStr) isMatch = true;
+              else if (item.fornitura.codice_univoco && item.fornitura.codice_univoco.toUpperCase() === codiceClean) isMatch = true;
+              else if (item.fornitura.codice && item.fornitura.codice.toUpperCase() === codiceClean) isMatch = true;
+            } else if (typeof item.fornitura === 'string' && item.fornitura.toUpperCase() === codiceClean) {
+              isMatch = true;
+            }
+          }
+          if (!isMatch) {
+            if (item.squadra_id && String(item.squadra_id) === squadraIdStr) isMatch = true;
+            else if (item.torneo_squadra_id && String(item.torneo_squadra_id) === squadraIdStr) isMatch = true;
+            else if (item.codice_fornitura && item.codice_fornitura.toUpperCase() === codiceClean) isMatch = true;
+            else if (item.fornitura_codice && item.fornitura_codice.toUpperCase() === codiceClean) isMatch = true;
+          }
+
+          if (isMatch) {
+            quantitaTotale += (parseInt(item.quantita, 10) || 1);
+          }
+        }
+      }
+    }
+    return quantitaTotale;
+  } catch (err) {
+    console.error("⚠️ Errore calcolo quantita_ordinata squadra:", err.message);
+    return 0;
+  }
+}
+
+// POST /api/tornei/verifica-codice - Verifica codice fornitura lato pubblico e restituisce stato/quota
+app.post('/api/tornei/verifica-codice', async (req, res) => {
+  try {
+    const rawCodice = req.body && req.body.codice ? String(req.body.codice).trim() : "";
+    if (!rawCodice) {
+      return res.status(400).json({
+        valid: false,
+        error: "Inserisci un codice fornitura valido."
+      });
+    }
+
+    const codiceUpper = rawCodice.toUpperCase();
+    const tutteSquadre = await getAllTorneoSquadre();
+    const squadra = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.trim().toUpperCase() === codiceUpper);
+
+    if (!squadra) {
+      return res.status(404).json({
+        valid: false,
+        error: "Codice fornitura non valido o inesistente."
+      });
+    }
+
+    const tuttiTornei = await getTornei();
+    const torneo = tuttiTornei.find(t => String(t.id) === String(squadra.torneo_id));
+
+    if (!torneo) {
+      return res.status(404).json({
+        valid: false,
+        error: "Torneo associato alla fornitura non trovato."
+      });
+    }
+
+    if (torneo.is_active === false) {
+      return res.status(400).json({
+        valid: false,
+        error: "Il torneo associato a questo codice fornitura non è al momento attivo."
+      });
+    }
+
+    const quantita_assegnata = parseInt(squadra.quantita_assegnata, 10) || 0;
+    const quantita_ordinata = await calcolaQuantitaOrdinataSquadra(squadra);
+    const quantita_rimanente = Math.max(0, quantita_assegnata - quantita_ordinata);
+
+    const configurazione_personalizzazione = (squadra.configurazione_personalizzazione && typeof squadra.configurazione_personalizzazione === 'object')
+      ? squadra.configurazione_personalizzazione
+      : (torneo.configurazione_personalizzazione || { permetti_nome: true, permetti_numero: true, permetti_patch: false });
+
+    return res.json({
+      valid: true,
+      torneo_id: torneo.id,
+      torneo_nome: torneo.nome,
+      torneo_squadra_id: squadra.id,
+      nome_squadra: squadra.nome_squadra,
+      codice_univoco: squadra.codice_univoco,
+      quantita_assegnata: quantita_assegnata,
+      quantita_ordinata: quantita_ordinata,
+      quantita_rimanente: quantita_rimanente,
+      prezzo_concordato_unitario: (squadra.prezzo_concordato_unitario !== undefined && squadra.prezzo_concordato_unitario !== null && squadra.prezzo_concordato_unitario !== '') ? Number(squadra.prezzo_concordato_unitario) : (Number(torneo.prezzo_concordato_unitario) || 0),
+      categorie_autorizzate: Array.isArray(squadra.categorie_autorizzate) ? squadra.categorie_autorizzate : (Array.isArray(torneo.categorie_autorizzate) ? torneo.categorie_autorizzate : []),
+      configurazione_personalizzazione: configurazione_personalizzazione
+    });
+  } catch (err) {
+    console.error("⚠️ Errore /api/tornei/verifica-codice:", err.message);
+    return res.status(500).json({
+      valid: false,
+      error: "Errore interno durante la verifica del codice fornitura."
+    });
+  }
+});
+
+app.post('/api/tornei/valida-personalizzazione', async (req, res) => {
+  try {
+    const { item, codice_fornitura, squadra_id, torneo_id } = req.body;
+    if (!item) {
+      return res.status(400).json({ success: false, error: "Dati articolo mancanti." });
+    }
+
+    const valResult = await validaPersonalizzazioneFornitura(item, { codice_fornitura, squadra_id, torneo_id });
+    if (!valResult.valid) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        error: valResult.error,
+        isFornitura: valResult.isFornitura
+      });
+    }
+
+    return res.json({
+      success: true,
+      valid: true,
+      isFornitura: valResult.isFornitura,
+      squadra: valResult.squadra || null,
+      configurazione: valResult.configurazione || null
+    });
+  } catch (err) {
+    console.error("⚠️ Errore /api/tornei/valida-personalizzazione:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -9464,6 +10498,22 @@ app.post('/api/orders', async (req, res) => {
           }
         });
       }
+
+      // VALIDAZIONE PERSONALIZZAZIONE E CATEGORIE FORNITURA TORNEI (SERVER-SIDE)
+      const valFornitura = await validaPersonalizzazioneFornitura(item, req.body, matchedProd);
+      if (!valFornitura.valid) {
+        console.error(`❌ [SERVER 400 Bad Request] Articolo fornitura non valido #${index + 1}:`, valFornitura.error);
+        return res.status(400).json({
+          success: false,
+          error: valFornitura.error,
+          reason: valFornitura.error,
+          invalid_item: {
+            index: index + 1,
+            squadra: item.squadra || null,
+            infoPerso: item.infoPerso || null
+          }
+        });
+      }
     }
 
     // Calcoliamo i totali dell'ordine
@@ -9728,6 +10778,118 @@ app.post('/api/orders', async (req, res) => {
 
     // Salva l'ordine e ricalcola il lotto in modo atomico (sincronizzato) per evitare race condition
     const { insertedAdminOrder, finalLotto } = await runWithLottoLock(async () => {
+      // =========================================================================
+      // FASE 9: CONTROLLO ATOMICO DELLA QUOTA CONVENZIONE TORNEO
+      // =========================================================================
+      // 1. Identifica se ci sono articoli Convenzione Torneo nel carrello
+      const fornituraSquadreMap = new Map(); // key: squadraId -> { squadra, quantitaRichiesta }
+      const tutteSquadre = await getAllTorneoSquadre();
+
+      if (Array.isArray(carrello) && carrello.length > 0) {
+        for (const item of carrello) {
+          if (!item) continue;
+          if (item.squadra && isTechnicalShippingOrServiceLine(item.squadra)) continue;
+
+          let squadraRef = null;
+          let codiceRef = null;
+
+          if (item.fornitura) {
+            if (typeof item.fornitura === 'object') {
+              squadraRef = item.fornitura.squadra_id || item.fornitura.id || item.fornitura.torneo_squadra_id || null;
+              codiceRef = item.fornitura.codice_univoco || item.fornitura.codice_fornitura || item.fornitura.codice || null;
+            } else if (typeof item.fornitura === 'string') {
+              codiceRef = item.fornitura;
+            }
+          }
+
+          if (!squadraRef && !codiceRef) {
+            if (item.squadra_id || item.torneo_squadra_id || item.codice_fornitura || item.fornitura_codice) {
+              squadraRef = item.squadra_id || item.torneo_squadra_id || null;
+              codiceRef = item.codice_fornitura || item.fornitura_codice || null;
+            }
+          }
+
+          // Se l'ordine complessivo riporta una fornitura ed è un articolo convenzione (o contrassegnato con prezzo concordato)
+          if (!squadraRef && !codiceRef && (item.ha_prezzo_concordato || (req.body && (req.body.codice_fornitura || req.body.torneo_squadra_id) && item.fornitura))) {
+            squadraRef = req.body.squadra_id || req.body.torneo_squadra_id || null;
+            codiceRef = req.body.codice_fornitura || req.body.fornitura_codice || null;
+          }
+
+          if (squadraRef || codiceRef) {
+            let squadraTrovata = null;
+            if (squadraRef) {
+              squadraTrovata = tutteSquadre.find(s => String(s.id) === String(squadraRef));
+            }
+            if (!squadraTrovata && codiceRef) {
+              const codClean = String(codiceRef).trim().toUpperCase();
+              squadraTrovata = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.toUpperCase() === codClean);
+            }
+
+            if (squadraTrovata) {
+              const sqKey = String(squadraTrovata.id);
+              const qItem = parseInt(item.quantita, 10) || 1;
+              if (!fornituraSquadreMap.has(sqKey)) {
+                fornituraSquadreMap.set(sqKey, {
+                  squadra: squadraTrovata,
+                  quantitaRichiesta: 0
+                });
+              }
+              fornituraSquadreMap.get(sqKey).quantitaRichiesta += qItem;
+            }
+          }
+        }
+      }
+
+      // Se non ci sono articoli con fornitura esplicita ma l'ordine globale specifica codice_fornitura o torneo_squadra_id
+      if (fornituraSquadreMap.size === 0 && req.body && (req.body.codice_fornitura || req.body.torneo_squadra_id)) {
+        const squadraRef = req.body.squadra_id || req.body.torneo_squadra_id || null;
+        const codiceRef = req.body.codice_fornitura || req.body.fornitura_codice || null;
+        let squadraTrovata = null;
+        if (squadraRef) {
+          squadraTrovata = tutteSquadre.find(s => String(s.id) === String(squadraRef));
+        }
+        if (!squadraTrovata && codiceRef) {
+          const codClean = String(codiceRef).trim().toUpperCase();
+          squadraTrovata = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.toUpperCase() === codClean);
+        }
+        if (squadraTrovata) {
+          let qTot = 0;
+          for (const item of (carrello || [])) {
+            if (!item || (item.squadra && isTechnicalShippingOrServiceLine(item.squadra))) continue;
+            qTot += (parseInt(item.quantita, 10) || 1);
+          }
+          if (qTot > 0) {
+            fornituraSquadreMap.set(String(squadraTrovata.id), {
+              squadra: squadraTrovata,
+              quantitaRichiesta: qTot
+            });
+          }
+        }
+      }
+
+      // Se ci sono convenzioni coinvolte, verifica la capienza autoritativa della quota
+      for (const entry of fornituraSquadreMap.values()) {
+        const squadra = entry.squadra;
+        const quantitaRichiesta = entry.quantitaRichiesta;
+        const quantitaAssegnata = parseInt(squadra.quantita_assegnata, 10) || 0;
+
+        // Calcola la quantità già ordinata autoritativa dagli ordini reali nel database (escludendo gli annullati)
+        const quantitaGiaOrdinata = await calcolaQuantitaOrdinataSquadra(squadra);
+        const quantitaDisponibile = Math.max(0, quantitaAssegnata - quantitaGiaOrdinata);
+
+        console.log(`🔒 [CONTROLLO ATOMICO QUOTA] Squadra: "${squadra.nome_squadra}" (Codice: ${squadra.codice_univoco}) | Assegnata: ${quantitaAssegnata} | Già ordinata: ${quantitaGiaOrdinata} | Disponibile: ${quantitaDisponibile} | Richiesta: ${quantitaRichiesta}`);
+
+        if (quantitaRichiesta > quantitaDisponibile) {
+          console.warn(`⛔ [QUOTA CONVENZIONE SUPERATA] Rifiutato ordine: Richiesti ${quantitaRichiesta} ma disponibili ${quantitaDisponibile} per squadra ${squadra.nome_squadra}`);
+          const err = new Error(`Non ci sono abbastanza completini disponibili per la tua Convenzione Torneo (${squadra.nome_squadra}). Richiesti: ${quantitaRichiesta}, Disponibili: ${quantitaDisponibile}.`);
+          err.statusCode = 409;
+          err.requested = quantitaRichiesta;
+          err.available = quantitaDisponibile;
+          err.squadra = squadra.nome_squadra;
+          throw err;
+        }
+      }
+
       console.log("📤 Registrazione dell'ordine nel database Supabase (atomica)...");
       const insertedOrder = await insertDbOrder(rigaOrdine);
       console.log("📤 Ricalcolo automatico del lotto corrente (atomico)...");
@@ -9863,7 +11025,14 @@ console.log("=================================");
     return res.json({ success: true, order: rigaOrdine, lotto: finalLotto });
   } catch (err) {
     console.error("⚠️ Errore durante la registrazione dell'ordine:", err);
-    return res.status(500).json({ success: false, error: err.message });
+    const statusCode = err.statusCode || 500;
+    return res.status(statusCode).json({
+      success: false,
+      error: err.message,
+      requested: err.requested,
+      available: err.available,
+      squadra: err.squadra
+    });
   }
 });
 

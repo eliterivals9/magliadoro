@@ -1,0 +1,271 @@
+[
+  {
+    "torneo_id": "ea378156-a006-4af9-91a7-409fa275617e",
+    "nome_squadra": "FC SERGIO",
+    "codice_univoco": "ETNAGOLD-SERGIO",
+    "quantita_assegnata": 15,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:12:30.489Z",
+    "created_at": "2026-09-02T13:04:37.719Z",
+    "id": "ea8f88c6-3d5c-49ee-8434-f9f79ff64ebd"
+  },
+  {
+    "torneo_id": "d3d714f2-8b2e-434e-94e8-41bd87b60ca9",
+    "nome_squadra": "FC Big",
+    "codice_univoco": "ETNAGOLD-BIG",
+    "quantita_assegnata": 120,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:05:02.518Z",
+    "created_at": "2026-09-02T13:05:02.519Z",
+    "id": "3fbc5038-6e0f-4b0a-b402-bec5df9e130d"
+  },
+  {
+    "torneo_id": "a4cd558c-3c9b-4953-9d01-e5709cf49ac2",
+    "nome_squadra": "FC Sergio Updated",
+    "codice_univoco": "CHAMP8030-SQ1",
+    "quantita_assegnata": 20,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:08:35.082Z",
+    "created_at": "2026-09-02T13:05:18.421Z",
+    "id": "83651177-c13a-4967-a929-c70d3d658142"
+  },
+  {
+    "torneo_id": "a4cd558c-3c9b-4953-9d01-e5709cf49ac2",
+    "nome_squadra": "Fc palmitas",
+    "codice_univoco": "CHAMPION-FCPALMITAS",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:08:00.432Z",
+    "created_at": "2026-09-02T13:08:00.433Z",
+    "id": "1a79b85f-2071-407d-a853-8f32d3cf24b7"
+  },
+  {
+    "torneo_id": "91f0cc2e-94af-4ddc-92de-b06b8bb401fd",
+    "nome_squadra": "FC SERGIO FASE4",
+    "codice_univoco": "FCSERGIO4",
+    "quantita_assegnata": 15,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:29:15.255Z",
+    "created_at": "2026-09-02T13:29:15.255Z",
+    "id": "f5988772-4466-4998-86c5-91ef5e914b51"
+  },
+  {
+    "torneo_id": "91f0cc2e-94af-4ddc-92de-b06b8bb401fd",
+    "nome_squadra": "TEAM NO NOME",
+    "codice_univoco": "NONOME4",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": false,
+      "permetti_numero": true,
+      "permetti_patch": true
+    },
+    "categorie_autorizzate": [],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:29:15.396Z",
+    "created_at": "2026-09-02T13:29:15.396Z",
+    "id": "158b2ec7-fe46-4c90-a1a8-20395cc4310e"
+  },
+  {
+    "torneo_id": "262e6114-36c7-46ac-af4b-09805fd44c26",
+    "nome_squadra": "TEAM NO NUMERO",
+    "codice_univoco": "NONUM4",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": false,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T14:18:49.882Z",
+    "created_at": "2026-09-02T13:29:31.940Z",
+    "id": "4f9b29a7-c3df-44ab-9571-1ff6aa67d4c0"
+  },
+  {
+    "torneo_id": "ae16d7cb-5159-49e2-8d08-8b2ee67e7663",
+    "nome_squadra": "Virtus Catania",
+    "codice_univoco": "ETNA-TEAM-8449",
+    "quantita_assegnata": 15,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Calcio",
+      "Serie A"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:46:52.081Z",
+    "created_at": "2026-09-02T13:46:52.081Z",
+    "id": "82ce5972-82f1-4f2f-9e39-d4787d639377"
+  },
+  {
+    "torneo_id": "4ae7d4f6-06bb-47cb-8c38-729b0f68a37e",
+    "nome_squadra": "Aquile Nere",
+    "codice_univoco": "CAMPIONI-TEAM-7569",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Calcio"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:48:02.467Z",
+    "created_at": "2026-09-02T13:48:02.467Z",
+    "id": "33f8a69a-3e74-4b36-b967-e1daa9d73b0c"
+  },
+  {
+    "torneo_id": "d050d66a-b185-4001-af58-67950e4cab8e",
+    "nome_squadra": "Aquile Nere",
+    "codice_univoco": "CAMPIONI-TEAM-1152",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Calcio"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T13:49:36.700Z",
+    "created_at": "2026-09-02T13:49:36.700Z",
+    "id": "ad2ea79e-4473-441a-a8e4-50727cbcc5b8"
+  },
+  {
+    "torneo_id": "a9b37727-5262-4ce6-98b3-b44e9434136c",
+    "nome_squadra": "FC Test Fase 9",
+    "codice_univoco": "FASE9-TEAM-58452",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T21:04:55.092Z",
+    "created_at": "2026-09-02T21:04:55.092Z",
+    "id": "feee0862-7ae6-4c0a-8cf0-55bcda4004e6"
+  },
+  {
+    "torneo_id": "a9b37727-5262-4ce6-98b3-b44e9434136c",
+    "nome_squadra": "FC Test Squadra 2",
+    "codice_univoco": "FASE9-TEAM2-71075",
+    "quantita_assegnata": 5,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T21:05:04.888Z",
+    "created_at": "2026-09-02T21:05:04.888Z",
+    "id": "f26c9fc1-ed26-49de-ab95-c41048ed1c3e"
+  },
+  {
+    "torneo_id": "11b1d557-a5f8-46a9-aac7-a43b7213d46c",
+    "nome_squadra": "FC Test Fase 9",
+    "codice_univoco": "FASE9-TEAM-96870",
+    "quantita_assegnata": 10,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T21:05:30.332Z",
+    "created_at": "2026-09-02T21:05:30.332Z",
+    "id": "48f14d1f-3bfc-4a92-9ac7-f18612f584ef"
+  },
+  {
+    "torneo_id": "11b1d557-a5f8-46a9-aac7-a43b7213d46c",
+    "nome_squadra": "FC Test Squadra 2",
+    "codice_univoco": "FASE9-TEAM2-53668",
+    "quantita_assegnata": 5,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_numero": true,
+      "permetti_patch": false
+    },
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan"
+    ],
+    "prodotti_autorizzati": [],
+    "note": null,
+    "updated_at": "2026-09-02T21:05:42.881Z",
+    "created_at": "2026-09-02T21:05:42.881Z",
+    "id": "f43b8b4b-6e4f-484c-a248-b59bd0bf215e"
+  }
+]

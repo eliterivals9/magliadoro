@@ -5054,6 +5054,86 @@ body {
             border: 1px dashed rgba(214, 164, 58, 0.25);
             text-align: center;
         }
+
+        /* Stili Banner Fornitura Tornei Lato Pubblico */
+        .banner-fornitura-top-wrap {
+            padding: 12px 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .banner-fornitura-card {
+            background: linear-gradient(135deg, rgba(214, 164, 58, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%);
+            border: 1px solid rgba(214, 164, 58, 0.35);
+            border-radius: var(--radius-m);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), var(--gold-glow);
+            flex-wrap: wrap;
+        }
+        .banner-fornitura-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .banner-fornitura-badge {
+            background: var(--gold-gradient);
+            color: #000;
+            font-weight: 900;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: var(--radius-s);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .banner-fornitura-text {
+            color: #fff;
+            font-size: 13px;
+        }
+        .banner-fornitura-text strong {
+            color: var(--primary);
+        }
+        .banner-fornitura-chips {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .banner-fornitura-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11.5px;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .btn-disattiva-fornitura {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 8px 14px;
+            border-radius: var(--radius-s);
+            font-weight: 800;
+            font-size: 11.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-disattiva-fornitura:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        .banner-fornitura-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            width: 100%;
+            max-width: 480px;
+        }
     </style>
 </head>
 <body>
@@ -7409,8 +7489,8 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
             <h4 id="modal-titolo-squadra">Personalizza il Kit</h4>
             <div class="sottotitolo">Rendi unica la maglia inserendo i tuoi dettagli preferiti</div>
 
-            <div class="gruppo-form">
-                <label>Seleziona Taglia</label>
+            <div class="gruppo-form" id="gruppo-modal-taglia">
+                <label id="label-modal-taglia">Seleziona Taglia</label>
                 <select id="modal-taglia">
                     <option value="S">Taglia S</option>
                     <option value="M" selected>Taglia M</option>
@@ -7419,16 +7499,16 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                     <option value="XXL">Taglia XXL</option>
                 </select>
             </div>
-            <div class="gruppo-form">
-                <label>Nome sulla maglia <span>+1,50€</span></label>
+            <div class="gruppo-form" id="gruppo-modal-nome">
+                <label id="label-modal-nome">Nome sulla maglia <span id="badge-modal-nome">+1,50€</span></label>
                 <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
             </div>
-            <div class="gruppo-form">
-                <label>Numero sulla maglia <span>+1,50€</span></label>
+            <div class="gruppo-form" id="gruppo-modal-numero">
+                <label id="label-modal-numero">Numero sulla maglia <span id="badge-modal-numero">+1,50€</span></label>
                 <input type="number" id="modal-numero" min="1" max="99" placeholder="10" oninput="ricalcolaPrezzoPopup()">
             </div>
-            <div class="gruppo-form">
-                <label>Patch <span>+1,00€</span></label>
+            <div class="gruppo-form" id="gruppo-modal-patch">
+                <label id="label-modal-patch">Patch <span id="badge-modal-patch">+1,00€</span></label>
                 <input type="text" id="modal-patch" placeholder="Es. Champions League, Serie A" oninput="ricalcolaPrezzoPopup()">
             </div>
 
@@ -7450,6 +7530,9 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         
         <!-- Contenitore scrollabile del carrello per evitare overflow su schermi piccoli -->
         <div class="carrello-corpo-scroll" style="flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-right: 5px; margin-bottom: 15px;">
+            <!-- Box Convenzione Torneo (visibile sia a carrello vuoto che pieno) -->
+            <div id="box-convenzione-torneo-carrello"></div>
+
             <div class="elementi-carrello" id="elementi-carrello" style="overflow-y: visible !important; flex-grow: 0 !important; padding-right: 0 !important;">
                 <p style="color: var(--on-surface-de-emphasis); text-align: center; margin-top: 30px;">Il carrello è vuoto.</p>
             </div>
@@ -7829,6 +7912,22 @@ function chiudiZoomImmagine(){
             if (!accessorioInDettaglio) return;
 
             const item = accessorioInDettaglio;
+
+            // FASE 6: Controllo sicurezza Convenzione Torneo per accessori
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                const accCat = item.categoria || 'Accessori';
+                if (!isCategoriaAutorizzataTorneo(accCat, window.fornituraTorneoAttiva.categorie_autorizzate)) {
+                    const msg = `Gli accessori non sono consentiti dalla convenzione torneo attiva.`;
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(msg, "warning");
+                    } else {
+                        alert(msg);
+                    }
+                    chiudiAccessorioModal();
+                    return;
+                }
+            }
+
             const selectTaglia = document.getElementById('modal-acc-select-taglia');
             const selectColore = document.getElementById('modal-acc-select-colore');
 
@@ -7939,6 +8038,19 @@ function chiudiZoomImmagine(){
         }
 
         function aggiungiMagliaLiveAlCarrello() {
+            // FASE 6: Controllo sicurezza Convenzione Torneo per maglia live customizer
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                if (!isCategoriaAutorizzataTorneo('Kit', window.fornituraTorneoAttiva.categorie_autorizzate)) {
+                    const msg = `La maglia personalizzata non è consentita dalla convenzione torneo attiva.`;
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(msg, "warning");
+                    } else {
+                        alert(msg);
+                    }
+                    return;
+                }
+            }
+
             const nameInput = document.getElementById('live-name-input').value.trim().toUpperCase();
             const numInput = document.getElementById('live-number-input').value.trim();
             const patchSelect = document.getElementById('live-patch-select').value;
@@ -8025,6 +8137,32 @@ function chiudiZoomImmagine(){
             
             return raw;
         }
+        window.normalizzaCategoria = normalizzaCategoria;
+
+        // FASE 6: Helper per validazione categorie autorizzate convenzione torneo
+        function isCategoriaAutorizzataTorneo(categoria, categorieAutorizzate) {
+            if (!categoria || typeof categoria !== 'string' || !categoria.trim()) {
+                return false;
+            }
+            if (!Array.isArray(categorieAutorizzate) || categorieAutorizzate.length === 0) {
+                return false;
+            }
+            const catNorm = normalizzaCategoria(categoria);
+            if (!catNorm) return false;
+            const authNorm = categorieAutorizzate.map(c => normalizzaCategoria(c)).filter(Boolean);
+            return authNorm.some(auth => auth.toLowerCase() === catNorm.toLowerCase());
+        }
+        window.isCategoriaAutorizzataTorneo = isCategoriaAutorizzataTorneo;
+
+        function isProdottoAutorizzatoTorneo(p, fornitura) {
+            if (!fornitura || !fornitura.valid) return true;
+            const authCats = fornitura.categorie_autorizzate;
+            if (!Array.isArray(authCats) || authCats.length === 0) return false;
+            if (!p || !p.categoria) return false;
+            return isCategoriaAutorizzataTorneo(p.categoria, authCats);
+        }
+        window.isProdottoAutorizzatoTorneo = isProdottoAutorizzatoTorneo;
+
         const prezzoBase = 23.99;
         const costoNome = 1.50;
         const costoNumero = 1.50;
@@ -8034,6 +8172,7 @@ function chiudiZoomImmagine(){
         let urlImmagineInConfigurazione = '';
         let idInConfigurazione = '';
         let legacyIdInConfigurazione = '';
+        let categoriaInConfigurazione = '';
 
         // Variabili globali di stato gia' dichiarate in cima allo script
 
@@ -9500,6 +9639,12 @@ for (const cat in hierarchy) {
 
             // 2. Applica filtro Categoria se attivo
             let filtrati = matching;
+
+            // FASE 6: Filtro Convenzione Torneo (esclude categorie non autorizzate)
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                filtrati = filtrati.filter(p => isProdottoAutorizzatoTorneo(p, window.fornituraTorneoAttiva));
+            }
+
             if (filtroCategoriaCorrente && filtroCategoriaCorrente !== 'tutti') {
                 filtrati = filtrati.filter(p => verificaProdottoCorrispondeCategoria(p, filtroCategoriaCorrente));
             }
@@ -10264,6 +10409,11 @@ function renderizzaProdottiSquadraConFiltri() {
             let prodotti = generaProdottiSquadra(squadraSelezionata);
             const prodottiRicevutiFrontend = prodotti.length;
 
+            // FASE 6: Filtro Convenzione Torneo (mostra SOLO le categorie autorizzate)
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                prodotti = prodotti.filter(p => isProdottoAutorizzatoTorneo(p, window.fornituraTorneoAttiva));
+            }
+
             // DYNAMIC TEAM FILTER POPULATION
             const wrapperClub = document.getElementById('wrapper-filtro-squadra-club');
             const wrapperNaz = document.getElementById('wrapper-filtro-squadra-nazionali');
@@ -10578,6 +10728,16 @@ function renderizzaProdottiSquadraConFiltri() {
         window.renderizzaFiltriCatalogoPubblici = renderizzaFiltriCatalogoPubblici;
 
         function impostaFiltroCategoria(categoria) {
+            // FASE 6: Controllo categorie autorizzate convenzione torneo
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid && categoria && categoria !== 'tutti') {
+                if (!isCategoriaAutorizzataTorneo(categoria, window.fornituraTorneoAttiva.categorie_autorizzate)) {
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(`La categoria "${categoria}" non è autorizzata dalla convenzione torneo attiva.`, "warning");
+                    }
+                    return;
+                }
+            }
+
             paginaCorrenteCatalogo = 1;
             paginaCorrenteRicerca = 1;
             filtroCategoriaCorrente = categoria;
@@ -11670,14 +11830,270 @@ function renderizzaProdottiSquadraConFiltri() {
             }
         }
         
+        // ==========================================
+        // GESTIONE CONVENZIONE TORNEI (LATO PUBBLICO)
+        // ==========================================
+        window.fornituraTorneoAttiva = null;
+        let fornituraStatusMsg = '';
+        let fornituraStatusType = '';
+
+        try {
+            const savedFornitura = sessionStorage.getItem('fornituraTorneoAttiva');
+            if (savedFornitura) {
+                window.fornituraTorneoAttiva = JSON.parse(savedFornitura);
+            }
+        } catch (e) {
+            console.warn("Errore lettura convenzione da sessionStorage:", e);
+        }
+
+        // Se la convenzione non è attiva nella sessione, riconcilia eventuali residui nel carrello ripristinando i prezzi originali
+        if (!window.fornituraTorneoAttiva && Array.isArray(carrello)) {
+            let carrelloAggiornato = false;
+            carrello.forEach(item => {
+                if (item && (item.fornitura || item.ha_prezzo_concordato)) {
+                    if (item.prezzo_originale !== undefined && item.prezzo_originale !== null && Number(item.prezzo_originale) > 0) {
+                        item.prezzo = Number(item.prezzo_originale);
+                    } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+                        const prod = databaseProdotti.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && item.squadra && p.versione.toLowerCase() === item.squadra.toLowerCase()));
+                        if (prod && prod.prezzo) {
+                            item.prezzo = Number(prod.prezzo);
+                        } else {
+                            item.prezzo = 23.99;
+                        }
+                    } else {
+                        item.prezzo = 23.99;
+                    }
+                    delete item.fornitura;
+                    delete item.ha_prezzo_concordato;
+                    delete item.prezzo_concordato;
+                    delete item.prezzo_originale;
+                    carrelloAggiornato = true;
+                }
+            });
+            if (carrelloAggiornato) {
+                salvaCarrelloInLocalStorage();
+            }
+        }
+
+        async function verificaCodiceFornitura(codiceManuale) {
+            let code = (codiceManuale || '').trim();
+            if (!code) {
+                const inputCart = document.getElementById('input-codice-fornitura-cart') || document.getElementById('input-codice-fornitura');
+                code = (inputCart ? inputCart.value : '');
+            }
+            code = (code || '').trim().toUpperCase();
+
+            if (!code) {
+                fornituraStatusMsg = 'Inserisci un codice convenzione valido';
+                fornituraStatusType = 'error';
+                aggiornaGraficaCarrello();
+                if (window.mostraToastPremium) window.mostraToastPremium("Inserisci un codice convenzione valido.", "warning");
+                return;
+            }
+
+            fornituraStatusMsg = 'Verifica in corso...';
+            fornituraStatusType = 'info';
+            aggiornaGraficaCarrello();
+
+            try {
+                const res = await fetch('/api/tornei/verifica-codice', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codice: code })
+                });
+                const data = await res.json();
+
+                if (res.ok && data && data.valid) {
+                    window.fornituraTorneoAttiva = data;
+                    sessionStorage.setItem('fornituraTorneoAttiva', JSON.stringify(data));
+                    fornituraStatusMsg = '';
+                    fornituraStatusType = 'success';
+                    aggiornaGraficaCarrello();
+                    renderizzaProdottiSquadraConFiltri();
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(`🏆 Convenzione attiva: ${data.nome_squadra} (${data.torneo_nome})`, "success");
+                    }
+                } else {
+                    fornituraStatusMsg = data.error || 'Codice convenzione non valido o torneo inattivo.';
+                    fornituraStatusType = 'error';
+                    aggiornaGraficaCarrello();
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(data.error || "Codice convenzione non valido.", "error");
+                    }
+                }
+            } catch (err) {
+                console.error("Errore verifica codice convenzione:", err);
+                fornituraStatusMsg = 'Errore di connessione. Riprova più tardi.';
+                fornituraStatusType = 'error';
+                aggiornaGraficaCarrello();
+            }
+        }
+        window.verificaCodiceFornitura = verificaCodiceFornitura;
+
+        function disattivaFornituraTorneo() {
+            window.fornituraTorneoAttiva = null;
+            sessionStorage.removeItem('fornituraTorneoAttiva');
+            fornituraStatusMsg = '';
+            fornituraStatusType = '';
+
+            // Riconciliazione articoli convenzione presenti nel carrello
+            if (Array.isArray(carrello)) {
+                carrello.forEach(item => {
+                    if (item && (item.fornitura || item.ha_prezzo_concordato)) {
+                        if (item.prezzo_originale !== undefined && item.prezzo_originale !== null && Number(item.prezzo_originale) > 0) {
+                            item.prezzo = Number(item.prezzo_originale);
+                        } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+                            const prod = databaseProdotti.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && item.squadra && p.versione.toLowerCase() === item.squadra.toLowerCase()));
+                            if (prod && prod.prezzo) {
+                                item.prezzo = Number(prod.prezzo);
+                            } else {
+                                item.prezzo = 23.99;
+                            }
+                        } else {
+                            item.prezzo = 23.99;
+                        }
+                        delete item.fornitura;
+                        delete item.ha_prezzo_concordato;
+                        delete item.prezzo_concordato;
+                        delete item.prezzo_originale;
+                    }
+                });
+            }
+
+            salvaCarrelloInLocalStorage();
+            aggiornaGraficaCarrello();
+            renderizzaProdottiSquadraConFiltri();
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium("Convenzione torneo disattivata. Prezzi di catalogo ripristinati.", "info");
+            }
+        }
+        window.disattivaFornituraTorneo = disattivaFornituraTorneo;
+
+        function renderConvenzioneCarrello() {
+            const container = document.getElementById('box-convenzione-torneo-carrello');
+            if (!container) return;
+
+            const f = window.fornituraTorneoAttiva;
+            if (f && f.valid) {
+                const completiniNelCarrello = Array.isArray(carrello)
+                    ? carrello.filter(item => item && item.fornitura).reduce((tot, item) => tot + (Number(item.quantita) || 1), 0)
+                    : 0;
+                const quantitaAssegnata = Number(f.quantita_assegnata) || 0;
+                const quantitaOrdinata = Number(f.quantita_ordinata) || 0;
+                const quotaRimanenteBase = Number(f.quantita_rimanente !== undefined ? f.quantita_rimanente : (quantitaAssegnata - quantitaOrdinata)) || 0;
+                const disponibiliEffettivi = Math.max(0, quotaRimanenteBase - completiniNelCarrello);
+
+                const catsHtml = (Array.isArray(f.categorie_autorizzate) && f.categorie_autorizzate.length > 0)
+                    ? `<div style="margin-top: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.8); background: rgba(0, 0, 0, 0.25); padding: 6px 10px; border-radius: var(--radius-s); border: 1px solid rgba(255, 255, 255, 0.05);"><strong style="color: var(--primary);">Categorie consentite:</strong> ${f.categorie_autorizzate.join(', ')}</div>`
+                    : '';
+                container.innerHTML = `
+                    <div style="background: linear-gradient(135deg, rgba(214, 164, 58, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%); border: 1px solid rgba(214, 164, 58, 0.35); border-radius: var(--radius-m); padding: 14px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 15px;">🏆</span>
+                                <span style="font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px;">CONVENZIONE TORNEO</span>
+                            </div>
+                            <button type="button" onclick="disattivaFornituraTorneo()" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: var(--radius-s); font-weight: 800; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.2s;">DISATTIVA CONVENZIONE</button>
+                        </div>
+                        <div style="font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, 0.85); margin-bottom: 2px;">Torneo: <span style="color: #ffffff; font-weight: 900;">${escapeHtml(f.torneo_nome || '')}</span></div>
+                        <div style="font-size: 13.5px; font-weight: 900; color: var(--primary); margin-bottom: 10px;">Squadra: <span style="color: var(--primary); font-weight: 900;">${escapeHtml(f.nome_squadra || '')}</span></div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: rgba(255, 255, 255, 0.85); background: rgba(0, 0, 0, 0.3); padding: 9px 12px; border-radius: var(--radius-s); border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Completini assegnati:</span>
+                                <strong>${quantitaAssegnata}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Completini ordinati:</span>
+                                <strong>${quantitaOrdinata}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; color: #60a5fa;">
+                                <span>Completini nel carrello:</span>
+                                <strong>${completiniNelCarrello}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; color: var(--primary);">
+                                <span>Completini disponibili:</span>
+                                <strong>${disponibiliEffettivi}</strong>
+                            </div>
+                        </div>
+                        ${catsHtml}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(214, 164, 58, 0.2); border-radius: var(--radius-m); padding: 14px;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <span style="font-size: 15px;">🏆</span>
+                            <span style="font-size: 12px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">CONVENZIONE TORNEO</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--on-surface-de-emphasis); margin: 0 0 10px 0;">Hai un codice convenzione?</p>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="input-codice-fornitura-cart" placeholder="inserisci Codice" style="flex-grow: 1; background: #121212; border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 8px 10px; border-radius: var(--radius-s); font-size: 12px; text-transform: uppercase;" onkeydown="if(event.key === 'Enter') { event.preventDefault(); verificaCodiceFornitura(); }">
+                            <button onclick="verificaCodiceFornitura()" style="background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 11px; padding: 8px 12px; border-radius: var(--radius-s); cursor: pointer; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px;">VERIFICA CODICE</button>
+                        </div>
+                        ${fornituraStatusMsg ? `<div style="font-size: 11.5px; margin-top: 8px; color: ${fornituraStatusType === 'success' ? '#10B981' : (fornituraStatusType === 'info' ? '#3B82F6' : '#EF4444')}; font-weight: 700;">${fornituraStatusMsg}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+        window.renderConvenzioneCarrello = renderConvenzioneCarrello;
+
+        function continuaAggiungiCompletino() {
+            toggleCarrello();
+            const target = document.getElementById('prodotti-squadra') || document.getElementById('catalogo') || document.querySelector('.griglia-prodotti') || document.querySelector('.sezione-prodotti');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        window.continuaAggiungiCompletino = continuaAggiungiCompletino;
+
+        function aggiornaBannerFornitura() {
+            renderConvenzioneCarrello();
+        }
+        window.aggiornaBannerFornitura = aggiornaBannerFornitura;
+        
         let prezzoBaseInConfigurazione = 23.99;
-        function apriPersonalizzazione(nomeSquadra, urlImmagine, prezzo = 23.99, idProdotto = "", legacyIdProdotto = "", targetProdotto = "", categoriaProdotto = "") {
-            squadraInConfigurazione = nomeSquadra; urlImmagineInConfigurazione = urlImmagine;
+        let prezzoOriginaleCatalogoInConfigurazione = 23.99;
+        let fornituraInConfigurazione = null;
+        let costoNomeAttivo = costoNome;
+        let costoNumeroAttivo = costoNumero;
+        let costoPatchAttivo = costoPatch;
+
+        function apriPersonalizzazione(nomeSquadra, urlImmagine, prezzo = 23.99, idProdotto = "", legacyIdProdotto = "", targetProdotto = "", categoriaProdotto = "", configFornitura = null) {
+            // FASE 6: Controllo categorie autorizzate per Convenzione Torneo
+            const activeFornitura = configFornitura || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid ? window.fornituraTorneoAttiva : null);
+            if (activeFornitura) {
+                let effCat = categoriaProdotto;
+                if (!effCat && (idProdotto || legacyIdProdotto)) {
+                    const pFound = databaseProdotti.find(p => (idProdotto && String(p.id) === String(idProdotto)) || (legacyIdProdotto && String(p.legacy_id) === String(legacyIdProdotto)));
+                    if (pFound) effCat = pFound.categoria;
+                }
+                const authCats = activeFornitura.categorie_autorizzate;
+                if (!isCategoriaAutorizzataTorneo(effCat, authCats)) {
+                    const msg = `Prodotto non autorizzato dalla convenzione torneo: "${nomeSquadra}" (${effCat || 'Senza categoria'}). Categorie consentite: ${Array.isArray(authCats) && authCats.length > 0 ? authCats.join(', ') : 'Nessuna'}.`;
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(msg, "warning");
+                    } else {
+                        alert(msg);
+                    }
+                    return;
+                }
+            }
+
+            squadraInConfigurazione = nomeSquadra; 
+            urlImmagineInConfigurazione = urlImmagine;
             prezzoBaseInConfigurazione = prezzo;
+            prezzoOriginaleCatalogoInConfigurazione = Number(prezzo) || 23.99;
+            if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+                const pFound = databaseProdotti.find(p => (idProdotto && String(p.id) === String(idProdotto)) || (legacyIdProdotto && String(p.legacy_id) === String(legacyIdProdotto)) || (p.versione && p.versione.toLowerCase() === String(nomeSquadra).toLowerCase()));
+                if (pFound && pFound.prezzo) {
+                    prezzoOriginaleCatalogoInConfigurazione = Number(pFound.prezzo);
+                }
+            }
             idInConfigurazione = idProdotto;
             legacyIdInConfigurazione = legacyIdProdotto;
+            categoriaInConfigurazione = categoriaProdotto;
             document.getElementById('modal-titolo-squadra').innerText = nomeSquadra;
-            document.getElementById('modal-nome').value = ''; document.getElementById('modal-numero').value = '';
             
             // Popolamento dinamico delle taglie
             const selectTaglia = document.getElementById('modal-taglia');
@@ -11726,7 +12142,107 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
             }
             
-            document.getElementById('modal-patch').value = '';
+            // Gestione Modalità Fornitura vs Modalità Normale (activeFornitura già verificata all'inizio)
+            const elNome = document.getElementById('modal-nome');
+            const elNumero = document.getElementById('modal-numero');
+            const elPatch = document.getElementById('modal-patch');
+            const grNome = document.getElementById('gruppo-modal-nome');
+            const grNumero = document.getElementById('gruppo-modal-numero');
+            const grPatch = document.getElementById('gruppo-modal-patch');
+            const badgeNome = document.getElementById('badge-modal-nome');
+            const badgeNumero = document.getElementById('badge-modal-numero');
+            const badgePatch = document.getElementById('badge-modal-patch');
+
+            if (activeFornitura) {
+                fornituraInConfigurazione = activeFornitura;
+                if (activeFornitura.prezzo_concordato_unitario !== undefined && activeFornitura.prezzo_concordato_unitario !== null) {
+                    prezzoBaseInConfigurazione = Number(activeFornitura.prezzo_concordato_unitario);
+                }
+                costoNomeAttivo = 0.00;
+                costoNumeroAttivo = 0.00;
+                costoPatchAttivo = 0.00;
+
+                const cfg = activeFornitura.configurazione_personalizzazione || activeFornitura;
+                const permettiNome = cfg.permetti_nome !== false;
+                const permettiNumero = cfg.permetti_numero !== false;
+                const permettiPatch = Boolean(cfg.permetti_patch);
+
+                // Configurazione Campo Nome
+                if (elNome) {
+                    elNome.disabled = !permettiNome;
+                    elNome.value = '';
+                    elNome.placeholder = permettiNome ? "Es. Totti o tuo Nome" : "Non consentito dalla convenzione";
+                }
+                if (grNome) grNome.style.opacity = permettiNome ? "1" : "0.45";
+                if (badgeNome) {
+                    badgeNome.innerText = permettiNome ? "Incluso" : "Non consentito";
+                    badgeNome.style.color = permettiNome ? "#10b981" : "#ef4444";
+                }
+
+                // Configurazione Campo Numero
+                if (elNumero) {
+                    elNumero.disabled = !permettiNumero;
+                    elNumero.value = '';
+                    elNumero.placeholder = permettiNumero ? "10" : "-";
+                }
+                if (grNumero) grNumero.style.opacity = permettiNumero ? "1" : "0.45";
+                if (badgeNumero) {
+                    badgeNumero.innerText = permettiNumero ? "Incluso" : "Non consentito";
+                    badgeNumero.style.color = permettiNumero ? "#10b981" : "#ef4444";
+                }
+
+                // Configurazione Campo Patch
+                if (elPatch) {
+                    elPatch.disabled = !permettiPatch;
+                    elPatch.value = '';
+                    elPatch.placeholder = permettiPatch ? "Es. Champions League, Serie A" : "Non consentita dalla convenzione";
+                }
+                if (grPatch) grPatch.style.opacity = permettiPatch ? "1" : "0.45";
+                if (badgePatch) {
+                    badgePatch.innerText = permettiPatch ? "Incluso" : "Non consentita";
+                    badgePatch.style.color = permettiPatch ? "#10b981" : "#ef4444";
+                }
+            } else {
+                // MODALITÀ NORMALE (Catalogo Ordinario)
+                fornituraInConfigurazione = null;
+                costoNomeAttivo = costoNome;
+                costoNumeroAttivo = costoNumero;
+                costoPatchAttivo = costoPatch;
+
+                if (elNome) {
+                    elNome.disabled = false;
+                    elNome.value = '';
+                    elNome.placeholder = "Es. Totti o tuo Nome";
+                }
+                if (grNome) grNome.style.opacity = "1";
+                if (badgeNome) {
+                    badgeNome.innerText = "+1,50€";
+                    badgeNome.style.color = "";
+                }
+
+                if (elNumero) {
+                    elNumero.disabled = false;
+                    elNumero.value = '';
+                    elNumero.placeholder = "10";
+                }
+                if (grNumero) grNumero.style.opacity = "1";
+                if (badgeNumero) {
+                    badgeNumero.innerText = "+1,50€";
+                    badgeNumero.style.color = "";
+                }
+
+                if (elPatch) {
+                    elPatch.disabled = false;
+                    elPatch.value = '';
+                    elPatch.placeholder = "Es. Champions League, Serie A";
+                }
+                if (grPatch) grPatch.style.opacity = "1";
+                if (badgePatch) {
+                    badgePatch.innerText = "+1,00€";
+                    badgePatch.style.color = "";
+                }
+            }
+
             ricalcolaPrezzoPopup();
             document.getElementById('modal-personalizza').style.display = 'flex';
             if (typeof aggiornaGraficaConsigliatiHome === 'function') {
@@ -11747,24 +12263,71 @@ function renderizzaProdottiSquadraConFiltri() {
         }
 
         function ricalcolaPrezzoPopup() {
-            const nome = document.getElementById('modal-nome').value.trim();
-            const numero = document.getElementById('modal-numero').value;
-            const patch = document.getElementById('modal-patch').value.trim();
+            const elNome = document.getElementById('modal-nome');
+            const elNumero = document.getElementById('modal-numero');
+            const elPatch = document.getElementById('modal-patch');
+
+            const nome = (elNome && !elNome.disabled) ? elNome.value.trim() : '';
+            const numero = (elNumero && !elNumero.disabled) ? elNumero.value.trim() : '';
+            const patch = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
+
             let totale = prezzoBaseInConfigurazione;
-            if (nome) totale += costoNome; if (numero) totale += costoNumero; if (patch) totale += costoPatch;
-            document.getElementById('modal-prezzo-anteprima').innerText = totale.toFixed(2).replace('.', ',') + '€';
+            if (nome) totale += costoNomeAttivo; 
+            if (numero) totale += costoNumeroAttivo; 
+            if (patch) totale += costoPatchAttivo;
+
+            const elAnteprima = document.getElementById('modal-prezzo-anteprima');
+            if (elAnteprima) {
+                const isFornitura = Boolean(fornituraInConfigurazione || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid));
+                if (isFornitura) {
+                    elAnteprima.innerHTML = '<span style="color: var(--primary); font-size: 13px; font-weight: 800; letter-spacing: 0.5px;">INCLUSO NELLA CONVENZIONE</span>';
+                } else {
+                    elAnteprima.innerText = totale.toFixed(2).replace('.', ',') + '€';
+                }
+            }
         }
 
         function aggiungiProdottoConfigurato() {
-            const nomeInput = document.getElementById('modal-nome').value.trim().toUpperCase();
-            const numeroInput = document.getElementById('modal-numero').value;
-            const patchScelta = document.getElementById('modal-patch').value.trim();
+            // FASE 6: Controllo sicurezza Convenzione Torneo prima di aggiungere al carrello
+            const activeFornitura = fornituraInConfigurazione || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid ? window.fornituraTorneoAttiva : null);
+            if (activeFornitura) {
+                let effCat = categoriaInConfigurazione || '';
+                if (!effCat && (idInConfigurazione || legacyIdInConfigurazione)) {
+                    const pFound = databaseProdotti.find(p => (idInConfigurazione && String(p.id) === String(idInConfigurazione)) || (legacyIdInConfigurazione && String(p.legacy_id) === String(legacyIdInConfigurazione)));
+                    if (pFound) effCat = pFound.categoria;
+                }
+                const authCats = activeFornitura.categorie_autorizzate;
+                if (!isCategoriaAutorizzataTorneo(effCat, authCats)) {
+                    const msg = `Prodotto non autorizzato dalla convenzione torneo: "${squadraInConfigurazione || 'Prodotto'}" (${effCat || 'Senza categoria'}). Categorie consentite: ${Array.isArray(authCats) && authCats.length > 0 ? authCats.join(', ') : 'Nessuna'}.`;
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(msg, "warning");
+                    } else {
+                        alert(msg);
+                    }
+                    chiudiPersonalizzazione();
+                    return;
+                }
+            }
+
+            const elNome = document.getElementById('modal-nome');
+            const elNumero = document.getElementById('modal-numero');
+            const elPatch = document.getElementById('modal-patch');
+
+            const nomeInput = (elNome && !elNome.disabled) ? elNome.value.trim().toUpperCase() : '';
+            const numeroInput = (elNumero && !elNumero.disabled) ? elNumero.value.trim() : '';
+            const patchScelta = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
             const tagliaScelta = document.getElementById('modal-taglia').value;
 
             let prezzoFinaleOggetto = prezzoBaseInConfigurazione;
-            if (nomeInput) prezzoFinaleOggetto += costoNome;
-            if (numeroInput) prezzoFinaleOggetto += costoNumero;
-            if (patchScelta) prezzoFinaleOggetto += costoPatch;
+            if (fornituraInConfigurazione) {
+                // In fornitura torneo la personalizzazione autorizzata è inclusa (€0 aggiuntivi)
+                prezzoFinaleOggetto = Number(prezzoBaseInConfigurazione);
+            } else {
+                // Modalità normale con normali supplementi
+                if (nomeInput) prezzoFinaleOggetto += costoNomeAttivo;
+                if (numeroInput) prezzoFinaleOggetto += costoNumeroAttivo;
+                if (patchScelta) prezzoFinaleOggetto += costoPatchAttivo;
+            }
 
             let personalizzazioneTesto = "Nessuna";
             if (nomeInput || numeroInput) personalizzazioneTesto = `Nome: ${nomeInput || 'Nessuno'} - Num: ${numeroInput || 'Nessuno'}`;
@@ -11785,6 +12348,13 @@ function renderizzaProdottiSquadraConFiltri() {
                 carrello[indexInModifica].imgUrl = urlImmagineInConfigurazione;
                 carrello[indexInModifica].id = idInConfigurazione;
                 carrello[indexInModifica].legacy_id = legacyIdInConfigurazione;
+                carrello[indexInModifica].categoria = categoriaInConfigurazione || '';
+                if (fornituraInConfigurazione) {
+                    carrello[indexInModifica].fornitura = fornituraInConfigurazione;
+                    carrello[indexInModifica].ha_prezzo_concordato = true;
+                    carrello[indexInModifica].prezzo_concordato = prezzoFinaleOggetto;
+                    carrello[indexInModifica].prezzo_originale = prezzoOriginaleCatalogoInConfigurazione || 23.99;
+                }
                 
                 indexInModifica = null;
                 const btnConferma = document.querySelector('.btn-conferma-carrello');
@@ -11809,14 +12379,23 @@ function renderizzaProdottiSquadraConFiltri() {
                     prezzo: prezzoFinaleOggetto, 
                     imgUrl: urlImmagineInConfigurazione,
                     id: idInConfigurazione,
-                    legacy_id: legacyIdInConfigurazione
+                    legacy_id: legacyIdInConfigurazione,
+                    categoria: categoriaInConfigurazione || ''
                 };
+                if (fornituraInConfigurazione) {
+                    nuovaMaglia.fornitura = fornituraInConfigurazione;
+                    nuovaMaglia.ha_prezzo_concordato = true;
+                    nuovaMaglia.prezzo_concordato = prezzoFinaleOggetto;
+                    nuovaMaglia.prezzo_originale = prezzoOriginaleCatalogoInConfigurazione || 23.99;
+                }
+
                 let giaPresente = carrello.find(item => 
                     item.squadra === nuovaMaglia.squadra && 
                     item.infoPerso === nuovaMaglia.infoPerso && 
                     item.taglia === nuovaMaglia.taglia &&
                     item.id === nuovaMaglia.id &&
-                    item.legacy_id === nuovaMaglia.legacy_id
+                    item.legacy_id === nuovaMaglia.legacy_id &&
+                    JSON.stringify(item.fornitura || null) === JSON.stringify(nuovaMaglia.fornitura || null)
                 );
                 if (giaPresente) { giaPresente.quantita += 1; } else { nuovaMaglia.quantita = 1; carrello.push(nuovaMaglia); }
                 
@@ -11916,7 +12495,9 @@ function renderizzaProdottiSquadraConFiltri() {
             let target = "";
             let categoria = "";
             
-            if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+            if (item.ha_prezzo_concordato && item.prezzo_concordato !== undefined) {
+                basePrice = Number(item.prezzo_concordato);
+            } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
                 const prod = databaseProdotti.find(p => String(p.id) === String(item.id) || p.versione === item.squadra);
                 if (prod) {
                     basePrice = prod.prezzo || 23.99;
@@ -11925,8 +12506,8 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
             }
             
-            // Apri la personalizzazione
-            apriPersonalizzazione(item.squadra, item.imgUrl, basePrice, item.id || '', item.legacy_id || '', target, categoria);
+            // Apri la personalizzazione con l'eventuale configurazione di fornitura dell'articolo
+            apriPersonalizzazione(item.squadra, item.imgUrl, item.prezzo_originale || basePrice, item.id || '', item.legacy_id || '', target, categoria, item.fornitura || null);
             
             // Imposta lo stato di modifica
             indexInModifica = index;
@@ -11955,10 +12536,15 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
             }
             
-            document.getElementById('modal-nome').value = nome;
-            document.getElementById('modal-numero').value = numero;
-            document.getElementById('modal-patch').value = patch;
-            document.getElementById('modal-taglia').value = item.taglia;
+            const elNome = document.getElementById('modal-nome');
+            const elNumero = document.getElementById('modal-numero');
+            const elPatch = document.getElementById('modal-patch');
+            const elTaglia = document.getElementById('modal-taglia');
+
+            if (elNome && !elNome.disabled) elNome.value = nome;
+            if (elNumero && !elNumero.disabled) elNumero.value = numero;
+            if (elPatch && !elPatch.disabled) elPatch.value = patch;
+            if (elTaglia) elTaglia.value = item.taglia;
             
             ricalcolaPrezzoPopup();
             
@@ -12048,7 +12634,7 @@ function renderizzaProdottiSquadraConFiltri() {
         function aggiornaGraficaCarrello() {
             salvaCarrelloInLocalStorage();
             const listaElementi = document.getElementById('elementi-carrello');
-                        const btnAcquista = document.getElementById('btn-invia-ordine-db');
+            const btnAcquista = document.getElementById('btn-invia-ordine-db');
             const boxSpedizione = document.getElementById('box-spedizione-dinamica');
             const boxSuggerimenti = document.getElementById('sezione-suggerimenti-carrello');
             const boxRiepilogo = document.getElementById('riepilogo-carrello-dettagliato');
@@ -12056,6 +12642,9 @@ function renderizzaProdottiSquadraConFiltri() {
             const badgeConteggio = document.getElementById('conteggio-basso');
             const totaleBasso = document.getElementById('prezzo-totale-basso');
             const badgeIcona = document.getElementById('conteggio-carrello');
+
+            const isModoConvenzione = Boolean(window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid);
+            const fornituraAttiva = isModoConvenzione ? window.fornituraTorneoAttiva : null;
 
             let conteggioTotale = 0;
             let subtotale = 0;
@@ -12068,29 +12657,65 @@ function renderizzaProdottiSquadraConFiltri() {
             if (badgeConteggio) badgeConteggio.innerText = conteggioTotale;
             if (badgeIcona) badgeIcona.innerText = conteggioTotale;
 
+            if (typeof renderConvenzioneCarrello === 'function') {
+                renderConvenzioneCarrello();
+            }
+
+            // Calcolo quota completini per la convenzione torneo
+            const completiniNelCarrello = Array.isArray(carrello)
+                ? carrello.filter(item => item && item.fornitura).reduce((tot, item) => tot + (Number(item.quantita) || 1), 0)
+                : 0;
+            const quantitaAssegnata = fornituraAttiva ? (Number(fornituraAttiva.quantita_assegnata) || 0) : 0;
+            const quantitaOrdinata = fornituraAttiva ? (Number(fornituraAttiva.quantita_ordinata) || 0) : 0;
+            const quotaRimanenteBase = fornituraAttiva ? (Number(fornituraAttiva.quantita_rimanente !== undefined ? fornituraAttiva.quantita_rimanente : (quantitaAssegnata - quantitaOrdinata)) || 0) : 0;
+            const disponibiliEffettivi = Math.max(0, quotaRimanenteBase - completiniNelCarrello);
+
             if (carrello.length === 0) {
                 if (listaElementi) {
-                    listaElementi.innerHTML = '<p style="color: var(--on-surface-de-emphasis); text-align: center; margin-top: 30px;">Il carrello è vuoto.</p>';
+                    if (isModoConvenzione) {
+                        listaElementi.innerHTML = 
+                            '<div style="text-align: center; padding: 24px 12px;">' +
+                                '<p style="color: var(--on-surface-de-emphasis); font-size: 13px; margin-bottom: 14px;">Nessun completino ancora aggiunto per questa convenzione.</p>' +
+                                '<button type="button" onclick="continuaAggiungiCompletino()" style="background: var(--gold-gradient); color: #000; border: none; padding: 10px 18px; border-radius: var(--radius-m); font-weight: 800; font-size: 12px; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">' +
+                                    '<span style="font-size: 16px; font-weight: 900;">+</span> AGGIUNGI COMPLETINO' +
+                                '</button>' +
+                            '</div>';
+                    } else {
+                        listaElementi.innerHTML = '<p style="color: var(--on-surface-de-emphasis); text-align: center; margin-top: 30px;">Il carrello è vuoto.</p>';
+                    }
                 }
                 if (boxSpedizione) boxSpedizione.style.display = 'none';
                 if (boxSuggerimenti) boxSuggerimenti.style.display = 'none';
                 if (boxRiepilogo) boxRiepilogo.style.display = 'none';
                 if (boxDatiCliente) boxDatiCliente.style.display = 'none';
                 if (btnAcquista) btnAcquista.style.display = 'none';
-                if (totaleBasso) totaleBasso.innerText = '0,00€';
+                if (totaleBasso) totaleBasso.innerText = isModoConvenzione ? 'Convenzione' : '0,00€';
                 return;
             }
 
-            if (btnAcquista) btnAcquista.style.display = 'block';
+            if (btnAcquista) {
+                btnAcquista.style.display = 'block';
+                btnAcquista.innerText = isModoConvenzione ? "Invia Ordine Torneo" : "Invia Ordine";
+            }
             if (boxDatiCliente) boxDatiCliente.style.display = 'block';
 
-                        // Renderizza gli elementi del carrello
+            // Renderizza gli elementi del carrello
             if (listaElementi) {
                 let htmlArticoli = '';
                 carrello.forEach((item, index) => {
-                    const prezzoTotItem = (item.prezzo * item.quantita).toFixed(2).replace('.', ',');
                     const isAcc = item.id && String(item.id).startsWith('acc-');
                     const editBtnHtml = !isAcc ? ('<button onclick="avviaModificaArticolo(' + index + ')" style="background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0;">Modifica</button>') : '';
+                    const fornituraBadge = item.fornitura ? ('<span style="display: inline-block; font-size: 10px; background: rgba(214, 164, 58, 0.15); color: #d6a43a; border: 1px solid rgba(214, 164, 58, 0.3); padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-top: 2px;">🏆 Convenzione: ' + escapeHtml(item.fornitura.nome_squadra || 'Squadra') + '</span>') : '';
+
+                    let rigaPrezzoHtml = '';
+                    if (isModoConvenzione && (item.fornitura || item.ha_prezzo_concordato)) {
+                        // NON mostrare il prezzo concordato al cliente
+                        rigaPrezzoHtml = '<span style="color: var(--primary); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Incluso nella convenzione</span>';
+                    } else {
+                        // Modalità normale o articolo ordinario
+                        const prezzoTotItem = (item.prezzo * item.quantita).toFixed(2).replace('.', ',');
+                        rigaPrezzoHtml = '<span style="color: var(--primary); font-weight: 800; font-size: 13px;">' + prezzoTotItem + '€</span>';
+                    }
 
                     htmlArticoli += 
                         '<div class="item-carrello">' +
@@ -12098,8 +12723,9 @@ function renderizzaProdottiSquadraConFiltri() {
                             '<div class="item-info" style="flex-grow: 1;">' +
                                 '<h5>' + (item.squadra || '') + '</h5>' +
                                 '<p style="font-size: 11px; margin: 2px 0;">Taglia: <strong>' + (item.taglia || 'Unica') + '</strong> ' + (item.infoPerso && item.infoPerso !== 'Nessuna' ? ' | ' + item.infoPerso : '') + '</p>' +
+                                (fornituraBadge ? ('<div style="margin-bottom: 2px;">' + fornituraBadge + '</div>') : '') +
                                 '<div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">' +
-                                    '<span style="color: var(--primary); font-weight: 800; font-size: 13px;">' + prezzoTotItem + '€</span>' +
+                                    rigaPrezzoHtml +
                                     editBtnHtml +
                                 '</div>' +
                             '</div>' +
@@ -12110,101 +12736,156 @@ function renderizzaProdottiSquadraConFiltri() {
                             '</div>' +
                         '</div>';
                 });
+
+                // In modalità Convenzione mostrare sotto gli articoli il contatore rapido e il tasto "+ AGGIUNGI COMPLETINO"
+                if (isModoConvenzione) {
+                    htmlArticoli += 
+                        '<div style="margin-top: 12px; margin-bottom: 8px;">' +
+                            '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(214, 164, 58, 0.08); border: 1px solid rgba(214, 164, 58, 0.25); border-radius: var(--radius-m); padding: 9px 12px; margin-bottom: 8px;">' +
+                                '<span style="font-size: 12px; color: rgba(255, 255, 255, 0.9);">Completini nel carrello: <strong style="color: var(--primary); font-size: 14px;">' + completiniNelCarrello + '</strong></span>' +
+                                '<span style="font-size: 12px; color: rgba(255, 255, 255, 0.9);">Disponibili: <strong style="color: #10B981; font-size: 14px;">' + disponibiliEffettivi + '</strong></span>' +
+                            '</div>' +
+                            '<button type="button" onclick="continuaAggiungiCompletino()" style="width: 100%; background: rgba(214, 164, 58, 0.12); border: 1px dashed var(--primary); color: var(--primary); padding: 10px 14px; border-radius: var(--radius-m); font-weight: 800; font-size: 12px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">' +
+                                '<span style="font-size: 16px; font-weight: 900;">+</span> AGGIUNGI COMPLETINO' +
+                            '</button>' +
+                        '</div>';
+                }
+
                 listaElementi.innerHTML = htmlArticoli;
             }
 
-// Calcolo spedizione (gratuita sopra 50€)
-            const sogliaSpedizioneGratis = 50.0;
-            const costoSpedizioneStandard = 2.00;
-            let spedizioneGratis = subtotale >= sogliaSpedizioneGratis;
-            let costoSpedizione = spedizioneGratis ? 0 : costoSpedizioneStandard;
+            if (isModoConvenzione) {
+                // MODALITÀ CONVENZIONE TORNEO:
+                // Nascondere box spedizione dinamica (niente soglia 50€, niente barra progresso)
+                if (boxSpedizione) boxSpedizione.style.display = 'none';
+                // Nascondere box suggerimenti upsell
+                if (boxSuggerimenti) boxSuggerimenti.style.display = 'none';
 
-            if (boxSpedizione) {
-                boxSpedizione.style.display = 'block';
-                if (spedizioneGratis) {
-                    boxSpedizione.innerHTML = 
-                        '<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-m); padding: 10px 14px; display: flex; align-items: center; gap: 8px;">' +
-                            '<span style="font-size: 16px;">🚚</span>' +
-                            '<span style="font-size: 12px; font-weight: 800; color: #10B981;">Spedizione GRATUITA Sbloccata!</span>' +
-                        '</div>';
-                } else {
-                    const mancanti = (sogliaSpedizioneGratis - subtotale).toFixed(2).replace('.', ',');
-                    const perc = Math.min(100, Math.round((subtotale / sogliaSpedizioneGratis) * 100));
-                    boxSpedizione.innerHTML = 
-                        '<div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-m); padding: 10px 14px;">' +
-                            '<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">' +
-                                '<span style="color: var(--on-surface-de-emphasis);">Aggiungi altri <strong>' + mancanti + '€</strong> per la spedizione gratis</span>' +
-                                '<span style="font-weight: 800; color: var(--primary);">' + perc + '%</span>' +
+                // Sticky footer: niente prezzi economici della convenzione
+                if (totaleBasso) {
+                    totaleBasso.innerText = 'Convenzione';
+                }
+
+                // Box Riepilogo Convenzione: niente box coupon, niente prezzi economici visibili
+                if (boxRiepilogo) {
+                    boxRiepilogo.style.display = 'block';
+                    boxRiepilogo.innerHTML = 
+                        '<div style="background: rgba(214, 164, 58, 0.04); border: 1px solid rgba(214, 164, 58, 0.2); border-radius: var(--radius-m); padding: 12px; margin-bottom: 10px;">' +
+                            '<div style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Riepilogo Fornitura Torneo</div>' +
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: rgba(255, 255, 255, 0.85); margin-bottom: 4px;">' +
+                                '<span>Completini nel carrello:</span>' +
+                                '<strong>' + completiniNelCarrello + '</strong>' +
                             '</div>' +
-                            '<div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">' +
-                                '<div style="background: var(--gold-gradient); width: ' + perc + '%; height: 100%; transition: width 0.3s ease;"></div>' +
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: rgba(255, 255, 255, 0.85); margin-bottom: 4px;">' +
+                                '<span>Completini disponibili:</span>' +
+                                '<strong style="color: #10B981;">' + disponibiliEffettivi + '</strong>' +
+                            '</div>' +
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: rgba(255, 255, 255, 0.85); margin-bottom: 6px;">' +
+                                '<span>Spedizione:</span>' +
+                                '<span style="color: #10B981; font-weight: 700;">Inclusa nella convenzione</span>' +
+                            '</div>' +
+                            '<div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: #fff;">' +
+                                '<span>Totale Ordine:</span>' +
+                                '<span style="color: var(--primary);">Incluso nella convenzione</span>' +
                             '</div>' +
                         '</div>';
                 }
-            }
+            } else {
+                // MODALITÀ NORMALE (Identica al comportamento standard esistente)
+                // Calcolo spedizione (gratuita sopra 50€)
+                const sogliaSpedizioneGratis = 50.0;
+                const costoSpedizioneStandard = 2.00;
+                let spedizioneGratis = subtotale >= sogliaSpedizioneGratis;
+                let costoSpedizione = spedizioneGratis ? 0 : costoSpedizioneStandard;
 
-            // Prodotto Suggerito
-            if (boxSuggerimenti) {
-                if (prodottoSuggeritoCorrente && !spedizioneGratis) {
-                    boxSuggerimenti.style.display = 'block';
-                    boxSuggerimenti.innerHTML = 
-                        '<div style="background: rgba(214, 164, 58, 0.05); border: 1px dashed rgba(214, 164, 58, 0.3); border-radius: var(--radius-m); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
-                            '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">' +
-                                '<img src="' + (prodottoSuggeritoCorrente.immagine || '') + '" style="width: 36px; height: 36px; object-fit: contain; background: #1a1a1a; border-radius: 4px;">' +
-                                '<div style="overflow: hidden;">' +
-                                    '<div style="font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + (prodottoSuggeritoCorrente.versione || prodottoSuggeritoCorrente.squadra || 'Consigliato') + '</div>' +
-                                    '<div style="font-size: 11px; color: var(--primary); font-weight: 700;">+' + ((prodottoSuggeritoCorrente.prezzo || 23.99).toFixed(2).replace('.', ',')) + '€</div>' +
+                if (boxSpedizione) {
+                    boxSpedizione.style.display = 'block';
+                    if (spedizioneGratis) {
+                        boxSpedizione.innerHTML = 
+                            '<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-m); padding: 10px 14px; display: flex; align-items: center; gap: 8px;">' +
+                                '<span style="font-size: 16px;">🚚</span>' +
+                                '<span style="font-size: 12px; font-weight: 800; color: #10B981;">Spedizione GRATUITA Sbloccata!</span>' +
+                            '</div>';
+                    } else {
+                        const mancanti = (sogliaSpedizioneGratis - subtotale).toFixed(2).replace('.', ',');
+                        const perc = Math.min(100, Math.round((subtotale / sogliaSpedizioneGratis) * 100));
+                        boxSpedizione.innerHTML = 
+                            '<div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-m); padding: 10px 14px;">' +
+                                '<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">' +
+                                    '<span style="color: var(--on-surface-de-emphasis);">Aggiungi altri <strong>' + mancanti + '€</strong> per la spedizione gratis</span>' +
+                                    '<span style="font-weight: 800; color: var(--primary);">' + perc + '%</span>' +
                                 '</div>' +
-                            '</div>' +
-                            '<button onclick="aggiungiSuggeritoAlCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: var(--radius-s); cursor: pointer; white-space: nowrap;">+ Aggiungi</button>' +
-                        '</div>';
-                } else {
-                    boxSuggerimenti.style.display = 'none';
+                                '<div style="background: rgba(255, 255, 255, 0.1); height: 6px; border-radius: 3px; overflow: hidden;">' +
+                                    '<div style="background: var(--gold-gradient); width: ' + perc + '%; height: 100%; transition: width 0.3s ease;"></div>' +
+                                '</div>' +
+                            '</div>';
+                    }
                 }
-            }
 
-            // Calcolo totale con Coupon
-            let scontoApplicatoVal = 0;
-            if (couponApplicato && couponApplicato.discount) {
-                scontoApplicatoVal = couponApplicato.discount;
-            }
-            let totaleFinale = Math.max(0, subtotale - scontoApplicatoVal + costoSpedizione);
+                // Prodotto Suggerito
+                if (boxSuggerimenti) {
+                    if (prodottoSuggeritoCorrente && !spedizioneGratis) {
+                        boxSuggerimenti.style.display = 'block';
+                        boxSuggerimenti.innerHTML = 
+                            '<div style="background: rgba(214, 164, 58, 0.05); border: 1px dashed rgba(214, 164, 58, 0.3); border-radius: var(--radius-m); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
+                                '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">' +
+                                    '<img src="' + (prodottoSuggeritoCorrente.immagine || '') + '" style="width: 36px; height: 36px; object-fit: contain; background: #1a1a1a; border-radius: 4px;">' +
+                                    '<div style="overflow: hidden;">' +
+                                        '<div style="font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + (prodottoSuggeritoCorrente.versione || prodottoSuggeritoCorrente.squadra || 'Consigliato') + '</div>' +
+                                        '<div style="font-size: 11px; color: var(--primary); font-weight: 700;">+' + ((prodottoSuggeritoCorrente.prezzo || 23.99).toFixed(2).replace('.', ',')) + '€</div>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<button onclick="aggiungiSuggeritoAlCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: var(--radius-s); cursor: pointer; white-space: nowrap;">+ Aggiungi</button>' +
+                            '</div>';
+                    } else {
+                        boxSuggerimenti.style.display = 'none';
+                    }
+                }
 
-            if (totaleBasso) {
-                totaleBasso.innerText = totaleFinale.toFixed(2).replace('.', ',') + '€';
-            }
+                // Calcolo totale con Coupon
+                let scontoApplicatoVal = 0;
+                if (couponApplicato && couponApplicato.discount) {
+                    scontoApplicatoVal = couponApplicato.discount;
+                }
+                let totaleFinale = Math.max(0, subtotale - scontoApplicatoVal + costoSpedizione);
 
-            // Riepilogo Dettagliato
-            if (boxRiepilogo) {
-                boxRiepilogo.style.display = 'block';
-                boxRiepilogo.innerHTML = 
-                    '<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-m); padding: 12px; margin-bottom: 10px;">' +
-                        '<!-- Box Coupon -->' +
-                        '<div class="coupon-box" style="display: flex; gap: 8px; margin-bottom: 10px;">' +
-                            '<input type="text" id="input-coupon-code" value="' + (couponCodeInputVal || (couponApplicato ? couponApplicato.code : '')) + '" oninput="couponCodeInputVal = this.value" placeholder="Codice Sconto" style="flex-grow: 1; background: #121212; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 8px 12px; border-radius: var(--radius-s); font-size: 12px; text-transform: uppercase;">' +
-                            '<button onclick="applicaCouponDaCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 12px; padding: 0 12px; border-radius: var(--radius-s); cursor: pointer;">Applica</button>' +
-                        '</div>' +
-                        (couponStatusMsg ? ('<div style="font-size: 11px; margin-bottom: 8px; color: ' + (couponStatusType === 'success' ? '#10B981' : '#EF4444') + ';">' + couponStatusMsg + '</div>') : '') +
-                        
-                        '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 4px;">' +
-                            '<span>Subtotale:</span>' +
-                            '<span>' + subtotale.toFixed(2).replace('.', ',') + '€</span>' +
-                        '</div>' +
-                        (scontoApplicatoVal > 0 ? (
-                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #10B981; margin-bottom: 4px;">' +
-                                '<span>Sconto (' + couponApplicato.code + '):</span>' +
-                                '<span>-' + scontoApplicatoVal.toFixed(2).replace('.', ',') + '€</span>' +
-                            '</div>'
-                        ) : '') +
-                        '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">' +
-                            '<span>Spedizione:</span>' +
-                            '<span>' + (spedizioneGratis ? '<strong style="color: #10B981;">GRATIS</strong>' : costoSpedizione.toFixed(2).replace('.', ',') + '€') + '</span>' +
-                        '</div>' +
-                        '<div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; color: #fff;">' +
-                            '<span>Totale:</span>' +
-                            '<span style="color: var(--primary);">' + totaleFinale.toFixed(2).replace('.', ',') + '€</span>' +
-                        '</div>' +
-                    '</div>';
+                if (totaleBasso) {
+                    totaleBasso.innerText = totaleFinale.toFixed(2).replace('.', ',') + '€';
+                }
+
+                // Riepilogo Dettagliato
+                if (boxRiepilogo) {
+                    boxRiepilogo.style.display = 'block';
+
+                    boxRiepilogo.innerHTML = 
+                        '<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-m); padding: 12px; margin-bottom: 10px;">' +
+                            '<!-- Box Coupon -->' +
+                            '<div class="coupon-box" style="display: flex; gap: 8px; margin-bottom: 10px;">' +
+                                '<input type="text" id="input-coupon-code" value="' + (couponCodeInputVal || (couponApplicato ? couponApplicato.code : '')) + '" oninput="couponCodeInputVal = this.value" placeholder="Codice Sconto" style="flex-grow: 1; background: #121212; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 8px 12px; border-radius: var(--radius-s); font-size: 12px; text-transform: uppercase;">' +
+                                '<button onclick="applicaCouponDaCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 12px; padding: 0 12px; border-radius: var(--radius-s); cursor: pointer;">Applica</button>' +
+                            '</div>' +
+                            (couponStatusMsg ? ('<div style="font-size: 11px; margin-bottom: 8px; color: ' + (couponStatusType === 'success' ? '#10B981' : '#EF4444') + ';">' + couponStatusMsg + '</div>') : '') +
+                            
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 4px;">' +
+                                '<span>Subtotale:</span>' +
+                                '<span>' + subtotale.toFixed(2).replace('.', ',') + '€</span>' +
+                            '</div>' +
+                            (scontoApplicatoVal > 0 ? (
+                                '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #10B981; margin-bottom: 4px;">' +
+                                    '<span>Sconto (' + couponApplicato.code + '):</span>' +
+                                    '<span>-' + scontoApplicatoVal.toFixed(2).replace('.', ',') + '€</span>' +
+                                '</div>'
+                            ) : '') +
+                            '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 8px;">' +
+                                '<span>Spedizione:</span>' +
+                                '<span>' + (spedizioneGratis ? '<strong style="color: #10B981;">GRATIS</strong>' : costoSpedizione.toFixed(2).replace('.', ',') + '€') + '</span>' +
+                            '</div>' +
+                            '<div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 900; color: #fff;">' +
+                                '<span>Totale:</span>' +
+                                '<span style="color: var(--primary);">' + totaleFinale.toFixed(2).replace('.', ',') + '€</span>' +
+                            '</div>' +
+                        '</div>';
+                }
             }
         }
         window.aggiornaGraficaCarrello = aggiornaGraficaCarrello;
@@ -12253,6 +12934,28 @@ function renderizzaProdottiSquadraConFiltri() {
                 return;
             }
 
+            // FASE 6: Controllo categorie autorizzate per convenzione torneo prima dell'invio
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                const authCats = window.fornituraTorneoAttiva.categorie_autorizzate;
+                for (let i = 0; i < carrello.length; i++) {
+                    const it = carrello[i];
+                    let cCat = it.categoria;
+                    if (!cCat && (it.id || it.legacy_id)) {
+                        const pFound = databaseProdotti.find(p => (it.id && String(p.id) === String(it.id)) || (it.legacy_id && String(p.legacy_id) === String(it.legacy_id)));
+                        if (pFound) cCat = pFound.categoria;
+                    }
+                    if (!isCategoriaAutorizzataTorneo(cCat, authCats)) {
+                        const err = `Prodotto non autorizzato dalla convenzione torneo: "${it.squadra || 'Prodotto'}" (${cCat || 'Senza categoria'}). Categorie consentite: ${Array.isArray(authCats) && authCats.length > 0 ? authCats.join(', ') : 'Nessuna'}.`;
+                        if (window.mostraToastPremium) {
+                            window.mostraToastPremium(err, "error");
+                        } else {
+                            alert(err);
+                        }
+                        return;
+                    }
+                }
+            }
+
             const btn = document.getElementById('btn-invia-ordine-db');
             if (btn) {
                 btn.disabled = true;
@@ -12270,7 +12973,9 @@ function renderizzaProdottiSquadraConFiltri() {
                     coupon_code: couponApplicato ? couponApplicato.code : null,
                     coupon_discount: couponApplicato ? couponApplicato.discount : 0,
                     coupon_type: couponApplicato ? couponApplicato.type : null,
-                    coupon_value: couponApplicato ? couponApplicato.value : null
+                    coupon_value: couponApplicato ? couponApplicato.value : null,
+                    codice_fornitura: window.fornituraTorneoAttiva ? window.fornituraTorneoAttiva.codice_univoco : null,
+                    torneo_squadra_id: window.fornituraTorneoAttiva ? (window.fornituraTorneoAttiva.torneo_squadra_id || window.fornituraTorneoAttiva.id) : null
                 };
 
                 const res = await fetch('/api/orders', {
@@ -12295,7 +13000,14 @@ function renderizzaProdottiSquadraConFiltri() {
                     if (sessioneUtente && typeof window.sincronizzaOrdiniCliente === 'function') {
                         await window.sincronizzaOrdiniCliente();
                     }
+
+                    if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.codice_univoco) {
+                        verificaCodiceFornitura(window.fornituraTorneoAttiva.codice_univoco).catch(e => console.warn("Sync fornitura quota post order:", e));
+                    }
                 } else {
+                    if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.codice_univoco) {
+                        verificaCodiceFornitura(window.fornituraTorneoAttiva.codice_univoco).catch(e => console.warn("Sync fornitura quota post reject:", e));
+                    }
                     if (window.mostraToastPremium) {
                         window.mostraToastPremium(data.error || "Errore durante l'invio dell'ordine.", "error");
                     }
@@ -12308,7 +13020,7 @@ function renderizzaProdottiSquadraConFiltri() {
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerText = "Invia Ordine";
+                    btn.innerText = (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) ? "Invia Ordine Torneo" : "Invia Ordine";
                 }
             }
         }
@@ -13446,6 +14158,9 @@ function renderizzaProdottiSquadraConFiltri() {
                     }
                 }
                 caricaWishlist();
+                if (typeof aggiornaBannerFornitura === 'function') {
+                    aggiornaBannerFornitura();
+                }
                 if (sessioneUtente && sessioneUtente.id) {
                     sincronizzaOrdiniCliente().catch(e => console.warn("Init sync ordini:", e));
                 }

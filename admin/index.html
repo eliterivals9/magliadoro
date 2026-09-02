@@ -77,6 +77,9 @@
             <a href="#" onclick="switchTab('coupon')" id="nav-coupon" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
                 <span>🎟️</span> Coupon Sconto
             </a>
+            <a href="#" onclick="switchTab('fornitura-tornei')" id="nav-fornitura-tornei" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span>🏆</span> Fornitura Tornei
+            </a>
             <a href="#" onclick="switchTab('suddivisione-conti')" id="nav-suddivisione-conti" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
                 <span>⚖️</span> Suddivisione Conti
             </a>
@@ -1842,6 +1845,197 @@
                 </div>
             </section>
 
+            <!-- SECTION FORNITURA TORNEI -->
+            <section id="section-fornitura-tornei" class="tab-content hidden space-y-6">
+                <!-- VISTA 1: LISTA TORNEI -->
+                <div id="tornei-view-lista" class="space-y-6">
+                    <!-- Header Card -->
+                    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-dark rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-xl relative overflow-hidden">
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-2">
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/30 text-brand-gold text-[10px] font-bold uppercase tracking-wider">
+                                    🏆 Fornitura Tornei & Eventi
+                                </div>
+                                <h2 class="text-xl md:text-2xl font-black tracking-tight">Anagrafica Tornei & Convenzioni</h2>
+                                <p class="text-slate-300 text-xs md:text-sm max-w-2xl font-medium leading-relaxed">
+                                    Gestisci i tornei convenzionati, imposta le quote complessive di completini autorizzati, i prezzi speciali unitari concordati e le squadre partecipanti con i relativi codici fornitura.
+                                </p>
+                            </div>
+                            <button onclick="apriModalNuovoTorneo()" class="px-5 py-3 bg-gradient-to-r from-[#D6A43A] to-[#B8860B] hover:from-[#E5B54A] hover:to-[#C9971A] text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-brand-gold/10 transition-all uppercase tracking-wider whitespace-nowrap self-start md:self-center flex items-center gap-2 cursor-pointer">
+                                <span>➕</span> Nuovo Torneo
+                            </button>
+                        </div>
+                        <div class="absolute right-0 bottom-0 opacity-10 text-[180px] pointer-events-none select-none font-bold -mr-8 -mb-16">
+                            🏆
+                        </div>
+                    </div>
+
+                    <!-- Info Cards Overview -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl font-bold">
+                                🏆
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tornei Totali</span>
+                                <span id="tornei-stat-totali" class="text-lg font-black text-slate-900 font-mono">0</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                                🟢
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tornei Attivi</span>
+                                <span id="tornei-stat-attivi" class="text-lg font-black text-emerald-600 font-mono">0</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-xl font-bold">
+                                👕
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Completini Autorizzati Totali</span>
+                                <span id="tornei-stat-quota" class="text-lg font-black text-blue-600 font-mono">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabella Tornei -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-4">Nome Torneo</th>
+                                        <th class="px-6 py-4">Organizzatore</th>
+                                        <th class="px-6 py-4 text-center">Quota Autorizzata</th>
+                                        <th class="px-6 py-4 text-center">Prezzo Concordato</th>
+                                        <th class="px-6 py-4 text-center">Personalizzazioni</th>
+                                        <th class="px-6 py-4 text-center">Stato</th>
+                                        <th class="px-6 py-4 text-center">Data Creazione</th>
+                                        <th class="px-6 py-4 text-right pr-8">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tornei-tabella-body" class="divide-y divide-slate-100 text-slate-700 text-xs font-semibold">
+                                    <tr>
+                                        <td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">
+                                            Caricamento tornei in corso...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA 2: DETTAGLIO TORNEO & GESTIONE SQUADRE -->
+                <div id="tornei-view-dettaglio" class="hidden space-y-6">
+                    <!-- Top Navigation Bar & Torneo Summary Header -->
+                    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-dark rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-xl relative overflow-hidden">
+                        <div class="relative z-10 space-y-5">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <button onclick="tornaAListaTornei()" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/15 transition-all flex items-center gap-2 cursor-pointer">
+                                    <span>←</span> Torna alla lista tornei
+                                </button>
+                                <div id="torneo-dettaglio-stato-badge">
+                                    <!-- Badge Stato Iniettato Dinamicamente -->
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+                                <div class="space-y-1.5">
+                                    <div class="inline-flex items-center gap-2 text-brand-gold text-xs font-black uppercase tracking-wider">
+                                        <span>🏆</span> Scheda Torneo
+                                    </div>
+                                    <h2 id="torneo-dettaglio-nome" class="text-2xl md:text-3xl font-black tracking-tight">-</h2>
+                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-300">
+                                        <span id="torneo-dettaglio-organizzatore">👤 Organizzatore: -</span>
+                                        <span class="text-slate-600">•</span>
+                                        <span id="torneo-dettaglio-contatto">📞 Contatto: -</span>
+                                        <span class="text-slate-600">•</span>
+                                        <span id="torneo-dettaglio-prezzo">💰 Prezzo: -</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2.5 self-start md:self-center">
+                                    <button onclick="apriModalNuovaSquadra()" class="px-5 py-3 bg-gradient-to-r from-[#D6A43A] to-[#B8860B] hover:from-[#E5B54A] hover:to-[#C9971A] text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-brand-gold/10 transition-all uppercase tracking-wider whitespace-nowrap flex items-center gap-2 cursor-pointer">
+                                        <span>➕</span> Aggiungi Squadra
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Riepilogo Quote (3 Cards Matematiche) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-xl font-bold">
+                                👕
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Quota Totale Torneo</span>
+                                <span id="torneo-quota-totale" class="text-lg font-black text-slate-900 font-mono">0 pz</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl font-bold">
+                                👥
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Totale Assegnato Squadre</span>
+                                <span id="torneo-quota-assegnata" class="text-lg font-black text-amber-600 font-mono">0 pz</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                                📦
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Quota Rimanente Non Assegnata</span>
+                                <span id="torneo-quota-rimanente" class="text-lg font-black text-emerald-600 font-mono">0 pz</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabella Squadre Partecipanti -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden space-y-0">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">👥</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Squadre Partecipanti</h3>
+                                <span id="torneo-squadre-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 font-mono">0</span>
+                            </div>
+                            <button onclick="apriModalNuovaSquadra()" class="text-xs font-bold text-brand-gold hover:text-amber-700 flex items-center gap-1.5 transition-colors cursor-pointer">
+                                <span>➕</span> Aggiungi Squadra
+                            </button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-4">Nome Squadra</th>
+                                        <th class="px-6 py-4">Codice Fornitura</th>
+                                        <th class="px-6 py-4 text-center">Quota Assegnata</th>
+                                        <th class="px-6 py-4 text-center">Categorie Autorizzate</th>
+                                        <th class="px-6 py-4 text-center">Personalizzazioni</th>
+                                        <th class="px-6 py-4">Note</th>
+                                        <th class="px-6 py-4 text-right pr-8">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="squadre-tabella-body" class="divide-y divide-slate-100 text-slate-700 text-xs font-semibold">
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">
+                                            Caricamento squadre in corso...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- SECTION: SUDDIVISIONE CONTI (SERGIO & RICCARDO) -->
             <section id="section-suddivisione-conti" class="tab-content hidden space-y-6">
                 <!-- Header Card -->
@@ -3530,6 +3724,243 @@
                     </button>
                     <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider">
                         Salva Coupon
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIONE TORNEO (FORNITURA TORNEI) -->
+    <div id="torneo-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out max-h-[90vh] flex flex-col" id="torneo-modal-container">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏆</span>
+                    <h3 id="torneo-modal-title" class="text-base font-extrabold text-slate-900">Nuovo Torneo</h3>
+                </div>
+                <button type="button" onclick="chiudiModalTorneo()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="torneo-form" onsubmit="event.preventDefault(); salvaTorneo();" class="p-6 space-y-4 overflow-y-auto flex-1">
+                <input type="hidden" id="torneo-form-id">
+                
+                <!-- Nome Torneo -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nome Torneo *</label>
+                    <input type="text" id="torneo-form-nome" placeholder="Es. Champions Cup 2026" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                </div>
+
+                <!-- Organizzatore & Contatto -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Organizzatore</label>
+                        <input type="text" id="torneo-form-organizzatore" placeholder="Es. Mario Rossi" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contatto (Tel / Email)</label>
+                        <input type="text" id="torneo-form-contatto" placeholder="Es. +39 333 1234567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <!-- Quantità Totale & Prezzo Unitario -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quota Completini *</label>
+                        <input type="number" min="1" step="1" id="torneo-form-quantita" placeholder="Es. 130" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Prezzo / Completino (€) *</label>
+                        <input type="number" min="0" step="0.01" id="torneo-form-prezzo" placeholder="Es. 20.00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <!-- Personalizzazioni Autorizzate -->
+                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2.5">
+                    <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Personalizzazioni Ammesse</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" id="torneo-form-perso-nome" checked class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="text-xs font-bold text-slate-700">Nome</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" id="torneo-form-perso-numero" checked class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="text-xs font-bold text-slate-700">Numero</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" id="torneo-form-perso-patch" class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="text-xs font-bold text-slate-700">Patch</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Note Interne -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Note Interne</label>
+                    <textarea id="torneo-form-note" rows="2" placeholder="Note per l'organizzazione, accordi commerciali..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-brand-gold focus:bg-white transition-all"></textarea>
+                </div>
+
+                <!-- Stato Attivo -->
+                <div class="flex items-center gap-3 py-1">
+                    <input type="checkbox" id="torneo-form-active" checked class="w-4 h-4 text-brand-gold bg-slate-50 border-slate-200 rounded focus:ring-brand-gold focus:ring-2">
+                    <label for="torneo-form-active" class="text-xs font-bold text-slate-600 uppercase tracking-wider select-none cursor-pointer">Torneo Attivo</label>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" onclick="chiudiModalTorneo()" class="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all uppercase tracking-wider">
+                        Annulla
+                    </button>
+                    <button type="submit" id="torneo-submit-btn" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2">
+                        Salva Torneo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL GESTIONE SQUADRA (FORNITURA TORNEI) -->
+    <div id="squadra-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out max-h-[90vh] flex flex-col" id="squadra-modal-container">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">👥</span>
+                    <h3 id="squadra-modal-title" class="text-base font-extrabold text-slate-900">Nuova Squadra</h3>
+                </div>
+                <button type="button" onclick="chiudiModalSquadra()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="squadra-form" onsubmit="event.preventDefault(); salvaSquadra();" class="p-6 space-y-4 overflow-y-auto flex-1">
+                <input type="hidden" id="squadra-form-id">
+                <input type="hidden" id="squadra-form-torneo-id">
+                
+                <!-- Nome Squadra -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nome Squadra *</label>
+                    <input type="text" id="squadra-form-nome" placeholder="Es. FC Sergio" required oninput="suggerisciCodiceSeVuoto()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                </div>
+
+                <!-- Codice Univoco Fornitura -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Codice Fornitura Univoco *</label>
+                        <button type="button" onclick="generaCodiceSquadraForm()" class="text-[11px] font-extrabold text-amber-600 hover:text-amber-700 flex items-center gap-1 cursor-pointer">
+                            <span>⚡</span> Genera Codice
+                        </button>
+                    </div>
+                    <input type="text" id="squadra-form-codice" placeholder="Es. ETNAGOLD-SERGIO" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold uppercase focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    <p class="text-[10px] text-slate-400 font-medium mt-1">Verrà normalizzato in maiuscolo e verificata l'univocità assoluta.</p>
+                </div>
+
+                <!-- Quantità Assegnata (Completini Fisici) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quota Completini Assegnata *</label>
+                    <input type="number" min="0" step="1" id="squadra-form-quantita" placeholder="Es. 15" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    <p id="squadra-form-quota-hint" class="text-[11px] text-slate-500 font-medium mt-1">Quota massima disponibile non assegnata: -</p>
+                </div>
+
+                <!-- Categorie Autorizzate per la Squadra -->
+                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Categorie Autorizzate</label>
+                            <p class="text-[10px] text-slate-400">Seleziona le tipologie di prodotto acquistabili con il codice fornitura.</p>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" onclick="impostaCategorieSquadraQuick('standard')" class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-md transition-colors cursor-pointer" title="Kit, Versione Player, Fan">
+                                Standard
+                            </button>
+                            <button type="button" onclick="impostaCategorieSquadraQuick('tutte')" class="text-[10px] font-bold px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md transition-colors cursor-pointer">
+                                Tutte
+                            </button>
+                            <button type="button" onclick="impostaCategorieSquadraQuick('nessuna')" class="text-[10px] font-bold px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-md transition-colors cursor-pointer">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs" id="squadra-categorie-checkboxes">
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Kit" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold" checked>
+                            <span class="font-bold text-slate-800">Kit</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Versione Player" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold" checked>
+                            <span class="font-bold text-slate-800">Versione Player</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Fan" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold" checked>
+                            <span class="font-bold text-slate-800">Fan</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Retro" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Retro</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Kit Allenamento" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Kit Allenamento</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Tuta" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Tuta</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Polo" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Polo</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Smanicati" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Smanicati</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Maniche Lunghe" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Maniche Lunghe</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Kit Bambino" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Kit Bambino</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Personalizzazioni Ammesse per la Squadra -->
+                <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2.5">
+                    <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Personalizzazioni Ammesse</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" id="squadra-form-perso-nome" checked class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="text-xs font-bold text-slate-700">Nome</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" id="squadra-form-perso-numero" checked class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="text-xs font-bold text-slate-700">Numero</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" id="squadra-form-perso-patch" class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="text-xs font-bold text-slate-700">Patch</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Note Interne -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Note</label>
+                    <textarea id="squadra-form-note" rows="2" placeholder="Note specifiche per la squadra..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-brand-gold focus:bg-white transition-all"></textarea>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" onclick="chiudiModalSquadra()" class="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all uppercase tracking-wider">
+                        Annulla
+                    </button>
+                    <button type="submit" id="squadra-submit-btn" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2">
+                        Salva Squadra
                     </button>
                 </div>
             </form>

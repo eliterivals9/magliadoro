@@ -3748,13 +3748,24 @@ async function saveSupplierPrice(productId, value) {
  */
 async function salvaProdotto() {
     const id = document.getElementById('form-id').value;
+    const isModifica = id !== "";
     const tipo = document.getElementById('form-tipo').value;
     const rawSquadra = document.getElementById('form-squadra').value.trim();
-    const squadreEsistenti = [...new Set(prodotti.map(p => p.squadra).filter(Boolean))].sort();
-    const squadra = normalizzaNomeSquadra(rawSquadra, squadreEsistenti);
-    
-    // Aggiorna l'input nella form con il nome normalizzato
-    document.getElementById('form-squadra').value = squadra;
+
+    if (!rawSquadra) {
+        showToast("Il nome della squadra è obbligatorio", "error");
+        return;
+    }
+
+    // In caso di modifica manuale di un prodotto esistente, il valore digitato dall'amministratore
+    // è intenzionale e NON deve essere sovrascritto o ripristinato da normalizzaNomeSquadra().
+    let squadra = rawSquadra;
+    if (!isModifica) {
+        const squadreEsistenti = [...new Set(prodotti.map(p => p.squadra).filter(Boolean))].sort();
+        squadra = normalizzaNomeSquadra(rawSquadra, squadreEsistenti);
+        // Aggiorna l'input nella form solo se non è una modifica manuale
+        document.getElementById('form-squadra').value = squadra;
+    }
 
     const categoria = document.getElementById('form-categoria').value.trim();
     const filtro_catalogo = (document.getElementById('form-filtro-catalogo')?.value || '').trim();
@@ -3780,7 +3791,7 @@ async function salvaProdotto() {
     const formattedVersione = formattaNomenclaturaVersione(squadra, categoria, versione, stagione);
 
     const payload = {
-        squadra: traduciTestoProdotto(squadra),
+        squadra: isModifica ? squadra : traduciTestoProdotto(squadra),
         categoria,
         filtro_catalogo,
         target,
@@ -3791,8 +3802,6 @@ async function salvaProdotto() {
         prezzo_fornitore,
         immagine
     };
-
-    const isModifica = id !== "";
     
     try {
         const supabase = await window.getSupabaseClient();
@@ -4094,7 +4103,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     // Sezioni disponibili
     const sections = [
         'dashboard', 'prodotti', 'ordini', 'lotto', 
-        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'marketing', 'recensioni', 'coupon', 'suddivisione-conti', 'chat'
+        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'marketing', 'recensioni', 'coupon', 'fornitura-tornei', 'suddivisione-conti', 'chat'
     ];
     
     // Mappa dei titoli dell'header
@@ -4110,6 +4119,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'marketing': 'Gestione Promo Home',
         'recensioni': 'Moderazione Recensioni',
         'coupon': 'Gestione Coupon Sconto',
+        'fornitura-tornei': 'Fornitura Tornei & Eventi',
         'suddivisione-conti': 'Suddivisione Conti (Sergio & Riccardo)',
         'chat': 'Chat Assistenza Live'
     };
@@ -4162,6 +4172,8 @@ function switchTab(tabId, preserveSelectionMode = false) {
         caricaRecensioniAdmin();
     } else if (tabId === 'coupon') {
         caricaCoupon();
+    } else if (tabId === 'fornitura-tornei') {
+        caricaTorneiAdmin();
     } else if (tabId === 'suddivisione-conti') {
         caricaSuddivisioneConti(currentSelectedProfitLottoId);
     } else if (tabId === 'lotto') {
@@ -4340,33 +4352,71 @@ function formattaNomenclaturaVersione(squadra, categoria, versione, stagione) {
 }
 
 /**
- * Carica tutti gli ordini registrati da Google Sheets tramite il backend
+ * Carica tutti gli ordini registrati tramite il backend con retry automatico e resilienza locale
  */
 let subTabOrdini = 'attivi';
 let archivedKeys = [];
 
-async function caricaOrdini() {
-    try {
-        const response = await fetch('/api/orders');
-        if (response.ok) {
-            const result = await response.json();
-            if (result && result.success && Array.isArray(result.orders)) {
-                ordini = result.orders;
-                archivedKeys = Array.isArray(result.archivedKeys) ? result.archivedKeys : [];
+async function caricaOrdini(maxTentativi = 3) {
+    let riuscito = false;
+    let ultimoErrore = null;
+
+    for (let tentativo = 1; tentativo <= maxTentativi; tentativo++) {
+        try {
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller ? setTimeout(() => controller.abort(), 12000) : null;
+
+            const response = await fetch('/api/orders', {
+                signal: controller ? controller.signal : undefined
+            });
+            if (timeoutId) clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result && result.success && Array.isArray(result.orders)) {
+                    ordini = result.orders;
+                    archivedKeys = Array.isArray(result.archivedKeys) ? result.archivedKeys : [];
+                    try {
+                        localStorage.setItem('sb_admin_cached_orders', JSON.stringify(ordini));
+                        localStorage.setItem('sb_admin_cached_archived_keys', JSON.stringify(archivedKeys));
+                    } catch (e) {}
+                    riuscito = true;
+                    break;
+                } else {
+                    console.warn("Nessun ordine restituito o formato non valido:", result);
+                }
             } else {
-                console.warn("Nessun ordine restituito o formato errato:", result);
+                console.warn(`Tentativo ${tentativo}/${maxTentativi} - Risposta HTTP ${response.status} per /api/orders`);
+            }
+        } catch (err) {
+            ultimoErrore = err;
+            if (tentativo < maxTentativi) {
+                await new Promise(resolve => setTimeout(resolve, 600 * tentativo));
+            }
+        }
+    }
+
+    if (!riuscito) {
+        // Fallback immediato su cache locale del browser per garantire continuità
+        try {
+            const cachedOrders = localStorage.getItem('sb_admin_cached_orders');
+            const cachedArchived = localStorage.getItem('sb_admin_cached_archived_keys');
+            if (cachedOrders) {
+                ordini = JSON.parse(cachedOrders);
+                archivedKeys = cachedArchived ? JSON.parse(cachedArchived) : [];
+                console.info("ℹ️ Ordini ripristinati da cache locale in attesa di sincronizzazione backend.");
+            } else {
                 ordini = [];
                 archivedKeys = [];
             }
-        } else {
-            console.warn("Errore HTTP nel caricamento degli ordini:", response.status);
+        } catch (e) {
             ordini = [];
             archivedKeys = [];
         }
-    } catch (err) {
-        console.error("Errore nel caricamento degli ordini:", err);
-        ordini = [];
-        archivedKeys = [];
+
+        if (ultimoErrore) {
+            console.warn("Avviso nel caricamento degli ordini (fallback attivo):", ultimoErrore.message || ultimoErrore);
+        }
     }
 
     // Aggiorna tutte le statistiche della dashboard e del lotto corrente
@@ -16837,6 +16887,893 @@ window.ripristinaPrezzoItem = ripristinaPrezzoItem;
 window.ricalcolaTotaliModalePrezzoOrdine = ricalcolaTotaliModalePrezzoOrdine;
 window.salvaPrezzoConcordatoOrdine = salvaPrezzoConcordatoOrdine;
 window.ripristinaTuttiPrezziOrdine = ripristinaTuttiPrezziOrdine;
+
+// ==========================================
+// FUNZIONALITÀ GESTIONE FORNITURA TORNEI (ADMIN)
+// ==========================================
+let torneiList = [];
+let torneoCorrenteDettaglio = null;
+let squadreList = [];
+
+async function caricaTorneiAdmin() {
+    const tbody = document.getElementById('tornei-tabella-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">
+                Caricamento tornei in corso...
+            </td>
+        </tr>
+    `;
+
+    try {
+        const res = await fetch('/api/tornei');
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.tornei)) {
+            torneiList = data.tornei;
+
+            // Aggiorna contatori header overview
+            const totaliEl = document.getElementById('tornei-stat-totali');
+            const attiviEl = document.getElementById('tornei-stat-attivi');
+            const quotaEl = document.getElementById('tornei-stat-quota');
+
+            if (totaliEl) totaliEl.innerText = torneiList.length;
+            if (attiviEl) attiviEl.innerText = torneiList.filter(t => t.is_active).length;
+            if (quotaEl) {
+                const totalQuota = torneiList.reduce((acc, t) => acc + (parseInt(t.quantita_totale_autorizzata, 10) || 0), 0);
+                quotaEl.innerText = totalQuota;
+            }
+
+            if (torneiList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-slate-400 font-medium">
+                            <div class="max-w-sm mx-auto space-y-3">
+                                <span class="text-4xl block">🏆</span>
+                                <p class="text-slate-600 font-bold text-sm">Nessun torneo registrato</p>
+                                <p class="text-xs text-slate-400">Clicca sul pulsante "+ Nuovo Torneo" in alto per configurare una nuova convenzione per tornei.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = torneiList.map(t => {
+                let badgeStato = t.is_active 
+                    ? '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Attivo</span>'
+                    : '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-600 border border-slate-300"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inattivo</span>';
+
+                const cfg = t.configurazione_personalizzazione || {};
+                let persoBadges = [];
+                if (cfg.permetti_nome) persoBadges.push('<span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">Nome</span>');
+                if (cfg.permetti_numero) persoBadges.push('<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">Numero</span>');
+                if (cfg.permetti_patch) persoBadges.push('<span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">Patch</span>');
+                if (persoBadges.length === 0) persoBadges.push('<span class="text-slate-400 text-[10px]">Nessuna</span>');
+
+                const dataCreazione = t.created_at ? new Date(t.created_at).toLocaleDateString('it-IT') : '-';
+                const prezzoUnitario = t.prezzo_concordato_unitario !== undefined ? `${parseFloat(t.prezzo_concordato_unitario).toFixed(2)} €` : '0.00 €';
+                const quota = t.quantita_totale_autorizzata !== undefined ? `${t.quantita_totale_autorizzata} pz` : '0 pz';
+
+                const orgNome = t.organizzatore_nome || '<span class="text-slate-400 italic">Non spec.</span>';
+                const orgContatto = t.organizzatore_contatto ? `<div class="text-[10px] text-slate-400 font-mono">${t.organizzatore_contatto}</div>` : '';
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-black text-slate-900 text-sm tracking-tight flex items-center gap-2">
+                                <span class="text-base">🏆</span>
+                                <span>${escapeHtml(t.nome)}</span>
+                            </div>
+                            ${t.note ? `<div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1 italic">${escapeHtml(t.note)}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs font-semibold text-slate-800">${escapeHtml(orgNome)}</div>
+                            ${orgContatto}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2.5 py-1 bg-blue-50 text-blue-800 font-bold font-mono text-xs rounded-lg border border-blue-100">
+                                ${quota}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-extrabold text-brand-gold font-mono text-xs">
+                                ${prezzoUnitario}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-1 flex-wrap max-w-xs mx-auto">
+                                ${persoBadges.join(' ')}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            ${badgeStato}
+                        </td>
+                        <td class="px-6 py-4 text-center text-slate-500 text-[11px] font-mono">
+                            ${dataCreazione}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <button onclick="mostraDettaglioTorneo('${t.id}')" class="px-3 py-1.5 bg-brand-dark hover:bg-slate-800 text-brand-gold border border-brand-gold/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer" title="Gestisci Squadre e Codici">
+                                    <span>👥</span> Squadre
+                                </button>
+                                <button onclick="modificaTorneo('${t.id}')" class="p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-slate-900 transition-all cursor-pointer" title="Modifica Torneo">
+                                    ✏️
+                                </button>
+                                <button onclick="toggleStatoTorneo('${t.id}')" class="p-2 hover:bg-slate-100 rounded-xl ${t.is_active ? 'text-amber-600' : 'text-emerald-600'} transition-all cursor-pointer" title="${t.is_active ? 'Disattiva' : 'Attiva'} Torneo">
+                                    ${t.is_active ? '⏸️' : '▶️'}
+                                </button>
+                                <button onclick="eliminaTorneo('${t.id}')" class="p-2 hover:bg-red-50 rounded-xl text-red-500 hover:text-red-700 transition-all cursor-pointer" title="Elimina Torneo">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
+                        Impossibile caricare i tornei: ${data.error || 'Errore sconosciuto'}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (err) {
+        console.error("Errore caricaTorneiAdmin:", err);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
+                    Errore di connessione al server durante il caricamento dei tornei.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function apriModalNuovoTorneo() {
+    const titleEl = document.getElementById('torneo-modal-title');
+    if (titleEl) titleEl.innerText = "Nuovo Torneo";
+
+    document.getElementById('torneo-form-id').value = "";
+    document.getElementById('torneo-form-nome').value = "";
+    document.getElementById('torneo-form-organizzatore').value = "";
+    document.getElementById('torneo-form-contatto').value = "";
+    document.getElementById('torneo-form-quantita').value = "";
+    document.getElementById('torneo-form-prezzo').value = "";
+    document.getElementById('torneo-form-perso-nome').checked = true;
+    document.getElementById('torneo-form-perso-numero').checked = true;
+    document.getElementById('torneo-form-perso-patch').checked = false;
+    document.getElementById('torneo-form-note').value = "";
+    document.getElementById('torneo-form-active').checked = true;
+
+    const modal = document.getElementById('torneo-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            const container = document.getElementById('torneo-modal-container');
+            if (container) {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+    }
+}
+
+function chiudiModalTorneo() {
+    const container = document.getElementById('torneo-modal-container');
+    if (container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+    }
+    setTimeout(() => {
+        const modal = document.getElementById('torneo-modal');
+        if (modal) modal.classList.add('hidden');
+    }, 300);
+}
+
+async function salvaTorneo() {
+    const id = document.getElementById('torneo-form-id').value;
+    const nome = document.getElementById('torneo-form-nome').value.trim();
+    const organizzatore_nome = document.getElementById('torneo-form-organizzatore').value.trim();
+    const organizzatore_contatto = document.getElementById('torneo-form-contatto').value.trim();
+    const quantita_totale_autorizzata = document.getElementById('torneo-form-quantita').value;
+    const prezzo_concordato_unitario = document.getElementById('torneo-form-prezzo').value;
+    const permetti_nome = document.getElementById('torneo-form-perso-nome').checked;
+    const permetti_numero = document.getElementById('torneo-form-perso-numero').checked;
+    const permetti_patch = document.getElementById('torneo-form-perso-patch').checked;
+    const note = document.getElementById('torneo-form-note').value.trim();
+    const is_active = document.getElementById('torneo-form-active').checked;
+
+    if (!nome) {
+        showToast("Inserisci il nome del torneo.", "error");
+        return;
+    }
+
+    const payload = {
+        nome,
+        organizzatore_nome: organizzatore_nome || null,
+        organizzatore_contatto: organizzatore_contatto || null,
+        quantita_totale_autorizzata: quantita_totale_autorizzata ? parseInt(quantita_totale_autorizzata, 10) : 0,
+        prezzo_concordato_unitario: prezzo_concordato_unitario ? parseFloat(prezzo_concordato_unitario) : 0,
+        configurazione_personalizzazione: {
+            permetti_nome,
+            permetti_numero,
+            permetti_patch
+        },
+        note: note || null,
+        is_active
+    };
+
+    if (id) {
+        payload.id = id;
+    }
+
+    const submitBtn = document.getElementById('torneo-submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Salvataggio...";
+    }
+
+    try {
+        const res = await fetch('/api/tornei', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast(id ? "Torneo modificato con successo!" : "Torneo creato con successo!", "success");
+            chiudiModalTorneo();
+            await caricaTorneiAdmin();
+            if (torneoCorrenteDettaglio && String(torneoCorrenteDettaglio.id) === String(data.torneo.id)) {
+                torneoCorrenteDettaglio = data.torneo;
+                caricaSquadreTorneo(torneoCorrenteDettaglio.id);
+            }
+        } else {
+            showToast(data.error || "Errore durante il salvataggio del torneo.", "error");
+        }
+    } catch (err) {
+        console.error("Errore salvaTorneo:", err);
+        showToast("Errore di connessione con il server.", "error");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Salva Torneo";
+        }
+    }
+}
+
+function modificaTorneo(id) {
+    const t = torneiList.find(item => String(item.id) === String(id));
+    if (!t) {
+        showToast("Torneo non trovato.", "error");
+        return;
+    }
+
+    const titleEl = document.getElementById('torneo-modal-title');
+    if (titleEl) titleEl.innerText = "Modifica Torneo";
+
+    document.getElementById('torneo-form-id').value = t.id;
+    document.getElementById('torneo-form-nome').value = t.nome || "";
+    document.getElementById('torneo-form-organizzatore').value = t.organizzatore_nome || "";
+    document.getElementById('torneo-form-contatto').value = t.organizzatore_contatto || "";
+    document.getElementById('torneo-form-quantita').value = t.quantita_totale_autorizzata !== undefined ? t.quantita_totale_autorizzata : "";
+    document.getElementById('torneo-form-prezzo').value = t.prezzo_concordato_unitario !== undefined ? t.prezzo_concordato_unitario : "";
+
+    const cfg = t.configurazione_personalizzazione || {};
+    document.getElementById('torneo-form-perso-nome').checked = cfg.permetti_nome !== false;
+    document.getElementById('torneo-form-perso-numero').checked = cfg.permetti_numero !== false;
+    document.getElementById('torneo-form-perso-patch').checked = Boolean(cfg.permetti_patch);
+
+    document.getElementById('torneo-form-note').value = t.note || "";
+    document.getElementById('torneo-form-active').checked = t.is_active !== false;
+
+    const modal = document.getElementById('torneo-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            const container = document.getElementById('torneo-modal-container');
+            if (container) {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+    }
+}
+
+async function toggleStatoTorneo(id) {
+    try {
+        const res = await fetch(`/api/tornei/${id}/toggle`, {
+            method: 'PATCH'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const nuovoStato = data.torneo && data.torneo.is_active ? "attivato" : "disattivato";
+            showToast(`Torneo ${nuovoStato} con successo!`, "success");
+            caricaTorneiAdmin();
+        } else {
+            showToast(data.error || "Impossibile aggiornare lo stato del torneo.", "error");
+        }
+    } catch (err) {
+        console.error("Errore toggleStatoTorneo:", err);
+        showToast("Errore di connessione.", "error");
+    }
+}
+
+async function eliminaTorneo(id) {
+    const t = torneiList.find(item => String(item.id) === String(id));
+    const nomeTorneo = t ? t.nome : "questo torneo";
+
+    if (!confirm(`Sei sicuro di voler eliminare definitivamente il torneo "${nomeTorneo}"?\n\nL'operazione non è reversibile.`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/tornei/${id}`, {
+            method: 'DELETE'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast("Torneo eliminato con successo!", "success");
+            if (torneoCorrenteDettaglio && String(torneoCorrenteDettaglio.id) === String(id)) {
+                tornaAListaTornei();
+            } else {
+                caricaTorneiAdmin();
+            }
+        } else {
+            showToast(data.error || "Impossibile eliminare il torneo.", "error");
+        }
+    } catch (err) {
+        console.error("Errore eliminaTorneo:", err);
+        showToast("Errore di connessione.", "error");
+    }
+}
+
+// ==========================================
+// DETTAGLIO TORNEO & GESTIONE SQUADRE (FASE 2)
+// ==========================================
+
+async function mostraDettaglioTorneo(torneoId) {
+    let torneo = torneiList.find(t => String(t.id) === String(torneoId));
+    if (!torneo) {
+        try {
+            const res = await fetch('/api/tornei');
+            const data = await res.json();
+            if (data.success && Array.isArray(data.tornei)) {
+                torneiList = data.tornei;
+                torneo = torneiList.find(t => String(t.id) === String(torneoId));
+            }
+        } catch (e) {
+            console.error("Errore recupero torneo per dettaglio:", e);
+        }
+    }
+
+    if (!torneo) {
+        showToast("Torneo non trovato.", "error");
+        return;
+    }
+
+    torneoCorrenteDettaglio = torneo;
+
+    // Switch viste
+    const vistaLista = document.getElementById('tornei-view-lista');
+    const vistaDettaglio = document.getElementById('tornei-view-dettaglio');
+    if (vistaLista) vistaLista.classList.add('hidden');
+    if (vistaDettaglio) vistaDettaglio.classList.remove('hidden');
+
+    // Popola Header Dettaglio
+    const nomeEl = document.getElementById('torneo-dettaglio-nome');
+    const orgEl = document.getElementById('torneo-dettaglio-organizzatore');
+    const contEl = document.getElementById('torneo-dettaglio-contatto');
+    const prezzoEl = document.getElementById('torneo-dettaglio-prezzo');
+    const badgeStatoEl = document.getElementById('torneo-dettaglio-stato-badge');
+
+    if (nomeEl) nomeEl.innerText = torneo.nome;
+    if (orgEl) orgEl.innerText = `👤 Organizzatore: ${torneo.organizzatore_nome || 'Non specificato'}`;
+    if (contEl) contEl.innerText = `📞 Contatto: ${torneo.organizzatore_contatto || 'Non specificato'}`;
+    if (prezzoEl) {
+        const pUnit = torneo.prezzo_concordato_unitario !== undefined ? `${parseFloat(torneo.prezzo_concordato_unitario).toFixed(2)} €` : '0.00 €';
+        prezzoEl.innerText = `💰 Prezzo Concordato: ${pUnit} / completino`;
+    }
+
+    if (badgeStatoEl) {
+        badgeStatoEl.innerHTML = torneo.is_active
+            ? '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Torneo Attivo</span>'
+            : '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-700 text-slate-300 border border-slate-600"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Torneo Inattivo</span>';
+    }
+
+    await caricaSquadreTorneo(torneoId);
+}
+
+function tornaAListaTornei() {
+    torneoCorrenteDettaglio = null;
+    const vistaLista = document.getElementById('tornei-view-lista');
+    const vistaDettaglio = document.getElementById('tornei-view-dettaglio');
+    if (vistaDettaglio) vistaDettaglio.classList.add('hidden');
+    if (vistaLista) vistaLista.classList.remove('hidden');
+    caricaTorneiAdmin();
+}
+
+async function caricaSquadreTorneo(torneoId) {
+    const tbody = document.getElementById('squadre-tabella-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">
+                Caricamento squadre in corso...
+            </td>
+        </tr>
+    `;
+
+    try {
+        const res = await fetch(`/api/tornei/${torneoId}/squadre`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.squadre)) {
+            squadreList = data.squadre;
+
+            // Calcolo Matematico Quote
+            const quotaTotale = torneoCorrenteDettaglio ? (parseInt(torneoCorrenteDettaglio.quantita_totale_autorizzata, 10) || 0) : 0;
+            const quotaAssegnata = squadreList.reduce((sum, s) => sum + (parseInt(s.quantita_assegnata, 10) || 0), 0);
+            const quotaRimanente = Math.max(0, quotaTotale - quotaAssegnata);
+
+            // Aggiorna Cards Riepilogo Quote
+            const qTotEl = document.getElementById('torneo-quota-totale');
+            const qAssEl = document.getElementById('torneo-quota-assegnata');
+            const qRimEl = document.getElementById('torneo-quota-rimanente');
+            const countBadgeEl = document.getElementById('torneo-squadre-count-badge');
+
+            if (qTotEl) qTotEl.innerText = `${quotaTotale} pz`;
+            if (qAssEl) qAssEl.innerText = `${quotaAssegnata} pz`;
+            if (qRimEl) {
+                qRimEl.innerText = `${quotaRimanente} pz`;
+                if (quotaRimanente === 0) {
+                    qRimEl.className = "text-lg font-black text-amber-600 font-mono";
+                } else {
+                    qRimEl.className = "text-lg font-black text-emerald-600 font-mono";
+                }
+            }
+            if (countBadgeEl) countBadgeEl.innerText = squadreList.length;
+
+            if (squadreList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium">
+                            <div class="max-w-sm mx-auto space-y-3">
+                                <span class="text-4xl block">👥</span>
+                                <p class="text-slate-600 font-bold text-sm">Nessuna squadra registrata per questo torneo</p>
+                                <p class="text-xs text-slate-400">Clicca su "+ Aggiungi Squadra" per creare una squadra partecipante con il suo codice fornitura univoco.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = squadreList.map(s => {
+                const cfg = s.configurazione_personalizzazione || {};
+                let persoBadges = [];
+                if (cfg.permetti_nome) persoBadges.push('<span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">Nome</span>');
+                if (cfg.permetti_numero) persoBadges.push('<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">Numero</span>');
+                if (cfg.permetti_patch) persoBadges.push('<span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">Patch</span>');
+                if (persoBadges.length === 0) persoBadges.push('<span class="text-slate-400 text-[10px]">Nessuna</span>');
+
+                const cats = Array.isArray(s.categorie_autorizzate) ? s.categorie_autorizzate : [];
+                let catBadges = [];
+                if (cats.length === 0) {
+                    catBadges.push('<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200">Tutte</span>');
+                } else {
+                    cats.forEach(c => {
+                        catBadges.push(`<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">${escapeHtml(c)}</span>`);
+                    });
+                }
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <span class="text-base">⚽</span>
+                                <span>${escapeHtml(s.nome_squadra)}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-1 text-slate-950 font-mono font-black text-xs tracking-wider">
+                                <span>${escapeHtml(s.codice_univoco)}</span>
+                                <button type="button" onclick="copiaCodiceFornitura('${escapeHtml(s.codice_univoco)}')" class="text-amber-700 hover:text-amber-900 p-0.5 cursor-pointer" title="Copia codice">
+                                    📋
+                                </button>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2.5 py-1 bg-blue-50 text-blue-800 font-black font-mono text-xs rounded-lg border border-blue-100">
+                                ${s.quantita_assegnata} pz
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-1 flex-wrap max-w-xs mx-auto">
+                                ${catBadges.join(' ')}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-1 flex-wrap max-w-xs mx-auto">
+                                ${persoBadges.join(' ')}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-[11px] text-slate-500 italic max-w-xs truncate">
+                                ${s.note ? escapeHtml(s.note) : '<span class="text-slate-300">-</span>'}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <button onclick="modificaSquadra('${s.id}')" class="p-2 hover:bg-slate-100 rounded-xl text-slate-600 hover:text-slate-900 transition-all cursor-pointer" title="Modifica Squadra">
+                                    ✏️
+                                </button>
+                                <button onclick="eliminaSquadra('${s.id}')" class="p-2 hover:bg-red-50 rounded-xl text-red-500 hover:text-red-700 transition-all cursor-pointer" title="Elimina Squadra">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-6 py-8 text-center text-red-500 font-medium">
+                        Impossibile caricare le squadre: ${data.error || 'Errore sconosciuto'}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (err) {
+        console.error("Errore caricaSquadreTorneo:", err);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-red-500 font-medium">
+                    Errore di connessione al server durante il caricamento delle squadre.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function copiaCodiceFornitura(codice) {
+    if (!codice) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(codice).then(() => {
+            showToast(`Codice "${codice}" copiato negli appunti!`, "info");
+        }).catch(() => {
+            showToast(`Codice: ${codice}`, "info");
+        });
+    } else {
+        const temp = document.createElement('input');
+        temp.value = codice;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast(`Codice "${codice}" copiato negli appunti!`, "info");
+    }
+}
+
+function calcolaQuotaRimanentePerSquadra(squadraIdEsclusa = null) {
+    if (!torneoCorrenteDettaglio) return 0;
+    const quotaTotale = parseInt(torneoCorrenteDettaglio.quantita_totale_autorizzata, 10) || 0;
+    const quotaAssegnataAltre = squadreList
+        .filter(s => String(s.id) !== String(squadraIdEsclusa || ''))
+        .reduce((sum, s) => sum + (parseInt(s.quantita_assegnata, 10) || 0), 0);
+    return Math.max(0, quotaTotale - quotaAssegnataAltre);
+}
+
+function impostaCategorieSquadraQuick(mode) {
+    const cbs = document.querySelectorAll('.squadra-cat-cb');
+    if (!cbs.length) return;
+    if (mode === 'tutte') {
+        cbs.forEach(cb => { cb.checked = true; });
+    } else if (mode === 'nessuna') {
+        cbs.forEach(cb => { cb.checked = false; });
+    } else if (mode === 'standard') {
+        const std = ['Kit', 'Versione Player', 'Fan'];
+        cbs.forEach(cb => {
+            cb.checked = std.includes(cb.value);
+        });
+    }
+}
+
+function apriModalNuovaSquadra() {
+    if (!torneoCorrenteDettaglio) {
+        showToast("Nessun torneo selezionato.", "error");
+        return;
+    }
+
+    const titleEl = document.getElementById('squadra-modal-title');
+    if (titleEl) titleEl.innerText = "Nuova Squadra";
+
+    document.getElementById('squadra-form-id').value = "";
+    document.getElementById('squadra-form-torneo-id').value = torneoCorrenteDettaglio.id;
+    document.getElementById('squadra-form-nome').value = "";
+    document.getElementById('squadra-form-codice').value = "";
+    document.getElementById('squadra-form-quantita').value = "";
+
+    // Eredita personalizzazioni dal torneo
+    const parentCfg = torneoCorrenteDettaglio.configurazione_personalizzazione || {};
+    document.getElementById('squadra-form-perso-nome').checked = parentCfg.permetti_nome !== false;
+    document.getElementById('squadra-form-perso-numero').checked = parentCfg.permetti_numero !== false;
+    document.getElementById('squadra-form-perso-patch').checked = Boolean(parentCfg.permetti_patch);
+
+    // Categorie autorizzate default (Standard: Kit, Versione Player, Fan)
+    impostaCategorieSquadraQuick('standard');
+
+    document.getElementById('squadra-form-note').value = "";
+
+    const maxDisp = calcolaQuotaRimanentePerSquadra();
+    const hintEl = document.getElementById('squadra-form-quota-hint');
+    if (hintEl) {
+        hintEl.innerText = `Quota massima disponibile non assegnata: ${maxDisp} completini (su ${torneoCorrenteDettaglio.quantita_totale_autorizzata} totali).`;
+    }
+
+    const modal = document.getElementById('squadra-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            const container = document.getElementById('squadra-modal-container');
+            if (container) {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+    }
+}
+
+function chiudiModalSquadra() {
+    const container = document.getElementById('squadra-modal-container');
+    if (container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+    }
+    setTimeout(() => {
+        const modal = document.getElementById('squadra-modal');
+        if (modal) modal.classList.add('hidden');
+    }, 300);
+}
+
+function normalizzaStringaCodice(str) {
+    if (!str) return '';
+    return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .trim();
+}
+
+function generaCodiceSquadraForm() {
+    if (!torneoCorrenteDettaglio) return;
+    const nomeSquadra = (document.getElementById('squadra-form-nome').value || '').trim();
+    const nomeTorneo = (torneoCorrenteDettaglio.nome || '').trim();
+
+    const prefixTorneo = normalizzaStringaCodice(nomeTorneo).slice(0, 8) || 'TORNEO';
+    const subSquadra = normalizzaStringaCodice(nomeSquadra).slice(0, 10) || `SQ${squadreList.length + 1}`;
+
+    let baseCode = `${prefixTorneo}-${subSquadra}`;
+    let finalCode = baseCode;
+    let counter = 1;
+
+    const currentSquadraId = document.getElementById('squadra-form-id').value;
+
+    while (squadreList.some(s => s.codice_univoco === finalCode && String(s.id) !== String(currentSquadraId))) {
+        counter++;
+        finalCode = `${baseCode}-${counter}`;
+    }
+
+    document.getElementById('squadra-form-codice').value = finalCode;
+}
+
+function suggerisciCodiceSeVuoto() {
+    const codiceInput = document.getElementById('squadra-form-codice');
+    if (codiceInput && !codiceInput.value.trim()) {
+        generaCodiceSquadraForm();
+    }
+}
+
+function modificaSquadra(squadraId) {
+    const s = squadreList.find(item => String(item.id) === String(squadraId));
+    if (!s) {
+        showToast("Squadra non trovata.", "error");
+        return;
+    }
+
+    const titleEl = document.getElementById('squadra-modal-title');
+    if (titleEl) titleEl.innerText = "Modifica Squadra";
+
+    document.getElementById('squadra-form-id').value = s.id;
+    document.getElementById('squadra-form-torneo-id').value = s.torneo_id;
+    document.getElementById('squadra-form-nome').value = s.nome_squadra || "";
+    document.getElementById('squadra-form-codice').value = s.codice_univoco || "";
+    document.getElementById('squadra-form-quantita').value = s.quantita_assegnata !== undefined ? s.quantita_assegnata : "";
+
+    const cfg = s.configurazione_personalizzazione || {};
+    document.getElementById('squadra-form-perso-nome').checked = cfg.permetti_nome !== false;
+    document.getElementById('squadra-form-perso-numero').checked = cfg.permetti_numero !== false;
+    document.getElementById('squadra-form-perso-patch').checked = Boolean(cfg.permetti_patch);
+
+    // Categorie autorizzate
+    const cats = Array.isArray(s.categorie_autorizzate) ? s.categorie_autorizzate : [];
+    const cbs = document.querySelectorAll('.squadra-cat-cb');
+    cbs.forEach(cb => {
+        cb.checked = cats.includes(cb.value);
+    });
+
+    document.getElementById('squadra-form-note').value = s.note || "";
+
+    const maxDisp = calcolaQuotaRimanentePerSquadra(s.id);
+    const hintEl = document.getElementById('squadra-form-quota-hint');
+    if (hintEl) {
+        hintEl.innerText = `Quota massima disponibile per questa squadra: ${maxDisp} completini (su ${torneoCorrenteDettaglio.quantita_totale_autorizzata} totali del torneo).`;
+    }
+
+    const modal = document.getElementById('squadra-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            const container = document.getElementById('squadra-modal-container');
+            if (container) {
+                container.classList.remove('scale-95', 'opacity-0');
+                container.classList.add('scale-100', 'opacity-100');
+            }
+        }, 10);
+    }
+}
+
+async function salvaSquadra() {
+    if (!torneoCorrenteDettaglio) {
+        showToast("Errore: nessun torneo selezionato.", "error");
+        return;
+    }
+
+    const id = document.getElementById('squadra-form-id').value;
+    const torneoId = torneoCorrenteDettaglio.id;
+    const nome_squadra = document.getElementById('squadra-form-nome').value.trim();
+    const codice_univoco = document.getElementById('squadra-form-codice').value.trim().toUpperCase();
+    const quantita_assegnata = document.getElementById('squadra-form-quantita').value;
+    const permetti_nome = document.getElementById('squadra-form-perso-nome').checked;
+    const permetti_numero = document.getElementById('squadra-form-perso-numero').checked;
+    const permetti_patch = document.getElementById('squadra-form-perso-patch').checked;
+    const note = document.getElementById('squadra-form-note').value.trim();
+
+    if (!nome_squadra) {
+        showToast("Inserisci il nome della squadra.", "error");
+        return;
+    }
+    if (!codice_univoco) {
+        showToast("Inserisci o genera il codice fornitura univoco.", "error");
+        return;
+    }
+
+    const qInt = parseInt(quantita_assegnata, 10);
+    if (isNaN(qInt) || qInt < 0) {
+        showToast("La quantità assegnata deve essere un numero intero positivo o 0.", "error");
+        return;
+    }
+
+    // Categorie autorizzate selezionate
+    const categorie_autorizzate = Array.from(document.querySelectorAll('.squadra-cat-cb:checked')).map(cb => cb.value);
+
+    // Controllo client-side quota
+    const maxDisp = calcolaQuotaRimanentePerSquadra(id);
+    if (qInt > maxDisp) {
+        showToast(`La quota totale assegnata alle squadre supererebbe la quota autorizzata del torneo. Massimo assegnabile: ${maxDisp} completini.`, "error");
+        return;
+    }
+
+    const payload = {
+        nome_squadra,
+        codice_univoco,
+        quantita_assegnata: qInt,
+        configurazione_personalizzazione: {
+            permetti_nome,
+            permetti_numero,
+            permetti_patch
+        },
+        categorie_autorizzate,
+        note: note || null
+    };
+
+    const submitBtn = document.getElementById('squadra-submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Salvataggio...";
+    }
+
+    try {
+        const url = id 
+            ? `/api/tornei/${torneoId}/squadre/${id}`
+            : `/api/tornei/${torneoId}/squadre`;
+        const method = id ? 'PATCH' : 'POST';
+
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast(id ? "Squadra modificata con successo!" : "Squadra aggiunta con successo!", "success");
+            chiudiModalSquadra();
+            caricaSquadreTorneo(torneoId);
+        } else {
+            showToast(data.error || "Errore durante il salvataggio della squadra.", "error");
+        }
+    } catch (err) {
+        console.error("Errore salvaSquadra:", err);
+        showToast("Errore di connessione con il server.", "error");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Salva Squadra";
+        }
+    }
+}
+
+async function eliminaSquadra(squadraId) {
+    if (!torneoCorrenteDettaglio) return;
+    const s = squadreList.find(item => String(item.id) === String(squadraId));
+    const nomeSquadra = s ? s.nome_squadra : "questa squadra";
+
+    if (!confirm(`Sei sicuro di voler eliminare la squadra "${nomeSquadra}" dal torneo?\n\nL'operazione è consentita solo se non ci sono ordini registrati associati.`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/tornei/${torneoCorrenteDettaglio.id}/squadre/${squadraId}`, {
+            method: 'DELETE'
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast("Squadra eliminata con successo!", "success");
+            caricaSquadreTorneo(torneoCorrenteDettaglio.id);
+        } else {
+            showToast(data.error || "Impossibile eliminare la squadra.", "error");
+        }
+    } catch (err) {
+        console.error("Errore eliminaSquadra:", err);
+        showToast("Errore di connessione.", "error");
+    }
+}
+
+// Registrazione funzioni globali per Fornitura Tornei
+window.caricaTorneiAdmin = caricaTorneiAdmin;
+window.apriModalNuovoTorneo = apriModalNuovoTorneo;
+window.chiudiModalTorneo = chiudiModalTorneo;
+window.salvaTorneo = salvaTorneo;
+window.modificaTorneo = modificaTorneo;
+window.toggleStatoTorneo = toggleStatoTorneo;
+window.eliminaTorneo = eliminaTorneo;
+
+// Registrazione funzioni globali Squadre Torneo (Fase 2)
+window.mostraDettaglioTorneo = mostraDettaglioTorneo;
+window.tornaAListaTornei = tornaAListaTornei;
+window.caricaSquadreTorneo = caricaSquadreTorneo;
+window.apriModalNuovaSquadra = apriModalNuovaSquadra;
+window.chiudiModalSquadra = chiudiModalSquadra;
+window.generaCodiceSquadraForm = generaCodiceSquadraForm;
+window.suggerisciCodiceSeVuoto = suggerisciCodiceSeVuoto;
+window.modificaSquadra = modificaSquadra;
+window.salvaSquadra = salvaSquadra;
+window.eliminaSquadra = eliminaSquadra;
+window.copiaCodiceFornitura = copiaCodiceFornitura;
+window.impostaCategorieSquadraQuick = impostaCategorieSquadraQuick;
 
 
 
