@@ -2103,17 +2103,38 @@ if (data && data.length > 0) {
 return data && data.length > 0 ? data[0] : null;
 }
 
-async function deleteDbOrderByDate(orderDate) {
+async function deleteDbOrderByIdOrDate(orderId, orderDate) {
   const supabase = getSupabaseClient();
   if (!supabase) {
     throw new Error("Supabase non è configurato.");
   }
-  const { error } = await supabase.from('orders').delete().eq('data', orderDate);
-  if (error) {
-    console.error("⚠️ Deleting order from Supabase failed:", error.message);
-    throw error;
+  let deleted = false;
+  if (orderId !== undefined && orderId !== null && String(orderId).trim() !== '') {
+    const numId = Number(orderId);
+    if (!isNaN(numId)) {
+      const { error } = await supabase.from('orders').delete().eq('id', numId);
+      if (error) {
+        console.error(`⚠️ Deleting order by ID ${numId} from Supabase failed:`, error.message);
+        throw error;
+      }
+      console.log(`✅ Order with ID ${numId} deleted from Supabase 'orders' table.`);
+      deleted = true;
+    }
   }
-  console.log(`✅ Order with date ${orderDate} deleted from Supabase 'orders' table.`);
+  if (!deleted && orderDate) {
+    const { error } = await supabase.from('orders').delete().eq('data', orderDate);
+    if (error) {
+      console.error(`⚠️ Deleting order by date ${orderDate} from Supabase failed:`, error.message);
+      throw error;
+    }
+    console.log(`✅ Order with date ${orderDate} deleted from Supabase 'orders' table.`);
+    deleted = true;
+  }
+  return deleted;
+}
+
+async function deleteDbOrderByDate(orderDate) {
+  return deleteDbOrderByIdOrDate(null, orderDate);
 }
 
 async function getDbLotti() {
@@ -6526,13 +6547,51 @@ function saveLocalOrder(order) {
   }
 }
 
-function deleteLocalOrder(orderDate) {
+function deleteLocalOrder(orderIdOrDate, optionalDate) {
   try {
+    let targetId = null;
+    let targetDate = null;
+
+    if (optionalDate !== undefined && optionalDate !== null && String(optionalDate).trim() !== '') {
+      targetId = (orderIdOrDate !== undefined && orderIdOrDate !== null && /^\d+$/.test(String(orderIdOrDate).trim()))
+        ? Number(orderIdOrDate)
+        : null;
+      targetDate = String(optionalDate).trim();
+    } else if (orderIdOrDate !== undefined && orderIdOrDate !== null) {
+      const strVal = String(orderIdOrDate).trim();
+      if (/^\d+$/.test(strVal)) {
+        targetId = Number(strVal);
+      } else {
+        targetDate = strVal;
+      }
+    }
+
     let orders = getLocalOrders();
-    orders = orders.filter(o => o.data !== orderDate);
+    const initialCount = orders.length;
+
+    orders = orders.filter(o => {
+      if (!o) return false;
+      // Se abbiamo targetId, elimina prioritariamente per ID numerico (evita cancellazioni accidentali per data)
+      if (targetId !== null) {
+        if (o.id !== undefined && o.id !== null && Number(o.id) === targetId) {
+          return false;
+        }
+        return true;
+      }
+      // Altrimenti fallback per data univoca
+      if (targetDate && String(o.data || '').trim() === targetDate) {
+        return false;
+      }
+      return true;
+    });
+
     fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
+    const removed = initialCount - orders.length;
+    console.log(`✅ [LOCAL ORDERS] deleteLocalOrder: rimossi ${removed} record (ID: ${targetId}, Data: ${targetDate}).`);
+    return removed > 0;
   } catch (err) {
     console.warn("⚠️ Errore durante l'eliminazione dell'ordine locale:", err.message);
+    return false;
   }
 }
 
@@ -7368,24 +7427,143 @@ app.get('/api/orders', async (req, res) => {
 // POST /api/orders/delete - Elimina definitivamente un ordine
 app.post('/api/orders/delete', async (req, res) => {
   try {
-    const { data } = req.body;
-    if (!data) {
-      return res.status(400).json({ success: false, error: "Specificare la 'data' dell'ordine da eliminare." });
+    const rawId = req.body.id !== undefined && req.body.id !== null ? String(req.body.id).trim() : null;
+    const reqOrderId = (rawId && /^\d+$/.test(rawId)) ? Number(rawId) : null;
+    const reqOrderData = req.body.data ? String(req.body.data).trim() : null;
+
+    if (!reqOrderId && !reqOrderData) {
+      return res.status(400).json({ success: false, error: "Specificare l'identificatore (id o data) dell'ordine da eliminare." });
     }
 
-    console.log(`🗑️ Eliminazione dell'ordine: ${data}`);
-    await deleteDbOrderByDate(data);
+    const supabase = getSupabaseClient();
+    let targetOrder = null;
 
-    // Rimuovilo anche da archived_orders.json se presente
-    let archived = getArchivedKeys();
-    if (archived.includes(data)) {
-      archived = archived.filter(k => k !== data);
-      saveArchivedKeys(archived);
+    // 1. Individua l'ordine su Supabase (priorità ad ID)
+    if (supabase) {
+      if (reqOrderId !== null) {
+        try {
+          const { data: dbOrderById } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('id', reqOrderId)
+            .maybeSingle();
+          if (dbOrderById) targetOrder = dbOrderById;
+        } catch (eFindId) {
+          console.warn("⚠️ Ricerca ordine per ID su Supabase:", eFindId.message);
+        }
+      }
+      if (!targetOrder && reqOrderData) {
+        try {
+          const { data: dbOrderByData } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('data', reqOrderData)
+            .maybeSingle();
+          if (dbOrderByData) targetOrder = dbOrderByData;
+        } catch (eFindData) {
+          console.warn("⚠️ Ricerca ordine per data su Supabase:", eFindData.message);
+        }
+      }
     }
 
-    await recalculateCurrentLotto();
+    // 2. Individua l'ordine nei record locali orders_local.json (anche se già rimosso da Supabase o viceversa)
+    const localOrders = getLocalOrders();
+    let localTargetOrder = null;
+    if (reqOrderId !== null) {
+      localTargetOrder = localOrders.find(o => o && Number(o.id) === reqOrderId) || null;
+    }
+    if (!localTargetOrder && reqOrderData) {
+      localTargetOrder = localOrders.find(o => o && String(o.data || '').trim() === reqOrderData) || null;
+    }
 
-    return res.json({ success: true, deletedKey: data });
+    const resolvedOrder = targetOrder || localTargetOrder;
+    if (!resolvedOrder && !targetOrder && !localTargetOrder) {
+      return res.status(404).json({ success: false, error: "Ordine non trovato nel database né nei record locali." });
+    }
+
+    const resolvedId = (resolvedOrder && resolvedOrder.id !== undefined && resolvedOrder.id !== null) ? Number(resolvedOrder.id) : reqOrderId;
+    const resolvedData = (resolvedOrder && resolvedOrder.data) ? String(resolvedOrder.data).trim() : reqOrderData;
+
+    console.log(`🗑️ [BACKEND] Eliminazione definitiva ordine ID: ${resolvedId !== null ? resolvedId : 'N/D'} (Data: '${resolvedData || 'N/D'}')...`);
+
+    // 3. Pulizia a cascata dei record direttamente collegati in customer_orders e customer_order_items
+    if (supabase && resolvedId !== null) {
+      try {
+        const { data: linkedCustOrders } = await supabase
+          .from('customer_orders')
+          .select('id')
+          .eq('admin_order_id', resolvedId);
+
+        const customerOrderIds = [];
+        if (linkedCustOrders && Array.isArray(linkedCustOrders)) {
+          linkedCustOrders.forEach(co => {
+            if (co && co.id) customerOrderIds.push(co.id);
+          });
+        }
+
+        if (customerOrderIds.length > 0) {
+          console.log(`🔗 Rimozione di ${customerOrderIds.length} customer_orders collegati all'ordine admin ${resolvedId}...`);
+          try {
+            await supabase.from('customer_order_items').delete().in('order_id', customerOrderIds);
+          } catch (eItem1) {}
+          try {
+            await supabase.from('customer_order_items').delete().in('customer_order_id', customerOrderIds);
+          } catch (eItem2) {}
+          try {
+            await supabase.from('customer_orders').delete().in('id', customerOrderIds);
+          } catch (eCoDel) {}
+        }
+
+        try {
+          await supabase.from('customer_orders').delete().eq('admin_order_id', resolvedId);
+        } catch (eAdminCoDel) {}
+      } catch (eCustCleanup) {
+        console.warn("⚠️ Avviso pulizia record customer collegati:", eCustCleanup.message);
+      }
+    }
+
+    // 4. Eliminazione da Supabase 'orders' (tramite ID principale, fallback data)
+    if (supabase) {
+      if (resolvedId !== null) {
+        const { error: errDelId } = await supabase.from('orders').delete().eq('id', resolvedId);
+        if (errDelId) {
+          console.error(`⚠️ Errore eliminazione ordine da Supabase per ID ${resolvedId}:`, errDelId.message);
+          throw errDelId;
+        }
+        console.log(`✅ Ordine con ID ${resolvedId} eliminato da Supabase 'orders'.`);
+      } else if (resolvedData) {
+        const { error: errDelData } = await supabase.from('orders').delete().eq('data', resolvedData);
+        if (errDelData) {
+          console.error(`⚠️ Errore eliminazione ordine da Supabase per data ${resolvedData}:`, errDelData.message);
+          throw errDelData;
+        }
+        console.log(`✅ Ordine con data ${resolvedData} eliminato da Supabase 'orders' (fallback).`);
+      }
+    }
+
+    // 5. Eliminazione da orders_local.json
+    deleteLocalOrder(resolvedId, resolvedData);
+
+    // 6. Pulizia da archived_orders.json se presente
+    if (resolvedData) {
+      let archived = getArchivedKeys();
+      if (archived.includes(resolvedData)) {
+        archived = archived.filter(k => k !== resolvedData);
+        saveArchivedKeys(archived);
+      }
+    }
+
+    // 7. Ricalcolo del lotto con le funzioni esistenti
+    if (typeof invalidateLottoCache === 'function') {
+      invalidateLottoCache();
+    }
+    await recalculateCurrentLotto(true);
+
+    return res.json({
+      success: true,
+      deletedId: resolvedId,
+      deletedKey: resolvedData || (resolvedId !== null ? String(resolvedId) : null)
+    });
   } catch (err) {
     console.error("⚠️ Errore DELETE /api/orders/delete:", err.message);
     return res.status(500).json({ success: false, error: err.message });

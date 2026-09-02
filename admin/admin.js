@@ -4483,7 +4483,24 @@ window.gestisciArchiviazione = async function(dataKey, isArchived) {
 /**
  * Gestisce l'eliminazione definitiva dell'ordine dal database
  */
-window.gestisciEliminazione = async function(dataKey) {
+window.gestisciEliminazione = async function(orderIdOrKey, optionalDataKey) {
+    let orderId = null;
+    let dataKey = null;
+
+    if (optionalDataKey !== undefined && optionalDataKey !== null && String(optionalDataKey).trim() !== '') {
+        orderId = (orderIdOrKey !== undefined && orderIdOrKey !== null && /^\d+$/.test(String(orderIdOrKey).trim()))
+            ? Number(orderIdOrKey)
+            : null;
+        dataKey = String(optionalDataKey).trim();
+    } else if (orderIdOrKey !== undefined && orderIdOrKey !== null) {
+        const strVal = String(orderIdOrKey).trim();
+        if (/^\d+$/.test(strVal)) {
+            orderId = Number(strVal);
+        } else {
+            dataKey = strVal;
+        }
+    }
+
     const chiediConferma = !window.appSettings || window.appSettings.sicurezza?.conferma_elimina_ordine !== false;
     let confirmed = true;
     if (chiediConferma) {
@@ -4496,15 +4513,32 @@ window.gestisciEliminazione = async function(dataKey) {
     
     try {
         showToast("Eliminazione in corso...", "info");
+        const payload = {};
+        if (orderId !== null) {
+            payload.id = orderId;
+        }
+        if (dataKey) {
+            payload.data = dataKey;
+        }
+
         const response = await fetch('/api/orders/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: dataKey })
+            body: JSON.stringify(payload)
         });
         const result = await response.json();
-        if (result && result.success) {
+        if (response.ok && result && result.success) {
             showToast("Ordine eliminato definitivamente con successo!", "success");
             await caricaOrdini();
+            if (typeof caricaGestioneOrdini === 'function') {
+                await caricaGestioneOrdini();
+            }
+            if (typeof caricaLotto === 'function') {
+                await caricaLotto();
+            }
+            if (typeof caricaCronologiaLotti === 'function') {
+                await caricaCronologiaLotti();
+            }
         } else {
             showToast("Errore durante l'eliminazione: " + (result.error || "errore sconosciuto"), "error");
         }
@@ -4995,6 +5029,8 @@ function renderOrdini() {
         const waLink = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('39') ? '' : '39'}${cleanPhone}` : '#';
 
         const safeOrderId = escapeHtml(String(order.id !== undefined && order.id !== null ? order.id : order.data));
+        const orderNumericId = (order.id !== undefined && order.id !== null && /^\d+$/.test(String(order.id).trim())) ? String(order.id).trim() : '';
+        const orderDateKey = escapeHtml(String(order.data || ''));
         const existingMod = isSelectionMode ? getModificaForOrder(order) : null;
 
         // Gestione stili e badge per modalità standard vs selezione
@@ -5073,7 +5109,7 @@ function renderOrdini() {
                     <button onclick="gestisciArchiviazione('${order.data}', ${isArchived})" class="flex-1 py-1.5 bg-[#111111] hover:bg-[#0B0B0B] text-[rgba(255,255,255,0.88)] font-bold text-[10px] rounded-xl transition-all border border-[rgba(255,255,255,0.08)] flex items-center justify-center gap-1 font-sans cursor-pointer">
                         <span>${isArchived ? '📥 Ripristina' : '🗄️ Archivia'}</span>
                     </button>
-                    <button onclick="gestisciEliminazione('${order.data}')" class="px-3 py-1.5 bg-red-950/20 hover:bg-red-900/40 text-red-400 font-bold text-[10px] rounded-xl transition-all border border-red-900/30 flex items-center justify-center gap-1 font-sans cursor-pointer" title="Elimina Ordine">
+                    <button onclick="gestisciEliminazione('${orderNumericId}', '${orderDateKey}')" class="px-3 py-1.5 bg-red-950/20 hover:bg-red-900/40 text-red-400 font-bold text-[10px] rounded-xl transition-all border border-red-900/30 flex items-center justify-center gap-1 font-sans cursor-pointer" title="Elimina Ordine">
                         <span>🗑️ Elimina</span>
                     </button>
                 </div>
