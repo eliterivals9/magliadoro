@@ -519,14 +519,19 @@
             <!-- SECTION 4: LOTTO -->
             <section id="section-lotto" class="tab-content hidden space-y-6">
                 <div class="max-w-2xl mx-auto bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-                    <div class="flex items-center gap-4 pb-4 border-b border-slate-100">
-                        <div class="h-12 w-12 bg-amber-50 text-brand-gold rounded-2xl flex items-center justify-center text-2xl">
-                            🚚
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-wrap gap-3">
+                        <div class="flex items-center gap-4">
+                            <div class="h-12 w-12 bg-amber-50 text-brand-gold rounded-2xl flex items-center justify-center text-2xl shrink-0">
+                                🚚
+                            </div>
+                            <div>
+                                <h3 id="lotto-corrente-title-header" class="text-lg font-black text-slate-900">Riepilogo Lotto Corrente</h3>
+                                <p class="text-xs text-slate-400">Pianifica le spedizioni e monitora il costo di acquisto complessivo.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900">Riepilogo Lotto Corrente</h3>
-                            <p class="text-xs text-slate-400">Pianifica le spedizioni e monitora il costo di acquisto complessivo.</p>
-                        </div>
+                        <a id="btn-header-scarica-excel-lotto" href="/api/lotto/excel" download="LOTTO_CORRENTE.xlsx" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 font-bold text-xs rounded-xl transition-all border border-emerald-200/60 shadow-2xs cursor-pointer">
+                            <span>🟢</span> Scarica Excel
+                        </a>
                     </div>
 
                     <!-- Metrics Grid inside Lotto Card -->
@@ -598,10 +603,15 @@
                         </div>
                     </div>
 
-                    <!-- Action Button -->
-                    <button id="btn-lotto-effettuato" class="w-full py-3.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-brand-gold/15 flex items-center justify-center gap-2">
-                        <span>📦</span> Chiudi Lotto
-                    </button>
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <a id="btn-scarica-excel-lotto-corrente" href="/api/lotto/excel" download="LOTTO_CORRENTE.xlsx" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-emerald-600/15 flex items-center justify-center gap-2 cursor-pointer text-center">
+                            <span>🟢</span> Scarica Excel
+                        </a>
+                        <button id="btn-lotto-effettuato" class="w-full py-3.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-sm rounded-2xl transition-all shadow-md shadow-brand-gold/15 flex items-center justify-center gap-2 cursor-pointer">
+                            <span>📦</span> Chiudi Lotto
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Cronologia Lotti Block -->
@@ -2928,7 +2938,7 @@
                     <button id="lotto-details-delete-btn" onclick="eliminaLottoDaModale()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-xl transition-all cursor-pointer" title="Elimina definitivamente questo lotto e tutti i suoi ordini">
                         🗑️ Elimina Lotto
                     </button>
-                    <a id="lotto-details-excel" href="#" download class="hidden inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-emerald-600/10">
+                    <a id="lotto-details-excel" href="#" download="LOTTO_EXCEL.xlsx" class="hidden inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-emerald-600/10">
                         🟢 Excel Fornitore
                     </a>
                     <button onclick="closeLottoDetailsModal()" class="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl flex items-center justify-center text-sm transition-all focus:outline-none">

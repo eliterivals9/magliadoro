@@ -1314,6 +1314,25 @@ async function caricaLotto() {
                 if (elAlibabaFeeUsd) elAlibabaFeeUsd.innerText = `$ ${alibabaFeeUsd.toFixed(2)}`;
                 if (elCostoTotale) elCostoTotale.innerText = `$ ${costoTotaleRealeUsd.toFixed(2)}`;
 
+                const lottoNum = lotto.id || 1;
+                const lottoFilename = `LOTTO_${String(lottoNum).padStart(4, '0')}.xlsx`;
+                const lottoExcelUrl = `/api/lotto/${lottoNum}/excel`;
+
+                const btnExcelCorrente = document.getElementById('btn-scarica-excel-lotto-corrente');
+                if (btnExcelCorrente) {
+                    btnExcelCorrente.href = lottoExcelUrl;
+                    btnExcelCorrente.setAttribute('download', lottoFilename);
+                }
+                const btnHeaderExcel = document.getElementById('btn-header-scarica-excel-lotto');
+                if (btnHeaderExcel) {
+                    btnHeaderExcel.href = lottoExcelUrl;
+                    btnHeaderExcel.setAttribute('download', lottoFilename);
+                }
+                const titleHeader = document.getElementById('lotto-corrente-title-header');
+                if (titleHeader && lotto.id) {
+                    titleHeader.innerText = `Riepilogo Lotto #${lotto.id} (In corso)`;
+                }
+
                 if (typeof aggiornaStatisticheDashboard === 'function') {
                     aggiornaStatisticheDashboard();
                 }
@@ -1381,6 +1400,9 @@ function renderCronologiaLotti() {
         const incasso = incassoVal.toFixed(2).replace('.', ',') + '€';
         const profitto = Number(l.profitto_eur || 0).toFixed(2).replace('.', ',') + '€';
         
+        const lottoNumStr = String(l.id || 1).padStart(4, '0');
+        const lottoFilename = `LOTTO_${lottoNumStr}.xlsx`;
+        
         return `
             <tr class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-4 py-3.5 text-xs font-bold text-slate-900">${l.numero_lotto || `Lotto #${l.id}`}</td>
@@ -1399,7 +1421,7 @@ function renderCronologiaLotti() {
                     <button onclick="ripristinaLotto(${l.id})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-800 font-bold text-[10px] rounded-lg transition-all border border-amber-200/60 cursor-pointer" title="Riporta tutti gli ordini di questo lotto negli Ordini Attivi">
                         📥 Ripristina
                     </button>
-                    <a href="${l.excel_url || `/lotti/LOTTO_${String(l.id).padStart(4, '0')}.xlsx`}" download class="inline-flex items-center px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 font-bold text-[10px] rounded-lg transition-all border border-emerald-100/50">
+                    <a href="/api/lotto/${l.id}/excel" download="${lottoFilename}" class="inline-flex items-center px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 font-bold text-[10px] rounded-lg transition-all border border-emerald-100/50">
                         🟢 Excel Fornitore
                     </a>
                     <button onclick="chiediEliminaLotto(${l.id})" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] rounded-lg transition-all cursor-pointer">
@@ -1699,7 +1721,10 @@ window.apriDettaglioLotto = function(id) {
     // Configura pulsante download Excel Fornitore
     const excelEl = document.getElementById('lotto-details-excel');
     if (excelEl) {
-        excelEl.href = lotto.excel_url || `/lotti/LOTTO_${String(lotto.id).padStart(4, '0')}.xlsx`;
+        const lottoNumStr = String(lotto.id || 1).padStart(4, '0');
+        const lottoFilename = `LOTTO_${lottoNumStr}.xlsx`;
+        excelEl.href = `/api/lotto/${lotto.id}/excel`;
+        excelEl.setAttribute('download', lottoFilename);
         excelEl.classList.remove('hidden');
     }
 

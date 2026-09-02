@@ -85,6 +85,17 @@ app.get(['/admin/accessori', '/admin/accessori/'], (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
 });
 
+// Intercetta richieste dirette a /lotti/:filename per garantire generazione dinamica on-demand dei lotti
+app.get('/lotti/:filename', async (req, res, next) => {
+  const filename = req.params.filename || '';
+  const match = filename.match(/^LOTTO_(\d+)\.xlsx$/i);
+  if (match) {
+    const lottoId = parseInt(match[1], 10);
+    return handleDownloadExcelLotto(req, res, lottoId);
+  }
+  next();
+});
+
 // Serve static files from root directory
 app.use(express.static(__dirname));
 
@@ -1216,9 +1227,40 @@ function ricostruisciCarrelloDaStringhe(order) {
 const TEMPLATE_URL = "https://docs.google.com/spreadsheets/d/1Fho2z8A56D78ABHOQ3AYC28c9U1t8NeP/export?format=xlsx&gid=360750015";
 const TEMPLATE_FILE = path.join(__dirname, 'template.xlsx');
 
+function detectImageFormat(buffer) {
+  if (!buffer || !Buffer.isBuffer(buffer) || buffer.length < 4) return null;
+  // PNG magic bytes: 89 50 4E 47
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+    return 'png';
+  }
+  // JPEG magic bytes: FF D8 FF
+  if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+    return 'jpeg';
+  }
+  // GIF magic bytes: 47 49 46
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+    return 'gif';
+  }
+  return null;
+}
+
 function createFallbackSupplierWorkbook() {
   const workbook = new exceljs.Workbook();
-  const worksheet = workbook.addWorksheet('Worksheet');
+  workbook.creator = 'Elite Tournament Store';
+  workbook.lastModifiedBy = 'Elite Tournament Store';
+  workbook.created = new Date();
+  workbook.modified = new Date();
+
+  const worksheet = workbook.addWorksheet('Worksheet', {
+    views: [{ showGridLines: true }],
+    pageSetup: {
+      orientation: 'portrait',
+      horizontalDpi: 300,
+      verticalDpi: 300,
+      fitToWidth: 1,
+      fitToHeight: 0
+    }
+  });
 
   // Set column widths
   const colWidths = [
@@ -1264,12 +1306,12 @@ function createFallbackSupplierWorkbook() {
   worksheet.mergeCells('E2:J2');
   const r2 = worksheet.getRow(2);
   r2.getCell(5).value = '大人（adults)';
-  r2.getCell(5).font = { bold: true };
+  r2.getCell(5).font = { bold: true, size: 11 };
   r2.getCell(5).alignment = { horizontal: 'center', vertical: 'middle' };
 
   worksheet.mergeCells('K2:T2');
   r2.getCell(11).value = '小孩(kids)';
-  r2.getCell(11).font = { bold: true };
+  r2.getCell(11).font = { bold: true, size: 11 };
   r2.getCell(11).alignment = { horizontal: 'center', vertical: 'middle' };
   r2.height = 20;
 
@@ -1306,7 +1348,7 @@ function createFallbackSupplierWorkbook() {
   headers.forEach((h, i) => {
     const cell = r3.getCell(i + 1);
     cell.value = h;
-    cell.font = { bold: true };
+    cell.font = { bold: true, size: 11 };
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
     cell.border = {
       top: { style: 'thin', color: { argb: 'FFD0D0D0' } },
@@ -1321,47 +1363,7 @@ function createFallbackSupplierWorkbook() {
 }
 
 async function getOrLoadSupplierTemplateWorkbook() {
-  // 1. Try reading existing template file if valid
-  if (fs.existsSync(TEMPLATE_FILE)) {
-    try {
-      const wb = new exceljs.Workbook();
-      await wb.xlsx.readFile(TEMPLATE_FILE);
-      if (wb.worksheets && wb.worksheets.length > 0) {
-        const ws = wb.getWorksheet(1) || wb.worksheets[0];
-        return { workbook: wb, worksheet: ws };
-      }
-    } catch (readErr) {
-      console.warn("⚠️ template.xlsx on disk is corrupted or invalid, attempting fresh download:", readErr.message);
-      try { fs.unlinkSync(TEMPLATE_FILE); } catch (e) {}
-    }
-  }
-
-  // 2. Download from Google Sheets URL
-  try {
-    console.log("📥 Downloading template.xlsx from Google Sheets...");
-    const response = await fetch(TEMPLATE_URL, { signal: AbortSignal.timeout(10000) });
-    if (response.ok) {
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      
-      // Validate buffer with exceljs before writing to disk
-      const wb = new exceljs.Workbook();
-      await wb.xlsx.load(buffer);
-      if (wb.worksheets && wb.worksheets.length > 0) {
-        fs.writeFileSync(TEMPLATE_FILE, buffer);
-        console.log("✅ template.xlsx downloaded, validated and saved successfully.");
-        const ws = wb.getWorksheet(1) || wb.worksheets[0];
-        return { workbook: wb, worksheet: ws };
-      }
-    } else {
-      console.warn(`⚠️ Google Sheets export returned status ${response.status}`);
-    }
-  } catch (netErr) {
-    console.warn("⚠️ Failed to download/parse template from Google Sheets:", netErr.message);
-  }
-
-  // 3. Programmatic Fallback: Create structured workbook from scratch
-  console.log("ℹ️ Generating clean programmatic supplier workbook structure as fallback.");
+  // Genera sempre una struttura workbook pulita e perfettamente conforme allo standard OpenXML
   return createFallbackSupplierWorkbook();
 }
 
@@ -1469,42 +1471,13 @@ function compileProductFieldsForExcel(normalizedItem) {
 async function generaExcelLotto(lottoId, orders) {
   const templateObj = await getOrLoadSupplierTemplateWorkbook();
   if (!templateObj || !templateObj.workbook) {
-    throw new Error("Impossibile caricare il template del fornitore.");
+    throw new Error("Impossibile creare il workbook del fornitore.");
   }
 
   const workbook = templateObj.workbook;
   const worksheet = templateObj.worksheet || workbook.getWorksheet(1) || workbook.worksheets[0];
 
-  // 1. PULIZIA DEL TEMPLATE
-  // Puliamo le righe esistenti nel template a partire dalla riga 4
-  const maxRowToClean = Math.max(worksheet.rowCount || 100, 200);
-  for (let r = 4; r <= maxRowToClean; r++) {
-    const row = worksheet.getRow(r);
-    row.values = [];
-    row.height = null;
-  }
-
-  // Rimuovi eventuali merge preesistenti nel template per le righe >= 4
-  if (worksheet._merges) {
-    Object.keys(worksheet._merges).forEach(k => {
-      const m = worksheet._merges[k];
-      if (m && m.model && m.model.top >= 4) {
-        delete worksheet._merges[k];
-      }
-    });
-  }
-
-  // Pulizia profonda delle immagini residue del template
-  worksheet._media = [];
-  if (worksheet.model && worksheet.model.media) {
-    worksheet.model.media = [];
-  }
-  if (workbook.model && workbook.model.media) {
-    workbook.model.media = [];
-  }
-  workbook._media = [];
-
-  // 2. CARICAMENTO COMPLETO E RESILIENTE DEL CATALOGO PRODOTTI (Paginazione Supabase completa per 4600+ prodotti)
+  // 1. CARICAMENTO COMPLETO E RESILIENTE DEL CATALOGO PRODOTTI (Paginazione Supabase completa per 4600+ prodotti)
   let localProducts = [];
   try {
     localProducts = getLocalProducts();
@@ -1660,26 +1633,30 @@ async function generaExcelLotto(lottoId, orders) {
     const { titleEng, titleCh, styleEng } = compileProductFieldsForExcel(item);
     const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
 
-    // Col A (1): Immagine incorporata realmente
+    // Col A (1): Immagine incorporata realmente con verifica precisa del formato tramite magic bytes
     const imgUrl = item.imageUrl;
     if (imgUrl) {
       const imgBuffer = imageCache.get(imgUrl);
       if (imgBuffer) {
-        try {
-          const extension = imgUrl.toLowerCase().endsWith('.png') ? 'png' : 'jpeg';
-          const imageId = workbook.addImage({
-            buffer: imgBuffer,
-            extension: extension,
-          });
-          
-          worksheet.addImage(imageId, {
-            tl: { col: 0, row: currentRowNum - 1 },
-            ext: { width: 45, height: 45 },
-            editAs: 'oneCell'
-          });
-          row.height = 40;
-        } catch (imgErr) {
-          console.warn("Real embedding failed, using formula fallback:", imgErr.message);
+        const detectedExt = detectImageFormat(imgBuffer);
+        if (detectedExt) {
+          try {
+            const imageId = workbook.addImage({
+              buffer: imgBuffer,
+              extension: detectedExt,
+            });
+            
+            worksheet.addImage(imageId, {
+              tl: { col: 0, row: currentRowNum - 1 },
+              ext: { width: 45, height: 45 },
+              editAs: 'oneCell'
+            });
+            row.height = 40;
+          } catch (imgErr) {
+            console.warn("Real embedding failed, using formula fallback:", imgErr.message);
+            row.getCell(1).value = { formula: `IMAGE("${imgUrl}")` };
+          }
+        } else {
           row.getCell(1).value = { formula: `IMAGE("${imgUrl}")` };
         }
       } else {
@@ -1750,7 +1727,6 @@ async function generaExcelLotto(lottoId, orders) {
   totalQtyRow.getCell(25).value = { formula: `SUM(Y4:Y${lastItemRowNum})`, result: totalItemsSupplierPriceUSD };
   totalQtyRow.getCell(25).font = { bold: true };
   totalQtyRow.getCell(25).numFmt = '#,##0.00';
-  totalQtyRow.commit();
   currentRowNum++;
 
   // 2. Shipping Cost Row (USD)
@@ -1769,7 +1745,6 @@ async function generaExcelLotto(lottoId, orders) {
   shippingRow.getCell(25).value = { formula: `X${shippingRowNum}*U${totalQtyRowNum}`, result: totShippingUSD };
   shippingRow.getCell(25).font = { bold: true };
   shippingRow.getCell(25).numFmt = '#,##0.00';
-  shippingRow.commit();
   currentRowNum++;
 
   // 3. Total Price Row (USD)
@@ -1782,7 +1757,6 @@ async function generaExcelLotto(lottoId, orders) {
   totalPriceRow.getCell(25).value = { formula: `Y${totalQtyRowNum}+Y${shippingRowNum}`, result: grandTotalUSD };
   totalPriceRow.getCell(25).font = { bold: true, size: 12 };
   totalPriceRow.getCell(25).numFmt = '#,##0.00';
-  totalPriceRow.commit();
 
   const lottiDir = path.join(__dirname, 'lotti');
   if (!fs.existsSync(lottiDir)) {
@@ -1795,6 +1769,89 @@ async function generaExcelLotto(lottoId, orders) {
   console.log(`✅ Excel generato con successo in: ${outputPath} | Pezzi: ${totalQuantityPcs} | Totale Articoli: $${totalItemsSupplierPriceUSD} | Spedizione: $${totShippingUSD} | Totale Fornitore: $${grandTotalUSD}`);
 
   return `/lotti/${outputFilename}`;
+}
+
+/**
+ * Gestore universale per la generazione dinamica e il download dell'Excel fornitore di un lotto.
+ * Per il lotto IN CORSO: recupera in tempo reale gli ordini attuali e compila al volo il file XLSX.
+ * Per il lotto ARCHIVIATO: recupera gli ordini dello storico e restituisce/rigenera il file.
+ */
+async function handleDownloadExcelLotto(req, res, targetLottoId) {
+  try {
+    let currentActiveLottoId = 1;
+    try {
+      currentActiveLottoId = getCurrentActiveLottoId();
+    } catch (e) {}
+
+    let lottoId = targetLottoId !== undefined && targetLottoId !== null ? Number(targetLottoId) : currentActiveLottoId;
+    if (isNaN(lottoId) || lottoId <= 0) {
+      lottoId = currentActiveLottoId;
+    }
+
+    const filename = `LOTTO_${String(lottoId).padStart(4, '0')}.xlsx`;
+    const lottiDir = path.join(__dirname, 'lotti');
+    if (!fs.existsSync(lottiDir)) {
+      fs.mkdirSync(lottiDir, { recursive: true });
+    }
+    const filePath = path.join(lottiDir, filename);
+
+    // Verifica se è il lotto corrente attivo in corso
+    const isCurrentLotto = (Number(lottoId) === Number(currentActiveLottoId));
+
+    if (isCurrentLotto) {
+      // 1. LOTTO IN CORSO -> Rigenerazione dinamica on-demand al momento del download
+      const allOrders = await getDbOrders();
+      const unarchivedOrders = (allOrders || []).filter(o => !o.is_archived && isOrderActiveForLotto(o));
+      const activeOrders = unarchivedOrders.filter(o => o.lotto_id === null || o.lotto_id === undefined || Number(o.lotto_id) === Number(lottoId));
+
+      console.log(`[EXCEL LOTTO] Generazione dinamica on-demand per Lotto #${lottoId} (IN CORSO) con ${activeOrders.length} ordini attivi`);
+      await generaExcelLotto(lottoId, activeOrders);
+
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      return res.download(filePath, filename, (err) => {
+        if (err && !res.headersSent) {
+          console.error(`[EXCEL LOTTO] Errore invio file ${filename}:`, err.message);
+          res.status(500).json({ success: false, error: err.message });
+        }
+      });
+    } else {
+      // 2. LOTTO ARCHIVIATO / CHIUSO
+      const allLotti = await getDbLotti();
+      const archivedLotto = (allLotti || []).find(l => Number(l.id) === Number(lottoId));
+
+      if (fs.existsSync(filePath)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        return res.download(filePath, filename, (err) => {
+          if (err && !res.headersSent) {
+            console.error(`[EXCEL LOTTO] Errore invio file esistente ${filename}:`, err.message);
+            res.status(500).json({ success: false, error: err.message });
+          }
+        });
+      }
+
+      if (archivedLotto) {
+        const allOrders = await getDbOrders();
+        const lotOrders = getOrdersForArchivedLotto(archivedLotto, allOrders);
+        console.log(`[EXCEL LOTTO] Generazione Excel per Lotto archiviato #${lottoId} con ${lotOrders.length} ordini`);
+        await generaExcelLotto(lottoId, lotOrders);
+
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        return res.download(filePath, filename, (err) => {
+          if (err && !res.headersSent) {
+            console.error(`[EXCEL LOTTO] Errore invio file ${filename}:`, err.message);
+            res.status(500).json({ success: false, error: err.message });
+          }
+        });
+      }
+
+      return res.status(404).json({ success: false, error: `Lotto #${lottoId} non trovato.` });
+    }
+  } catch (err) {
+    console.error(`🚨 Errore durante generazione/download Excel lotto #${targetLottoId}:`, err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
 }
 
 
@@ -5003,6 +5060,22 @@ app.get('/api/lotto', async (req, res) => {
     }
     return res.json({ success: true, lotto });
   }
+});
+
+// GET /api/lotto/excel - Genera e scarica on-demand l'Excel del lotto corrente (IN CORSO)
+app.get([
+  '/api/lotto/excel',
+  '/api/lotto/current/excel'
+], async (req, res) => {
+  return handleDownloadExcelLotto(req, res, getCurrentActiveLottoId());
+});
+
+// GET /api/lotto/:id/excel - Genera e scarica on-demand l'Excel del lotto specificato (in corso o archiviato)
+app.get([
+  '/api/lotto/:id/excel',
+  '/api/lotto/:id/excel/:filename'
+], async (req, res) => {
+  return handleDownloadExcelLotto(req, res, req.params.id);
 });
 
 // Helper per ottenere in modo sicuro e universale l'ID del lotto attivo
@@ -9856,6 +9929,139 @@ app.get('/api/customer/order-lotto/:id', async (req, res) => {
     return res.json({ success: true, lotto_id: null });
   } catch (err) {
     return res.json({ success: true, lotto_id: null });
+  }
+});
+
+// GET /api/customer/orders - Recupera tutti gli ordini associati a un account cliente
+app.get('/api/customer/orders', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.headers['x-user-id'];
+    if (!userId) {
+      return res.status(400).json({ success: false, error: "Identificativo utente non fornito." });
+    }
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return res.status(500).json({ success: false, error: "Database non configurato." });
+    }
+
+    // 1. Prendi ordini da customer_orders
+    const { data: custOrders, error: custErr } = await supabase
+      .from('customer_orders')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (custErr) {
+      console.error("⚠️ Errore lettura customer_orders:", custErr.message);
+      return res.status(500).json({ success: false, error: custErr.message });
+    }
+
+    if (!custOrders || custOrders.length === 0) {
+      return res.json({ success: true, orders: [] });
+    }
+
+    const orderIds = custOrders.map(o => o.id);
+    const adminOrderIds = custOrders.map(o => o.admin_order_id).filter(Boolean);
+
+    // 2. Prendi gli item
+    const { data: itemsData, error: itemsErr } = await supabase
+      .from('customer_order_items')
+      .select('*')
+      .in('order_id', orderIds);
+
+    const itemsMap = {};
+    (itemsData || []).forEach(it => {
+      if (!itemsMap[it.order_id]) itemsMap[it.order_id] = [];
+      itemsMap[it.order_id].push(it);
+    });
+
+    // 3. Prendi i lotti associati via orders
+    let adminOrdersMap = {};
+    let lottiMap = {};
+    if (adminOrderIds.length > 0) {
+      const { data: adminOrders } = await supabase
+        .from('orders')
+        .select('id, lotto_id, data, totale, squadra, nome, telefono')
+        .in('id', adminOrderIds);
+
+      (adminOrders || []).forEach(ao => {
+        adminOrdersMap[ao.id] = ao;
+      });
+
+      const lottoIds = [...new Set((adminOrders || []).map(ao => ao.lotto_id).filter(Boolean))];
+      if (lottoIds.length > 0) {
+        const { data: lottiData } = await supabase
+          .from('lotti')
+          .select('*')
+          .in('id', lottoIds);
+
+        (lottiData || []).forEach(l => {
+          lottiMap[l.id] = l;
+        });
+      }
+    }
+
+    // Costruisci la lista finale degli ordini
+    const resultOrders = custOrders.map(co => {
+      const ao = co.admin_order_id ? adminOrdersMap[co.admin_order_id] : null;
+      const lottoId = ao?.lotto_id || co.lotto_id || null;
+      const lotto = lottoId ? lottiMap[lottoId] : null;
+      const items = itemsMap[co.id] || [];
+
+      let trackingUrl = '';
+      if (lotto && lotto.tracking_code) {
+        const carrier = (lotto.tracking_carrier || '').toLowerCase();
+        if (carrier.includes('dhl')) {
+          trackingUrl = `https://www.dhl.com/it-it/home/tracciamento.html?tracking-id=${encodeURIComponent(lotto.tracking_code)}`;
+        } else if (carrier.includes('poste') || carrier.includes('sda')) {
+          trackingUrl = `https://www.poste.it/cerca/index.html#/risultati-spedizioni/${encodeURIComponent(lotto.tracking_code)}`;
+        } else if (carrier.includes('gls')) {
+          trackingUrl = `https://www.gls-italy.com/?id=${encodeURIComponent(lotto.tracking_code)}`;
+        } else if (carrier.includes('brt')) {
+          trackingUrl = `https://www.brt.it/it/tracking?spId=${encodeURIComponent(lotto.tracking_code)}`;
+        } else if (carrier.includes('ups')) {
+          trackingUrl = `https://www.ups.com/track?tracknum=${encodeURIComponent(lotto.tracking_code)}`;
+        } else {
+          trackingUrl = `https://www.google.com/search?q=${encodeURIComponent((lotto.tracking_carrier || 'corriere') + ' tracking ' + lotto.tracking_code)}`;
+        }
+      }
+
+      return {
+        id: co.id,
+        order_number: co.order_number || (co.admin_order_id ? `ORD-${co.admin_order_id}` : `ORD-${co.id.slice(0, 6).toUpperCase()}`),
+        admin_order_id: co.admin_order_id,
+        user_id: co.user_id,
+        status: co.status || (lotto ? (lotto.tracking_status || 'In preparazione') : 'Ordine Ricevuto'),
+        subtotal: Number(co.subtotal) || 0,
+        shipping: Number(co.shipping) || 0,
+        total: Number(co.total) || 0,
+        payment_status: co.payment_status || 'pending',
+        coupon_code: co.coupon_code || null,
+        coupon_discount: Number(co.coupon_discount) || 0,
+        created_at: co.created_at,
+        updated_at: co.updated_at,
+        lotto_id: lottoId,
+        lotto_numero: lotto ? lotto.numero_lotto : (lottoId ? `Lotto #${lottoId}` : null),
+        items: items,
+        items_count: items.reduce((sum, item) => sum + (Number(item.quantita) || 1), 0),
+        tracking: {
+          has_lotto: !!lottoId,
+          lotto_id: lottoId,
+          lotto_number: lotto ? lotto.numero_lotto : (lottoId ? `Lotto #${lottoId}` : null),
+          tracking_code: lotto?.tracking_code || '',
+          carrier: lotto?.tracking_carrier || 'DHL Express Premium',
+          status: lotto?.tracking_status || co.status || 'In preparazione',
+          tracking_url: trackingUrl,
+          events: (lotto?.tracking_events && Array.isArray(lotto.tracking_events)) ? lotto.tracking_events : []
+        }
+      };
+    });
+
+    return res.json({ success: true, orders: resultOrders });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/customer/orders:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 

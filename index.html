@@ -6345,65 +6345,14 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                             <p>Storico completo dei tuoi acquisti effettuati su Maglia d'Oro.</p>
                         </div>
 
-                        <!-- Card Ordine 1 -->
-                        <div class="ac-ordine-card">
-                            <div class="ac-ordine-card-header">
-                                <div class="ac-ordine-meta">
-                                    <span class="ac-ordine-numero">ORD-8492</span>
+                        <div id="ac-ordini-cards-list" style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Popolato dinamicamente da JS -->
+                            <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                                <div class="ac-empty-state">
+                                    <div class="ac-empty-icon">⏳</div>
+                                    <h3>Caricamento ordini in corso...</h3>
+                                    <p>Stiamo recuperando lo storico dei tuoi acquisti.</p>
                                 </div>
-                                <div class="ac-ordine-stato-badge" style="background: rgba(156, 163, 175, 0.12); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.25);">In Preparazione</div>
-                            </div>
-                            <div class="ac-ordine-card-body">
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Lotto di Produzione</span>
-                                    <span class="ac-ordine-info-valore oro">Lotto #23</span>
-                                </div>
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Stato Pagamento</span>
-                                    <span class="ac-ordine-info-valore" style="color: #32d74b; font-weight: 700;">🟢 Pagato</span>
-                                </div>
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Totale Articoli</span>
-                                    <span class="ac-ordine-info-valore">2 Prodotti</span>
-                                </div>
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Totale Pagato</span>
-                                    <span class="ac-ordine-info-valore oro">€150,00</span>
-                                </div>
-                            </div>
-                            <div class="ac-ordine-card-footer">
-                                <button type="button" class="btn-ac-dettaglio-ordine" onclick="event.preventDefault(); mostraDettaglioOrdine('ORD-8492')">Visualizza dettagli</button>
-                            </div>
-                        </div>
-
-                        <!-- Card Ordine 2 -->
-                        <div class="ac-ordine-card">
-                            <div class="ac-ordine-card-header">
-                                <div class="ac-ordine-meta">
-                                    <span class="ac-ordine-numero">ORD-4829</span>
-                                </div>
-                                <div class="ac-ordine-stato-badge" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.25);">In Consegna</div>
-                            </div>
-                            <div class="ac-ordine-card-body">
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Lotto di Produzione</span>
-                                    <span class="ac-ordine-info-valore oro">Lotto #10</span>
-                                </div>
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Stato Pagamento</span>
-                                    <span class="ac-ordine-info-valore" style="color: #32d74b; font-weight: 700;">🟢 Pagato</span>
-                                </div>
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Totale Articoli</span>
-                                    <span class="ac-ordine-info-valore">1 Prodotto</span>
-                                </div>
-                                <div class="ac-ordine-info-item">
-                                    <span class="ac-ordine-info-label">Totale Pagato</span>
-                                    <span class="ac-ordine-info-valore oro">€145,00</span>
-                                </div>
-                            </div>
-                            <div class="ac-ordine-card-footer">
-                                <button type="button" class="btn-ac-dettaglio-ordine" onclick="event.preventDefault(); mostraDettaglioOrdine('ORD-4829')">Visualizza dettagli</button>
                             </div>
                         </div>
                     </div>
@@ -6531,13 +6480,12 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                     <div style="display: flex; gap: 15px; align-items: center; background: rgba(255,255,255,0.03); padding: 15px 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
                         <span style="font-size: 13px; font-weight: 800; color: var(--primary); text-transform: uppercase;">Seleziona Ordine:</span>
                         <select id="ac-tracking-order-select" class="ac-select-premium" onchange="aggiornaTimelineTrackingReale(this.value)">
-                            <option value="ORD-4829">ORD-4829 (In Consegna)</option>
-                            <option value="ORD-8492">ORD-8492 (In Preparazione)</option>
+                            <option value="">Caricamento ordini in corso...</option>
                         </select>
                     </div>
 
                     <div class="ac-dettaglio-sez">
-                        <h4 class="ac-dettaglio-sez-title">Timeline Spedizione <span id="tracking-id-label" style="color:#ffffff; margin-left: 10px;">ORD-4829</span></h4>
+                        <h4 class="ac-dettaglio-sez-title">Timeline Spedizione <span id="tracking-id-label" style="color:#ffffff; margin-left: 10px;">--</span></h4>
                         
                         <!-- Tracking Meta Box -->
                         <div id="ac-tracking-meta-box" style="display: none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px; padding: 25px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; align-items: center;">
@@ -6608,12 +6556,14 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                         <p>I capi e le maglie storiche che hai salvato per i tuoi futuri desideri.</p>
                     </div>
 
-                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
-                        <div class="ac-empty-state">
-                            <div class="ac-empty-icon">❤️</div>
-                            <h3>Nessun prodotto salvato</h3>
-                            <p>Sfoglia il catalogo delle maglie storiche e dei club più esclusivi, clicca sul cuore per aggiungerli alla tua lista dei desideri.</p>
-                            <button class="btn-ac-primary" onclick="selezionaEFiltraClub('tutti')">Esplora il Catalogo</button>
+                    <div id="ac-wishlist-content" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                            <div class="ac-empty-state">
+                                <div class="ac-empty-icon">❤️</div>
+                                <h3>Nessun prodotto salvato</h3>
+                                <p>Sfoglia il catalogo delle maglie storiche e dei club più esclusivi, clicca sul cuore per aggiungerli alla tua lista dei desideri.</p>
+                                <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')">Esplora il Catalogo</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -11046,46 +10996,662 @@ function renderizzaProdottiSquadraConFiltri() {
         }
         window.apriLightbox = apriLightbox;
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        window.escapeHtml = escapeHtml;
+
+        /* ==========================================================
+           GESTIONE WISHLIST CLIENTE PUBBLICO
+           ========================================================== */
+        window.wishlistProdottiIds = [];
+
+        function ottieniChiaveWishlist() {
+            return 'maglia_doro_wishlist_' + (window.sessioneUtente?.id || 'guest');
+        }
+
+        function caricaWishlist() {
+            try {
+                const userKey = ottieniChiaveWishlist();
+                let saved = localStorage.getItem(userKey);
+                if (!saved && window.sessioneUtente) {
+                    saved = localStorage.getItem('maglia_doro_wishlist_guest') || localStorage.getItem('maglia_doro_wishlist');
+                    if (saved) {
+                        localStorage.setItem(userKey, saved);
+                    }
+                }
+                if (!saved) saved = localStorage.getItem('maglia_doro_wishlist');
+                window.wishlistProdottiIds = saved ? JSON.parse(saved) : [];
+                if (!Array.isArray(window.wishlistProdottiIds)) {
+                    window.wishlistProdottiIds = [];
+                }
+            } catch(e) {
+                window.wishlistProdottiIds = [];
+            }
+            aggiornaIconeCuoriWishlist();
+            renderWishlist();
+        }
+        window.caricaWishlist = caricaWishlist;
+
+        function aggiornaIconeCuoriWishlist() {
+            const ids = (window.wishlistProdottiIds || []).map(x => String(x));
+            document.querySelectorAll('.wishlist-heart-btn').forEach(btn => {
+                const id = btn.id.replace('heart-btn-', '');
+                if (ids.includes(String(id))) {
+                    btn.innerHTML = '❤️';
+                    btn.title = 'Rimuovi dai preferiti';
+                    btn.classList.add('salvato');
+                } else {
+                    btn.innerHTML = '🤍';
+                    btn.title = 'Aggiungi ai preferiti';
+                    btn.classList.remove('salvato');
+                }
+            });
+        }
+        window.aggiornaIconeCuoriWishlist = aggiornaIconeCuoriWishlist;
+
         function toggleWishlist(idProdotto, event) {
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
             }
+            if (!idProdotto) return;
             window.wishlistProdottiIds = window.wishlistProdottiIds || [];
             const strId = String(idProdotto);
             const numId = Number(idProdotto);
             const idx = window.wishlistProdottiIds.findIndex(x => String(x) === strId);
-            const btn = document.getElementById('heart-btn-' + idProdotto);
+            
             if (idx > -1) {
                 window.wishlistProdottiIds.splice(idx, 1);
-                if (btn) {
-                    btn.innerHTML = '🤍';
-                    btn.title = 'Aggiungi ai preferiti';
-                }
                 if (window.mostraToastPremium) window.mostraToastPremium("Rimosso dai preferiti", "info");
             } else {
                 window.wishlistProdottiIds.push(isNaN(numId) ? strId : numId);
-                if (btn) {
-                    btn.innerHTML = '❤️';
-                    btn.title = 'Rimuovi dai preferiti';
-                }
-                if (window.mostraToastPremium) window.mostraToastPremium("Aggiunto ai preferiti!", "success");
+                if (window.mostraToastPremium) window.mostraToastPremium("Aggiunto ai preferiti! ❤️", "success");
             }
+            
+            const key = ottieniChiaveWishlist();
+            localStorage.setItem(key, JSON.stringify(window.wishlistProdottiIds));
+            localStorage.setItem('maglia_doro_wishlist', JSON.stringify(window.wishlistProdottiIds));
+            
+            aggiornaIconeCuoriWishlist();
+            renderWishlist();
         }
         window.toggleWishlist = toggleWishlist;
 
-        function aggiungiRecensione() {
-            const utente = document.getElementById('rec-utente').value.trim() || "Anonimo";
-            const stelle = document.getElementById('rec-stelle').value;
-            const testo = document.getElementById('rec-testo').value.trim();
-            if(!testo) { alert("Scrivi un commento prima di inviare!"); return; }
-            const nuovaCard = document.createElement('div');
-            nuovaCard.className = 'card-recensione';
-            nuovaCard.innerHTML = `<div class="recensione-header"><span class="recensione-utente">${utente}</span><span class="recensione-stelle">${stelle}</span></div><p class="recensione-testo">${testo}</p>`;
-            const contenitore = document.getElementById('lista-recensioni-container');
-            contenitore.insertBefore(nuovaCard, contenitore.firstChild);
-            document.getElementById('rec-utente').value = ''; document.getElementById('rec-testo').value = '';
+        function rimuoviDaWishlist(idProdotto, event) {
+            toggleWishlist(idProdotto, event);
         }
+        window.rimuoviDaWishlist = rimuoviDaWishlist;
+
+        function renderWishlist() {
+            const container = document.getElementById('ac-wishlist-content');
+            if (!container) return;
+            
+            const ids = (window.wishlistProdottiIds || []).map(x => String(x));
+            if (ids.length === 0) {
+                container.innerHTML = `
+                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                        <div class="ac-empty-state">
+                            <div class="ac-empty-icon">❤️</div>
+                            <h3>Nessun prodotto salvato</h3>
+                            <p>Sfoglia il catalogo delle maglie storiche e dei club più esclusivi, clicca sul cuore per aggiungerli alla tua lista dei desideri.</p>
+                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')">Esplora il Catalogo</button>
+                        </div>
+                    </div>`;
+                return;
+            }
+            
+            const catalogo = Array.isArray(databaseProdotti) ? databaseProdotti : [];
+            const prodottiTrovati = [];
+            ids.forEach(id => {
+                const prod = catalogo.find(p => String(p.id) === id || String(p.legacy_id) === id);
+                if (prod) {
+                    prodottiTrovati.push(prod);
+                }
+            });
+            
+            if (prodottiTrovati.length === 0) {
+                container.innerHTML = `
+                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                        <div class="ac-empty-state">
+                            <div class="ac-empty-icon">❤️</div>
+                            <h3>I tuoi preferiti (${ids.length})</h3>
+                            <p>I prodotti salvati sono memorizzati nel tuo account.</p>
+                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')">Esplora il Catalogo</button>
+                        </div>
+                    </div>`;
+                return;
+            }
+            
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
+            `;
+            
+            prodottiTrovati.forEach(p => {
+                const img = p.immagine || 'placeholder-maglia.jpg';
+                const title = p.nome || p.squadra || 'Maglia';
+                const price = Number(p.prezzo || 23.99).toFixed(2);
+                const cat = p.categoria || 'Maglia Ufficiale';
+                const idProd = p.id || p.legacy_id;
+                
+                html += `
+                    <div class="card-prodotto" style="position: relative;">
+                        <button class="wishlist-heart-btn salvato" onclick="toggleWishlist('${idProd}', event)" title="Rimuovi dai preferiti" style="position: absolute; top: 12px; right: 12px; z-index: 10; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer;">❤️</button>
+                        <div class="card-img-container" onclick="apriPersonalizzazione('${escapeHtml(title)}', '${img}', ${price}, '${idProd}', '${p.legacy_id || ''}', '${p.target || ''}', '${cat}')">
+                            <img src="${img}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.src='placeholder-maglia.jpg'">
+                        </div>
+                        <div class="card-info" style="padding: 15px;">
+                            <span class="card-categoria">${escapeHtml(cat)}</span>
+                            <h3 class="card-titolo">${escapeHtml(title)}</h3>
+                            <div class="card-prezzo-box" style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <span class="card-prezzo">€${price}</span>
+                                <button class="btn-personalizza" style="padding: 6px 12px; font-size: 11px;" onclick="apriPersonalizzazione('${escapeHtml(title)}', '${img}', ${price}, '${idProd}', '${p.legacy_id || ''}', '${p.target || ''}', '${cat}')">Acquista</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+        window.renderWishlist = renderWishlist;
+
+        /* ==========================================================
+           GESTIONE RECENSIONI PUBBLICHE & CONDIVISIONE ESPERIENZE
+           ========================================================== */
+        window.recensioniPubblicheCache = [];
+        window.filtroRecensioniPubblicheCorrente = 'tutte';
+        window.recensioniCaricamentoInCorso = false;
+        window.recensioniFotoCaricate = [];
+
+        async function caricaRecensioniPubbliche(forzaRicaricamento = false) {
+            const container = document.getElementById('lista-recensioni-container');
+            if (!container) return;
+
+            // Se abbiamo già i dati in cache e non è forzato, renderizziamo subito
+            if (!forzaRicaricamento && Array.isArray(window.recensioniPubblicheCache) && window.recensioniPubblicheCache.length > 0) {
+                renderizzaRecensioniPubbliche();
+                return;
+            }
+
+            // Mostra stato di caricamento pulito
+            container.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px 0; color: rgba(255,255,255,0.6);">
+                    <span class="material-icons animate-spin" style="font-size: 24px; color: var(--primary);">sync</span>
+                    <span style="font-size: 14px;">Caricamento recensioni dei clienti...</span>
+                </div>
+            `;
+
+            window.recensioniCaricamentoInCorso = true;
+
+            try {
+                const res = await fetch('/api/reviews', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!res.ok) {
+                    throw new Error(`HTTP Error ${res.status}`);
+                }
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.reviews)) {
+                    window.recensioniPubblicheCache = data.reviews;
+                } else if (Array.isArray(data)) {
+                    window.recensioniPubblicheCache = data;
+                } else {
+                    window.recensioniPubblicheCache = [];
+                }
+            } catch (err) {
+                console.error("Errore durante il recupero delle recensioni pubbliche:", err);
+                container.innerHTML = `
+                    <div class="card-recensione" style="text-align: center; padding: 35px 20px; color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-l);">
+                        <span class="material-icons" style="font-size: 32px; color: #ef4444; margin-bottom: 8px;">error_outline</span>
+                        <h4 style="color: #ffffff; margin: 0 0 6px 0; font-size: 15px;">Impossibile caricare le recensioni</h4>
+                        <p style="margin: 0 0 15px 0; font-size: 13px; color: rgba(255,255,255,0.5);">Si è verificato un errore di connessione. Riprova tra qualche istante.</p>
+                        <button type="button" class="btn-ac-primary" style="padding: 8px 18px; font-size: 12px; border-radius: 20px;" onclick="caricaRecensioniPubbliche(true)">
+                            <span class="material-icons" style="font-size: 14px;">refresh</span> Riprova
+                        </button>
+                    </div>
+                `;
+                return;
+            } finally {
+                window.recensioniCaricamentoInCorso = false;
+            }
+
+            renderizzaRecensioniPubbliche();
+        }
+        window.caricaRecensioniPubbliche = caricaRecensioniPubbliche;
+
+        function impostaFiltroRecensioniPubbliche(tipoFiltro) {
+            window.filtroRecensioniPubblicheCorrente = tipoFiltro || 'tutte';
+
+            // Aggiorna classi/stili pulsanti filtro
+            const btnTutte = document.getElementById('btn-filtro-rec-tutte');
+            const btnVerificate = document.getElementById('btn-filtro-rec-verificate');
+            const btnCondivise = document.getElementById('btn-filtro-rec-condivise');
+
+            const styleAttivo = 'padding: 8px 16px; border-radius: 20px; background: var(--gold-gradient); color: #000000; font-weight: 800; font-size: 12px; border: none; cursor: pointer; transition: all 0.2s;';
+            const styleInattivo = 'padding: 8px 16px; border-radius: 20px; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); font-weight: 700; font-size: 12px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s;';
+
+            if (btnTutte) btnTutte.style.cssText = (tipoFiltro === 'tutte') ? styleAttivo : styleInattivo;
+            if (btnVerificate) btnVerificate.style.cssText = (tipoFiltro === 'verified_purchase') ? styleAttivo : styleInattivo;
+            if (btnCondivise) btnCondivise.style.cssText = (tipoFiltro === 'shared_experience') ? styleAttivo : styleInattivo;
+
+            renderizzaRecensioniPubbliche();
+        }
+        window.impostaFiltroRecensioniPubbliche = impostaFiltroRecensioniPubbliche;
+
+        function renderizzaRecensioniPubbliche() {
+            const container = document.getElementById('lista-recensioni-container');
+            if (!container) return;
+
+            const all = Array.isArray(window.recensioniPubblicheCache) ? window.recensioniPubblicheCache : [];
+            const filtro = window.filtroRecensioniPubblicheCorrente || 'tutte';
+
+            let filtrate = all;
+            if (filtro === 'verified_purchase') {
+                filtrate = all.filter(r => r.review_type === 'verified_purchase' || r.review_type === 'verified' || !!r.order_number);
+            } else if (filtro === 'shared_experience') {
+                filtrate = all.filter(r => r.review_type === 'shared_experience' || (!r.order_number && r.review_type !== 'verified_purchase'));
+            }
+
+            if (filtrate.length === 0) {
+                let msgVuoto = "Nessuna recensione disponibile al momento.";
+                if (filtro === 'verified_purchase') msgVuoto = "Nessuna recensione da acquisti verificati disponibile al momento.";
+                if (filtro === 'shared_experience') msgVuoto = "Nessuna esperienza condivisa presente al momento.";
+
+                container.innerHTML = `
+                    <div class="card-recensione" style="text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-l);">
+                        <div style="font-size: 32px; margin-bottom: 10px;">⭐</div>
+                        <h4 style="color: #ffffff; margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">${escapeHtml(msgVuoto)}</h4>
+                        <p style="margin: 0 0 20px 0; font-size: 13px; color: rgba(255,255,255,0.5);">Sii il primo a condividere la tua opinione con la community di Maglia d'Oro!</p>
+                        <button type="button" class="btn-ac-primary" style="padding: 10px 20px; font-size: 12px; border-radius: 20px;" onclick="apriModalCondividiEsperienza()">
+                            Condividi la tua esperienza
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            filtrate.forEach((rec) => {
+                const nome = rec.customer_name || rec.autore || rec.name || 'Cliente Verificato';
+                const rating = Math.min(5, Math.max(1, Number(rec.rating) || 5));
+                
+                // Stelle ★★★★★
+                let stelleHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    stelleHtml += i <= rating ? '★' : '☆';
+                }
+
+                // Data formattata
+                let dataStr = '';
+                if (rec.purchase_date) {
+                    dataStr = rec.purchase_date;
+                } else if (rec.created_at) {
+                    try {
+                        dataStr = new Date(rec.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+                    } catch(e) {
+                        dataStr = '';
+                    }
+                }
+
+                const isVerificato = rec.review_type === 'verified_purchase' || rec.review_type === 'verified' || !!rec.order_number;
+                const badgeTipoHtml = isVerificato
+                    ? `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #34d399; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 3px 8px; border-radius: 12px;"><span class="material-icons" style="font-size: 13px;">verified</span> Acquisto Verificato</span>`
+                    : `<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #60a5fa; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25); padding: 3px 8px; border-radius: 12px;"><span class="material-icons" style="font-size: 13px;">forum</span> Esperienza Condivisa</span>`;
+
+                const titoloHtml = rec.title ? `<h5 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #ffffff;">${escapeHtml(rec.title)}</h5>` : '';
+                const commentoHtml = rec.comment || rec.commento || rec.testo || '';
+
+                // Prodotto tag
+                let prodInfoHtml = '';
+                if (rec.product_name) {
+                    const prodImg = rec.product_image || 'placeholder-maglia.jpg';
+                    prodInfoHtml = `
+                        <div style="display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 4px 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+                            <img src="${escapeHtml(prodImg)}" alt="${escapeHtml(rec.product_name)}" style="width: 24px; height: 24px; object-fit: cover; border-radius: 4px;" onerror="this.style.display='none'">
+                            <span style="font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Maglia: <strong style="color: #fff;">${escapeHtml(rec.product_name)}</strong></span>
+                        </div>
+                    `;
+                }
+
+                // Immagini caricate
+                let galleryHtml = '';
+                if (Array.isArray(rec.images) && rec.images.length > 0) {
+                    galleryHtml = `<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">`;
+                    rec.images.forEach((imgObj) => {
+                        const imgUrl = (typeof imgObj === 'string') ? imgObj : (imgObj.url || '');
+                        if (imgUrl) {
+                            galleryHtml += `
+                                <img src="${escapeHtml(imgUrl)}" alt="Foto Recensione" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(214, 164, 58, 0.3); cursor: pointer; transition: transform 0.2s;" onclick="if(window.apriLightbox) { window.apriLightbox('${escapeHtml(imgUrl)}', '${escapeHtml(rec.customer_name || 'Recensione')}'); }" onerror="this.style.display='none'">
+                            `;
+                        }
+                    });
+                    galleryHtml += `</div>`;
+                }
+
+                html += `
+                    <div class="card-recensione" style="background: linear-gradient(145deg, #141414 0%, #0f0f0f 100%); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl); padding: 22px 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 5px;">
+                        <div class="recensione-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <span class="recensione-utente" style="font-weight: 800; font-size: 15px; color: #ffffff;">${escapeHtml(nome)}</span>
+                                    ${badgeTipoHtml}
+                                </div>
+                                ${dataStr ? `<span style="display: block; font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 3px;">${escapeHtml(dataStr)}</span>` : ''}
+                            </div>
+                            <div class="recensione-stelle" style="color: #f59e0b; font-size: 16px; letter-spacing: 2px;">
+                                ${stelleHtml}
+                            </div>
+                        </div>
+                        ${titoloHtml}
+                        <p class="recensione-testo" style="color: rgba(255, 255, 255, 0.85); font-size: 13.5px; margin: 0; line-height: 1.6; white-space: pre-line;">${escapeHtml(commentoHtml)}</p>
+                        ${galleryHtml}
+                        ${prodInfoHtml}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+        window.renderizzaRecensioniPubbliche = renderizzaRecensioniPubbliche;
+
+        /* ==========================================================
+           MODAL SCRIVI RECENSIONE / CONDIVIDI ESPERIENZA
+           ========================================================== */
+        function apriModalCondividiEsperienza() {
+            const modal = document.getElementById('modal-scrivi-recensione');
+            if (!modal) return;
+
+            const headerTitle = document.getElementById('modal-rec-title-header');
+            const headerDesc = document.getElementById('modal-rec-desc-header');
+            const prodPreview = document.getElementById('rec-prodotto-preview');
+            const reviewTypeInput = document.getElementById('rec-review-type');
+            const submitBtn = document.getElementById('btn-rec-submit-invia');
+
+            if (headerTitle) headerTitle.innerText = "Condividi la tua Esperienza";
+            if (headerDesc) headerDesc.innerText = "Condividi la tua opinione sul servizio, la velocità di consegna e la passione per il calcio con la community Maglia d'Oro.";
+            if (prodPreview) prodPreview.style.display = 'none';
+            if (reviewTypeInput) reviewTypeInput.value = 'shared_experience';
+            if (submitBtn) submitBtn.innerText = "Invia Esperienza Condivisa";
+
+            document.getElementById('rec-order-id').value = '';
+            document.getElementById('rec-order-number').value = '';
+            document.getElementById('rec-product-id').value = '';
+            document.getElementById('rec-product-name').value = '';
+            document.getElementById('rec-product-image').value = '';
+            document.getElementById('rec-purchase-date').value = '';
+
+            // Precompila nome/email se l'utente è loggato
+            if (window.sessioneUtente) {
+                const nomeInp = document.getElementById('rec-submit-nome');
+                const emailInp = document.getElementById('rec-submit-email');
+                if (nomeInp && !nomeInp.value) {
+                    nomeInp.value = window.sessioneUtente.nome_completo || window.sessioneUtente.email?.split('@')[0] || '';
+                }
+                if (emailInp && !emailInp.value) {
+                    emailInp.value = window.sessioneUtente.email || '';
+                }
+            }
+
+            setRecSubmitRating(5);
+            window.recensioniFotoCaricate = [];
+            aggiornaPreviewFotoRecensione();
+
+            modal.style.display = 'flex';
+        }
+        window.apriModalCondividiEsperienza = apriModalCondividiEsperienza;
+
+        function apriModalScriviRecensione(orderNumber, productName, productImage) {
+            const modal = document.getElementById('modal-scrivi-recensione');
+            if (!modal) return;
+
+            const headerTitle = document.getElementById('modal-rec-title-header');
+            const headerDesc = document.getElementById('modal-rec-desc-header');
+            const prodPreview = document.getElementById('rec-prodotto-preview');
+            const prodNomeEl = document.getElementById('rec-prodotto-nome');
+            const prodFotoEl = document.getElementById('rec-prodotto-foto');
+            const reviewTypeInput = document.getElementById('rec-review-type');
+            const submitBtn = document.getElementById('btn-rec-submit-invia');
+
+            if (headerTitle) headerTitle.innerText = "Scrivi una Recensione Verificata";
+            if (headerDesc) headerDesc.innerText = "La tua opinione è importante e aiuta altri appassionati a scegliere la loro maglia preferita.";
+            
+            const ordNum = orderNumber || document.getElementById('det-ordine-id')?.innerText.trim() || '';
+            let pNome = productName || '';
+            let pFoto = productImage || 'placeholder-maglia.jpg';
+
+            if (!pNome && window.customerOrdersCache) {
+                const currentOrder = window.customerOrdersCache.find(o => o.order_number === ordNum || String(o.id) === ordNum);
+                if (currentOrder && currentOrder.items && currentOrder.items.length > 0) {
+                    pNome = currentOrder.items[0].nome || 'Maglia Ufficiale';
+                    pFoto = currentOrder.items[0].immagine || 'placeholder-maglia.jpg';
+                }
+            }
+
+            if (prodPreview) {
+                prodPreview.style.display = pNome ? 'flex' : 'none';
+                if (prodNomeEl) prodNomeEl.innerText = pNome || 'Prodotto Acquistato';
+                if (prodFotoEl) prodFotoEl.src = pFoto;
+            }
+
+            if (reviewTypeInput) reviewTypeInput.value = 'verified_purchase';
+            if (submitBtn) submitBtn.innerText = "Invia Recensione Verificata";
+
+            document.getElementById('rec-order-number').value = ordNum;
+            document.getElementById('rec-product-name').value = pNome;
+            document.getElementById('rec-product-image').value = pFoto;
+            document.getElementById('rec-purchase-date').value = new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'Long', year: 'numeric' });
+
+            if (window.sessioneUtente) {
+                const nomeInp = document.getElementById('rec-submit-nome');
+                const emailInp = document.getElementById('rec-submit-email');
+                if (nomeInp && !nomeInp.value) {
+                    nomeInp.value = window.sessioneUtente.nome_completo || '';
+                }
+                if (emailInp && !emailInp.value) {
+                    emailInp.value = window.sessioneUtente.email || '';
+                }
+            }
+
+            setRecSubmitRating(5);
+            window.recensioniFotoCaricate = [];
+            aggiornaPreviewFotoRecensione();
+
+            modal.style.display = 'flex';
+        }
+        window.apriModalScriviRecensione = apriModalScriviRecensione;
+
+        function chiudiModalScriviRecensione() {
+            const modal = document.getElementById('modal-scrivi-recensione');
+            if (modal) modal.style.display = 'none';
+        }
+        window.chiudiModalScriviRecensione = chiudiModalScriviRecensione;
+
+        function setRecSubmitRating(val) {
+            const ratingInput = document.getElementById('rec-submit-rating');
+            if (ratingInput) ratingInput.value = val;
+            
+            const spans = document.querySelectorAll('#rec-stelle-selector span');
+            spans.forEach((span) => {
+                const starVal = Number(span.getAttribute('data-star'));
+                if (starVal <= val) {
+                    span.innerText = '★';
+                    span.style.color = '#f59e0b';
+                } else {
+                    span.innerText = '☆';
+                    span.style.color = 'rgba(255,255,255,0.2)';
+                }
+            });
+        }
+        window.setRecSubmitRating = setRecSubmitRating;
+
+        function hoverRecSubmitRating(val) {
+            const spans = document.querySelectorAll('#rec-stelle-selector span');
+            spans.forEach((span) => {
+                const starVal = Number(span.getAttribute('data-star'));
+                if (starVal <= val) {
+                    span.innerText = '★';
+                    span.style.color = '#f59e0b';
+                } else {
+                    span.innerText = '☆';
+                    span.style.color = 'rgba(255,255,255,0.2)';
+                }
+            });
+        }
+        window.hoverRecSubmitRating = hoverRecSubmitRating;
+
+        function resetRecSubmitRating() {
+            const currentVal = Number(document.getElementById('rec-submit-rating')?.value || 5);
+            setRecSubmitRating(currentVal);
+        }
+        window.resetRecSubmitRating = resetRecSubmitRating;
+
+        function gestisciUploadFotoRecensione(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            window.recensioniFotoCaricate = window.recensioniFotoCaricate || [];
+            
+            Array.from(files).forEach(file => {
+                if (window.recensioniFotoCaricate.length >= 5) {
+                    if (window.mostraToastPremium) window.mostraToastPremium("Massimo 5 foto per recensione.", "info");
+                    return;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    if (window.mostraToastPremium) window.mostraToastPremium(`Il file ${file.name} supera il limite di 10MB.`, "errore");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.recensioniFotoCaricate.push({
+                        url: e.target.result,
+                        caption: file.name
+                    });
+                    aggiornaPreviewFotoRecensione();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            event.target.value = '';
+        }
+        window.gestisciUploadFotoRecensione = gestisciUploadFotoRecensione;
+
+        function rimuoviFotoRecensione(idx) {
+            if (window.recensioniFotoCaricate && window.recensioniFotoCaricate[idx] !== undefined) {
+                window.recensioniFotoCaricate.splice(idx, 1);
+                aggiornaPreviewFotoRecensione();
+            }
+        }
+        window.rimuoviFotoRecensione = rimuoviFotoRecensione;
+
+        function aggiornaPreviewFotoRecensione() {
+            const container = document.getElementById('rec-submit-previews');
+            if (!container) return;
+
+            const list = window.recensioniFotoCaricate || [];
+            if (list.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            list.forEach((item, idx) => {
+                html += `
+                    <div style="position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(214, 164, 58, 0.4);">
+                        <img src="${item.url}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                        <button type="button" onclick="rimuoviFotoRecensione(${idx})" style="position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: rgba(239,68,68,0.9); color: #fff; border: none; font-size: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer;">✕</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        window.aggiornaPreviewFotoRecensione = aggiornaPreviewFotoRecensione;
+
+        async function inviaRecensioneCliente(event) {
+            if (event) event.preventDefault();
+
+            const nome = (document.getElementById('rec-submit-nome')?.value || '').trim();
+            const email = (document.getElementById('rec-submit-email')?.value || '').trim();
+            const rating = Number(document.getElementById('rec-submit-rating')?.value || 5);
+            const titolo = (document.getElementById('rec-submit-titolo')?.value || '').trim();
+            const commento = (document.getElementById('rec-submit-commento')?.value || '').trim();
+            const reviewType = document.getElementById('rec-review-type')?.value || 'verified_purchase';
+            const orderNumber = document.getElementById('rec-order-number')?.value || null;
+            const productName = document.getElementById('rec-product-name')?.value || null;
+            const productImage = document.getElementById('rec-product-image')?.value || null;
+            const purchaseDate = document.getElementById('rec-purchase-date')?.value || null;
+
+            if (!nome) {
+                if (window.mostraToastPremium) window.mostraToastPremium("Inserisci il tuo nome.", "errore");
+                return;
+            }
+            if (!commento) {
+                if (window.mostraToastPremium) window.mostraToastPremium("Inserisci il testo della recensione.", "errore");
+                return;
+            }
+
+            const submitBtn = document.getElementById('btn-rec-submit-invia');
+            const originalText = submitBtn ? submitBtn.innerHTML : 'Invia Recensione';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="material-icons animate-spin" style="font-size: 16px;">sync</span> Invio in corso...';
+            }
+
+            try {
+                const payload = {
+                    customer_name: nome,
+                    email: email || null,
+                    rating: rating,
+                    title: titolo || null,
+                    comment: commento,
+                    review_type: reviewType,
+                    order_number: orderNumber,
+                    product_name: productName,
+                    product_image: productImage,
+                    purchase_date: purchaseDate,
+                    images: window.recensioniFotoCaricate || []
+                };
+
+                const res = await fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data && data.success) {
+                    chiudiModalScriviRecensione();
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium("Grazie! La tua recensione è stata inviata e verrà pubblicata dopo l'approvazione.", "success");
+                    }
+                    // Reset form
+                    document.getElementById('form-scrivi-recensione')?.reset();
+                    window.recensioniFotoCaricate = [];
+                    aggiornaPreviewFotoRecensione();
+                } else {
+                    throw new Error(data?.error || "Errore durante l'invio della recensione");
+                }
+            } catch (err) {
+                console.error("Errore invio recensione:", err);
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium(err.message || "Impossibile inviare la recensione. Riprova più tardi.", "errore");
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            }
+        }
+        window.inviaRecensioneCliente = inviaRecensioneCliente;
 
         let prodottoSuggeritoCorrente = null;
 
@@ -11959,13 +12525,16 @@ function renderizzaProdottiSquadraConFiltri() {
 
         function aggiornaUIAutenticazioneCliente() {
             const utenteContainer = document.getElementById('utente-container');
+            const session = window.sessioneUtente;
+            
             if (utenteContainer) {
-                if (sessioneUtente && sessioneUtente.email) {
-                    const nomeVisualizzato = sessioneUtente.nome_completo || sessioneUtente.email.split('@')[0];
+                if (session && session.email) {
+                    const meta = session.user_metadata || {};
+                    const nomeVisualizzato = meta.nome || (session.nome_completo ? session.nome_completo.split(' ')[0] : session.email.split('@')[0]);
                     utenteContainer.innerHTML = `
                         <div class="icona-utente utente-loggato" onclick="mostraSezioneCompleta('area-cliente')" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--primary);">
                             <span class="material-icons" style="font-size: 18px;">account_circle</span>
-                            <span id="header-user-name">${nomeVisualizzato}</span>
+                            <span id="header-user-name">${escapeHtml(nomeVisualizzato)}</span>
                         </div>
                     `;
                 } else {
@@ -11977,41 +12546,556 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
             }
 
-            // Update Area Cliente user names
-            const nome = sessioneUtente ? (sessioneUtente.nome_completo || sessioneUtente.email.split('@')[0]) : 'Utente';
-            document.querySelectorAll('.ac-utente-nome-display').forEach(el => {
-                el.innerText = 'Ciao, ' + nome;
-            });
-            document.querySelectorAll('.ac-saluto-utente').forEach(el => {
-                el.innerText = '👋 Ciao, ' + nome;
-            });
+            // Update Area Cliente user names in sidebar & dashboard
+            if (session) {
+                const meta = session.user_metadata || {};
+                const nome = meta.nome || (session.nome_completo ? session.nome_completo.split(' ')[0] : 'Cliente');
+                const cognome = meta.cognome || (session.nome_completo ? session.nome_completo.split(' ').slice(1).join(' ') : '');
+                const fullName = session.nome_completo || `${nome} ${cognome}`.trim();
+                const telefono = meta.telefono || meta.phone || '';
 
-            // Populate profile inputs
-            if (sessioneUtente) {
+                document.querySelectorAll('.ac-utente-nome-display').forEach(el => {
+                    el.innerText = 'Ciao, ' + nome;
+                });
+                document.querySelectorAll('.ac-saluto-utente').forEach(el => {
+                    el.innerText = '👋 Ciao, ' + nome;
+                });
+
+                // Populate profile inputs
                 const inputNome = document.getElementById('ac-input-nome');
                 const inputCognome = document.getElementById('ac-input-cognome');
                 const inputEmail = document.getElementById('ac-input-email');
                 const inputTelefono = document.getElementById('ac-input-telefono');
 
-                if (inputEmail) inputEmail.value = sessioneUtente.email || '';
-                if (inputNome && !inputNome.value) {
-                    inputNome.value = sessioneUtente.user_metadata?.nome || sessioneUtente.nome_completo?.split(' ')[0] || '';
-                }
-                if (inputCognome && !inputCognome.value) {
-                    inputCognome.value = sessioneUtente.user_metadata?.cognome || sessioneUtente.nome_completo?.split(' ').slice(1).join(' ') || '';
-                }
-                if (inputTelefono && !inputTelefono.value) {
-                    inputTelefono.value = sessioneUtente.user_metadata?.telefono || sessioneUtente.user_metadata?.phone || '';
-                }
+                if (inputEmail) inputEmail.value = session.email || '';
+                if (inputNome) inputNome.value = nome;
+                if (inputCognome) inputCognome.value = cognome;
+                if (inputTelefono) inputTelefono.value = telefono;
 
                 // Cart prefill
                 const clienteNome = document.getElementById('cliente-nome');
-                if (clienteNome && !clienteNome.value) {
-                    clienteNome.value = sessioneUtente.nome_completo || '';
+                const clienteTel = document.getElementById('cliente-telefono');
+                if (clienteNome && (!clienteNome.value || clienteNome.value === '')) {
+                    clienteNome.value = fullName;
                 }
+                if (clienteTel && (!clienteTel.value || clienteTel.value === '')) {
+                    clienteTel.value = telefono;
+                }
+            } else {
+                document.querySelectorAll('.ac-utente-nome-display').forEach(el => {
+                    el.innerText = 'Ciao, Utente';
+                });
+                document.querySelectorAll('.ac-saluto-utente').forEach(el => {
+                    el.innerText = '👋 Ciao, Utente';
+                });
             }
         }
         window.aggiornaUIAutenticazioneCliente = aggiornaUIAutenticazioneCliente;
+
+        /* ==========================================================
+           GESTIONE ORDINI & TRACKING CLIENTE PUBBLICO
+           ========================================================== */
+        window.customerOrdersCache = [];
+
+        async function sincronizzaOrdiniCliente() {
+            if (!sessioneUtente || !sessioneUtente.id) {
+                return;
+            }
+            
+            const container = document.getElementById('ac-ordini-cards-list');
+            if (container && (!window.customerOrdersCache || window.customerOrdersCache.length === 0)) {
+                container.innerHTML = `
+                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                        <div class="ac-empty-state">
+                            <div class="ac-empty-icon">⏳</div>
+                            <h3>Recupero ordini in corso...</h3>
+                            <p>Stiamo caricando lo storico degli ordini del tuo account.</p>
+                        </div>
+                    </div>`;
+            }
+
+            try {
+                const res = await fetch(`/api/customer/orders?userId=${encodeURIComponent(sessioneUtente.id)}`, {
+                    headers: {
+                        'x-user-id': sessioneUtente.id,
+                        'Authorization': `Bearer ${sessioneUtente.access_token || ''}`
+                    }
+                });
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.orders)) {
+                    window.customerOrdersCache = data.orders;
+                } else {
+                    window.customerOrdersCache = [];
+                }
+            } catch(err) {
+                console.warn("Recupero ordini da API fallito, tento fallback Supabase:", err);
+            }
+            
+            // Fallback: se cache è ancora vuota, prova query diretta Supabase
+            if ((!window.customerOrdersCache || window.customerOrdersCache.length === 0) && sessioneUtente) {
+                try {
+                    const client = await getCustomerSupabaseClient();
+                    if (client) {
+                        const { data: co } = await client
+                            .from('customer_orders')
+                            .select('*')
+                            .eq('user_id', sessioneUtente.id)
+                            .order('created_at', { ascending: false });
+                        if (co && co.length > 0) {
+                            window.customerOrdersCache = co.map(c => ({
+                                id: c.id,
+                                order_number: c.order_number || `ORD-${c.admin_order_id || c.id.slice(0, 6)}`,
+                                admin_order_id: c.admin_order_id,
+                                user_id: c.user_id,
+                                status: c.status || 'Ordine Ricevuto',
+                                subtotal: Number(c.subtotal) || 0,
+                                shipping: Number(c.shipping) || 0,
+                                total: Number(c.total) || 0,
+                                payment_status: c.payment_status || 'pending',
+                                coupon_code: c.coupon_code,
+                                coupon_discount: c.coupon_discount,
+                                created_at: c.created_at,
+                                items: [],
+                                items_count: 1,
+                                tracking: {
+                                    has_lotto: false,
+                                    status: c.status || 'Ordine Ricevuto',
+                                    tracking_code: '',
+                                    carrier: 'DHL Express'
+                                }
+                            }));
+                        }
+                    }
+                } catch(fallbackErr) {
+                    console.warn("Fallback query Supabase ordini:", fallbackErr);
+                }
+            }
+
+            renderOrdiniCliente(window.customerOrdersCache || []);
+            popolaSelectTracking(window.customerOrdersCache || []);
+            aggiornaStatisticheDashboard(window.customerOrdersCache || []);
+        }
+        window.sincronizzaOrdiniCliente = sincronizzaOrdiniCliente;
+
+        function aggiornaStatisticheDashboard(orders) {
+            const totOrdiniElem = document.getElementById('ac-dash-totale-ordini');
+            if (totOrdiniElem) {
+                totOrdiniElem.innerText = orders.length;
+            }
+            const totSpesoElem = document.getElementById('ac-dash-totale-speso');
+            if (totSpesoElem) {
+                const somma = orders.reduce((acc, o) => acc + (Number(o.total) || 0), 0);
+                totSpesoElem.innerText = `€${somma.toFixed(2).replace('.', ',')}`;
+            }
+        }
+
+        function renderOrdiniCliente(orders) {
+            const container = document.getElementById('ac-ordini-cards-list');
+            if (!container) return;
+
+            if (!orders || orders.length === 0) {
+                container.innerHTML = `
+                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                        <div class="ac-empty-state">
+                            <div class="ac-empty-icon">📦</div>
+                            <h3>Nessun ordine effettuato</h3>
+                            <p>Non hai ancora effettuato acquisti con questo account. Esplora le nostre collezioni e fai il tuo primo ordine!</p>
+                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')">Inizia lo Shopping</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            orders.forEach(o => {
+                const orderNum = o.order_number || (o.admin_order_id ? `ORD-${o.admin_order_id}` : `ORD-${o.id.slice(0, 6)}`);
+                const dataFormatted = o.created_at ? new Date(o.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recente';
+                const status = o.status || 'Ordine Ricevuto';
+                const lottoText = o.lotto_numero || (o.lotto_id ? `Lotto #${o.lotto_id}` : 'In assegnazione');
+                const isPagato = o.payment_status === 'paid' || o.payment_status === 'completed' || o.payment_status === 'succeeded' || (o.status && o.status.toLowerCase().includes('confermato'));
+                const pagLabel = isPagato ? '🟢 Pagato' : '🟡 In elaborazione';
+                const itemsCount = o.items_count || (o.items ? o.items.length : 1);
+                const totaleFormatted = `€${Number(o.total || 0).toFixed(2).replace('.', ',')}`;
+
+                let badgeStyle = 'background: rgba(156, 163, 175, 0.12); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.25);';
+                const stLower = status.toLowerCase();
+                if (stLower.includes('consegna') || stLower.includes('spedito')) {
+                    badgeStyle = 'background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.25);';
+                } else if (stLower.includes('consegnato') || stLower.includes('completato')) {
+                    badgeStyle = 'background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25);';
+                } else if (stLower.includes('preparazione') || stLower.includes('lotto')) {
+                    badgeStyle = 'background: rgba(234, 179, 8, 0.12); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.25);';
+                }
+
+                html += `
+                    <div class="ac-ordine-card" id="card-ordine-${escapeHtml(orderNum)}">
+                        <div class="ac-ordine-card-header">
+                            <div class="ac-ordine-meta">
+                                <span class="ac-ordine-numero">${escapeHtml(orderNum)}</span>
+                                <span class="ac-ordine-data">${escapeHtml(dataFormatted)}</span>
+                            </div>
+                            <div class="ac-ordine-stato-badge" style="${badgeStyle}">${escapeHtml(status)}</div>
+                        </div>
+                        <div class="ac-ordine-card-body">
+                            <div class="ac-ordine-info-item">
+                                <span class="ac-ordine-info-label">Lotto di Produzione</span>
+                                <span class="ac-ordine-info-valore oro">${escapeHtml(lottoText)}</span>
+                            </div>
+                            <div class="ac-ordine-info-item">
+                                <span class="ac-ordine-info-label">Stato Pagamento</span>
+                                <span class="ac-ordine-info-valore" style="font-weight: 700;">${pagLabel}</span>
+                            </div>
+                            <div class="ac-ordine-info-item">
+                                <span class="ac-ordine-info-label">Totale Articoli</span>
+                                <span class="ac-ordine-info-valore">${itemsCount} ${itemsCount === 1 ? 'Prodotto' : 'Prodotti'}</span>
+                            </div>
+                            <div class="ac-ordine-info-item">
+                                <span class="ac-ordine-info-label">Totale Pagato</span>
+                                <span class="ac-ordine-info-valore oro">${totaleFormatted}</span>
+                            </div>
+                        </div>
+                        <div class="ac-ordine-card-footer" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" class="btn-ac-dettaglio-ordine" onclick="event.preventDefault(); mostraDettaglioOrdine('${escapeHtml(orderNum)}')">Visualizza dettagli</button>
+                            <button type="button" class="btn-ac-dettaglio-ordine" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #e2e8f0;" onclick="event.preventDefault(); vaiAlTrackingOrdine('${escapeHtml(orderNum)}')">🚚 Traccia Spedizione</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+        window.renderOrdiniCliente = renderOrdiniCliente;
+
+        function mostraDettaglioOrdine(orderIdentifier) {
+            if (!window.customerOrdersCache || window.customerOrdersCache.length === 0) return;
+            const cleanId = String(orderIdentifier).trim();
+            const order = window.customerOrdersCache.find(o => 
+                String(o.order_number).toUpperCase() === cleanId.toUpperCase() ||
+                String(o.id) === cleanId ||
+                String(o.admin_order_id) === cleanId ||
+                `ORD-${o.admin_order_id}`.toUpperCase() === cleanId.toUpperCase()
+            );
+
+            if (!order) return;
+
+            const listContainer = document.getElementById('ac-lista-ordini-container');
+            const detailBox = document.getElementById('ac-dettaglio-ordine-box');
+            if (listContainer) listContainer.style.display = 'none';
+            if (detailBox) detailBox.style.display = 'block';
+
+            const orderNum = order.order_number || `ORD-${order.admin_order_id || order.id.slice(0, 6)}`;
+            const dataFormatted = order.created_at ? new Date(order.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--/--/----';
+            const isPagato = order.payment_status === 'paid' || order.payment_status === 'completed' || order.payment_status === 'succeeded' || (order.status && order.status.toLowerCase().includes('confermato'));
+
+            const detId = document.getElementById('det-ordine-id');
+            if (detId) detId.innerText = orderNum;
+
+            const detData = document.getElementById('det-ordine-data');
+            if (detData) detData.innerText = `Effettuato il: ${dataFormatted}`;
+
+            const detStato = document.getElementById('det-ordine-stato');
+            if (detStato) detStato.innerText = order.status || 'Ordine Ricevuto';
+
+            const detPag = document.getElementById('det-ordine-pagamento-top');
+            if (detPag) detPag.innerText = isPagato ? '🟢 Pagato' : '🟡 In attesa';
+
+            const detLotto = document.getElementById('det-ordine-lotto-top');
+            if (detLotto) detLotto.innerText = order.lotto_numero || (order.lotto_id ? `Lotto #${order.lotto_id}` : 'In assegnazione');
+
+            const detItemsTop = document.getElementById('det-ordine-totale-articoli-top');
+            if (detItemsTop) detItemsTop.innerText = `${order.items_count || 1} ${order.items_count === 1 ? 'Prodotto' : 'Prodotti'}`;
+
+            const detTotTop = document.getElementById('det-ordine-totale-top');
+            if (detTotTop) detTotTop.innerText = `€${Number(order.total || 0).toFixed(2).replace('.', ',')}`;
+
+            const detSub = document.getElementById('det-ordine-subtotale');
+            if (detSub) detSub.innerText = `€${Number(order.subtotal || order.total || 0).toFixed(2).replace('.', ',')}`;
+
+            const detSped = document.getElementById('det-ordine-spedizione');
+            if (detSped) detSped.innerText = Number(order.shipping) > 0 ? `€${Number(order.shipping).toFixed(2).replace('.', ',')}` : 'Gratuita';
+
+            const detTotFin = document.getElementById('det-ordine-totale-finale');
+            if (detTotFin) detTotFin.innerText = `€${Number(order.total || 0).toFixed(2).replace('.', ',')}`;
+
+            // Render items list
+            const itemsContainer = document.getElementById('det-ordine-prodotti-list');
+            if (itemsContainer) {
+                if (order.items && order.items.length > 0) {
+                    let itemsHtml = '';
+                    order.items.forEach(it => {
+                        const qty = Number(it.quantita) || 1;
+                        const pr = Number(it.prezzo) || 0;
+                        const lineTot = (qty * pr).toFixed(2).replace('.', ',');
+                        const prUnit = pr.toFixed(2).replace('.', ',');
+                        const pers = it.personalizzazione ? `<span style="display: block; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;">${escapeHtml(it.personalizzazione)}</span>` : '';
+                        const size = it.taglia ? `<span class="ac-taglia-badge" style="font-size: 11px; padding: 2px 6px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-right: 6px;">Taglia: ${escapeHtml(it.taglia)}</span>` : '';
+                        
+                        let itemImg = 'placeholder-maglia.jpg';
+                        if (Array.isArray(databaseProdotti)) {
+                            const prodMatch = databaseProdotti.find(p => p.id === it.product_id || p.legacy_id === it.product_id || (p.nome && it.nome && p.nome.toLowerCase() === it.nome.toLowerCase()));
+                            if (prodMatch && prodMatch.immagine) itemImg = prodMatch.immagine;
+                        }
+
+                        itemsHtml += `
+                            <div class="ac-ordine-prod-row" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 10px; gap: 15px;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <img src="${itemImg}" alt="${escapeHtml(it.nome || 'Maglia')}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.src='placeholder-maglia.jpg'">
+                                    <div>
+                                        <h5 style="margin: 0; font-size: 14px; font-weight: 700; color: #ffffff;">${escapeHtml(it.nome || 'Prodotto Maglia d\'Oro')}</h5>
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
+                                            ${size}
+                                            <span style="font-size: 12px; color: rgba(255,255,255,0.6);">Quantità: <strong>${qty}</strong> × €${prUnit}</span>
+                                        </div>
+                                        ${pers}
+                                    </div>
+                                </div>
+                                <div style="text-align: right; min-width: 80px;">
+                                    <span class="oro" style="font-size: 15px; font-weight: 800;">€${lineTot}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    itemsContainer.innerHTML = itemsHtml;
+                } else {
+                    itemsContainer.innerHTML = `
+                        <div style="padding: 15px; text-align: center; color: rgba(255,255,255,0.5); font-size: 13px;">
+                            Dettagli articoli inclusi nel riepilogo dell'ordine.
+                        </div>
+                    `;
+                }
+            }
+
+            // Set tracking button
+            const trackBtn = document.getElementById('btn-det-traccia-spedizione');
+            if (trackBtn) {
+                trackBtn.onclick = () => vaiAlTrackingOrdine(orderNum);
+            }
+        }
+        window.mostraDettaglioOrdine = mostraDettaglioOrdine;
+
+        function nascondiDettaglioOrdine() {
+            const listContainer = document.getElementById('ac-lista-ordini-container');
+            const detailBox = document.getElementById('ac-dettaglio-ordine-box');
+            if (detailBox) detailBox.style.display = 'none';
+            if (listContainer) listContainer.style.display = 'flex';
+        }
+        window.nascondiDettaglioOrdine = nascondiDettaglioOrdine;
+
+        function vaiAlTrackingOrdine(orderIdentifier) {
+            mostraSezioneCompleta('tracking');
+            const select = document.getElementById('ac-tracking-order-select');
+            if (select) {
+                select.value = orderIdentifier;
+            }
+            aggiornaTimelineTrackingReale(orderIdentifier);
+        }
+        window.vaiAlTrackingOrdine = vaiAlTrackingOrdine;
+
+        function popolaSelectTracking(orders) {
+            const select = document.getElementById('ac-tracking-order-select');
+            if (!select) return;
+
+            if (!orders || orders.length === 0) {
+                select.innerHTML = `<option value="">Nessun ordine disponibile</option>`;
+                return;
+            }
+
+            let optionsHtml = '';
+            orders.forEach((o, index) => {
+                const orderNum = o.order_number || `ORD-${o.admin_order_id || o.id.slice(0, 6)}`;
+                const status = o.status || 'Ordine Ricevuto';
+                optionsHtml += `<option value="${escapeHtml(orderNum)}">${escapeHtml(orderNum)} (${escapeHtml(status)})</option>`;
+            });
+
+            select.innerHTML = optionsHtml;
+        }
+        window.popolaSelectTracking = popolaSelectTracking;
+
+        function aggiornaTimelineTrackingReale(selectedOrderNumberOrId) {
+            if (!window.customerOrdersCache || window.customerOrdersCache.length === 0) {
+                const trackingLabel = document.getElementById('tracking-id-label');
+                if (trackingLabel) trackingLabel.innerText = '--';
+                const timeline = document.getElementById('tracking-timeline-content');
+                if (timeline) {
+                    timeline.innerHTML = `
+                        <div class="ac-empty-state" style="padding: 30px 20px;">
+                            <div class="ac-empty-icon">🚚</div>
+                            <h3>Nessun ordine da tracciare</h3>
+                            <p>Effettua un ordine per seguire il processo di produzione e spedizione in tempo reale.</p>
+                        </div>`;
+                }
+                return;
+            }
+
+            let currentOrder = null;
+            if (selectedOrderNumberOrId) {
+                const cleanId = String(selectedOrderNumberOrId).trim().toUpperCase();
+                currentOrder = window.customerOrdersCache.find(o => 
+                    String(o.order_number).toUpperCase() === cleanId ||
+                    String(o.id).toUpperCase() === cleanId ||
+                    String(o.admin_order_id).toUpperCase() === cleanId ||
+                    `ORD-${o.admin_order_id}`.toUpperCase() === cleanId
+                );
+            }
+            if (!currentOrder) {
+                currentOrder = window.customerOrdersCache[0];
+            }
+
+            const orderNum = currentOrder.order_number || `ORD-${currentOrder.admin_order_id || currentOrder.id.slice(0, 6)}`;
+            const trackingLabel = document.getElementById('tracking-id-label');
+            if (trackingLabel) trackingLabel.innerText = orderNum;
+
+            const select = document.getElementById('ac-tracking-order-select');
+            if (select && select.value !== orderNum) {
+                select.value = orderNum;
+            }
+
+            // Tracking Meta Box
+            const metaBox = document.getElementById('ac-tracking-meta-box');
+            const metaCode = document.getElementById('ac-meta-tracking-code');
+            const metaStatus = document.getElementById('ac-meta-tracking-status');
+            const metaLink = document.getElementById('ac-meta-tracking-link');
+
+            const tracking = currentOrder.tracking || {};
+            const trackingCode = tracking.tracking_code || '';
+            const trackingStatus = tracking.status || currentOrder.status || 'In elaborazione';
+            const trackingUrl = tracking.tracking_url || '';
+
+            if (metaBox) {
+                if (trackingCode || currentOrder.lotto_id) {
+                    metaBox.style.display = 'grid';
+                    if (metaCode) metaCode.innerText = trackingCode || 'In generazione';
+                    if (metaStatus) metaStatus.innerText = trackingStatus;
+                    if (metaLink) {
+                        if (trackingUrl) {
+                            metaLink.href = trackingUrl;
+                            metaLink.style.display = 'inline-flex';
+                        } else {
+                            metaLink.style.display = 'none';
+                        }
+                    }
+                } else {
+                    metaBox.style.display = 'none';
+                }
+            }
+
+            // Timeline Rendering
+            const timeline = document.getElementById('tracking-timeline-content');
+            if (!timeline) return;
+
+            const stLower = (currentOrder.status || '').toLowerCase();
+            const hasLotto = !!(currentOrder.lotto_id || currentOrder.lotto_numero);
+            const isShipped = stLower.includes('spedit') || stLower.includes('consegna') || stLower.includes('consegnat') || !!trackingCode;
+            const isInDelivery = stLower.includes('in consegna') || stLower.includes('consegnat');
+            const isDelivered = stLower.includes('consegnato') || stLower.includes('completato');
+
+            const createdDate = currentOrder.created_at ? new Date(currentOrder.created_at).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Registrato';
+            const lottoName = currentOrder.lotto_numero || (currentOrder.lotto_id ? `Lotto #${currentOrder.lotto_id}` : 'Lotto di Produzione');
+
+            let timelineHtml = `
+                <!-- Step 1: Ordine Ricevuto -->
+                <div class="ac-timeline-item done show">
+                    <div class="ac-timeline-indicator"></div>
+                    <div class="ac-timeline-contenuto">
+                        <h5>Ordine Confermato & Ricevuto</h5>
+                        <p>${escapeHtml(createdDate)} • Il tuo ordine è stato registrato ed è in fase di smistamento (${currentOrder.items_count || 1} articoli).</p>
+                    </div>
+                </div>
+
+                <!-- Step 2: Assegnazione Lotto -->
+                <div class="ac-timeline-item ${hasLotto ? 'done' : 'active'} show">
+                    <div class="ac-timeline-indicator"></div>
+                    <div class="ac-timeline-contenuto">
+                        <h5>${hasLotto ? 'Assegnato al ' + escapeHtml(lottoName) : 'In attesa Assegnazione Lotto'}</h5>
+                        <p>${hasLotto ? 'I capi sono stati inseriti nel ciclo di produzione e controllo del lotto.' : 'L\'ordine è in coda per l\'inserimento nel prossimo ciclo di produzione.'}</p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Confezionamento e Controllo Qualità -->
+                <div class="ac-timeline-item ${isShipped ? 'done' : (hasLotto ? 'active' : '')} show">
+                    <div class="ac-timeline-indicator"></div>
+                    <div class="ac-timeline-contenuto">
+                        <h5>Controllo Qualità & Confezionamento</h5>
+                        <p>Applicazione patch ufficiali, verifica accuratezza stampe e confezionamento protettivo Maglia d'Oro.</p>
+                    </div>
+                </div>
+
+                <!-- Step 4: Spedizione Corriere -->
+                <div class="ac-timeline-item ${isInDelivery || isDelivered ? 'done' : (isShipped ? 'active done' : '')} show">
+                    <div class="ac-timeline-indicator"></div>
+                    <div class="ac-timeline-contenuto">
+                        <h5>${trackingCode ? 'Spedito con ' + escapeHtml(tracking.carrier || 'Corriere Espresso') : 'Spedizione con Corriere Espresso'}</h5>
+                        <p>${trackingCode ? ('Codice Tracciamento: ' + escapeHtml(trackingCode) + ' • Pacco in transito verso la destinazione.') : 'In attesa di ritiro da parte del corriere logistico.'}</p>
+                    </div>
+                </div>
+
+                <!-- Step 5: Consegna -->
+                <div class="ac-timeline-item ${isDelivered ? 'done' : (isInDelivery ? 'active' : '')} show">
+                    <div class="ac-timeline-indicator"></div>
+                    <div class="ac-timeline-contenuto">
+                        <h5>Consegna al Destinatario</h5>
+                        <p>${isDelivered ? 'Il pacco è stato consegnato con successo. Grazie per aver scelto Maglia d\'Oro!' : (isInDelivery ? 'Il corriere è in consegna all\'indirizzo specificato.' : 'Consegna stimata all\'indirizzo del cliente.')}</p>
+                    </div>
+                </div>
+            `;
+
+            timeline.innerHTML = timelineHtml;
+        }
+        window.aggiornaTimelineTrackingReale = aggiornaTimelineTrackingReale;
+
+        function copiaCodiceTracking() {
+            const codeElem = document.getElementById('ac-meta-tracking-code');
+            if (!codeElem) return;
+            const text = codeElem.innerText.trim();
+            if (!text || text === '--') return;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    if (window.mostraToastPremium) window.mostraToastPremium("Codice tracking copiato negli appunti!", "success");
+                }).catch(() => {
+                    if (window.mostraToastPremium) window.mostraToastPremium("Codice: " + text, "info");
+                });
+            } else {
+                if (window.mostraToastPremium) window.mostraToastPremium("Codice: " + text, "info");
+            }
+        }
+        window.copiaCodiceTracking = copiaCodiceTracking;
+
+        function sincronizzaNavigazioneAreaCliente(idSezione) {
+            document.querySelectorAll('.area-cliente-menu .menu-ac-item').forEach(item => {
+                item.classList.remove('active');
+                const onclickAttr = item.getAttribute('onclick') || '';
+                if (onclickAttr.includes(`'${idSezione}'`)) {
+                    item.classList.add('active');
+                }
+            });
+
+            document.querySelectorAll('.area-cliente-mobile-nav .mobile-ac-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                const onclickAttr = btn.getAttribute('onclick') || '';
+                if (onclickAttr.includes(`'${idSezione}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (idSezione === 'i-miei-ordini' || idSezione === 'area-cliente') {
+                sincronizzaOrdiniCliente();
+            } else if (idSezione === 'tracking') {
+                if (!window.customerOrdersCache || window.customerOrdersCache.length === 0) {
+                    sincronizzaOrdiniCliente().then(() => {
+                        aggiornaTimelineTrackingReale();
+                    });
+                } else {
+                    aggiornaTimelineTrackingReale();
+                }
+            } else if (idSezione === 'wishlist') {
+                caricaWishlist();
+            } else if (idSezione === 'profilo') {
+                aggiornaUIAutenticazioneCliente();
+            }
+        }
+        window.sincronizzaNavigazioneAreaCliente = sincronizzaNavigazioneAreaCliente;
 
         async function eseguiLogin(e) {
             if (e && e.preventDefault) e.preventDefault();
@@ -12070,7 +13154,16 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 const user = data.user;
                 const session = data.session;
-                const meta = user.user_metadata || {};
+                let meta = user.user_metadata || {};
+                
+                // Prova a recuperare dati profilo da tabella profiles se mancanti
+                try {
+                    const { data: profData } = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+                    if (profData) {
+                        meta = { ...meta, nome: profData.nome || meta.nome, cognome: profData.cognome || meta.cognome, telefono: profData.telefono || meta.telefono, phone: profData.telefono || meta.phone };
+                    }
+                } catch(ign) {}
+
                 const fullName = meta.full_name || 
                                  (meta.nome ? `${meta.nome} ${meta.cognome || ''}`.trim() : null) || 
                                  meta.first_name || 
@@ -12088,18 +13181,13 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 chiudiAuth();
                 aggiornaUIAutenticazioneCliente();
+                caricaWishlist();
 
                 if (window.mostraToastPremium) {
                     window.mostraToastPremium("Accesso effettuato! Benvenuto " + sessioneUtente.nome_completo, "success");
                 }
 
-                if (typeof window.sincronizzaOrdiniCliente === 'function') {
-                    try {
-                        await window.sincronizzaOrdiniCliente();
-                    } catch (ordErr) {
-                        console.warn("Sincronizzazione ordini completata con avviso:", ordErr);
-                    }
-                }
+                sincronizzaOrdiniCliente().catch(e => console.warn("Sync ordini warning:", e));
             } catch(err) {
                 if (alertBox) {
                     alertBox.style.display = 'block';
@@ -12189,6 +13277,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
                     chiudiAuth();
                     aggiornaUIAutenticazioneCliente();
+                    caricaWishlist();
                     if (window.mostraToastPremium) {
                         window.mostraToastPremium("Registrazione completata! Benvenuto " + sessioneUtente.nome_completo, "success");
                     }
@@ -12234,7 +13323,9 @@ function renderizzaProdottiSquadraConFiltri() {
             } catch(err) {
                 console.warn("Errore logout cliente:", err);
             }
+            window.customerOrdersCache = [];
             aggiornaUIAutenticazioneCliente();
+            caricaWishlist();
             
             const acSezioni = ['area-cliente', 'i-miei-ordini', 'tracking', 'wishlist', 'profilo', 'impostazioni'];
             const paginaAttiva = document.querySelector('.sezione-pagina.attiva');
@@ -12264,7 +13355,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
             try {
                 const client = await getCustomerSupabaseClient();
-                const fullName = `${nome} ${cognome}`.trim();
+                const fullName = `${nome} ${cognome}`.trim() || sessioneUtente.nome_completo;
                 
                 if (client) {
                     const updates = {
@@ -12272,7 +13363,8 @@ function renderizzaProdottiSquadraConFiltri() {
                             full_name: fullName,
                             nome: nome,
                             cognome: cognome,
-                            phone: telefono
+                            phone: telefono,
+                            telefono: telefono
                         }
                     };
                     if (newPassword && newPassword.length >= 6) {
@@ -12292,11 +13384,12 @@ function renderizzaProdottiSquadraConFiltri() {
                     } catch (ignore) {}
                 }
 
-                sessioneUtente.nome_completo = fullName || sessioneUtente.nome_completo;
+                sessioneUtente.nome_completo = fullName;
                 if (!sessioneUtente.user_metadata) sessioneUtente.user_metadata = {};
                 sessioneUtente.user_metadata.nome = nome;
                 sessioneUtente.user_metadata.cognome = cognome;
                 sessioneUtente.user_metadata.telefono = telefono;
+                sessioneUtente.user_metadata.phone = telefono;
                 sessioneUtente.user_metadata.full_name = fullName;
 
                 localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
@@ -12320,13 +13413,22 @@ function renderizzaProdottiSquadraConFiltri() {
                     sessioneUtente = JSON.parse(saved);
                     window.sessioneUtente = sessioneUtente;
                     aggiornaUIAutenticazioneCliente();
+                    caricaWishlist();
                 }
                 const client = await getCustomerSupabaseClient();
                 if (client) {
                     const { data } = await client.auth.getSession();
                     if (data && data.session && data.session.user) {
                         const user = data.session.user;
-                        const meta = user.user_metadata || {};
+                        let meta = user.user_metadata || {};
+                        
+                        try {
+                            const { data: profData } = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+                            if (profData) {
+                                meta = { ...meta, nome: profData.nome || meta.nome, cognome: profData.cognome || meta.cognome, telefono: profData.telefono || meta.telefono, phone: profData.telefono || meta.phone };
+                            }
+                        } catch(ign) {}
+
                         const fullName = meta.full_name || 
                                          (meta.nome ? `${meta.nome} ${meta.cognome || ''}`.trim() : null) || 
                                          meta.first_name || 
@@ -12342,6 +13444,10 @@ function renderizzaProdottiSquadraConFiltri() {
                         localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
                         aggiornaUIAutenticazioneCliente();
                     }
+                }
+                caricaWishlist();
+                if (sessioneUtente && sessioneUtente.id) {
+                    sincronizzaOrdiniCliente().catch(e => console.warn("Init sync ordini:", e));
                 }
             } catch(err) {
                 console.warn("Errore inizializzazione sessione cliente:", err);
