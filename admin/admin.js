@@ -2130,15 +2130,15 @@ window.apriDettaglioLotto = function(id) {
                 const cleanPhone = telefonoCliente.replace(/\D/g, '');
                 const waLink = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('39') ? '' : '39'}${cleanPhone}` : '#';
 
-                const costoFornitoreEur = order["Costo totale (EUR)"] || '';
-                const costoFornitoreUsd = order["Costo totale (USD)"] || '';
-                const costoProdottiUsd = order["Costo prodotti (USD)"] || '';
+                const costoFornitoreEur = order["Costo totale (EUR)"] || order.costo_totale_eur || '';
+                const costoFornitoreUsd = order["Costo totale (USD)"] || order.costo_totale_usd || '';
+                const costoProdottiUsd = order["Costo prodotti (USD)"] || order.costo_prodotti_usd || '';
+                const cambioValuta = order["Cambio USD/EUR"] || order.cambio_usd_eur || '';
                 
-                const parsedTotalUsd = parseFloat((costoFornitoreUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
-                const parsedProductsUsd = parseFloat((costoProdottiUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                const parsedTotalUsd = parseFlexibleDecimal(costoFornitoreUsd);
+                const parsedProductsUsd = parseFlexibleDecimal(costoProdottiUsd);
                 const fallbackSpedizioneUsdVal = Math.max(0, parsedTotalUsd - parsedProductsUsd);
-                const costoSpedizioneUsd = order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || String(fallbackSpedizioneUsdVal);
-                const cambioValuta = order["Cambio USD/EUR"] || '';
+                const costoSpedizioneUsd = order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd || String(fallbackSpedizioneUsdVal);
 
                 const itemsHTML = renderOrderItemsHTML(order);
 
@@ -2222,7 +2222,7 @@ window.apriDettaglioLotto = function(id) {
                                         <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
                                         <span class="font-mono font-bold text-white">
                                             ${(() => {
-                                                const haSpedCliente = prodottiOrdinati.toLowerCase().includes('spedizione');
+                                                const haSpedCliente = String(prodottiOrdinati || '').toLowerCase().includes('spedizione');
                                                 return haSpedCliente ? '€ 2,00' : '<span class="text-brand-gold font-bold">GRATUITA</span>';
                                             })()}
                                         </span>
@@ -2237,12 +2237,12 @@ window.apriDettaglioLotto = function(id) {
                                         <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
                                         <span class="font-mono font-semibold text-white">
                                             € ${(() => {
-                                                const r = parseFloat((cambioValuta || '0.92').replace(/\./g, '').replace(',', '.')) || 0.92;
-                                                const p = parseFloat((costoProdottiUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                                const p = parseFlexibleDecimal(costoProdottiUsd);
                                                 return (p * r).toFixed(2).replace('.', ',');
                                             })()} 
                                             <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                                const p = parseFloat((costoProdottiUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                                const p = parseFlexibleDecimal(costoProdottiUsd);
                                                 return p.toFixed(2).replace('.', ',');
                                             })()})</span>
                                         </span>
@@ -2252,12 +2252,12 @@ window.apriDettaglioLotto = function(id) {
                                         <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
                                         <span class="font-mono font-semibold text-white">
                                             € ${(() => {
-                                                const r = parseFloat((cambioValuta || '0.92').replace(/\./g, '').replace(',', '.')) || 0.92;
-                                                const s = parseFloat((costoSpedizioneUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
                                                 return (s * r).toFixed(2).replace('.', ',');
                                             })()} 
                                             <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                                const s = parseFloat((costoSpedizioneUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
                                                 return s.toFixed(2).replace('.', ',');
                                             })()})</span>
                                         </span>
@@ -2267,11 +2267,18 @@ window.apriDettaglioLotto = function(id) {
                                         <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
                                         <span class="font-mono font-black text-white text-sm">
                                             € ${(() => {
-                                                const val = parseFloat((costoFornitoreEur || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                                const p = parseFlexibleDecimal(costoProdottiUsd);
+                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
+                                                const rawEur = parseFlexibleDecimal(costoFornitoreEur);
+                                                const val = rawEur > 0 ? rawEur : ((p + s) * r);
                                                 return val.toFixed(2).replace('.', ',');
                                             })()} 
                                             <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${(() => {
-                                                const val = parseFloat((costoFornitoreUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                                const p = parseFlexibleDecimal(costoProdottiUsd);
+                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
+                                                const rawUsd = parseFlexibleDecimal(costoFornitoreUsd);
+                                                const val = rawUsd > 0 ? rawUsd : (p + s);
                                                 return val.toFixed(2).replace('.', ',');
                                             })()})</span>
                                         </span>
@@ -2280,7 +2287,19 @@ window.apriDettaglioLotto = function(id) {
                                     <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
                                         <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
                                         <span class="font-mono font-black text-emerald-400 text-sm">
-                                            +€ ${profitto}
+                                            ${(() => {
+                                                const totInc = parseFlexibleDecimal(totaleOrdine);
+                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                                const p = parseFlexibleDecimal(costoProdottiUsd);
+                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
+                                                const rawEur = parseFlexibleDecimal(costoFornitoreEur);
+                                                const cTot = rawEur > 0 ? rawEur : ((p + s) * r);
+                                                let prof = (order.profitto_eur !== undefined && order.profitto_eur !== null && !isNaN(Number(order.profitto_eur)))
+                                                    ? parseFlexibleDecimal(order.profitto_eur)
+                                                    : (order["Profitto (EUR)"] !== undefined ? parseFlexibleDecimal(order["Profitto (EUR)"]) : (totInc - cTot));
+                                                const sign = prof >= 0 ? '+' : '';
+                                                return `${sign}€ ${prof.toFixed(2).replace('.', ',')}`;
+                                            })()}
                                         </span>
                                     </div>
                                 </div>
@@ -4199,7 +4218,7 @@ async function salvaProdotto() {
     const prezzo_fornitore = inputFornitore !== "" ? parseFloat(inputFornitore) : null;
     
     const rawImmagine = document.getElementById('form-immagine').value.trim();
-    const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.2;
+    const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.05;
     const x = parseFloat(document.getElementById('editor-x')?.value) || 0;
     const y = parseFloat(document.getElementById('editor-y')?.value) || 0;
     const immagine = buildImageUrlWithTransform(rawImmagine, zoom, x, y);
@@ -4518,10 +4537,23 @@ function switchTab(tabId, preserveSelectionMode = false) {
     }
     currentActiveTab = tabId;
 
+    // Sezioni appartenenti all'Area Secondaria
+    const secondaryTabs = ['recensioni', 'coupon', 'suddivisione-conti', 'marketing', 'gestione-catalogo', 'impostazioni', 'strumenti'];
+
+    let activeMainTab = tabId;
+    let activeSecondarySubTab = null;
+
+    if (secondaryTabs.includes(tabId)) {
+        activeMainTab = 'strumenti';
+        activeSecondarySubTab = (tabId === 'strumenti') ? 'recensioni' : tabId;
+    }
+
     // Sezioni disponibili
     const sections = [
         'dashboard', 'prodotti', 'ordini', 'lotto', 
-        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 'marketing', 'recensioni', 'coupon', 'fornitura-tornei', 'suddivisione-conti', 'chat'
+        'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 
+        'marketing', 'recensioni', 'coupon', 'fornitura-tornei', 
+        'suddivisione-conti', 'chat', 'strumenti'
     ];
     
     // Mappa dei titoli dell'header
@@ -4532,41 +4564,68 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'lotto': 'Lotti',
         'gestione-ordini': 'Gestione Ordini',
         'tracking': 'Tracking Spedizioni',
-        'impostazioni': 'Impostazioni',
+        'impostazioni': 'Impostazioni Negozio',
         'gestione-catalogo': 'Gestione Catalogo',
         'marketing': 'Gestione Promo Home',
         'recensioni': 'Moderazione Recensioni',
         'coupon': 'Gestione Coupon Sconto',
         'fornitura-tornei': 'Fornitura Tornei & Eventi',
         'suddivisione-conti': 'Suddivisione Conti (Sergio & Riccardo)',
-        'chat': 'Chat Assistenza Live'
+        'chat': 'Chat Assistenza Live',
+        'strumenti': 'Strumenti & Utilità'
     };
 
-    // Aggiorna visibilità sezioni
+    // Aggiorna visibilità sezioni principali e secondarie
     sections.forEach(sec => {
         const sectionEl = document.getElementById(`section-${sec}`);
         if (sectionEl) {
-            if (sec === tabId) {
-                sectionEl.classList.remove('hidden');
+            if (activeMainTab === 'strumenti') {
+                if (sec === 'strumenti') {
+                    sectionEl.classList.remove('hidden');
+                } else if (sec === activeSecondarySubTab) {
+                    sectionEl.classList.remove('hidden');
+                } else {
+                    sectionEl.classList.add('hidden');
+                }
             } else {
-                sectionEl.classList.add('hidden');
+                if (sec === activeMainTab) {
+                    sectionEl.classList.remove('hidden');
+                } else {
+                    sectionEl.classList.add('hidden');
+                }
             }
         }
     });
 
-    // Aggiorna classi della sidebar
-    sections.forEach(sec => {
+    // Aggiorna classi della sidebar principale
+    const sidebarNavIds = ['dashboard', 'prodotti', 'ordini', 'gestione-ordini', 'lotto', 'chat', 'fornitura-tornei', 'strumenti'];
+    sidebarNavIds.forEach(sec => {
         const navEl = document.getElementById(`nav-${sec}`);
         if (navEl) {
-            if (sec === tabId) {
+            if (sec === activeMainTab) {
                 // Stile Attivo (Arancione/Oro)
-                navEl.className = "nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-white bg-brand-gold/15 border-l-4 border-brand-gold";
+                navEl.className = "nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-white bg-brand-gold/15 border-l-4 border-brand-gold";
             } else {
                 // Stile Inattivo
-                navEl.className = "nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent";
+                navEl.className = "nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent";
             }
         }
     });
+
+    // Aggiorna classi della sotto-navigazione dell'Area Secondaria
+    if (activeMainTab === 'strumenti' && activeSecondarySubTab) {
+        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'marketing', 'gestione-catalogo'];
+        subnavIds.forEach(sub => {
+            const subnavEl = document.getElementById(`subnav-${sub}`);
+            if (subnavEl) {
+                if (sub === activeSecondarySubTab) {
+                    subnavEl.className = "subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-brand-gold text-white shadow-sm cursor-pointer";
+                } else {
+                    subnavEl.className = "subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer";
+                }
+            }
+        });
+    }
 
     // Aggiorna titolo header
     const titleEl = document.getElementById('current-section-title');
@@ -4586,7 +4645,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
         caricaGestioneOrdini();
     } else if (tabId === 'marketing') {
         loadMarketingPromo();
-    } else if (tabId === 'recensioni') {
+    } else if (tabId === 'recensioni' || (tabId === 'strumenti' && activeSecondarySubTab === 'recensioni')) {
         caricaRecensioniAdmin();
     } else if (tabId === 'coupon') {
         caricaCoupon();
@@ -4598,6 +4657,25 @@ function switchTab(tabId, preserveSelectionMode = false) {
         if (typeof caricaLotto === 'function') caricaLotto();
         if (typeof caricaCronologiaLotti === 'function') caricaCronologiaLotti();
     } else if (tabId === 'chat') {
+        const listCol = document.getElementById('admin-chat-list-column');
+        const activeCol = document.getElementById('admin-chat-active-column');
+        if (listCol && activeCol) {
+            if (window.innerWidth >= 1024) {
+                listCol.classList.remove('hidden');
+                activeCol.classList.remove('hidden');
+                activeCol.classList.add('flex');
+            } else {
+                if (conversazioneSelezionataId) {
+                    listCol.classList.add('hidden');
+                    activeCol.classList.remove('hidden');
+                    activeCol.classList.add('flex');
+                } else {
+                    listCol.classList.remove('hidden');
+                    activeCol.classList.add('hidden');
+                    activeCol.classList.remove('flex');
+                }
+            }
+        }
         if (typeof caricaConversazioniAdmin === 'function') {
             caricaConversazioniAdmin();
         }
@@ -4667,6 +4745,7 @@ function closeAddProductModal() {
 
 // Espone le funzioni a livello globale per gli handler HTML inline
 window.switchTab = switchTab;
+window.switchSubTab = function(subTabId) { switchTab(subTabId); };
 // Espone i vari event handler e callback del form
 window.toggleMobileSidebar = toggleMobileSidebar;
 window.openAddProductModal = openAddProductModal;
@@ -5451,6 +5530,14 @@ function renderOrdini() {
         const orderDateKey = escapeHtml(String(order.data || ''));
         const existingMod = isSelectionMode ? getModificaForOrder(order) : null;
 
+        // Dati Convenzione Torneo
+        const capitanoNome = order.capitano_nome || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || null;
+        const capitanoTel = order.capitano_telefono || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || null;
+        const torneoNome = order.torneo_nome || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.torneo_nome)?.fornitura?.torneo_nome) || (order.torneo_id ? `Torneo ${order.torneo_id}` : null);
+        const nomeSquadraConv = order.nome_squadra || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || null;
+        const codiceConv = order.codice_univoco || order.codice_fornitura || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.codice_univoco)?.fornitura?.codice_univoco) || null;
+        const isConvenzioneTorneo = Boolean(order.is_convenzione || codiceConv || capitanoNome || (Array.isArray(order.carrello) && order.carrello.some(it => it && (it.fornitura || it.ha_prezzo_concordato || it.torneo_id))));
+
         // Gestione stili e badge per modalità standard vs selezione
         let statusBadgeHTML = '';
         let cardContainerClass = 'bg-[#111111] border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between';
@@ -5478,20 +5565,21 @@ function renderOrdini() {
                 : 'bg-emerald-950/20 text-emerald-400 border-emerald-900/30';
             const hasOrderAgreedPrice = Array.isArray(order.carrello) && order.carrello.some(ci => ci.ha_prezzo_concordato || ci.prezzo_concordato || (Array.isArray(ci.fasce_prezzo) && ci.fasce_prezzo.length > 0));
             const agreedBadge = hasOrderAgreedPrice ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/30 uppercase tracking-wider font-sans">🏷️ Prezzo Concordato</span>` : '';
-            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
+            const convBadge = isConvenzioneTorneo ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-black rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/40 uppercase tracking-wider font-sans">🏆 Convenzione Torneo</span>` : '';
+            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${convBadge}${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
         }
 
-        const costoFornitoreEur = order["Costo totale (EUR)"] || '';
-        const costoFornitoreUsd = order["Costo totale (USD)"] || '';
-        const costoProdottiUsd = order["Costo prodotti (USD)"] || '';
+        const costoFornitoreEur = order["Costo totale (EUR)"] || order.costo_totale_eur || '';
+        const costoFornitoreUsd = order["Costo totale (USD)"] || order.costo_totale_usd || '';
+        const costoProdottiUsd = order["Costo prodotti (USD)"] || order.costo_prodotti_usd || '';
+        const cambioValuta = order["Cambio USD/EUR"] || order.cambio_usd_eur || '';
         
         // Calcolo di fallback robusto: Spedizione = Costo totale (USD) - Costo prodotti (USD)
-        const parsedTotalUsd = parseFloat((costoFornitoreUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
-        const parsedProductsUsd = parseFloat((costoProdottiUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+        const parsedTotalUsd = parseFlexibleDecimal(costoFornitoreUsd);
+        const parsedProductsUsd = parseFlexibleDecimal(costoProdottiUsd);
         const fallbackSpedizioneUsdVal = Math.max(0, parsedTotalUsd - parsedProductsUsd);
         
-        const costoSpedizioneUsd = order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || String(fallbackSpedizioneUsdVal);
-        const cambioValuta = order["Cambio USD/EUR"] || '';
+        const costoSpedizioneUsd = order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd || String(fallbackSpedizioneUsdVal);
 
         // Genera la lista degli articoli acquistati con immagini, taglie e dettagli
         const itemsHTML = renderOrderItemsHTML(order);
@@ -5549,18 +5637,35 @@ function renderOrdini() {
                 
                 <!-- Body: Customer info & Items -->
                 <div class="p-4 flex-grow space-y-3.5">
-                    <!-- Cliente Info -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="text-sm font-bold text-white leading-tight">${nomeCliente}</h4>
-                            <span class="text-[11px] text-[rgba(255,255,255,0.65)] font-mono block mt-0.5">📞 ${telefonoCliente}</span>
+                    ${isConvenzioneTorneo ? `
+                        <!-- Box Convenzione Torneo -->
+                        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 space-y-1.5 font-sans">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5 text-xs font-black text-brand-gold uppercase tracking-wider">
+                                    <span>🏆</span> CONVENZIONE TORNEO
+                                </div>
+                                ${codiceConv ? `<span class="text-[10px] font-mono font-bold px-2 py-0.5 bg-amber-900/40 text-amber-300 border border-amber-500/30 rounded">Cod: ${codiceConv}</span>` : ''}
+                            </div>
+                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Torneo:</span> <strong class="text-white">${torneoNome || 'Etna Gold'}</strong></div>
+                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Squadra:</span> <strong class="text-white">${nomeSquadraConv || 'FC Sergio'}</strong></div>
+                            <div class="text-xs text-white pt-1 border-t border-amber-500/20"><span class="font-bold text-amber-400">👑 CAPITANO:</span> <strong class="text-white">${capitanoNome || nomeCliente}</strong></div>
+                            <div class="text-xs text-white"><span class="font-bold text-amber-400">📞 TEL. CAPITANO:</span> <span class="font-mono text-white">${capitanoTel || telefonoCliente}</span></div>
+                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Prodotti totali:</span> <strong class="text-emerald-400 font-mono">${numArticoli} completini</strong></div>
                         </div>
-                        ${cleanPhone ? `
-                            <a href="${waLink}" target="_blank" class="h-7 w-7 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner" title="Contatta su WhatsApp">
-                                💬
-                            </a>
-                        ` : ''}
-                    </div>
+                    ` : `
+                        <!-- Cliente Info Standard -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-white leading-tight">${nomeCliente}</h4>
+                                <span class="text-[11px] text-[rgba(255,255,255,0.65)] font-mono block mt-0.5">📞 ${telefonoCliente}</span>
+                            </div>
+                            ${cleanPhone ? `
+                                <a href="${waLink}" target="_blank" class="h-7 w-7 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner" title="Contatta su WhatsApp">
+                                    💬
+                                </a>
+                            ` : ''}
+                        </div>
+                    `}
                     
                     <!-- Items Box -->
                     <div class="bg-[#0B0B0B] px-3 py-2.5 rounded-xl border border-[rgba(255,255,255,0.08)]">
@@ -5612,7 +5717,7 @@ function renderOrdini() {
                                 <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
                                 <span class="font-mono font-bold text-white">
                                     ${(() => {
-                                        const haSpedCliente = prodottiOrdinati.toLowerCase().includes('spedizione');
+                                        const haSpedCliente = String(prodottiOrdinati || '').toLowerCase().includes('spedizione');
                                         return haSpedCliente ? '€ 2,00' : '<span class="text-brand-gold font-bold">GRATUITA</span>';
                                     })()}
                                 </span>
@@ -5627,12 +5732,12 @@ function renderOrdini() {
                                 <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
                                 <span class="font-mono font-semibold text-white">
                                     € ${(() => {
-                                        const r = parseFloat((cambioValuta || '0.92').replace(/\./g, '').replace(',', '.')) || 0.92;
-                                        const p = parseFloat((costoProdottiUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                        const p = parseFlexibleDecimal(costoProdottiUsd);
                                         return (p * r).toFixed(2).replace('.', ',');
                                     })()} 
                                     <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                        const p = parseFloat((costoProdottiUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                        const p = parseFlexibleDecimal(costoProdottiUsd);
                                         return p.toFixed(2).replace('.', ',');
                                     })()})</span>
                                 </span>
@@ -5642,12 +5747,12 @@ function renderOrdini() {
                                 <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
                                 <span class="font-mono font-semibold text-white">
                                     € ${(() => {
-                                        const r = parseFloat((cambioValuta || '0.92').replace(/\./g, '').replace(',', '.')) || 0.92;
-                                        const s = parseFloat((costoSpedizioneUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
                                         return (s * r).toFixed(2).replace('.', ',');
                                     })()} 
                                     <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                        const s = parseFloat((costoSpedizioneUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
                                         return s.toFixed(2).replace('.', ',');
                                     })()})</span>
                                 </span>
@@ -5657,11 +5762,18 @@ function renderOrdini() {
                                 <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
                                 <span class="font-mono font-black text-white text-sm">
                                     € ${(() => {
-                                        const val = parseFloat((costoFornitoreEur || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                        const p = parseFlexibleDecimal(costoProdottiUsd);
+                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
+                                        const rawEur = parseFlexibleDecimal(costoFornitoreEur);
+                                        const val = rawEur > 0 ? rawEur : ((p + s) * r);
                                         return val.toFixed(2).replace('.', ',');
                                     })()} 
                                     <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${(() => {
-                                        const val = parseFloat((costoFornitoreUsd || '0').replace(/\./g, '').replace(',', '.')) || 0;
+                                        const p = parseFlexibleDecimal(costoProdottiUsd);
+                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
+                                        const rawUsd = parseFlexibleDecimal(costoFornitoreUsd);
+                                        const val = rawUsd > 0 ? rawUsd : (p + s);
                                         return val.toFixed(2).replace('.', ',');
                                     })()})</span>
                                 </span>
@@ -5670,7 +5782,19 @@ function renderOrdini() {
                             <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
                                 <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
                                 <span class="font-mono font-black text-emerald-400 text-sm">
-                                    +€ ${profitto}
+                                    ${(() => {
+                                        const totInc = parseFlexibleDecimal(totaleOrdine);
+                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
+                                        const p = parseFlexibleDecimal(costoProdottiUsd);
+                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
+                                        const rawEur = parseFlexibleDecimal(costoFornitoreEur);
+                                        const cTot = rawEur > 0 ? rawEur : ((p + s) * r);
+                                        let prof = (order.profitto_eur !== undefined && order.profitto_eur !== null && !isNaN(Number(order.profitto_eur)))
+                                            ? parseFlexibleDecimal(order.profitto_eur)
+                                            : (order["Profitto (EUR)"] !== undefined ? parseFlexibleDecimal(order["Profitto (EUR)"]) : (totInc - cTot));
+                                        const sign = prof >= 0 ? '+' : '';
+                                        return `${sign}€ ${prof.toFixed(2).replace('.', ',')}`;
+                                    })()}
                                 </span>
                             </div>
                         </div>
@@ -5734,23 +5858,20 @@ function popolaSettingsUI() {
 
     // 2. Regole di spedizione
     const shipping = window.appSettings.spedizioneLotto || {};
-    const range1 = document.getElementById('setting-shipping-range1');
-    const range2 = document.getElementById('setting-shipping-range2');
-    const range3 = document.getElementById('setting-shipping-range3');
-    if (range1 && shipping.range1_cost !== undefined) range1.value = shipping.range1_cost;
-    if (range2 && shipping.range2_cost !== undefined) range2.value = shipping.range2_cost;
-    if (range3 && shipping.range3_cost !== undefined) range3.value = shipping.range3_cost;
-
-    const range1Min = document.getElementById('setting-shipping-range1-min');
-    const range1Max = document.getElementById('setting-shipping-range1-max');
-    const range2Min = document.getElementById('setting-shipping-range2-min');
-    const range2Max = document.getElementById('setting-shipping-range2-max');
-    const range3Min = document.getElementById('setting-shipping-range3-min');
-    if (range1Min && shipping.range1_min !== undefined) range1Min.value = shipping.range1_min;
-    if (range1Max && shipping.range1_max !== undefined) range1Max.value = shipping.range1_max;
-    if (range2Min && shipping.range2_min !== undefined) range2Min.value = shipping.range2_min;
-    if (range2Max && shipping.range2_max !== undefined) range2Max.value = shipping.range2_max;
-    if (range3Min && shipping.range3_min !== undefined) range3Min.value = shipping.range3_min;
+    for (let i = 1; i <= 8; i++) {
+        const costInput = document.getElementById(`setting-shipping-range${i}`);
+        const minInput = document.getElementById(`setting-shipping-range${i}-min`);
+        const maxInput = document.getElementById(`setting-shipping-range${i}-max`);
+        if (costInput && shipping[`range${i}_cost`] !== undefined) {
+            costInput.value = parseFloat(shipping[`range${i}_cost`]).toFixed(2);
+        }
+        if (minInput && shipping[`range${i}_min`] !== undefined) {
+            minInput.value = shipping[`range${i}_min`];
+        }
+        if (maxInput && shipping[`range${i}_max`] !== undefined) {
+            maxInput.value = shipping[`range${i}_max`];
+        }
+    }
 
     // 3. Tasso di cambio USD / EUR
     const valuta = window.appSettings.cambioValuta || {};
@@ -6103,16 +6224,39 @@ async function salvaSezioneSettings(sezione) {
             "Kit Bambino": parseFloat(document.getElementById('setting-prezzo-bambino').value) || 19.99
         };
     } else if (sezione === 'spedizione') {
-        window.appSettings.spedizioneLotto = {
-            "range1_min": parseInt(document.getElementById('setting-shipping-range1-min').value) || 1,
-            "range1_max": parseInt(document.getElementById('setting-shipping-range1-max').value) || 10,
-            "range1_cost": parseFloat(document.getElementById('setting-shipping-range1').value) || 4.0,
-            "range2_min": parseInt(document.getElementById('setting-shipping-range2-min').value) || 11,
-            "range2_max": parseInt(document.getElementById('setting-shipping-range2-max').value) || 20,
-            "range2_cost": parseFloat(document.getElementById('setting-shipping-range2').value) || 3.0,
-            "range3_min": parseInt(document.getElementById('setting-shipping-range3-min').value) || 21,
-            "range3_cost": parseFloat(document.getElementById('setting-shipping-range3').value) || 2.0
-        };
+        const newSpedizioneLotto = {};
+        const tiersToValidate = [];
+        for (let i = 1; i <= 8; i++) {
+            const minEl = document.getElementById(`setting-shipping-range${i}-min`);
+            const maxEl = document.getElementById(`setting-shipping-range${i}-max`);
+            const costEl = document.getElementById(`setting-shipping-range${i}`);
+            if (costEl && costEl.value.trim() !== '') {
+                const min = minEl && minEl.value.trim() !== '' ? parseInt(minEl.value, 10) : 1;
+                const max = maxEl && maxEl.value.trim() !== '' ? parseInt(maxEl.value, 10) : null;
+                const cost = parseFloat(costEl.value);
+
+                newSpedizioneLotto[`range${i}_min`] = isNaN(min) ? 1 : min;
+                if (max !== null && !isNaN(max)) {
+                    newSpedizioneLotto[`range${i}_max`] = max;
+                }
+                newSpedizioneLotto[`range${i}_cost`] = isNaN(cost) ? 0 : cost;
+
+                tiersToValidate.push({
+                    index: i,
+                    min: newSpedizioneLotto[`range${i}_min`],
+                    max: newSpedizioneLotto[`range${i}_max`] !== undefined ? newSpedizioneLotto[`range${i}_max`] : null,
+                    cost: newSpedizioneLotto[`range${i}_cost`]
+                });
+            }
+        }
+
+        const valResult = validateShippingTiersClient(tiersToValidate);
+        if (!valResult.valid) {
+            showToast(valResult.error, "error");
+            return;
+        }
+
+        window.appSettings.spedizioneLotto = newSpedizioneLotto;
     } else if (sezione === 'valuta') {
         const mode = document.getElementById('setting-valuta-manual-container').classList.contains('hidden') ? 'auto' : 'manual';
         window.appSettings.cambioValuta = {
@@ -11128,7 +11272,7 @@ function normalizzaNumeroWhatsApp(phone) {
  * Estrae le impostazioni di trasformazione dell'immagine dall'URL (hash fragment)
  */
 function parseImageTransform(url) {
-    const defaults = { zoom: 1.2, x: 0, y: 0 };
+    const defaults = { zoom: 1.05, x: 0, y: 0 };
     if (!url) return defaults;
     try {
         const hashIndex = url.indexOf('#');
@@ -11137,7 +11281,7 @@ function parseImageTransform(url) {
         const params = new URLSearchParams(hash);
         if (params.has('zoom') || params.has('x') || params.has('y')) {
             return {
-                zoom: parseFloat(params.get('zoom')) || 1.2,
+                zoom: parseFloat(params.get('zoom')) || 1.05,
                 x: parseFloat(params.get('x')) || 0,
                 y: parseFloat(params.get('y')) || 0
             };
@@ -11164,7 +11308,7 @@ function buildImageUrlWithTransform(url, zoom, x, y) {
  * Aggiorna l'editor di immagini e la card di anteprima real-time
  */
 function aggiornaEditorImmagine() {
-    const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.2;
+    const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.05;
     const x = parseFloat(document.getElementById('editor-x')?.value) || 0;
     const y = parseFloat(document.getElementById('editor-y')?.value) || 0;
     
@@ -11211,7 +11355,7 @@ function ripristinaImmagine() {
     const zoomSlider = document.getElementById('editor-zoom');
     const xSlider = document.getElementById('editor-x');
     const ySlider = document.getElementById('editor-y');
-    if (zoomSlider) zoomSlider.value = 1.2;
+    if (zoomSlider) zoomSlider.value = 1.05;
     if (xSlider) xSlider.value = 0;
     if (ySlider) ySlider.value = 0;
     aggiornaEditorImmagine();
@@ -11230,7 +11374,7 @@ function apriAnteprimaSito() {
     const prezzo = parseFloat(document.getElementById('form-prezzo')?.value) || 23.99;
     const imgUrl = document.getElementById('form-immagine')?.value || "";
     
-    const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.2;
+    const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.05;
     const x = parseFloat(document.getElementById('editor-x')?.value) || 0;
     const y = parseFloat(document.getElementById('editor-y')?.value) || 0;
     
@@ -11722,6 +11866,15 @@ function renderGestioneOrdini() {
             ? `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-bold text-[8px] uppercase tracking-wider"><span>👤</span> Registrato</span>`
             : `<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded-md font-bold text-[8px] uppercase tracking-wider">Ospite</span>`;
 
+        const capitanoNome = ord.capitano_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || null;
+        const capitanoTel = ord.capitano_telefono || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || null;
+        const torneoNome = ord.torneo_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.torneo_nome)?.fornitura?.torneo_nome) || (ord.torneo_id ? `Torneo ${ord.torneo_id}` : null);
+        const nomeSquadraConv = ord.nome_squadra || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || null;
+        const codiceConv = ord.codice_univoco || ord.codice_fornitura || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.codice_univoco)?.fornitura?.codice_univoco) || null;
+
+        const hasConvenzione = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || capitanoNome || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.ha_prezzo_concordato || it.torneo_id))));
+        const totCompletini = estraiNumeroArticoli(ord);
+
         // Calcolo sicuro del totale dovuto ("Totale che mi deve")
         const rawTotale = (ord.totale !== undefined && ord.totale !== null && ord.totale !== '')
             ? ord.totale
@@ -11752,17 +11905,40 @@ function renderGestioneOrdini() {
                     <div class="flex flex-col">
                         <span class="text-xs font-bold text-slate-900 font-mono">#${ord.id}</span>
                         <span class="text-[10px] text-slate-400 font-mono">${formattedDate}</span>
+                        ${hasConvenzione ? `
+                            <div class="mt-1.5 p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-0.5">
+                                <div class="flex items-center gap-1 text-[9px] font-black text-amber-900 uppercase tracking-wider">
+                                    <span>🏆</span> CONVENZIONE TORNEO
+                                </div>
+                                <div class="text-[10px] text-slate-700 font-semibold"><span class="text-slate-400">Torneo:</span> ${torneoNome || 'Etna Gold'}</div>
+                                <div class="text-[10px] text-slate-700 font-semibold"><span class="text-slate-400">Squadra:</span> ${nomeSquadraConv || 'FC Sergio'}</div>
+                                ${codiceConv ? `<div class="text-[10px] text-amber-800 font-mono font-bold"><span class="text-slate-400 font-sans">Codice:</span> ${codiceConv}</div>` : ''}
+                                <div class="text-[10px] text-emerald-700 font-mono font-bold"><span class="text-slate-400 font-sans">Totale:</span> ${totCompletini} completini</div>
+                            </div>
+                        ` : ''}
                         ${isAnnullato ? `<span class="mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 uppercase tracking-wider w-fit">🚫 Annullato dal Cliente</span>` : ''}
                     </div>
                 </td>
                 <!-- 2. CLIENTE -->
                 <td class="px-5 py-4">
                     <div class="flex flex-col">
-                        <span class="text-xs font-bold text-slate-800">${displayName}</span>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="text-[10px] text-slate-400 font-mono">${ord.telefono || 'N/D'}</span>
-                            ${clientBadge}
-                        </div>
+                        ${hasConvenzione ? `
+                            <div class="p-2 bg-amber-50 border border-amber-200 rounded-lg space-y-0.5">
+                                <div class="flex items-center gap-1 text-[10px] font-black text-amber-900 uppercase tracking-wide">
+                                    <span>👑 CAPITANO:</span>
+                                    <span>${capitanoNome || displayName}</span>
+                                </div>
+                                <div class="text-[10px] text-slate-600 font-mono">
+                                    📞 ${capitanoTel || ord.telefono || 'N/D'}
+                                </div>
+                            </div>
+                        ` : `
+                            <span class="text-xs font-bold text-slate-800">${displayName}</span>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="text-[10px] text-slate-400 font-mono">${ord.telefono || 'N/D'}</span>
+                                ${clientBadge}
+                            </div>
+                        `}
                     </div>
                 </td>
                 <!-- 3. LOTTO -->
@@ -11962,6 +12138,10 @@ async function apriGestioneOrdineModal(id) {
     if (telEl) telEl.innerText = ord.telefono || 'N/D';
     if (indEl) indEl.innerText = ord.indirizzo || 'Indirizzo di Spedizione Premium registrato';
 
+    // Carica lista account registrati e aggiorna box
+    await caricaRegisteredAccounts();
+    aggiornaBoxAccountAssegnato(ord);
+
     // Aggiorna box informazioni Coupon se presente
     const couponBox = document.getElementById('gestione-ordine-coupon-box');
     const couponCodeEl = document.getElementById('gestione-ordine-coupon-code');
@@ -11975,6 +12155,37 @@ async function apriGestioneOrdineModal(id) {
             couponBox.classList.remove('hidden');
         } else {
             couponBox.classList.add('hidden');
+        }
+    }
+
+    // Box Convenzione Torneo & Capitano
+    const convBox = document.getElementById('gestione-ordine-convenzione-box');
+    const convCodiceEl = document.getElementById('gestione-ordine-conv-codice');
+    const convTorneoEl = document.getElementById('gestione-ordine-conv-torneo');
+    const convSquadraEl = document.getElementById('gestione-ordine-conv-squadra');
+    const convTotCompletiniEl = document.getElementById('gestione-ordine-conv-totale-completini');
+    const convCapNomeEl = document.getElementById('gestione-ordine-conv-capitano-nome');
+    const convCapTelEl = document.getElementById('gestione-ordine-conv-capitano-telefono');
+
+    const capitanoNome = ord.capitano_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || null;
+    const capitanoTel = ord.capitano_telefono || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || null;
+    const torneoNome = ord.torneo_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.torneo_nome)?.fornitura?.torneo_nome) || (ord.torneo_id ? `Torneo ${ord.torneo_id}` : 'Etna Gold');
+    const nomeSquadraConv = ord.nome_squadra || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || 'FC Sergio';
+    const codiceConv = ord.codice_univoco || ord.codice_fornitura || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.codice_univoco)?.fornitura?.codice_univoco) || null;
+    const isConv = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || capitanoNome || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.ha_prezzo_concordato || it.torneo_id))));
+    const totCompletini = estraiNumeroArticoli(ord);
+
+    if (convBox) {
+        if (isConv) {
+            if (convCodiceEl) convCodiceEl.innerText = codiceConv || 'N/D';
+            if (convTorneoEl) convTorneoEl.innerText = torneoNome || 'Etna Gold';
+            if (convSquadraEl) convSquadraEl.innerText = nomeSquadraConv || 'FC Sergio';
+            if (convTotCompletiniEl) convTotCompletiniEl.innerText = `${totCompletini} completini`;
+            if (convCapNomeEl) convCapNomeEl.innerText = capitanoNome || 'Non specificato';
+            if (convCapTelEl) convCapTelEl.innerText = capitanoTel || 'N/D';
+            convBox.classList.remove('hidden');
+        } else {
+            convBox.classList.add('hidden');
         }
     }
 
@@ -12077,12 +12288,32 @@ function renderProdottiModificabili() {
         const prezzo = parseFloat(item.prezzo) || 23.99;
         const prezzoForn = parseFloat(item.prezzo_fornitore) || 14.50;
 
+        const fObj = item.fornitura && typeof item.fornitura === 'object' ? item.fornitura : {};
+        const isFornitura = Boolean(item.fornitura || item.ha_prezzo_concordato || item.torneo_id || fObj.torneo_id);
+        const torneoNome = fObj.torneo_nome || item.torneo_nome || 'Torneo';
+        const squadraNome = fObj.nome_squadra || item.nome_squadra || squadra;
+        const codiceUnivoco = fObj.codice_univoco || item.codice_univoco || item.codice_fornitura || '';
+        const prezzoConcordato = (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null)
+            ? Number(item.prezzo_concordato)
+            : ((fObj.prezzo_concordato_unitario !== undefined && fObj.prezzo_concordato_unitario !== null)
+                ? Number(fObj.prezzo_concordato_unitario)
+                : prezzo);
+
         return `
             <div class="bg-[#111111] border border-[rgba(255,255,255,0.08)] p-4 rounded-xl space-y-3 relative shadow-sm">
                 <!-- Delete Button -->
                 <button onclick="gestioneEliminaProdotto(${idx})" class="absolute top-3 right-3 text-red-400 hover:text-red-300 font-black text-xs transition-colors p-1 bg-red-950/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg" title="Elimina prodotto">
                     🗑 Elimina Prodotto
                 </button>
+
+                ${isFornitura ? `
+                    <div class="bg-amber-950/20 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-200 flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
+                        <span class="font-bold flex items-center gap-1">🏆 <span>Convenzione:</span> <strong class="text-white">${escapeHtml(torneoNome)}</strong></span>
+                        <span>Squadra: <strong class="text-white">${escapeHtml(squadraNome)}</strong></span>
+                        ${codiceUnivoco ? `<span>Codice: <code class="bg-black/60 px-1.5 py-0.5 rounded font-mono text-amber-300 text-[11px]">${escapeHtml(codiceUnivoco)}</code></span>` : ''}
+                        <span>Prezzo concordato interno: <strong class="text-emerald-400">€${prezzoConcordato.toFixed(2).replace('.', ',')}</strong></span>
+                    </div>
+                ` : ''}
 
                 <!-- Righe del Prodotto -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
@@ -12171,38 +12402,125 @@ window.gestioneEliminaProdotto = function(idx) {
     }
 };
 
-function extractShippingTiersClient(spedizioneLotto) {
-    if (!spedizioneLotto || typeof spedizioneLotto !== 'object') {
-        return [{ min: 1, max: Infinity, cost: 4.0 }];
+function validateShippingTiersClient(tiers) {
+    if (!Array.isArray(tiers) || tiers.length === 0) {
+        return { valid: false, error: "Nessuna fascia di spedizione configurata." };
     }
-    const tiers = [];
-    for (let i = 1; i <= 20; i++) {
-        const minVal = spedizioneLotto[`range${i}_min`];
-        const maxVal = spedizioneLotto[`range${i}_max`];
-        const costVal = spedizioneLotto[`range${i}_cost`];
-        if (costVal !== undefined && costVal !== null && String(costVal).trim() !== '') {
-            const min = (minVal !== undefined && minVal !== null && String(minVal).trim() !== '') ? parseInt(minVal, 10) : 1;
-            const max = (maxVal !== undefined && maxVal !== null && String(maxVal).trim() !== '') ? parseInt(maxVal, 10) : Infinity;
-            const cost = parseFloat(costVal) || 0.0;
-            tiers.push({ min: isNaN(min) ? 1 : min, max: isNaN(max) ? Infinity : max, cost: isNaN(cost) ? 0.0 : cost });
+
+    const sorted = [...tiers].sort((a, b) => (Number(a.min) || 0) - (Number(b.min) || 0));
+
+    for (let i = 0; i < sorted.length; i++) {
+        const t = sorted[i];
+        const tierNum = t.index || (i + 1);
+        const min = Number(t.min);
+        const cost = Number(t.cost);
+        const max = (t.max !== null && t.max !== undefined && t.max !== '' && t.max !== Infinity) ? Number(t.max) : null;
+
+        if (isNaN(min) || min < 1) {
+            return { valid: false, error: `Fascia ${tierNum}: il valore minimo deve essere un numero intero maggiore o uguale a 1.` };
+        }
+        if (isNaN(cost) || cost < 0) {
+            return { valid: false, error: `Fascia ${tierNum}: il costo deve essere un numero maggiore o uguale a 0.` };
+        }
+        if (max !== null) {
+            if (isNaN(max) || max < 1) {
+                return { valid: false, error: `Fascia ${tierNum}: il valore massimo deve essere un numero valido.` };
+            }
+            if (min > max) {
+                return { valid: false, error: `Fascia ${tierNum}: il valore minimo (${min}) non può essere superiore al valore massimo (${max}).` };
+            }
+        }
+
+        if (i > 0) {
+            const prev = sorted[i - 1];
+            const prevTierNum = prev.index || i;
+            const prevMax = (prev.max !== null && prev.max !== undefined && prev.max !== '' && prev.max !== Infinity) ? Number(prev.max) : null;
+
+            if (prevMax === null) {
+                return { valid: false, error: `Fascia ${prevTierNum}: ha un massimo illimitato, non possono seguire ulteriori fasce.` };
+            }
+            if (min <= prevMax) {
+                return { valid: false, error: `Sovrapposizione tra Fascia ${prevTierNum} (fino a ${prevMax}) e Fascia ${tierNum} (inizia da ${min}).` };
+            }
+            if (min > prevMax + 1) {
+                return { valid: false, error: `Intervallo scoperto tra Fascia ${prevTierNum} (fino a ${prevMax}) e Fascia ${tierNum} (inizia da ${min}). Manca la copertura per i pezzi da ${prevMax + 1} a ${min - 1}.` };
+            }
         }
     }
-    if (tiers.length === 0) {
-        return [{ min: 1, max: Infinity, cost: 4.0 }];
+
+    return { valid: true, tiers: sorted };
+}
+
+function extractShippingTiersClient(spedizioneLotto) {
+    const rules = (spedizioneLotto && typeof spedizioneLotto === 'object') ? spedizioneLotto : (window.appSettings?.spedizioneLotto || {});
+
+    if (Array.isArray(rules.tiers) && rules.tiers.length > 0) {
+        return rules.tiers.map((t, idx) => ({
+            index: idx + 1,
+            min: (t.min !== undefined && t.min !== null && t.min !== '') ? parseInt(t.min, 10) : 1,
+            max: (t.max !== undefined && t.max !== null && t.max !== '' && t.max !== Infinity) ? parseInt(t.max, 10) : null,
+            cost: (t.cost !== undefined && t.cost !== null && t.cost !== '') ? parseFloat(t.cost) : 0.0
+        })).sort((a, b) => a.min - b.min);
     }
-    tiers.sort((a, b) => a.min - b.min);
-    return tiers;
+
+    const tierMap = new Map();
+    Object.keys(rules).forEach(key => {
+        const match = key.match(/^range(\d+)_(min|max|cost)$/i);
+        if (match) {
+            const idx = parseInt(match[1], 10);
+            if (!tierMap.has(idx)) {
+                tierMap.set(idx, { index: idx, min: null, max: null, cost: null });
+            }
+            const item = tierMap.get(idx);
+            const prop = match[2].toLowerCase();
+            if (prop === 'min' && rules[key] !== null && rules[key] !== undefined && rules[key] !== '') {
+                item.min = parseInt(rules[key], 10);
+            } else if (prop === 'max' && rules[key] !== null && rules[key] !== undefined && rules[key] !== '') {
+                item.max = parseInt(rules[key], 10);
+            } else if (prop === 'cost' && rules[key] !== null && rules[key] !== undefined && rules[key] !== '') {
+                item.cost = parseFloat(rules[key]);
+            }
+        }
+    });
+
+    const tiers = Array.from(tierMap.values()).filter(t => t.cost !== null && !isNaN(t.cost)).sort((a, b) => {
+        const aMin = (t => t.min !== null && !isNaN(t.min) ? t.min : t.index)(a);
+        const bMin = (t => t.min !== null && !isNaN(t.min) ? t.min : t.index)(b);
+        return aMin - bMin;
+    });
+
+    if (tiers.length > 0) {
+        return tiers;
+    }
+
+    // Configurazione ufficiale di fallback se non caricato da server
+    return [
+        { index: 1, min: 1, max: 2, cost: 13.0 },
+        { index: 2, min: 3, max: 5, cost: 9.0 },
+        { index: 3, min: 6, max: 9, cost: 7.0 },
+        { index: 4, min: 10, max: 20, cost: 4.0 },
+        { index: 5, min: 21, max: 40, cost: 3.0 },
+        { index: 6, min: 41, max: 59, cost: 2.0 },
+        { index: 7, min: 60, max: 99, cost: 1.0 },
+        { index: 8, min: 100, max: 200, cost: 0.0 }
+    ];
 }
 
 function getShippingRateByQuantityClient(quantity, settings) {
     const qty = Math.max(0, parseInt(quantity, 10) || 0);
-    const tiers = extractShippingTiersClient(settings?.spedizioneLotto);
+    const tiers = extractShippingTiersClient(settings?.spedizioneLotto || window.appSettings?.spedizioneLotto);
+    if (!tiers || tiers.length === 0) return 0.0;
+
+    const effectiveQty = qty > 0 ? qty : 1;
     for (const tier of tiers) {
-        if (qty >= tier.min && qty <= tier.max) {
-            return tier.cost;
+        const min = tier.min !== null && !isNaN(tier.min) ? tier.min : 1;
+        const max = (tier.max !== null && tier.max !== undefined && tier.max !== Infinity) ? tier.max : Infinity;
+        if (effectiveQty >= min && effectiveQty <= max) {
+            return Number(tier.cost);
         }
     }
-    return tiers[0]?.cost !== undefined ? tiers[0].cost : 4.0;
+    const lastTier = tiers[tiers.length - 1];
+    return Number(lastTier.cost);
 }
 
 async function calcolaESituazioneEconomica() {
@@ -12512,7 +12830,8 @@ window.salvaTuttiModificheOrdine = async function() {
         email: email,
         payment_status: payment_status,
         notes: notes,
-        lotto_id: lotto_id
+        lotto_id: lotto_id,
+        carrello: window.currentOrdineProdotti
     };
 
     showToast("Salvataggio modifiche in corso...", "info");
@@ -13217,16 +13536,19 @@ async function caricaRecensioniAdmin(silente = false) {
             if (appEl) appEl.innerText = approved;
             if (rejEl) rejEl.innerText = rejected;
             
-            // Aggiorna badge notifiche visive nel menu laterale per Recensioni in attesa di approvazione
+            // Aggiorna badge notifiche visive per Recensioni in attesa di approvazione
             const recBadgeEl = document.getElementById('admin-recensioni-badge');
-            if (recBadgeEl) {
-                if (pending > 0) {
-                    recBadgeEl.innerText = pending;
-                    recBadgeEl.classList.remove('hidden');
-                } else {
-                    recBadgeEl.classList.add('hidden');
+            const subRecBadgeEl = document.getElementById('subnav-recensioni-badge');
+            [recBadgeEl, subRecBadgeEl].forEach(bEl => {
+                if (bEl) {
+                    if (pending > 0) {
+                        bEl.innerText = pending;
+                        bEl.classList.remove('hidden');
+                    } else {
+                        bEl.classList.add('hidden');
+                    }
                 }
-            }
+            });
             
             if (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'recensioni') {
                 applicaFiltriRecensioni();
@@ -13638,12 +13960,33 @@ async function caricaConversazioniAdmin(silente = false) {
         const data = await res.json();
         if (data && data.success) {
             conversazioniAdminList = data.conversations || [];
+            
+            // Assicura che le colonne abbiano le classi corrette se siamo nella tab chat
             if (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'chat') {
+                const listCol = document.getElementById('admin-chat-list-column');
+                const activeCol = document.getElementById('admin-chat-active-column');
+                if (listCol && activeCol) {
+                    if (window.innerWidth >= 1024) {
+                        listCol.classList.remove('hidden');
+                        activeCol.classList.remove('hidden');
+                        activeCol.classList.add('flex');
+                    } else {
+                        if (conversazioneSelezionataId) {
+                            listCol.classList.add('hidden');
+                            activeCol.classList.remove('hidden');
+                            activeCol.classList.add('flex');
+                        } else {
+                            listCol.classList.remove('hidden');
+                            activeCol.classList.add('hidden');
+                            activeCol.classList.remove('flex');
+                        }
+                    }
+                }
                 renderConversazioniLista();
             }
             
             // Calcola il badge delle chat con messaggi non letti dal cliente o in attesa di risposta
-            const chatDaLeggere = conversazioniAdminList.filter(c => (c.unreadCount && c.unreadCount > 0) || c.stato === 'in_attesa').length;
+            const chatDaLeggere = conversazioniAdminList.filter(c => (c.unreadCount && c.unreadCount > 0) || c.stato === 'in_attesa' || c.stato === 'In attesa' || c.stato === 'Nuova').length;
             const badgeEl = document.getElementById('admin-chat-badge');
             if (badgeEl) {
                 if (chatDaLeggere > 0) {
@@ -13751,37 +14094,53 @@ async function selezionaConversazioneAdmin(id) {
     const listCol = document.getElementById('admin-chat-list-column');
     const activeCol = document.getElementById('admin-chat-active-column');
     if (listCol && activeCol) {
-        listCol.classList.add('hidden');
-        activeCol.classList.remove('hidden');
-        activeCol.classList.add('flex');
+        if (window.innerWidth < 1024) {
+            listCol.classList.add('hidden');
+            activeCol.classList.remove('hidden');
+            activeCol.classList.add('flex');
+        } else {
+            listCol.classList.remove('hidden');
+            activeCol.classList.remove('hidden');
+            activeCol.classList.add('flex');
+        }
     }
 
     // Mostra l'interfaccia di chat attiva
-    document.getElementById('admin-chat-empty-state').classList.add('hidden');
-    document.getElementById('admin-chat-active-container').classList.remove('hidden');
+    const emptyState = document.getElementById('admin-chat-empty-state');
+    const activeContainer = document.getElementById('admin-chat-active-container');
+    if (emptyState) emptyState.classList.add('hidden');
+    if (activeContainer) activeContainer.classList.remove('hidden');
 
     // Imposta info del cliente
-    document.getElementById('admin-chat-cliente-nome').innerText = conv.nome || 'Cliente Anonimo';
-    document.getElementById('admin-chat-cliente-email').innerText = conv.email || 'Nessuna email fornita';
-    document.getElementById('admin-chat-stato-select').value = conv.stato;
+    const nomeEl = document.getElementById('admin-chat-cliente-nome');
+    const emailEl = document.getElementById('admin-chat-cliente-email');
+    const statoSelect = document.getElementById('admin-chat-stato-select');
+    if (nomeEl) nomeEl.innerText = conv.nome || 'Cliente Anonimo';
+    if (emailEl) emailEl.innerText = conv.email || 'Nessuna email fornita';
+    if (statoSelect) statoSelect.value = conv.stato;
 
     // Imposta metadata degli ordini e lotti
-    document.getElementById('admin-chat-meta-ordini-count').innerText = `${conv.orderCount || 0} ordini`;
+    const ordCountEl = document.getElementById('admin-chat-meta-ordini-count');
+    if (ordCountEl) ordCountEl.innerText = `${conv.orderCount || 0} ordini`;
     
     const ultimoOrdineInfoEl = document.getElementById('admin-chat-meta-ultimo-ordine-info');
-    if (conv.lastOrder) {
-        ultimoOrdineInfoEl.innerText = `${conv.lastOrder.order_number} (${new Date(conv.lastOrder.data).toLocaleDateString()}) - ${conv.lastOrder.status} - €${parseFloat(conv.lastOrder.totale).toFixed(2)}`;
-    } else {
-        ultimoOrdineInfoEl.innerText = 'Nessun ordine effettuato';
+    if (ultimoOrdineInfoEl) {
+        if (conv.lastOrder) {
+            ultimoOrdineInfoEl.innerText = `${conv.lastOrder.order_number} (${new Date(conv.lastOrder.data).toLocaleDateString()}) - ${conv.lastOrder.status} - €${parseFloat(conv.lastOrder.totale).toFixed(2)}`;
+        } else {
+            ultimoOrdineInfoEl.innerText = 'Nessun ordine effettuato';
+        }
     }
 
     const lottoEl = document.getElementById('admin-chat-meta-lotto');
-    if (conv.lottoId) {
-        lottoEl.innerText = `Lotto #${conv.lottoId}`;
-        lottoEl.className = "text-emerald-400 font-extrabold uppercase tracking-wide";
-    } else {
-        lottoEl.innerText = 'Nessuno';
-        lottoEl.className = "text-slate-400 font-medium";
+    if (lottoEl) {
+        if (conv.lottoId) {
+            lottoEl.innerText = `Lotto #${conv.lottoId}`;
+            lottoEl.className = "text-emerald-400 font-extrabold uppercase tracking-wide";
+        } else {
+            lottoEl.innerText = 'Nessuno';
+            lottoEl.className = "text-slate-400 font-medium";
+        }
     }
 
     // Segna i messaggi del cliente come letti
@@ -13816,15 +14175,19 @@ function tornaAListaConversazioniAdmin() {
     const activeCol = document.getElementById('admin-chat-active-column');
     if (listCol && activeCol) {
         listCol.classList.remove('hidden');
-        activeCol.classList.add('hidden');
+        if (window.innerWidth < 1024) {
+            activeCol.classList.add('hidden');
+            activeCol.classList.remove('flex');
+        } else {
+            activeCol.classList.remove('hidden');
+            activeCol.classList.add('flex');
+        }
     }
 
     const emptyState = document.getElementById('admin-chat-empty-state');
     const activeContainer = document.getElementById('admin-chat-active-container');
-    if (emptyState && activeContainer) {
-        emptyState.classList.remove('hidden');
-        activeContainer.classList.add('hidden');
-    }
+    if (emptyState) emptyState.classList.remove('hidden');
+    if (activeContainer) activeContainer.classList.add('hidden');
 
     renderConversazioniLista();
 }
@@ -13832,6 +14195,30 @@ function tornaAListaConversazioniAdmin() {
 function tornaAListaConversazioniMobile() {
     tornaAListaConversazioniAdmin();
 }
+
+window.addEventListener('resize', () => {
+    if (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'chat') {
+        const listCol = document.getElementById('admin-chat-list-column');
+        const activeCol = document.getElementById('admin-chat-active-column');
+        if (listCol && activeCol) {
+            if (window.innerWidth >= 1024) {
+                listCol.classList.remove('hidden');
+                activeCol.classList.remove('hidden');
+                activeCol.classList.add('flex');
+            } else {
+                if (conversazioneSelezionataId) {
+                    listCol.classList.add('hidden');
+                    activeCol.classList.remove('hidden');
+                    activeCol.classList.add('flex');
+                } else {
+                    listCol.classList.remove('hidden');
+                    activeCol.classList.add('hidden');
+                    activeCol.classList.remove('flex');
+                }
+            }
+        }
+    }
+});
 
 async function caricaMessaggiConversazioneCorrente(silente = false) {
     if (!conversazioneSelezionataId) return;
@@ -14455,22 +14842,8 @@ window.eliminaCoupon = eliminaCoupon;
 
 function assicuratiFiltriDinamici() {
     if (!window.appSettings) window.appSettings = {};
-    if (!Array.isArray(window.appSettings.filtriCatalogo) || window.appSettings.filtriCatalogo.length === 0) {
-        const defaultFiltri = [
-            { id: 'fil_tutti', nome: 'Tutti', ordine: 1, stato: 'attivo' },
-            { id: 'fil_kit', nome: 'Kit', ordine: 2, stato: 'attivo' },
-            { id: 'fil_player', nome: 'Player', ordine: 3, stato: 'attivo' },
-            { id: 'fil_fan', nome: 'Fan', ordine: 4, stato: 'attivo' },
-            { id: 'fil_retro', nome: 'Retro', ordine: 5, stato: 'attivo' },
-            { id: 'fil_allenamento', nome: 'Kit Allenamento', ordine: 6, stato: 'attivo' },
-            { id: 'fil_tuta', nome: 'Tuta', ordine: 7, stato: 'attivo' },
-            { id: 'fil_polo', nome: 'Polo', ordine: 8, stato: 'attivo' },
-            { id: 'fil_smanicati', nome: 'Smanicati', ordine: 9, stato: 'attivo' },
-            { id: 'fil_maniche_lunghe', nome: 'Maniche Lunghe', ordine: 10, stato: 'attivo' },
-            { id: 'fil_bambino', nome: 'Kit Bambino', ordine: 11, stato: 'attivo' }
-        ];
-
-        window.appSettings.filtriCatalogo = defaultFiltri;
+    if (!Array.isArray(window.appSettings.filtriCatalogo)) {
+        window.appSettings.filtriCatalogo = [];
     }
 }
 
@@ -14478,6 +14851,15 @@ function renderFiltriCatalogoTabella() {
     assicuratiFiltriDinamici();
     const tbody = document.getElementById('filtri-catalogo-tbody');
     if (!tbody) return;
+
+    if (window.appSettings.filtriCatalogo.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400 text-xs font-semibold">Nessun filtro catalogo configurato. Clicca "+ Nuovo Filtro" per crearne uno.</td></tr>`;
+        aggiornaMenuFiltriCatalogoForm();
+        if (typeof generaOpzioniFiltri === 'function') {
+            generaOpzioniFiltri();
+        }
+        return;
+    }
 
     window.appSettings.filtriCatalogo.sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
 
@@ -14505,7 +14887,7 @@ function renderFiltriCatalogoTabella() {
                 </td>
                 <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-1.5">
-                        <button type="button" onclick="apriModalModificaFiltroCatalogo('${filtro.id || index}')" title="Modifica Categorie Filtro"
+                        <button type="button" onclick="apriModalModificaFiltroCatalogo('${filtro.id || index}')" title="Modifica Categorie e Target Filtro"
                             class="p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-xl transition-all font-bold">
                             ✏️
                         </button>
@@ -14574,7 +14956,7 @@ function chiudiModalNuovoFiltroCatalogo() {
     }, 200);
 }
 
-function salvaNuovoFiltroCatalogo() {
+async function salvaNuovoFiltroCatalogo() {
     assicuratiFiltriDinamici();
     const nome = (document.getElementById('filtro-form-nome')?.value || '').trim();
     const ordine = parseInt(document.getElementById('filtro-form-ordine')?.value || 0, 10) || (window.appSettings.filtriCatalogo.length + 1);
@@ -14601,10 +14983,11 @@ function salvaNuovoFiltroCatalogo() {
     window.appSettings.filtriCatalogo.push(nuovoFiltro);
     chiudiModalNuovoFiltroCatalogo();
     renderFiltriCatalogoTabella();
-    showToast(`✅ Filtro "${nome}" creato. Clicca "Salva Filtri Catalogo" per salvare le modifiche.`, "success");
+    await salvaFiltriCatalogo();
+    showToast(`✅ Filtro "${nome}" creato e salvato con successo.`, "success");
 }
 
-function eliminaFiltroCatalogo(idOrIndex) {
+async function eliminaFiltroCatalogo(idOrIndex) {
     assicuratiFiltriDinamici();
     const idx = window.appSettings.filtriCatalogo.findIndex((f, i) => f.id === idOrIndex || String(i) === String(idOrIndex));
     if (idx === -1) return;
@@ -14616,7 +14999,8 @@ function eliminaFiltroCatalogo(idOrIndex) {
 
     window.appSettings.filtriCatalogo.splice(idx, 1);
     renderFiltriCatalogoTabella();
-    showToast(`Filtro "${filtro.nome}" eliminato. Clicca "Salva Filtri Catalogo" per salvare le modifiche.`, "info");
+    await salvaFiltriCatalogo();
+    showToast(`✅ Filtro "${filtro.nome}" eliminato e configurazione salvata.`, "success");
 }
 
 let filtroCatalogoInModificaId = null;
@@ -14640,7 +15024,7 @@ function getCategorieAssociateFiltro(filtro) {
         const found = categorieEsistenti.filter(c => c.toLowerCase().includes('kit') || c.toLowerCase().includes('bambino'));
         return found.length > 0 ? found : ['Kit'];
     }
-    if (nomeFiltro === 'kit' || nomeFiltro === 'kit club' || idFiltro === 'fil_kit') {
+    if (nomeFiltro === 'kit' || nomeFiltro === 'kit' || idFiltro === 'fil_kit') {
         const found = categorieEsistenti.filter(c => c.toLowerCase() === 'kit');
         return found.length > 0 ? found : ['Kit'];
     }
@@ -14688,6 +15072,33 @@ function getCategorieAssociateFiltro(filtro) {
     return [filtro.nome];
 }
 
+function getCategorieTargetFiltro(filtro) {
+    if (!filtro) return [];
+    if (Array.isArray(filtro.categorieTarget)) {
+        return filtro.categorieTarget;
+    }
+
+    // Deduzione retrocompatibile da filtri legacy o categorie_associate
+    const categorieEsistenti = (window.appSettings?.categorie || []).map(c => c.nome).filter(Boolean);
+    const nomeFiltro = (filtro.nome || '').toLowerCase().trim();
+    const idFiltro = (filtro.id || '').toLowerCase().trim();
+
+    if (nomeFiltro === 'tutti' || nomeFiltro === 'tutto' || idFiltro === 'fil_tutti') {
+        return categorieEsistenti.map(cat => ({ categoria: cat, target: ['Adulto', 'Bambino'] }));
+    }
+
+    if (nomeFiltro.includes('bambino') || idFiltro.includes('bambino')) {
+        return [{ categoria: 'Kit', target: ['Bambino'] }];
+    }
+
+    if (nomeFiltro.includes('portiere') || idFiltro.includes('portiere')) {
+        return [{ categoria: 'Portiere', target: ['Adulto', 'Bambino'] }];
+    }
+
+    const associate = getCategorieAssociateFiltro(filtro);
+    return associate.map(cat => ({ categoria: cat, target: ['Adulto'] }));
+}
+
 function apriModalModificaFiltroCatalogo(idOrIndex) {
     assicuratiFiltriDinamici();
     assicuratiCategorieDinamiche();
@@ -14714,30 +15125,42 @@ function apriModalModificaFiltroCatalogo(idOrIndex) {
     const categorieEsistenti = [...(window.appSettings.categorie || [])]
         .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
 
-    // Determina le categorie attualmente associate
-    const associateAttuali = getCategorieAssociateFiltro(filtro);
-    const associateSet = new Set(associateAttuali.map(c => c.toLowerCase().trim()));
+    // Determina le configurazioni categoria x target attuali
+    const ctAttuali = getCategorieTargetFiltro(filtro);
+    const ctMap = {};
+    ctAttuali.forEach(item => {
+        if (item && item.categoria) {
+            ctMap[item.categoria.toLowerCase().trim()] = new Set((item.target || []).map(t => t.toLowerCase().trim()));
+        }
+    });
 
     let rowsHtml = '';
     categorieEsistenti.forEach(cat => {
         const catNome = (cat.nome || '').trim();
         if (!catNome) return;
-        const isChecked = associateSet.has(catNome.toLowerCase());
+        const targetSet = ctMap[catNome.toLowerCase()] || new Set();
+        const isAdulto = targetSet.has('adulto');
+        const isBambino = targetSet.has('bambino');
+
         rowsHtml += `
             <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0">
-                <td class="px-4 py-3 text-center">
-                    <input type="checkbox" class="categoria-filtro-checkbox rounded border-slate-300 text-brand-gold focus:ring-brand-gold w-4 h-4 cursor-pointer"
-                        value="${catNome}" ${isChecked ? 'checked' : ''}>
-                </td>
                 <td class="px-4 py-3 font-bold text-slate-800 text-xs">
                     ${catNome}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <input type="checkbox" class="target-filtro-checkbox rounded border-slate-300 text-brand-gold focus:ring-brand-gold w-4 h-4 cursor-pointer"
+                        data-categoria="${catNome.replace(/"/g, '&quot;')}" data-target="Adulto" ${isAdulto ? 'checked' : ''}>
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <input type="checkbox" class="target-filtro-checkbox rounded border-slate-300 text-brand-gold focus:ring-brand-gold w-4 h-4 cursor-pointer"
+                        data-categoria="${catNome.replace(/"/g, '&quot;')}" data-target="Bambino" ${isBambino ? 'checked' : ''}>
                 </td>
             </tr>
         `;
     });
 
     if (!rowsHtml) {
-        rowsHtml = `<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400 text-xs">Nessuna categoria trovata in Impostazioni Categorie.</td></tr>`;
+        rowsHtml = `<tr><td colspan="3" class="px-4 py-6 text-center text-slate-400 text-xs">Nessuna categoria trovata in Impostazioni Categorie.</td></tr>`;
     }
 
     tbody.innerHTML = rowsHtml;
@@ -14762,11 +15185,18 @@ function chiudiModalModificaFiltroCatalogo() {
     }, 200);
 }
 
-function toggleSelezionaTutteCategorieFiltro() {
-    const checkboxes = document.querySelectorAll('.categoria-filtro-checkbox');
+function toggleTuttiTargetFiltro(targetName) {
+    const checkboxes = document.querySelectorAll(`.target-filtro-checkbox[data-target="${targetName}"]`);
     if (!checkboxes || checkboxes.length === 0) return;
-    const tutteSelezionate = Array.from(checkboxes).every(cb => cb.checked);
-    checkboxes.forEach(cb => { cb.checked = !tutteSelezionate; });
+    const tuttiSelezionati = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => { cb.checked = !tuttiSelezionati; });
+}
+
+function toggleSelezionaTutteCategorieFiltro() {
+    const checkboxes = document.querySelectorAll('.target-filtro-checkbox');
+    if (!checkboxes || checkboxes.length === 0) return;
+    const tuttiSelezionati = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => { cb.checked = !tuttiSelezionati; });
 }
 
 async function salvaModificaFiltroCatalogo() {
@@ -14780,11 +15210,29 @@ async function salvaModificaFiltroCatalogo() {
         return;
     }
 
-    const checkboxes = document.querySelectorAll('.categoria-filtro-checkbox:checked');
-    const categorieSelezionate = Array.from(checkboxes).map(cb => cb.value.trim());
+    const categorieEsistenti = (window.appSettings?.categorie || []).map(c => c.nome).filter(Boolean);
+    const nuoveCategorieTarget = [];
+    const categorieAssociateSet = new Set();
 
-    // Assegna le categorie associate configurate dall'admin
-    filtro.categorie_associate = categorieSelezionate;
+    categorieEsistenti.forEach(catNome => {
+        const cbAdulto = document.querySelector(`.target-filtro-checkbox[data-categoria="${catNome}"][data-target="Adulto"]`);
+        const cbBambino = document.querySelector(`.target-filtro-checkbox[data-categoria="${catNome}"][data-target="Bambino"]`);
+        
+        const targets = [];
+        if (cbAdulto && cbAdulto.checked) targets.push('Adulto');
+        if (cbBambino && cbBambino.checked) targets.push('Bambino');
+
+        if (targets.length > 0) {
+            nuoveCategorieTarget.push({
+                categoria: catNome,
+                target: targets
+            });
+            categorieAssociateSet.add(catNome);
+        }
+    });
+
+    filtro.categorieTarget = nuoveCategorieTarget;
+    filtro.categorie_associate = Array.from(categorieAssociateSet);
 
     chiudiModalModificaFiltroCatalogo();
 
@@ -14830,6 +15278,8 @@ window.eliminaFiltroCatalogo = eliminaFiltroCatalogo;
 window.apriModalModificaFiltroCatalogo = apriModalModificaFiltroCatalogo;
 window.chiudiModalModificaFiltroCatalogo = chiudiModalModificaFiltroCatalogo;
 window.toggleSelezionaTutteCategorieFiltro = toggleSelezionaTutteCategorieFiltro;
+window.toggleTuttiTargetFiltro = toggleTuttiTargetFiltro;
+window.getCategorieTargetFiltro = getCategorieTargetFiltro;
 window.salvaModificaFiltroCatalogo = salvaModificaFiltroCatalogo;
 window.salvaFiltriCatalogo = salvaFiltriCatalogo;
 window.setFiltroAnteprima = setFiltroAnteprima;
@@ -15778,8 +16228,8 @@ function onSelectOrdineModifica(orderId) {
     if (!order) {
         const rawOrder = ordini.find(o => String(o.id) === orderIdStr || String(o.data) === orderIdStr);
         if (rawOrder) {
-            const costEur = parseFloat((rawOrder["Costo totale (EUR)"] || '0').replace(/\./g, '').replace(',', '.')) || 0;
-            const profitEur = parseFloat((rawOrder["Profitto (EUR)"] || '0').replace(/\./g, '').replace(',', '.')) || 0;
+            const costEur = parseFlexibleDecimal(rawOrder["Costo totale (EUR)"] || rawOrder.costo_totale_eur);
+            const profitEur = parseFlexibleDecimal(rawOrder["Profitto (EUR)"] || rawOrder.profitto_eur);
             order = {
                 order_id: String(rawOrder.id || rawOrder.data),
                 order_data_key: String(rawOrder.data || ''),
@@ -18377,7 +18827,7 @@ function ricalcolaTotaliModalePrezzoOrdine() {
     const origOrderTotal = parseFlexibleDecimal(selectedPrezzoOrdine.totale);
     const diffTotal = newOrderTotal - origOrderTotal;
 
-    const costEur = parseFloat((selectedPrezzoOrdine["Costo totale (EUR)"] || selectedPrezzoOrdine.costo_totale_eur || '0').replace(/\./g, '').replace(',', '.')) || 0;
+    const costEur = parseFlexibleDecimal(selectedPrezzoOrdine["Costo totale (EUR)"] || selectedPrezzoOrdine.costo_totale_eur);
     const newProfit = Math.max(-999999, newOrderTotal - costEur);
 
     // Aggiorna anteprima economica
@@ -18985,7 +19435,7 @@ async function caricaSquadreTorneo(torneoId) {
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="6" class="px-6 py-8 text-center text-slate-400 font-medium">
+            <td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">
                 Caricamento squadre in corso...
             </td>
         </tr>
@@ -19001,16 +19451,19 @@ async function caricaSquadreTorneo(torneoId) {
             // Calcolo Matematico Quote
             const quotaTotale = torneoCorrenteDettaglio ? (parseInt(torneoCorrenteDettaglio.quantita_totale_autorizzata, 10) || 0) : 0;
             const quotaAssegnata = squadreList.reduce((sum, s) => sum + (parseInt(s.quantita_assegnata, 10) || 0), 0);
+            const totaleOrdinati = squadreList.reduce((sum, s) => sum + (parseInt(s.quantita_ordinata, 10) || 0), 0);
             const quotaRimanente = Math.max(0, quotaTotale - quotaAssegnata);
 
             // Aggiorna Cards Riepilogo Quote
             const qTotEl = document.getElementById('torneo-quota-totale');
             const qAssEl = document.getElementById('torneo-quota-assegnata');
+            const qOrdEl = document.getElementById('torneo-totale-ordinati');
             const qRimEl = document.getElementById('torneo-quota-rimanente');
             const countBadgeEl = document.getElementById('torneo-squadre-count-badge');
 
             if (qTotEl) qTotEl.innerText = `${quotaTotale} pz`;
             if (qAssEl) qAssEl.innerText = `${quotaAssegnata} pz`;
+            if (qOrdEl) qOrdEl.innerText = `${totaleOrdinati} pz`;
             if (qRimEl) {
                 qRimEl.innerText = `${quotaRimanente} pz`;
                 if (quotaRimanente === 0) {
@@ -19024,7 +19477,7 @@ async function caricaSquadreTorneo(torneoId) {
             if (squadreList.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium">
+                        <td colspan="8" class="px-6 py-12 text-center text-slate-400 font-medium">
                             <div class="max-w-sm mx-auto space-y-3">
                                 <span class="text-4xl block">👥</span>
                                 <p class="text-slate-600 font-bold text-sm">Nessuna squadra registrata per questo torneo</p>
@@ -19054,6 +19507,10 @@ async function caricaSquadreTorneo(torneoId) {
                     });
                 }
 
+                const pezziAssegnati = parseInt(s.quantita_assegnata, 10) || 0;
+                const pezziOrdinati = parseInt(s.quantita_ordinata, 10) || 0;
+                const pezziResidui = Math.max(0, pezziAssegnati - pezziOrdinati);
+
                 return `
                     <tr class="hover:bg-slate-50/80 transition-colors">
                         <td class="px-6 py-4">
@@ -19072,8 +19529,16 @@ async function caricaSquadreTorneo(torneoId) {
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-block px-2.5 py-1 bg-blue-50 text-blue-800 font-black font-mono text-xs rounded-lg border border-blue-100">
-                                ${s.quantita_assegnata} pz
+                                ${pezziAssegnati} pz
                             </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2.5 py-1 ${pezziOrdinati > 0 ? 'bg-indigo-50 text-indigo-900 border-indigo-200 font-black' : 'bg-slate-100 text-slate-500 border-slate-200 font-bold'} font-mono text-xs rounded-lg border">
+                                ${pezziOrdinati} pz
+                            </span>
+                            <div class="text-[10px] text-slate-400 font-medium mt-0.5">
+                                Residui: <span class="font-bold ${pezziResidui === 0 ? 'text-amber-600' : 'text-slate-600'}">${pezziResidui} pz</span>
+                            </div>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center gap-1 flex-wrap max-w-xs mx-auto">
@@ -19106,7 +19571,7 @@ async function caricaSquadreTorneo(torneoId) {
         } else {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-red-500 font-medium">
+                    <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
                         Impossibile caricare le squadre: ${data.error || 'Errore sconosciuto'}
                     </td>
                 </tr>
@@ -19116,13 +19581,148 @@ async function caricaSquadreTorneo(torneoId) {
         console.error("Errore caricaSquadreTorneo:", err);
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-8 text-center text-red-500 font-medium">
+                <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
                     Errore di connessione al server durante il caricamento delle squadre.
                 </td>
             </tr>
         `;
     }
 }
+
+function scaricaExcelRiepilogativoTorneo() {
+    if (!torneoCorrenteDettaglio || !torneoCorrenteDettaglio.id) {
+        showToast("Seleziona prima un torneo valido per scaricare il riepilogo.", "error");
+        return;
+    }
+    apriModalExportRiepilogoTorneo();
+}
+window.scaricaExcelRiepilogativoTorneo = scaricaExcelRiepilogativoTorneo;
+
+function apriModalExportRiepilogoTorneo() {
+    if (!torneoCorrenteDettaglio || !torneoCorrenteDettaglio.id) {
+        showToast("Seleziona prima un torneo valido per scaricare il riepilogo.", "error");
+        return;
+    }
+
+    const modal = document.getElementById('modal-export-riepilogo-torneo');
+    const container = document.getElementById('modal-export-riepilogo-container');
+    const titleEl = document.getElementById('export-riepilogo-modal-title');
+    const subtitleEl = document.getElementById('export-riepilogo-modal-subtitle');
+    const listEl = document.getElementById('export-riepilogo-squadre-list');
+    const tutteCb = document.getElementById('export-riepilogo-tutte-squadre');
+    const prezzoCb = document.getElementById('export-riepilogo-include-prezzo');
+
+    if (!modal || !container || !listEl) return;
+
+    const nomeTorneo = torneoCorrenteDettaglio.nome || 'Torneo';
+    if (titleEl) titleEl.innerText = `RIEPILOGO FORNITURA — ${nomeTorneo.toUpperCase()}`;
+    if (subtitleEl) subtitleEl.innerText = `Torneo ${nomeTorneo} • ${squadreList.length} ${squadreList.length === 1 ? 'squadra' : 'squadre'}`;
+
+    // Reset default options
+    if (tutteCb) tutteCb.checked = true;
+    if (prezzoCb) prezzoCb.checked = false; // Default: SENZA PREZZI
+
+    if (squadreList.length === 0) {
+        listEl.innerHTML = `
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500 italic">
+                Nessuna squadra associata a questo torneo.
+            </div>
+        `;
+    } else {
+        listEl.innerHTML = squadreList.map(s => `
+            <label class="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl cursor-pointer transition-colors">
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" value="${s.id}" data-team-name="${escapeHtml(s.nome_squadra || '')}" class="export-riepilogo-squadra-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold cursor-pointer" checked onchange="aggiornaStatoTutteSquadreExportRiepilogo()">
+                    <span class="font-bold text-xs text-slate-900">${escapeHtml(s.nome_squadra || 'Squadra')}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
+                        ${escapeHtml(s.codice_univoco || '')}
+                    </span>
+                    <span class="text-[10px] font-mono font-medium text-slate-400">
+                        ${parseInt(s.quantita_ordinata, 10) || 0} pz ord.
+                    </span>
+                </div>
+            </label>
+        `).join('');
+    }
+
+    aggiornaStatoTutteSquadreExportRiepilogo();
+
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        container.classList.remove('scale-95', 'opacity-0');
+        container.classList.add('scale-100', 'opacity-100');
+    });
+}
+window.apriModalExportRiepilogoTorneo = apriModalExportRiepilogoTorneo;
+
+function chiudiModalExportRiepilogoTorneo() {
+    const modal = document.getElementById('modal-export-riepilogo-torneo');
+    const container = document.getElementById('modal-export-riepilogo-container');
+    if (!modal || !container) return;
+
+    container.classList.remove('scale-100', 'opacity-100');
+    container.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 200);
+}
+window.chiudiModalExportRiepilogoTorneo = chiudiModalExportRiepilogoTorneo;
+
+function toggleTutteSquadreExportRiepilogo(isChecked) {
+    const cbs = document.querySelectorAll('.export-riepilogo-squadra-cb');
+    cbs.forEach(cb => {
+        cb.checked = Boolean(isChecked);
+    });
+    aggiornaStatoTutteSquadreExportRiepilogo();
+}
+window.toggleTutteSquadreExportRiepilogo = toggleTutteSquadreExportRiepilogo;
+
+function aggiornaStatoTutteSquadreExportRiepilogo() {
+    const cbs = document.querySelectorAll('.export-riepilogo-squadra-cb');
+    const checkedCbs = document.querySelectorAll('.export-riepilogo-squadra-cb:checked');
+    const tutteCb = document.getElementById('export-riepilogo-tutte-squadre');
+    const counterEl = document.getElementById('export-riepilogo-squadre-counter');
+
+    if (tutteCb) {
+        tutteCb.checked = cbs.length > 0 && checkedCbs.length === cbs.length;
+    }
+
+    if (counterEl) {
+        counterEl.innerText = `${checkedCbs.length} su ${cbs.length} squadre selezionate`;
+    }
+}
+window.aggiornaStatoTutteSquadreExportRiepilogo = aggiornaStatoTutteSquadreExportRiepilogo;
+
+function confermaGenerazioneExcelRiepilogativoTorneo() {
+    if (!torneoCorrenteDettaglio || !torneoCorrenteDettaglio.id) {
+        showToast("Seleziona prima un torneo valido.", "error");
+        return;
+    }
+
+    const checkedCbs = document.querySelectorAll('.export-riepilogo-squadra-cb:checked');
+    if (checkedCbs.length === 0) {
+        showToast("Seleziona almeno una squadra.", "error");
+        return;
+    }
+
+    const selectedIds = Array.from(checkedCbs).map(cb => cb.value);
+    const includePrezzo = document.getElementById('export-riepilogo-include-prezzo')?.checked || false;
+
+    showToast(`Generazione file Excel riepilogativo per "${torneoCorrenteDettaglio.nome || 'Torneo'}"...`, "info");
+    
+    const downloadUrl = `/api/tornei/${encodeURIComponent(torneoCorrenteDettaglio.id)}/excel-riepilogo?squadre=${encodeURIComponent(selectedIds.join(','))}&include_prezzo=${includePrezzo ? '1' : '0'}`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', `Riepilogo_Fornitura_${(torneoCorrenteDettaglio.nome || 'Torneo').replace(/[^a-zA-Z0-9_-]/g, '_')}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    chiudiModalExportRiepilogoTorneo();
+}
+window.confermaGenerazioneExcelRiepilogativoTorneo = confermaGenerazioneExcelRiepilogativoTorneo;
 
 function copiaCodiceFornitura(codice) {
     if (!codice) return;
@@ -19452,6 +20052,249 @@ window.salvaSquadra = salvaSquadra;
 window.eliminaSquadra = eliminaSquadra;
 window.copiaCodiceFornitura = copiaCodiceFornitura;
 window.impostaCategorieSquadraQuick = impostaCategorieSquadraQuick;
+
+// -------------------------------------------------------------
+// GESTIONE ASSEGNAZIONE ACCOUNT ORDINE (FASE 15)
+// -------------------------------------------------------------
+window.registeredAccountsList = [];
+window.selectedAccountIdForAssignment = null;
+
+async function caricaRegisteredAccounts() {
+    try {
+        const res = await fetch('/api/admin/registered-accounts');
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.success && Array.isArray(data.accounts)) {
+                window.registeredAccountsList = data.accounts;
+            }
+        }
+    } catch (err) {
+        console.warn("⚠️ Impossibile caricare gli account registrati:", err);
+    }
+}
+
+function aggiornaBoxAccountAssegnato(ord) {
+    const statusBadge = document.getElementById('gestione-ordine-account-status-badge');
+    const infoBox = document.getElementById('gestione-ordine-account-info-box');
+    const btnLabel = document.getElementById('btn-gestione-ordine-assegna-label');
+    const btnScollega = document.getElementById('btn-gestione-ordine-scollega-account');
+
+    if (!infoBox) return;
+
+    const isAssigned = Boolean(ord && ord.user_id);
+    
+    if (isAssigned) {
+        const acc = (window.registeredAccountsList || []).find(a => String(a.id) === String(ord.user_id));
+        const dispName = acc ? (acc.nome_completo || (acc.nome + ' ' + acc.cognome) || acc.email) : (ord.registered_name || ord.nome || 'Cliente Registrato');
+        const dispEmail = acc ? acc.email : (ord.email || 'Email non registrata');
+        const dispTel = acc ? (acc.telefono || 'N/D') : (ord.telefono || 'N/D');
+
+        if (statusBadge) {
+            statusBadge.innerHTML = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-950/40 text-emerald-400 border border-emerald-900/40 text-[10px] font-black rounded-lg uppercase tracking-wider"><span>👤</span> Account Assegnato</span>`;
+        }
+
+        infoBox.innerHTML = `
+            <div class="space-y-1">
+                <div><span class="text-[rgba(255,255,255,0.5)] font-medium">Nome Account:</span> <strong class="text-white font-bold ml-1">${escapeHtml(dispName)}</strong></div>
+                <div><span class="text-[rgba(255,255,255,0.5)] font-medium">Email:</span> <span class="text-white font-mono ml-1">${escapeHtml(dispEmail)}</span></div>
+                ${dispTel !== 'N/D' ? `<div><span class="text-[rgba(255,255,255,0.5)] font-medium">Telefono:</span> <span class="text-white font-mono ml-1">${escapeHtml(dispTel)}</span></div>` : ''}
+                <div class="text-[10px] text-slate-500 font-mono mt-0.5">ID: ${escapeHtml(ord.user_id)}</div>
+            </div>
+        `;
+
+        if (btnLabel) btnLabel.innerText = "CAMBIA ACCOUNT";
+        if (btnScollega) btnScollega.classList.remove('hidden');
+    } else {
+        if (statusBadge) {
+            statusBadge.innerHTML = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#181818] text-[rgba(255,255,255,0.6)] border border-[rgba(255,255,255,0.08)] text-[10px] font-bold rounded-lg uppercase tracking-wider">Non Assegnato</span>`;
+        }
+
+        infoBox.innerHTML = `
+            <span class="text-[rgba(255,255,255,0.5)] font-semibold block">Nessun account cliente registrato associato a questo ordine.</span>
+        `;
+
+        if (btnLabel) btnLabel.innerText = "ASSEGNA ACCOUNT";
+        if (btnScollega) btnScollega.classList.add('hidden');
+    }
+}
+
+window.apriModalAssegnaAccount = async function() {
+    if (!window.currentGestioneOrderId) return;
+    const ord = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(window.currentGestioneOrderId));
+    
+    const modal = document.getElementById('modal-assegna-account');
+    if (!modal) return;
+
+    const searchInput = document.getElementById('search-account-input');
+    if (searchInput) searchInput.value = '';
+
+    window.selectedAccountIdForAssignment = ord ? (ord.user_id || null) : null;
+
+    modal.classList.remove('hidden');
+
+    await caricaRegisteredAccounts();
+
+    const modalTitle = document.getElementById('modal-assegna-account-title');
+    const modalSub = document.getElementById('modal-assegna-account-sub');
+    if (modalTitle) modalTitle.innerText = ord?.user_id ? "CAMBIA ACCOUNT ASSEGNATO" : "ASSEGNA ORDINE AD ACCOUNT";
+    if (modalSub) modalSub.innerText = `Ordine #${window.currentGestioneOrderId} - Seleziona l'account a cui associare l'ordine.`;
+
+    renderModalAccountList('');
+};
+
+window.chiudiModalAssegnaAccount = function() {
+    const modal = document.getElementById('modal-assegna-account');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.filtraModalAccount = function() {
+    const term = (document.getElementById('search-account-input')?.value || '').toLowerCase().trim();
+    renderModalAccountList(term);
+};
+
+window.selezionaAccountModal = function(accId) {
+    window.selectedAccountIdForAssignment = accId;
+    renderModalAccountList(document.getElementById('search-account-input')?.value || '');
+};
+
+function renderModalAccountList(term = '') {
+    const container = document.getElementById('modal-account-list-container');
+    if (!container) return;
+
+    let list = window.registeredAccountsList || [];
+
+    if (term) {
+        const t = term.toLowerCase().trim();
+        list = list.filter(acc => {
+            const fullName = (acc.nome_completo || `${acc.nome || ''} ${acc.cognome || ''}`).toLowerCase();
+            const firstName = (acc.nome || '').toLowerCase();
+            const lastName = (acc.cognome || '').toLowerCase();
+            const email = (acc.email || '').toLowerCase();
+            const phone = (acc.telefono || '').toLowerCase();
+            const idMatch = String(acc.id || '').toLowerCase();
+            return fullName.includes(t) || firstName.includes(t) || lastName.includes(t) || email.includes(t) || phone.includes(t) || idMatch.includes(t);
+        });
+    }
+
+    if (list.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 space-y-1">
+                <div class="text-slate-400 font-bold text-xs">Nessun account cliente trovato</div>
+                <div class="text-[11px] text-slate-500">Prova a cercare con un altro nome, cognome o email.</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = list.map(acc => {
+        const isSelected = String(acc.id) === String(window.selectedAccountIdForAssignment);
+        const nameDisp = acc.nome_completo || `${acc.nome || ''} ${acc.cognome || ''}`.trim() || acc.email;
+        
+        return `
+            <label onclick="selezionaAccountModal('${acc.id}')" class="flex items-center justify-between p-3.5 bg-[#181818] border rounded-xl hover:border-brand-gold/60 cursor-pointer transition-all ${isSelected ? 'border-brand-gold bg-brand-gold/10' : 'border-[rgba(255,255,255,0.08)]'}">
+                <div class="flex items-center gap-3">
+                    <input type="radio" name="select-registered-account" value="${acc.id}" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-brand-gold bg-black border-slate-700 focus:ring-brand-gold">
+                    <div>
+                        <div class="font-extrabold text-white text-xs">${isSelected ? '✓ ' : ''}${escapeHtml(nameDisp)}</div>
+                        <div class="text-[11px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
+                            <span>📧 ${escapeHtml(acc.email)}</span>
+                            ${acc.telefono ? `<span>📞 ${escapeHtml(acc.telefono)}</span>` : ''}
+                        </div>
+                        <div class="text-[9px] text-slate-500 font-mono mt-0.5">UUID: ${escapeHtml(acc.id)}</div>
+                    </div>
+                </div>
+                <span class="text-[9px] px-2 py-0.5 bg-emerald-950/50 text-emerald-400 border border-emerald-900/50 rounded font-bold uppercase tracking-wider shrink-0">Registrato</span>
+            </label>
+        `;
+    }).join('');
+}
+
+window.confermaAssegnazioneAccount = async function() {
+    if (!window.currentGestioneOrderId) return;
+    if (!window.selectedAccountIdForAssignment) {
+        showToast("Per favore, seleziona un account dalla lista.", "error");
+        return;
+    }
+
+    const orderId = window.currentGestioneOrderId;
+    const userId = window.selectedAccountIdForAssignment;
+
+    showToast("Assegnazione account in corso...", "info");
+
+    try {
+        const res = await fetch('/api/admin/orders/assign-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId, user_id: userId })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            showToast("Account assegnato con successo!", "success");
+            chiudiModalAssegnaAccount();
+
+            const ord = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(orderId));
+            if (ord) {
+                ord.user_id = userId;
+                const acc = (window.registeredAccountsList || []).find(a => String(a.id) === String(userId));
+                if (acc) {
+                    ord.registered_name = acc.nome_completo || `${acc.nome || ''} ${acc.cognome || ''}`.trim();
+                }
+            }
+
+            if (ord) aggiornaBoxAccountAssegnato(ord);
+
+            if (typeof caricaGestioneOrdini === 'function') {
+                await caricaGestioneOrdini();
+            }
+        } else {
+            showToast("Errore assegnazione account: " + (data.error || "errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore connessione durante assegnazione account:", err);
+        showToast("Errore di connessione.", "error");
+    }
+};
+
+window.scollegaAccountOrdine = async function() {
+    if (!window.currentGestioneOrderId) return;
+    if (!confirm("Sei sicuro di voler scollegare l'account cliente da questo ordine? L'ordine tornerà allo stato 'Non assegnato'.")) {
+        return;
+    }
+
+    const orderId = window.currentGestioneOrderId;
+    showToast("Rimozione assegnazione in corso...", "info");
+
+    try {
+        const res = await fetch('/api/admin/orders/assign-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId, user_id: null })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            showToast("Assegnazione account rimossa con successo!", "success");
+
+            const ord = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(orderId));
+            if (ord) {
+                ord.user_id = null;
+                ord.registered_name = null;
+            }
+
+            if (ord) aggiornaBoxAccountAssegnato(ord);
+
+            if (typeof caricaGestioneOrdini === 'function') {
+                await caricaGestioneOrdini();
+            }
+        } else {
+            showToast("Errore rimozione account: " + (data.error || "errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore scollegamento account:", err);
+        showToast("Errore di connessione.", "error");
+    }
+};
 
 
 

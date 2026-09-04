@@ -2,7 +2,10 @@
   {
     "torneo_id": "ea378156-a006-4af9-91a7-409fa275617e",
     "nome_squadra": "FC SERGIO",
-    "codice_univoco": "ETNAGOLD-SERGIO",
+    "codice_univoco": "ETNA123",
+    "codice_alias": [
+      "ETNAGOLD-SERGIO"
+    ],
     "quantita_assegnata": 15,
     "configurazione_personalizzazione": {
       "permetti_nome": true,
@@ -16,24 +19,31 @@
     ],
     "prodotti_autorizzati": [],
     "note": null,
-    "updated_at": "2026-09-02T13:12:30.489Z",
+    "updated_at": "2026-09-04T15:20:00.000Z",
     "created_at": "2026-09-02T13:04:37.719Z",
     "id": "ea8f88c6-3d5c-49ee-8434-f9f79ff64ebd"
   },
   {
-    "torneo_id": "d3d714f2-8b2e-434e-94e8-41bd87b60ca9",
+    "torneo_id": "ea378156-a006-4af9-91a7-409fa275617e",
     "nome_squadra": "FC Big",
-    "codice_univoco": "ETNAGOLD-BIG",
+    "codice_univoco": "ETNA456",
+    "codice_alias": [
+      "ETNAGOLD-BIG"
+    ],
     "quantita_assegnata": 120,
     "configurazione_personalizzazione": {
       "permetti_nome": true,
       "permetti_numero": true,
       "permetti_patch": false
     },
-    "categorie_autorizzate": [],
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan"
+    ],
     "prodotti_autorizzati": [],
     "note": null,
-    "updated_at": "2026-09-02T13:05:02.518Z",
+    "updated_at": "2026-09-04T15:20:00.000Z",
     "created_at": "2026-09-02T13:05:02.519Z",
     "id": "3fbc5038-6e0f-4b0a-b402-bec5df9e130d"
   },

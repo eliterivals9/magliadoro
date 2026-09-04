@@ -1,0 +1,11 @@
+[
+  {
+    "id": "test-user-uuid-12345",
+    "email": "mario.rossi@example.com",
+    "nome": "Mario",
+    "cognome": "Rossi",
+    "nome_completo": "Mario Rossi",
+    "telefono": "+39 333 1234567",
+    "updated_at": "2026-09-04T17:40:49.247Z"
+  }
+]

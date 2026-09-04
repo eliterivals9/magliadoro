@@ -1012,34 +1012,512 @@ body {
             opacity: 1; visibility: visible; pointer-events: auto;
         }
 
-        /* Sidebar Carrello (Glassmorphism Slide) */
+        /* ==========================================================
+           SIDEBAR CARRELLO & COMPONENTI RESPONSIVE (FASE 14)
+           ========================================================== */
         .sidebar-carrello {
-            position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px; height: 100%; background-color: rgba(18, 18, 18, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: -15px 0 50px rgba(0, 0, 0, 0.7); z-index: 299; transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 30px; display: flex; flex-direction: column; box-sizing: border-box; border-left: 1px solid rgba(214, 164, 58, 0.15);
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            background-color: rgba(14, 14, 14, 0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: -15px 0 50px rgba(0, 0, 0, 0.85);
+            z-index: 299;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            border-left: 1px solid rgba(214, 164, 58, 0.2);
+            overflow: hidden;
         }
         
         .sidebar-carrello.aperto { right: 0; }
-        .chiudi-carrello { background: none; border: none; font-size: 22px; cursor: pointer; text-align: right; margin-bottom: 15px; color: var(--on-surface-de-emphasis); transition: color 0.2s; }
+        .chiudi-carrello { background: none; border: none; font-size: 22px; cursor: pointer; text-align: right; margin-bottom: 12px; color: var(--on-surface-de-emphasis); transition: color 0.2s; align-self: flex-end; padding: 4px; line-height: 1; }
         .chiudi-carrello:hover { color: #ffffff; }
-        .elementi-carrello { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
         
-        .item-carrello { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 16px 0; gap: 12px; }
-        .item-info h5 { margin: 0; font-size: 14px; font-weight: 800; color: #ffffff; }
-        .item-info p { margin: 4px 0 0 0; font-size: 12px; color: var(--on-surface-de-emphasis); line-height: 1.4; }
+        .carrello-corpo-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding-right: 4px;
+            margin-bottom: 14px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
         
-        .controlli-quantita { display: flex; align-items: center; gap: 10px; }
-        .btn-qty { background-color: #262626; border: none; width: 30px; height: 30px; border-radius: var(--radius-s); cursor: pointer; font-weight: bold; color: #ffffff; transition: background 0.2s; }
-        .btn-qty:hover { background-color: var(--primary); color: #000000; }
+        .carrello-corpo-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+        .carrello-corpo-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 4px;
+        }
+        .carrello-corpo-scroll::-webkit-scrollbar-thumb {
+            background: rgba(214, 164, 58, 0.35);
+            border-radius: 4px;
+        }
+
+        /* 1. Card Convenzione Torneo - Inserisci Codice */
+        .cart-convenzione-card {
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(214, 164, 58, 0.25);
+            border-radius: var(--radius-m, 12px);
+            padding: 14px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.25s ease;
+        }
+
+        .cart-convenzione-card:hover {
+            border-color: rgba(214, 164, 58, 0.4);
+        }
+
+        .cart-convenzione-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .cart-convenzione-title {
+            font-size: 11.5px;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cart-convenzione-subtitle {
+            font-size: 12px;
+            color: var(--on-surface-de-emphasis);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .cart-convenzione-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .cart-convenzione-input {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            height: 42px !important;
+            background: #0d0d0d !important;
+            border: 1px solid rgba(255, 255, 255, 0.14) !important;
+            color: #ffffff !important;
+            padding: 10px 14px !important;
+            border-radius: 8px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            text-transform: uppercase !important;
+            box-sizing: border-box !important;
+            outline: none !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .cart-convenzione-input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 12px rgba(214, 164, 58, 0.25) !important;
+            background: #121212 !important;
+        }
+
+        .btn-cart-convenzione-verifica {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            min-height: 42px !important;
+            background: var(--gold-gradient) !important;
+            border: none !important;
+            color: #000000 !important;
+            font-weight: 900 !important;
+            font-size: 11.5px !important;
+            padding: 10px 16px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.6px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: 0 3px 10px rgba(214, 164, 58, 0.2) !important;
+        }
+
+        .btn-cart-convenzione-verifica:hover {
+            filter: brightness(1.1) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 5px 15px rgba(214, 164, 58, 0.3) !important;
+        }
+
+        .btn-cart-convenzione-verifica:active {
+            transform: translateY(0) !important;
+        }
+
+        /* Messaggi di stato Convenzione */
+        .cart-convenzione-msg {
+            font-size: 11.5px;
+            font-weight: 700;
+            line-height: 1.45;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cart-convenzione-msg.msg-success {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #10B981;
+        }
+
+        .cart-convenzione-msg.msg-error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #ef4444;
+        }
+
+        .cart-convenzione-msg.msg-info {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            color: #60a5fa;
+        }
+
+        /* 2. Card Convenzione Torneo Attiva */
+        .cart-convenzione-active-card {
+            background: linear-gradient(135deg, rgba(214, 164, 58, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%);
+            border: 1px solid rgba(214, 164, 58, 0.35);
+            border-radius: var(--radius-m, 12px);
+            padding: 14px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .cart-convenzione-active-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .cart-convenzione-active-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            font-weight: 900;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-cart-convenzione-disattiva {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-cart-convenzione-disattiva:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+        }
+
+        .cart-convenzione-info-row {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .cart-convenzione-info-row strong {
+            color: #ffffff;
+            font-weight: 900;
+        }
+
+        .cart-convenzione-team-row {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--primary);
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            margin-bottom: 2px;
+        }
+
+        .cart-convenzione-stats-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 0, 0, 0.35);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .cart-convenzione-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-convenzione-stat-item.highlight-blue {
+            color: #60a5fa;
+        }
+
+        .cart-convenzione-stat-item.highlight-gold {
+            color: var(--primary);
+        }
+
+        .cart-convenzione-cats {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 3. Prodotti del carrello */
+        .elementi-carrello {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
         
-        .totale-sidebar { border-top: 2px solid rgba(214, 164, 58, 0.2); padding-top: 20px; font-size: 18px; font-weight: 900; display: flex; justify-content: space-between; margin-bottom: 20px; color: #ffffff; }
-        .box-dati-cliente { background-color: #0b0b0b; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-xl); padding: 20px; margin-bottom: 20px; }
-        .box-dati-cliente h4 { margin: 0 0 12px 0; font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 1px; }
+        .item-carrello {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 14px 0;
+            gap: 12px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .item-info {
+            flex: 1 1 auto;
+            min-width: 0;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .item-info h5 {
+            margin: 0;
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .item-info p {
+            margin: 3px 0 0 0;
+            font-size: 11.5px;
+            color: var(--on-surface-de-emphasis);
+            line-height: 1.4;
+            word-break: break-word;
+        }
         
-        .btn-acquista-ora { width: 100%; background: var(--gold-gradient); color: #000000; border: none; padding: 16px; border-radius: var(--radius-m); font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(214, 164, 58, 0.25); transition: all 0.2s; }
-        .btn-acquista-ora:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .controlli-quantita {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-qty {
+            background-color: #242424;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 800;
+            color: #ffffff;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-qty:hover {
+            background-color: var(--primary);
+            color: #000000;
+            border-color: var(--primary);
+        }
+        
+        .totale-sidebar {
+            border-top: 2px solid rgba(214, 164, 58, 0.2);
+            padding-top: 16px;
+            font-size: 17px;
+            font-weight: 900;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            color: #ffffff;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .box-dati-cliente {
+            background-color: #0b0b0b;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-l, 14px);
+            padding: 16px;
+            margin-bottom: 0;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .box-dati-cliente h4 {
+            margin: 0 0 12px 0;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary);
+            letter-spacing: 0.8px;
+        }
+
+        .box-dati-cliente .gruppo-form input {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            height: 42px !important;
+            padding: 10px 14px !important;
+            font-size: 13.5px !important;
+            background: #080808 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
+        }
+
+        .box-dati-cliente .gruppo-form input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 12px rgba(214, 164, 58, 0.2) !important;
+        }
+        
+        .btn-acquista-ora {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            min-height: 48px !important;
+            background: var(--gold-gradient) !important;
+            color: #000000 !important;
+            border: none !important;
+            padding: 14px !important;
+            border-radius: 12px !important;
+            font-weight: 900 !important;
+            font-size: 13.5px !important;
+            cursor: pointer !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.8px !important;
+            box-shadow: 0 4px 18px rgba(214, 164, 58, 0.25) !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .btn-acquista-ora:hover {
+            filter: brightness(1.1) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 22px rgba(214, 164, 58, 0.35) !important;
+        }
+
+        .btn-acquista-ora:active {
+            transform: translateY(0) !important;
+        }
 
         /* Barra in basso fissa per carrello */
         .barra-carrello-totale {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 480px; background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: white; padding: 16px 28px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5), var(--gold-glow); cursor: pointer; z-index: 198; border-radius: 100px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box; border: 1px solid rgba(214, 164, 58, 0.25);
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 480px;
+            background: rgba(18, 18, 18, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            color: white;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6), var(--gold-glow);
+            cursor: pointer;
+            z-index: 198;
+            border-radius: 100px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+            border: 1px solid rgba(214, 164, 58, 0.3);
         }
         .barra-carrello-totale:hover { transform: translateX(-50%) translateY(-2px) scale(1.02); box-shadow: 0 30px 60px rgba(214, 164, 58, 0.15), var(--gold-glow-strong); }
         .barra-carrello-totale h4 { margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -1991,7 +2469,7 @@ body {
                 padding: 4px !important;
             }
             .foto-maglia {
-                transform: scale(1.10) translate3d(0, 0, 0) !important;
+                transform: scale(1.05) translate3d(0, 0, 0) !important;
                 object-fit: contain !important;
                 object-position: center !important;
             }
@@ -4654,6 +5132,445 @@ body {
             animation: heartBeat 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
         }
 
+        /* ==========================================================
+           WISHLIST AREA CLIENTE RESTYLING (FASE 13)
+           ========================================================== */
+        .ac-wishlist-toolbar {
+            background: rgba(20, 20, 20, 0.85);
+            border: 1px solid rgba(214, 164, 58, 0.2);
+            border-radius: 16px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .ac-wishlist-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .ac-wishlist-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(214, 164, 58, 0.12);
+            border: 1px solid rgba(214, 164, 58, 0.25);
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: var(--radius-full);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ac-wishlist-select-all-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            user-select: none;
+        }
+
+        .ac-wishlist-select-all-label input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .ac-wishlist-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-ac-wishlist-bulk-remove {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #ef4444;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ac-wishlist-bulk-remove:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            transform: translateY(-1px);
+        }
+
+        .btn-ac-wishlist-bulk-remove:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Wishlist Grid & Cards */
+        .ac-wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .ac-wishlist-card {
+            background: rgba(20, 20, 20, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .ac-wishlist-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(214, 164, 58, 0.35);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(214, 164, 58, 0.1);
+        }
+
+        .ac-wishlist-card.is-selected {
+            border-color: var(--primary);
+            background: rgba(26, 24, 18, 0.95);
+            box-shadow: 0 0 0 1px var(--primary), 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Card Top Header Floating Overlay */
+        .ac-wishlist-card-topbar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .ac-wishlist-card-topbar > * {
+            pointer-events: auto;
+        }
+
+        .ac-wishlist-check-box {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 5px 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .ac-wishlist-check-box:hover {
+            border-color: var(--primary);
+            background: rgba(20, 20, 20, 0.95);
+        }
+
+        .ac-wishlist-check-input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .ac-wishlist-check-label-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .ac-wishlist-quick-remove-btn {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ef4444;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .ac-wishlist-quick-remove-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        /* Card Image Box */
+        .ac-wishlist-img-wrap {
+            position: relative;
+            width: 100%;
+            height: 230px;
+            background: #0d0d0d;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .ac-wishlist-zoom-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(214, 164, 58, 0.4);
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+
+        .ac-wishlist-zoom-btn:hover {
+            background: var(--gold-gradient);
+            color: #000000;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .ac-wishlist-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ac-wishlist-card:hover .ac-wishlist-img {
+            transform: scale(1.06);
+        }
+
+        .ac-wishlist-badges-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .ac-wishlist-tag-badge {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .ac-wishlist-tag-badge.gold {
+            background: rgba(214, 164, 58, 0.25);
+            border-color: rgba(214, 164, 58, 0.45);
+            color: var(--primary);
+        }
+
+        .ac-wishlist-tag-badge.blue {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(59, 130, 246, 0.45);
+            color: #60a5fa;
+        }
+
+        /* Card Content Details */
+        .ac-wishlist-body {
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .ac-wishlist-categoria {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary);
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ac-wishlist-titolo {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 40px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .ac-wishlist-titolo:hover {
+            color: var(--primary);
+        }
+
+        .ac-wishlist-meta-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--on-surface-de-emphasis);
+        }
+
+        .ac-wishlist-meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .ac-wishlist-price-row {
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ac-wishlist-price-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.45);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .ac-wishlist-price {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: -0.2px;
+        }
+
+        .ac-wishlist-card-buttons {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-ac-wishlist-view {
+            background: var(--gold-gradient);
+            color: #000000;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 11.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ac-wishlist-view:hover {
+            box-shadow: var(--gold-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-ac-wishlist-remove {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.75);
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ac-wishlist-remove:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+        }
+
+        @media (max-width: 640px) {
+            .ac-wishlist-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .ac-wishlist-img-wrap {
+                height: 160px;
+            }
+            .ac-wishlist-body {
+                padding: 12px;
+                gap: 8px;
+            }
+            .ac-wishlist-titolo {
+                font-size: 13px;
+                min-height: 34px;
+            }
+            .ac-wishlist-card-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Dynamic Promo Styling - Nuova Architettura Integrata */
         .promo-card-wrapper {
             width: 340px;
@@ -5134,6 +6051,177 @@ body {
             width: 100%;
             max-width: 480px;
         }
+
+        /* ==========================================================================
+           MAGLIA D'ORO - FLOATING CUSTOMER CHAT WIDGET
+           ========================================================================== */
+        .chat-bubble-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9990;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f3e7c4 0%, #D6A43A 50%, #aa7c1e 100%);
+            color: #0b0b0b;
+            box-shadow: 0 10px 28px rgba(214, 164, 58, 0.45), 0 4px 14px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background 0.3s ease;
+            user-select: none;
+        }
+        .chat-bubble-container:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 14px 34px rgba(214, 164, 58, 0.6), 0 6px 18px rgba(0, 0, 0, 0.7);
+        }
+        .chat-bubble-container:active {
+            transform: scale(0.96);
+        }
+        .chat-unread-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 900;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 11px;
+            padding: 0 6px;
+            border: 2px solid #0b0b0b;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+            animation: pulseUnread 2s infinite;
+        }
+        @keyframes pulseUnread {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        #customer-chat-modal {
+            position: fixed;
+            bottom: 95px;
+            right: 25px;
+            width: 385px;
+            max-width: calc(100vw - 32px);
+            height: 560px;
+            max-height: calc(100vh - 130px);
+            z-index: 9991;
+            display: none;
+            flex-direction: column;
+            background: rgba(14, 14, 14, 0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(214, 164, 58, 0.35);
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(214, 164, 58, 0.15);
+            overflow: hidden;
+            animation: chatSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            box-sizing: border-box;
+        }
+        @keyframes chatSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .chat-header-gold {
+            background: linear-gradient(135deg, rgba(28, 28, 28, 0.98) 0%, rgba(18, 18, 18, 0.98) 100%);
+            border-bottom: 1px solid rgba(214, 164, 58, 0.25);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .chat-user-banner {
+            background: rgba(214, 164, 58, 0.08);
+            border-bottom: 1px solid rgba(214, 164, 58, 0.15);
+            padding: 8px 16px;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .chat-stream-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(10, 10, 10, 0.6);
+        }
+        .chat-stream-box::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-stream-box::-webkit-scrollbar-thumb {
+            background: rgba(214, 164, 58, 0.3);
+            border-radius: 4px;
+        }
+        .chat-bubble-msg {
+            max-width: 84%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-word;
+            position: relative;
+        }
+        .chat-bubble-client {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(214, 164, 58, 0.25) 0%, rgba(170, 124, 30, 0.32) 100%);
+            border: 1px solid rgba(214, 164, 58, 0.45);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-bubble-admin {
+            align-self: flex-start;
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f1f5f9;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-input-area {
+            padding: 12px 14px;
+            background: rgba(16, 16, 16, 0.98);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .chat-bubble-container {
+                bottom: 85px !important;
+                right: 18px !important;
+                width: 52px !important;
+                height: 52px !important;
+            }
+            #customer-chat-modal {
+                bottom: 80px !important;
+                right: 12px !important;
+                left: 12px !important;
+                width: auto !important;
+                max-width: 100% !important;
+                height: calc(100vh - 170px) !important;
+                max-height: 560px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -5395,7 +6483,7 @@ body {
                         👤 Accedi
                     </div>
                 </div>
-                <div class="icona-carrello" onclick="toggleCarrello()">🛒 (<span id="conteggio-header">0</span>)</div>
+                <div class="icona-carrello" onclick="toggleCarrello()">🛒 <span id="conteggio-header">0</span></div>
             </div>
         </div>
     </header>
@@ -5671,19 +6759,7 @@ body {
 
             <!-- CONTENITORE FILTRI SQUADRA (Mostrato solo quando è selezionata una squadra specifica) -->
             <div id="filtri-squadra-container" style="display: none; margin-bottom: 30px; background: var(--surface); padding: 16px; border-radius: var(--radius-l); border: 1px solid var(--outline-variant); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
-                <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
-                    <button class="btn-filtro-categoria attivo" data-categoria="tutti" onclick="impostaFiltroCategoria('tutti')">Tutto</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Club</button>
-                    <button class="btn-filtro-categoria" data-categoria="player" onclick="impostaFiltroCategoria('player')">Player Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="retro" onclick="impostaFiltroCategoria('retro')">Maglie Retro</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
-                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tuta</button>
-                    <button class="btn-filtro-categoria" data-categoria="polo" onclick="impostaFiltroCategoria('polo')">Polo</button>
-                    <button class="btn-filtro-categoria" data-categoria="smanicati" onclick="impostaFiltroCategoria('smanicati')">Smanicati</button>
-                    <button class="btn-filtro-categoria" data-categoria="maniche lunghe" onclick="impostaFiltroCategoria('maniche lunghe')">Maniche Lunghe</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit bambino" onclick="impostaFiltroCategoria('kit bambino')">Kit Bambino</button>
-                </div>
+                <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;"></div>
             </div>
 
             <!-- CONTENITORE ORDINAMENTO CLUB -->
@@ -5729,19 +6805,7 @@ body {
 
             <!-- CONTENITORE FILTRI NAZIONALI (Mostrato solo quando è selezionata una nazione specifica) -->
             <div id="filtri-nazionali-container" style="display: none; margin-bottom: 30px; background: var(--surface); padding: 16px; border-radius: var(--radius-l); border: 1px solid var(--outline-variant); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
-                <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
-                    <button class="btn-filtro-categoria attivo" data-categoria="tutti" onclick="impostaFiltroCategoria('tutti')">Tutto</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Club</button>
-                    <button class="btn-filtro-categoria" data-categoria="player" onclick="impostaFiltroCategoria('player')">Player Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="retro" onclick="impostaFiltroCategoria('retro')">Maglie Retro</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
-                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tuta</button>
-                    <button class="btn-filtro-categoria" data-categoria="polo" onclick="impostaFiltroCategoria('polo')">Polo</button>
-                    <button class="btn-filtro-categoria" data-categoria="smanicati" onclick="impostaFiltroCategoria('smanicati')">Smanicati</button>
-                    <button class="btn-filtro-categoria" data-categoria="maniche lunghe" onclick="impostaFiltroCategoria('maniche lunghe')">Maniche Lunghe</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit bambino" onclick="impostaFiltroCategoria('kit bambino')">Kit Bambino</button>
-                </div>
+                <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;"></div>
             </div>
 
             <!-- CONTENITORE ORDINAMENTO NAZIONALI -->
@@ -5903,18 +6967,7 @@ body {
 
             <!-- CONTENITORE FILTRI RICERCA (Stesso stile e categorie del catalogo) -->
             <div id="filtri-ricerca-container" style="margin-bottom: 25px; background: var(--surface); padding: 16px; border-radius: var(--radius-l); border: 1px solid var(--outline-variant); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
-                <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
-                    <button class="btn-filtro-categoria attivo" data-categoria="tutti" onclick="impostaFiltroCategoria('tutti')">Tutto</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit" onclick="impostaFiltroCategoria('kit')">Kit Club</button>
-                    <button class="btn-filtro-categoria" data-categoria="player" onclick="impostaFiltroCategoria('player')">Player Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="fan" onclick="impostaFiltroCategoria('fan')">Fan Version</button>
-                    <button class="btn-filtro-categoria" data-categoria="retro" onclick="impostaFiltroCategoria('retro')">Maglie Retro</button>
-                    <button class="btn-filtro-categoria" data-categoria="kit allenamento" onclick="impostaFiltroCategoria('kit allenamento')">Kit Allenamento</button>
-                    <button class="btn-filtro-categoria" data-categoria="tuta" onclick="impostaFiltroCategoria('tuta')">Tuta</button>
-                    <button class="btn-filtro-categoria" data-categoria="polo" onclick="impostaFiltroCategoria('polo')">Polo</button>
-                    <button class="btn-filtro-categoria" data-categoria="smanicati" onclick="impostaFiltroCategoria('smanicati')">Smanicati</button>
-                    <button class="btn-filtro-categoria" data-categoria="maniche lunghe" onclick="impostaFiltroCategoria('maniche lunghe')">Maniche lunghe</button>
-                </div>
+                <div class="bar-filtri-categorie-scroll" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;"></div>
             </div>
 
             <!-- CONTENITORE ORDINAMENTO E FILTRI SECONDARI RICERCA -->
@@ -7556,12 +8609,37 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
 
             <!-- Dati Cliente -->
             <div class="box-dati-cliente" id="container-dati-cliente" style="display: none; margin-bottom: 0;">
-                <h4>Dati di Spedizione / Contatto</h4>
-                <div class="gruppo-form" style="margin-bottom: 8px;">
-                    <input type="text" id="cliente-nome" placeholder="Nome e Cognome">
+                <h4 id="titolo-dati-cliente">Dati di Spedizione / Contatto</h4>
+
+                <!-- Box Dati Capitano per Convenzione Torneo (1° invio) -->
+                <div id="box-dati-capitano" style="display: none; margin-bottom: 12px; background: rgba(214, 164, 58, 0.08); border: 1px solid rgba(214, 164, 58, 0.3); border-radius: var(--radius-m); padding: 12px;">
+                    <div style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span>👑</span> Dati Capitano (Contatto Principale Squadra)
+                    </div>
+                    <div class="gruppo-form" style="margin-bottom: 8px;">
+                        <input type="text" id="capitano-nome" placeholder="Nome e Cognome Capitano *">
+                    </div>
+                    <div class="gruppo-form" style="margin-bottom: 0;">
+                        <input type="text" id="capitano-telefono" placeholder="Numero di Telefono Capitano *">
+                    </div>
                 </div>
-                <div class="gruppo-form" style="margin-bottom: 0;">
-                    <input type="text" id="cliente-telefono" placeholder="WhatsApp / Telefono">
+
+                <!-- Box Capitano già registrato (invii successivi) -->
+                <div id="box-capitano-esistente" style="display: none; margin-bottom: 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-m); padding: 10px 12px;">
+                    <div style="font-size: 11px; font-weight: 800; color: #10B981; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                        <span>👑</span> Capitano Squadra Registrato
+                    </div>
+                    <div id="capitano-esistente-info" style="font-size: 12px; color: rgba(255, 255, 255, 0.9); font-weight: 600;"></div>
+                </div>
+
+                <!-- Box Dati Cliente per Ordini Normali (NON visibile in Convenzione) -->
+                <div id="box-dati-cliente-standard">
+                    <div class="gruppo-form" style="margin-bottom: 8px;">
+                        <input type="text" id="cliente-nome" placeholder="Nome e Cognome *">
+                    </div>
+                    <div class="gruppo-form" style="margin-bottom: 0;">
+                        <input type="text" id="cliente-telefono" placeholder="WhatsApp / Telefono *">
+                    </div>
                 </div>
             </div>
         </div>
@@ -7574,6 +8652,82 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         <h4>🛒 Riepilogo ordine (<span id="conteggio-basso">0</span> articoli)</h4>
         <div>
             <span class="prezzo-totale" id="prezzo-totale-basso">0,00€</span>
+        </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- WIDGET CHAT ASSISTENZA CLIENTI (PUBBLICA) -->
+    <!-- ========================================================================== -->
+    <!-- Pulsante Flottante Chat -->
+    <div id="customer-chat-bubble" class="chat-bubble-container" onclick="toggleChatCustomer()" title="Assistenza Clienti Live">
+        <span class="material-icons" id="customer-chat-bubble-icon" style="font-size: 28px;">chat</span>
+        <span id="customer-chat-unread-badge" class="chat-unread-badge">0</span>
+    </div>
+
+    <!-- Modale Chat Assistenza Live -->
+    <div id="customer-chat-modal" role="dialog" aria-label="Assistenza Live Maglia d'Oro">
+        <!-- Header Chat -->
+        <div class="chat-header-gold">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="position: relative; width: 36px; height: 36px; border-radius: 50%; background: rgba(214, 164, 58, 0.15); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                    <span class="material-icons" style="font-size: 20px;">support_agent</span>
+                    <span style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: #10B981; border: 2px solid #111;"></span>
+                </div>
+                <div>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 900; color: #ffffff; letter-spacing: 0.3px; line-height: 1.2;">Assistenza Live</h4>
+                    <span style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 500;">Atelier Maglia d'Oro</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <button onclick="caricaMessaggiCustomer(false)" title="Aggiorna conversazione" style="background: none; border: none; color: rgba(255, 255, 255, 0.6); cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
+                    <span class="material-icons" style="font-size: 18px;">refresh</span>
+                </button>
+                <button onclick="chiudiChatCustomer()" title="Chiudi chat" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- Banner Utente / Info -->
+        <div id="customer-chat-user-banner" class="chat-user-banner">
+            <span id="customer-chat-user-status" style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                <span class="material-icons" style="font-size: 14px; color: var(--primary);">person</span>
+                <span>Ospite</span>
+            </span>
+            <span style="font-size: 10.5px; color: rgba(214, 164, 58, 0.9); font-weight: 700;">● Online</span>
+        </div>
+
+        <!-- Box Messaggi Stream -->
+        <div id="customer-chat-stream" class="chat-stream-box">
+            <!-- Messaggio di benvenuto automatico -->
+            <div class="chat-bubble-msg chat-bubble-admin">
+                <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-icons" style="font-size: 12px;">verified</span> Team Maglia d'Oro
+                </div>
+                <div>Ciao! Benvenuto su Maglia d'Oro. Come possiamo aiutarti oggi? Scrivici per informazioni su maglie, taglie, ordini o convenzioni tornei.</div>
+                <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">Adesso</div>
+            </div>
+        </div>
+
+        <!-- Box Anteprima Allegato -->
+        <div id="customer-chat-preview-allegato" style="display: none; padding: 8px 14px; background: rgba(20, 20, 20, 0.95); border-top: 1px solid rgba(214, 164, 58, 0.2); align-items: center; justify-content: space-between; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                <span id="customer-chat-allegato-icon" style="font-size: 20px;">🖼️</span>
+                <span id="customer-chat-allegato-nome" style="font-size: 11.5px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">file.jpg</span>
+            </div>
+            <button onclick="rimuoviAllegatoCustomer()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 800; cursor: pointer;">Rimuovi</button>
+        </div>
+
+        <!-- Footer Input & Invio -->
+        <div class="chat-input-area">
+            <input type="file" id="customer-chat-file-input" style="display: none;" accept="image/png, image/jpeg, image/webp, application/pdf" onchange="gestisciAllegatoCustomer(this)">
+            <button onclick="document.getElementById('customer-chat-file-input').click()" title="Allega foto o PDF" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.7); cursor: pointer; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='rgba(255,255,255,0.7)'">
+                <span class="material-icons" style="font-size: 18px;">attach_file</span>
+            </button>
+            <input type="text" id="customer-chat-input" placeholder="Scrivi un messaggio..." onkeydown="if(event.key === 'Enter') inviaMessaggioCustomer()" style="flex-grow: 1; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(214, 164, 58, 0.25); border-radius: 12px; padding: 10px 14px; font-size: 12.5px; color: #ffffff; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(214, 164, 58, 0.25)'">
+            <button id="customer-chat-send-btn" onclick="inviaMessaggioCustomer()" style="background: var(--gold-gradient); color: #000; border: none; border-radius: 12px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 800; transition: all 0.2s; box-shadow: 0 2px 10px rgba(214, 164, 58, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <span class="material-icons" style="font-size: 18px;">send</span>
+            </button>
         </div>
     </div>
 
@@ -7655,7 +8809,11 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
             });
         }
 
-function apriZoomImmagine(src){
+function apriZoomImmagine(src, event){
+    if (event) {
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+    }
     if (!src) return;
     livelloZoom = 1;
 
@@ -7667,7 +8825,7 @@ function apriZoomImmagine(src){
             modal = document.createElement('div');
             modal.id = 'modal-zoom-img';
             modal.className = 'custom-lightbox';
-            modal.onclick = function(e) { if (e.target === modal) chiudiZoomImmagine(); };
+            modal.onclick = function(e) { if (e.target === modal || e.target.classList.contains('lightbox-content-wrapper')) chiudiZoomImmagine(); };
             modal.innerHTML = `
                 <button class="lightbox-close" id="btn-close-zoom-img" onclick="chiudiZoomImmagine()" title="Chiudi (Esc)">✕</button>
                 <div class="lightbox-content-wrapper">
@@ -8021,10 +9179,6 @@ document.addEventListener('keydown', function(e) {
             if (window.mostraToastPremium) {
                 window.mostraToastPremium(`"${item.nome}" aggiunto al carrello!`, 'success');
             }
-
-            if (window.innerWidth >= 768 && typeof toggleCarrello === 'function') {
-                toggleCarrello();
-            }
         }
 
         window.caricaAccessori = caricaAccessori;
@@ -8135,8 +9289,8 @@ document.addEventListener('keydown', function(e) {
             
             // Aggiorna interfaccia
             aggiornaGraficaCarrello();
-            if (window.innerWidth >= 768) {
-                toggleCarrello();
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium(`"Maglia Customizer" aggiunta al carrello!`, 'success');
             }
         }
 
@@ -9134,6 +10288,368 @@ for (const cat in hierarchy) {
             });
         }
 
+        // ==========================================================================
+        // SISTEMA CHAT ASSISTENZA CLIENTI (PUBBLICA)
+        // ==========================================================================
+        let customerChatPollingInterval = null;
+        let customerChatBadgeInterval = null;
+        let customerChatIsOpen = false;
+        let customerChatAllegatoCorrente = null;
+        let customerChatUltimoMessageCount = 0;
+
+        function getCustomerChatIdentity() {
+            let session = null;
+            try {
+                const raw = localStorage.getItem('maglia_doro_user_session');
+                if (raw) session = JSON.parse(raw);
+            } catch(e){}
+            if (!session && window.sessioneUtente) session = window.sessioneUtente;
+
+            if (session && (session.id || session.user_id || session.email)) {
+                return {
+                    userId: session.id || session.user_id || ('user_' + session.email),
+                    nome: session.nome_completo || session.nome || session.email.split('@')[0],
+                    email: session.email,
+                    isLoggedIn: true
+                };
+            }
+
+            let guestId = localStorage.getItem('maglia_doro_guest_chat_uid');
+            if (!guestId) {
+                guestId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('maglia_doro_guest_chat_uid', guestId);
+            }
+
+            let guestNome = localStorage.getItem('maglia_doro_guest_chat_nome') || 'Ospite';
+            let guestEmail = localStorage.getItem('maglia_doro_guest_chat_email') || '';
+
+            return {
+                userId: guestId,
+                nome: guestNome,
+                email: guestEmail,
+                isLoggedIn: false
+            };
+        }
+
+        function updateCustomerChatUserBanner() {
+            const ident = getCustomerChatIdentity();
+            const bannerStatusEl = document.getElementById('customer-chat-user-status');
+            if (bannerStatusEl) {
+                if (ident.isLoggedIn) {
+                    bannerStatusEl.innerHTML = `<span class="material-icons" style="font-size: 14px; color: var(--primary);">person</span> <span>${ident.nome}</span>`;
+                } else {
+                    bannerStatusEl.innerHTML = `<span class="material-icons" style="font-size: 14px; color: var(--primary);">person_outline</span> <span>${ident.nome}</span>`;
+                }
+            }
+        }
+
+        async function apriChatCustomer() {
+            const modal = document.getElementById('customer-chat-modal');
+            if (!modal) return;
+            
+            modal.style.display = 'flex';
+            customerChatIsOpen = true;
+            updateCustomerChatUserBanner();
+
+            // Nascondi badge non letti
+            const badgeEl = document.getElementById('customer-chat-unread-badge');
+            if (badgeEl) badgeEl.style.display = 'none';
+
+            await caricaMessaggiCustomer(false);
+            
+            // Focus input
+            const inputEl = document.getElementById('customer-chat-input');
+            if (inputEl) inputEl.focus();
+
+            // Avvia polling attivo ogni 4 secondi
+            if (customerChatPollingInterval) clearInterval(customerChatPollingInterval);
+            customerChatPollingInterval = setInterval(() => {
+                if (customerChatIsOpen) {
+                    caricaMessaggiCustomer(true);
+                }
+            }, 4000);
+        }
+
+        function chiudiChatCustomer() {
+            const modal = document.getElementById('customer-chat-modal');
+            if (modal) modal.style.display = 'none';
+            customerChatIsOpen = false;
+            if (customerChatPollingInterval) {
+                clearInterval(customerChatPollingInterval);
+                customerChatPollingInterval = null;
+            }
+        }
+
+        function toggleChatCustomer() {
+            if (customerChatIsOpen) {
+                chiudiChatCustomer();
+            } else {
+                apriChatCustomer();
+            }
+        }
+
+        async function caricaMessaggiCustomer(silente = false) {
+            const ident = getCustomerChatIdentity();
+            try {
+                const res = await fetch('/api/chat/get-or-create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: ident.userId,
+                        nome: ident.nome,
+                        email: ident.email
+                    })
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data && data.success) {
+                    const conversation = data.conversation;
+                    const messages = data.messages || [];
+                    renderMessaggiCustomer(messages);
+
+                    // Segna come letti i messaggi dell'admin
+                    if (conversation && conversation.id && customerChatIsOpen) {
+                        fetch('/api/chat/mark-read', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ conversation_id: conversation.id, sender: 'admin' })
+                        }).catch(() => {});
+                    }
+                }
+            } catch(err) {
+                if (!silente) console.warn("Errore caricamento chat customer:", err);
+            }
+        }
+
+        function renderMessaggiCustomer(messages) {
+            const stream = document.getElementById('customer-chat-stream');
+            if (!stream) return;
+
+            if (!messages || messages.length === 0) {
+                stream.innerHTML = `
+                    <div class="chat-bubble-msg chat-bubble-admin">
+                        <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <span class="material-icons" style="font-size: 12px;">verified</span> Team Maglia d'Oro
+                        </div>
+                        <div>Ciao! Benvenuto su Maglia d'Oro. Come possiamo aiutarti oggi? Scrivici per informazioni su maglie, taglie, ordini o convenzioni tornei.</div>
+                        <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">Adesso</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="chat-bubble-msg chat-bubble-admin">
+                    <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                        <span class="material-icons" style="font-size: 12px;">verified</span> Team Maglia d'Oro
+                    </div>
+                    <div>Ciao! Benvenuto su Maglia d'Oro. Come possiamo aiutarti oggi? Scrivici per informazioni su maglie, taglie, ordini o convenzioni tornei.</div>
+                    <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">Inizio chat</div>
+                </div>
+            `;
+
+            messages.forEach(msg => {
+                const isClient = msg.sender === 'client';
+                const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                
+                let allegatoHtml = '';
+                if (msg.attachment_url) {
+                    if (msg.attachment_type === 'pdf' || (msg.attachment_url && msg.attachment_url.toLowerCase().endsWith('.pdf'))) {
+                        allegatoHtml = `
+                            <div style="margin-top: 6px;">
+                                <a href="${msg.attachment_url}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; font-size: 11px; text-decoration: none; font-weight: bold;">
+                                    <span>📄</span> Documento PDF
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        allegatoHtml = `
+                            <div style="margin-top: 6px;">
+                                <a href="${msg.attachment_url}" target="_blank" rel="noopener noreferrer">
+                                    <img src="${msg.attachment_url}" alt="Allegato" style="max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); object-fit: cover;">
+                                </a>
+                            </div>
+                        `;
+                    }
+                }
+
+                const msgText = msg.message ? String(msg.message).replace(/\n/g, '<br>') : '';
+
+                if (isClient) {
+                    html += `
+                        <div class="chat-bubble-msg chat-bubble-client">
+                            <div>${msgText}</div>
+                            ${allegatoHtml}
+                            <div style="font-size: 9.5px; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px;">${timeStr}</div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="chat-bubble-msg chat-bubble-admin">
+                            <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                                <span class="material-icons" style="font-size: 12px;">verified</span> Supporto Maglia d'Oro
+                            </div>
+                            <div>${msgText}</div>
+                            ${allegatoHtml}
+                            <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">${timeStr}</div>
+                        </div>
+                    `;
+                }
+            });
+
+            const isNearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 120;
+            stream.innerHTML = html;
+            if (isNearBottom || messages.length !== customerChatUltimoMessageCount) {
+                stream.scrollTop = stream.scrollHeight;
+            }
+            customerChatUltimoMessageCount = messages.length;
+        }
+
+        async function inviaMessaggioCustomer() {
+            const inputEl = document.getElementById('customer-chat-input');
+            if (!inputEl) return;
+            const testo = inputEl.value.trim();
+            if (!testo && !customerChatAllegatoCorrente) return;
+
+            const ident = getCustomerChatIdentity();
+            const payload = {
+                user_id: ident.userId,
+                nome: ident.nome,
+                email: ident.email,
+                message: testo,
+                attachment_url: customerChatAllegatoCorrente ? customerChatAllegatoCorrente.url : null,
+                attachment_type: customerChatAllegatoCorrente ? customerChatAllegatoCorrente.type : null
+            };
+
+            inputEl.value = '';
+            rimuoviAllegatoCustomer();
+
+            try {
+                const res = await fetch('/api/chat/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    await caricaMessaggiCustomer(false);
+                    const stream = document.getElementById('customer-chat-stream');
+                    if (stream) stream.scrollTop = stream.scrollHeight;
+                }
+            } catch(err) {
+                console.error("Errore invio messaggio customer:", err);
+            }
+        }
+
+        async function gestisciAllegatoCustomer(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const isPdf = file.type === 'application/pdf';
+            const isImage = file.type.startsWith('image/');
+            if (!isPdf && !isImage) {
+                alert("Carica solo immagini o documenti PDF.");
+                input.value = '';
+                return;
+            }
+
+            const previewBox = document.getElementById('customer-chat-preview-allegato');
+            const nameEl = document.getElementById('customer-chat-allegato-nome');
+            const iconEl = document.getElementById('customer-chat-allegato-icon');
+            if (previewBox) previewBox.style.display = 'flex';
+            if (nameEl) nameEl.innerText = "Caricamento in corso...";
+            if (iconEl) iconEl.innerText = "⏳";
+
+            try {
+                let base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => resolve('');
+                    reader.readAsDataURL(file);
+                });
+
+                if (!base64) throw new Error("Lettura file fallita");
+
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: file.name, base64 })
+                });
+                const data = await res.json();
+                if (data.success && (data.url || data.filePath)) {
+                    const fileUrl = data.url || data.filePath;
+                    customerChatAllegatoCorrente = {
+                        url: fileUrl,
+                        type: isPdf ? 'pdf' : 'image',
+                        name: file.name
+                    };
+                    if (nameEl) nameEl.innerText = file.name;
+                    if (iconEl) iconEl.innerText = isPdf ? "📄" : "🖼️";
+                } else {
+                    throw new Error("Upload fallito");
+                }
+            } catch(err) {
+                console.error("Errore upload allegato customer:", err);
+                alert("Errore durante il caricamento del file.");
+                rimuoviAllegatoCustomer();
+            }
+        }
+
+        function rimuoviAllegatoCustomer() {
+            customerChatAllegatoCorrente = null;
+            const fileInput = document.getElementById('customer-chat-file-input');
+            if (fileInput) fileInput.value = '';
+            const previewBox = document.getElementById('customer-chat-preview-allegato');
+            if (previewBox) previewBox.style.display = 'none';
+        }
+
+        function avviaControlloBadgeCustomer() {
+            if (customerChatBadgeInterval) clearInterval(customerChatBadgeInterval);
+            
+            async function checkBadge() {
+                if (customerChatIsOpen) return;
+                const ident = getCustomerChatIdentity();
+                try {
+                    const res = await fetch('/api/chat/get-or-create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: ident.userId,
+                            nome: ident.nome,
+                            email: ident.email
+                        })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.success && Array.isArray(data.messages)) {
+                            const unreadAdminMsgs = data.messages.filter(m => m.sender === 'admin' && !m.is_read);
+                            const badgeEl = document.getElementById('customer-chat-unread-badge');
+                            if (badgeEl) {
+                                if (unreadAdminMsgs.length > 0) {
+                                    badgeEl.innerText = unreadAdminMsgs.length;
+                                    badgeEl.style.display = 'flex';
+                                } else {
+                                    badgeEl.style.display = 'none';
+                                }
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            checkBadge();
+            customerChatBadgeInterval = setInterval(checkBadge, 15000);
+        }
+
+        // Global functions export
+        window.apriChatCustomer = apriChatCustomer;
+        window.apriChat = apriChatCustomer;
+        window.chiudiChatCustomer = chiudiChatCustomer;
+        window.toggleChatCustomer = toggleChatCustomer;
+        window.inviaMessaggioCustomer = inviaMessaggioCustomer;
+        window.gestisciAllegatoCustomer = gestisciAllegatoCustomer;
+        window.rimuoviAllegatoCustomer = rimuoviAllegatoCustomer;
+        window.avviaControlloBadgeCustomer = avviaControlloBadgeCustomer;
+
         window.onload = async function() {
             if (typeof caricaSettingsEFiltriPubblici === 'function') {
                 await caricaSettingsEFiltriPubblici();
@@ -9147,6 +10663,11 @@ for (const cat in hierarchy) {
             // Sincronizza la wishlist iniziale dell'utente ed i consigliati
             if (typeof inizializzaSincronizzazioneWishlist === 'function') {
                 await inizializzaSincronizzazioneWishlist();
+            }
+
+            // Inizializza controllo messaggi non letti chat assistenza
+            if (typeof avviaControlloBadgeCustomer === 'function') {
+                avviaControlloBadgeCustomer();
             }
 
             // Inizializza marketing promo
@@ -9413,6 +10934,56 @@ for (const cat in hierarchy) {
             }
         };
 
+        function ripristinaScrollInCima() {
+            try {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            } catch (e) {
+                window.scrollTo(0, 0);
+            }
+            if (document.documentElement) document.documentElement.scrollTop = 0;
+            if (document.body) document.body.scrollTop = 0;
+            requestAnimationFrame(() => {
+                try {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                } catch (e) {
+                    window.scrollTo(0, 0);
+                }
+                if (document.documentElement) document.documentElement.scrollTop = 0;
+                if (document.body) document.body.scrollTop = 0;
+            });
+        }
+        window.ripristinaScrollInCima = ripristinaScrollInCima;
+
+        function ottieniFiltroDefaultCatalogo() {
+            if (!window.appSettings || !Array.isArray(window.appSettings.filtriCatalogo)) {
+                return 'tutti';
+            }
+            const filtriAttivi = window.appSettings.filtriCatalogo
+                .filter(f => f && (f.stato === 'attivo' || (f.attivo !== false && f.stato !== 'inattivo')))
+                .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
+
+            if (filtriAttivi.length === 0) {
+                return 'tutti';
+            }
+
+            // Individuare il filtro "Tutti" configurato dall'Admin tramite filtriCatalogo
+            const filtroTutti = filtriAttivi.find(f => {
+                const fn = (f.nome || '').toLowerCase().trim();
+                const fid = (f.id || '').toLowerCase().trim();
+                const fNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(fn) : fn;
+                return fn === 'tutti' || fn === 'tutto' || fNorm === 'tutti' || fid === 'fil_tutti';
+            });
+
+            if (filtroTutti) {
+                return filtroTutti.nome || 'Tutti';
+            }
+
+            // Se "Tutti" non è presente o non è attivo nella configurazione Admin, NON inventarlo:
+            // mantieni il primo filtro valido configurato dall'Admin
+            return filtriAttivi[0].nome || 'tutti';
+        }
+        window.ottieniFiltroDefaultCatalogo = ottieniFiltroDefaultCatalogo;
+
         function mostraSezioneCompleta(idSezione, spingiStato = true) {
             const acSezioni = ['area-cliente', 'i-miei-ordini', 'tracking', 'wishlist', 'profilo', 'impostazioni'];
             if (acSezioni.includes(idSezione) && !sessioneUtente) {
@@ -9446,7 +11017,7 @@ for (const cat in hierarchy) {
                 document.getElementById(`nav-${idSezione}`).classList.add('attivo');
             }
             chiudiTuttiIDropdown();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            ripristinaScrollInCima();
 
             if (acSezioni.includes(idSezione) && window.sincronizzaNavigazioneAreaCliente) {
                 window.sincronizzaNavigazioneAreaCliente(idSezione);
@@ -9463,15 +11034,25 @@ for (const cat in hierarchy) {
                 if (!squadraSelezionata || squadraSelezionata === '') {
                     squadraSelezionata = 'lega_tutti';
                 }
+                filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
+                filtroStagioneCorrente = 'tutte';
                 if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
                     renderizzaProdottiSquadraConFiltri();
+                }
+                if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                    aggiornaGraficaFiltriAttivi();
                 }
             } else if (idSezione === 'mondiali') {
                 if (!squadraSelezionata || squadraSelezionata === '') {
                     squadraSelezionata = 'continent_tutte';
                 }
+                filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
+                filtroStagioneCorrente = 'tutte';
                 if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
                     renderizzaProdottiSquadraConFiltri();
+                }
+                if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                    aggiornaGraficaFiltriAttivi();
                 }
             }
 
@@ -9586,6 +11167,7 @@ for (const cat in hierarchy) {
             }
 
             eseguiERenderizzaRicerca(query);
+            ripristinaScrollInCima();
         }
 
         function cancellaRicerca() {
@@ -9960,7 +11542,13 @@ for (const cat in hierarchy) {
         function cambiaFiltroSquadraDinamico(valore) {
             paginaCorrenteCatalogo = 1;
             filtroSquadraDinamico = valore;
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
+            filtroStagioneCorrente = 'tutte';
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
 
         function isListaOMultipleSquadre(ns) {
@@ -10186,6 +11774,24 @@ for (const cat in hierarchy) {
             return [configFiltro.nome || 'Kit'];
         }
 
+        function ottieniTargetProdotto(p) {
+            if (!p) return 'Adulto';
+            const t = (p.target || '').trim().toLowerCase();
+            if (t === 'bambino' || t === 'kids' || t === 'kid') return 'Bambino';
+            if (t === 'adulto' || t === 'adult') return 'Adulto';
+
+            const cat = (p.categoria || '').trim().toLowerCase();
+            const fCat = (p.filtro_catalogo || '').trim().toLowerCase();
+            const ver = (p.versione || '').trim().toLowerCase();
+            const nome = (p.nome || '').trim().toLowerCase();
+            if (cat === 'kit bambino' || fCat === 'kit bambino' || 
+                ver.includes('bambino') || ver.includes('kids') || ver.includes('kid') ||
+                nome.includes('bambino') || nome.includes('kids')) {
+                return 'Bambino';
+            }
+            return 'Adulto';
+        }
+
         function prodottoAppartieneACategoria(p, nomeCat) {
             if (!p || !nomeCat) return false;
             const nc = nomeCat.toLowerCase().trim();
@@ -10194,7 +11800,7 @@ for (const cat in hierarchy) {
             const catNorm = (typeof normalizzaCategoria === "function" ? normalizzaCategoria(p.categoria) : (p.categoria || "")).toLowerCase().trim();
 
             if (nc === "kit" || nc === "kit club" || nc === "kit completi") {
-                return catP === "kit" || fCatP === "kit" || catNorm === "kit";
+                return catP === "kit" || fCatP === "kit" || catNorm === "kit" || catP === "kit bambino" || fCatP === "kit bambino";
             }
             if (nc === "player" || nc === "player version") {
                 return catP === "player" || fCatP === "player" || catNorm === "player";
@@ -10239,99 +11845,84 @@ for (const cat in hierarchy) {
 
         function verificaProdottoCorrispondeCategoria(p, catFiltro) {
             if (!p) return false;
-            const cf = (catFiltro || "tutti").toLowerCase().trim();
-            const cfNorm = (typeof ottieniChiaveCanonicoFiltro === "function") ? ottieniChiaveCanonicoFiltro(cf) : cf;
+            if (!catFiltro) return true;
+
+            const filtriConfigurati = Array.isArray(window.appSettings?.filtriCatalogo) ? window.appSettings.filtriCatalogo : null;
             
-            const isFiltroTutti = cf === "tutti" || cf === "tutto" || cfNorm === "tutti";
-            const isFiltroBambino = cf === "kit bambino" || cf === "bambino" || cfNorm === "bambino";
-            
-            const catProdotto = (p.categoria || "").toLowerCase().trim();
-            const filtroCatProdotto = (p.filtro_catalogo || "").toLowerCase().trim();
-            const catNormProdotto = (typeof normalizzaCategoria === "function" ? normalizzaCategoria(p.categoria) : (p.categoria || "")).toLowerCase().trim();
-            const isProdBambino = (p.target && p.target.toLowerCase() === "bambino") || 
-                                  catProdotto === "kit bambino" || 
-                                  filtroCatProdotto === "kit bambino" || 
-                                  (p.versione || "").toLowerCase().includes("bambino") || 
-                                  (p.versione || "").toLowerCase().includes("kids") || 
-                                  (p.versione || "").toLowerCase().includes("kid");
-
-            // 1. Lettura configurazione esplicita del filtro (Source of Truth salvata da Admin)
-            const configFiltro = trovaConfigurazioneFiltroCatalogo(catFiltro);
-            const categorieAssociate = configFiltro ? getCategorieAssociateFiltroPubblico(configFiltro) : null;
-
-            if (categorieAssociate && Array.isArray(categorieAssociate)) {
-                // Se la configurazione del filtro ha categorie associate
-                const appartiene = prodottoAppartieneACategorieAssociate(p, categorieAssociate);
-                if (!appartiene) return false;
-
-                // Regola Filtro "Tutti":
-                // Mostra REALMENTE tutti i prodotti appartenenti alle categorie selezionate!
-                if (isFiltroTutti) {
-                    return true;
-                }
-
-                // Regola Filtro "Kit Bambino":
-                // Categoria associata (Kit) + condizione specifica target Bambino
-                if (isFiltroBambino) {
-                    return isProdBambino;
-                }
-
-                // Regola Filtro "Portiere":
-                if (cf === "portiere" || cfNorm === "portiere") {
-                    return true;
-                }
-
-                // Per tutti gli altri filtri standard per adulti (Kit Club, Player, Fan, Retro, Tuta, Polo, Maniche Lunghe, Smanicato, Kit Allenamento):
-                // Se il prodotto è bambino, non deve comparire nei filtri per adulti
-                if (isProdBambino) {
-                    return false;
-                }
-
+            // Se l'Admin ha azzerato tutti i filtri (array vuoto), non c'è filtro per categoria -> mostra tutti i prodotti
+            if (filtriConfigurati && filtriConfigurati.length === 0) {
                 return true;
             }
 
-            // 2. Fallback di sicurezza su logica esistente se configFiltro non disponibile
-            if (isFiltroTutti) return true;
-            if (isFiltroBambino) return isProdBambino;
-            if (isProdBambino && cf !== "portiere") return false;
+            const cf = (catFiltro || "").toLowerCase().trim();
+            const cfNorm = (typeof ottieniChiaveCanonicoFiltro === "function") ? ottieniChiaveCanonicoFiltro(cf) : cf;
 
-            if (cf === "special") {
-                const standardCats = ["kit", "fan", "player", "allenamento", "tuta", "tute", "retro", "kit bambino", "kit training", "kit allenamento", "polo", "smanicati", "maniche lunghe", "portiere"];
-                return !standardCats.includes(catProdotto) && !standardCats.includes(filtroCatProdotto);
-            }
-            if (cf === "kit allenamento" || cf === "allenamento" || cf === "kit training") {
-                return catProdotto === "kit allenamento" || catProdotto === "allenamento" || catProdotto === "kit training" ||
-                       filtroCatProdotto === "kit allenamento" || filtroCatProdotto === "allenamento" || filtroCatProdotto === "kit training";
-            }
-            if (cf === "tuta" || cf === "tute") {
-                return catProdotto === "tuta" || catProdotto === "tute" || filtroCatProdotto === "tuta" || filtroCatProdotto === "tute";
-            }
-            if (cf === "kit" || cf === "kit club" || cf === "kit completi") {
-                return catProdotto === "kit" || filtroCatProdotto === "kit" || catNormProdotto === "kit";
-            }
-            if (cf === "player" || cf === "player version") {
-                return catProdotto === "player" || filtroCatProdotto === "player" || catNormProdotto === "player";
-            }
-            if (cf === "fan" || cf === "fan version") {
-                return catProdotto === "fan" || filtroCatProdotto === "fan" || catNormProdotto === "fan";
-            }
-            if (cf === "retro" || cf === "maglie retro" || cf === "retrò") {
-                return catProdotto === "retro" || filtroCatProdotto === "retro" || catNormProdotto === "retro";
-            }
-            if (cf === "polo") {
-                return catProdotto === "polo" || filtroCatProdotto === "polo" || catNormProdotto === "polo";
-            }
-            if (cf === "smanicati" || cf === "smanicato") {
-                return catProdotto === "smanicati" || catProdotto === "smanicato" || filtroCatProdotto === "smanicati" || filtroCatProdotto === "smanicato";
-            }
-            if (cf === "maniche lunghe" || cf === "manica lunga") {
-                return catProdotto === "maniche lunghe" || catProdotto === "manica lunga" || filtroCatProdotto === "maniche lunghe" || filtroCatProdotto === "manica lunga";
-            }
-            if (cf === "portiere" || cf === "goalkeeper" || cf === "gk" || cf === "keeper") {
-                return catProdotto === "portiere" || filtroCatProdotto === "portiere" || catNormProdotto === "portiere";
+            // 1. Cerca la configurazione del filtro nei filtriCatalogo dell'Admin (Source of Truth)
+            const configFiltro = trovaConfigurazioneFiltroCatalogo(catFiltro);
+
+            if (configFiltro) {
+                // Se il filtro è disattivato dall'Admin, non deve mostrare prodotti
+                if (configFiltro.stato === 'inattivo' || configFiltro.attivo === false) {
+                    return false;
+                }
+
+                const targetProdotto = ottieniTargetProdotto(p);
+
+                // Nuova matrice CATEGORIA + TARGET (categorieTarget: [{ categoria, target: ['Adulto', 'Bambino'] }])
+                if (Array.isArray(configFiltro.categorieTarget)) {
+                    if (configFiltro.categorieTarget.length === 0) {
+                        return false;
+                    }
+
+                    return configFiltro.categorieTarget.some(ct => {
+                        if (!ct || !ct.categoria) return false;
+                        const arrTarget = Array.isArray(ct.target) ? ct.target : [];
+                        if (arrTarget.length === 0) return false;
+
+                        const matchCat = prodottoAppartieneACategoria(p, ct.categoria);
+                        if (!matchCat) return false;
+
+                        return arrTarget.some(t => (t || '').trim().toLowerCase() === targetProdotto.toLowerCase());
+                    });
+                }
+
+                // Retrocompatibilità: categorie_associate legacy
+                const categorieAssociate = getCategorieAssociateFiltroPubblico(configFiltro);
+                if (categorieAssociate && Array.isArray(categorieAssociate)) {
+                    const appartiene = prodottoAppartieneACategorieAssociate(p, categorieAssociate);
+                    if (!appartiene) return false;
+
+                    const isFiltroTutti = (configFiltro.nome || '').toLowerCase() === 'tutti' || (configFiltro.nome || '').toLowerCase() === 'tutto' || cfNorm === 'tutti';
+                    const isFiltroBambino = (configFiltro.nome || '').toLowerCase().includes('bambino') || cfNorm === 'bambino';
+                    const isProdBambino = targetProdotto === 'Bambino';
+
+                    if (isFiltroTutti) return true;
+                    if (isFiltroBambino) return isProdBambino;
+                    if (isProdBambino && !configFiltro.nome.toLowerCase().includes('portiere')) return false;
+
+                    return true;
+                }
             }
 
-            return catProdotto === cf || filtroCatProdotto === cf || catNormProdotto === cf;
+            // Se non esiste configurazione ma catFiltro è 'tutti'/'tutto'
+            if (cf === 'tutti' || cf === 'tutto' || cfNorm === 'tutti') {
+                return true;
+            }
+
+            // Se ci sono filtri salvati dall'Admin e il filtro cercato non esiste più, non mostra prodotti
+            if (filtriConfigurati && filtriConfigurati.length > 0) {
+                return false;
+            }
+
+            // Fallback generico iniziale di resilienza prima del fetch
+            const targetProd = ottieniTargetProdotto(p);
+            if (cf === "kit bambino" || cf === "bambino" || cfNorm === "bambino") {
+                return targetProd === "Bambino";
+            }
+            if (targetProd === "Bambino" && cf !== "portiere") {
+                return false;
+            }
+            return prodottoAppartieneACategoria(p, catFiltro);
         }
 
         function verificaProdottoCorrispondeStagione(p, stagFiltro) {
@@ -10491,7 +12082,7 @@ if (valoreLega === 'tutti') {
             paginaCorrenteCatalogo = 1;
             squadraSelezionata = nomeSquadra;
             filtroSquadraDinamico = 'tutte';
-            filtroCategoriaCorrente = 'tutti';
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
             filtroStagioneCorrente = 'tutte';
             
             // Reset the sorting selects to 'piu-recenti'
@@ -10521,7 +12112,11 @@ if (valoreLega === 'tutti') {
             }
             
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
             chiudiTuttiIDropdown();
+            ripristinaScrollInCima();
         }
 
         function generaHTMLPaginazione(currentPage, totalPages, totalItems, from, to, callbackFn) {
@@ -10555,16 +12150,22 @@ if (valoreLega === 'tutti') {
         function cambiaPaginaCatalogo(nuovaPagina) {
             paginaCorrenteCatalogo = nuovaPagina;
             renderizzaProdottiSquadraConFiltri();
-            const cont = document.getElementById('contenitore-prodotti-squadra') || document.getElementById('griglia-tutti-prodotti');
-            if (cont && typeof cont.scrollIntoView === 'function') cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (typeof window.ripristinaScrollInCima === 'function') {
+                window.ripristinaScrollInCima();
+            } else {
+                try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch(e) { window.scrollTo(0, 0); }
+            }
         }
         window.cambiaPaginaCatalogo = cambiaPaginaCatalogo;
 
         function cambiaPaginaRicerca(nuovaPagina) {
             paginaCorrenteRicerca = nuovaPagina;
             eseguiRicercaDaInput();
-            const cont = document.getElementById('griglia-risultati-ricerca');
-            if (cont && typeof cont.scrollIntoView === 'function') cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (typeof window.ripristinaScrollInCima === 'function') {
+                window.ripristinaScrollInCima();
+            } else {
+                try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch(e) { window.scrollTo(0, 0); }
+            }
         }
         window.cambiaPaginaRicerca = cambiaPaginaRicerca;
 
@@ -10799,9 +12400,11 @@ function renderizzaProdottiSquadraConFiltri() {
         function aggiornaGraficaFiltriAttivi() {
             document.querySelectorAll('.btn-filtro-categoria').forEach(btn => {
                 const dataCat = (btn.getAttribute('data-categoria') || '').toLowerCase().trim();
-                const curCat = (filtroCategoriaCorrente || 'tutti').toLowerCase().trim();
-                const isBambinoMatch = (dataCat === 'bambino' || dataCat === 'kit bambino') && (curCat === 'bambino' || curCat === 'kit bambino');
-                if (dataCat === curCat || isBambinoMatch) {
+                const curCat = (filtroCategoriaCorrente || '').toLowerCase().trim();
+                const dataNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(dataCat) : dataCat;
+                const curNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(curCat) : curCat;
+                const isMatch = dataCat === curCat || (dataNorm && curNorm && dataNorm === curNorm);
+                if (isMatch) {
                     btn.classList.add('attivo');
                 } else {
                     btn.classList.remove('attivo');
@@ -10863,112 +12466,59 @@ function renderizzaProdottiSquadraConFiltri() {
         function renderizzaFiltriCatalogoPubblici() {
             if (!window.appSettings) window.appSettings = {};
             
+            // ADMIN FILTRI CATALOGO È L'UNICA FONTE DI VERITÀ (Source of Truth)
             let filtriCatalogo = [];
-            if (Array.isArray(window.appSettings.filtriCatalogo) && window.appSettings.filtriCatalogo.length > 0) {
+            if (Array.isArray(window.appSettings.filtriCatalogo)) {
                 filtriCatalogo = window.appSettings.filtriCatalogo
-                    .filter(f => f.stato === 'attivo' || f.attivo !== false)
+                    .filter(f => f && (f.stato === 'attivo' || (f.attivo !== false && f.stato !== 'inattivo')))
                     .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
-            }
-
-            let categorieConfigurate = [];
-            if (Array.isArray(window.appSettings.categorie) && window.appSettings.categorie.length > 0) {
-                categorieConfigurate = window.appSettings.categorie
-                    .filter(c => c.stato === 'attivo' || c.attivo !== false)
-                    .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
-            }
-
-            const listaFiltri = [];
-            const keysAggiunte = new Set();
-
-            // 1. Fonte primaria: filtriCatalogo (configurati dall'Admin Source of Truth)
-            if (filtriCatalogo.length > 0) {
-                filtriCatalogo.forEach(filtro => {
-                    const nome = (filtro.nome || '').trim();
-                    const key = ottieniChiaveCanonicoFiltro(nome);
-                    if (nome && !keysAggiunte.has(key)) {
-                        keysAggiunte.add(key);
-                        listaFiltri.push({ nome, key, ordine: Number(filtro.ordine) || 99 });
-                    }
-                });
-
-                // Preserva categorie attive non ancora presenti nei filtriCatalogo (es. Antivento/Avvento)
-                if (categorieConfigurate.length > 0) {
-                    categorieConfigurate.forEach(cat => {
-                        const nome = (cat.nome || '').trim();
-                        const key = ottieniChiaveCanonicoFiltro(nome);
-                        if (nome && !keysAggiunte.has(key)) {
-                            keysAggiunte.add(key);
-                            listaFiltri.push({ nome, key, ordine: Number(cat.ordine) || 99 });
-                        }
-                    });
-                }
-            } else if (categorieConfigurate.length > 0) {
-                // Fallback su categorie se filtriCatalogo non è presente o vuoto
-                if (!keysAggiunte.has('tutti')) {
-                    keysAggiunte.add('tutti');
-                    listaFiltri.push({ nome: 'Tutto', key: 'tutti', ordine: 0 });
-                }
-                categorieConfigurate.forEach(cat => {
-                    const nome = (cat.nome || '').trim();
-                    const key = ottieniChiaveCanonicoFiltro(nome);
-                    if (nome && !keysAggiunte.has(key)) {
-                        keysAggiunte.add(key);
-                        listaFiltri.push({ nome, key, ordine: Number(cat.ordine) || 99 });
-                    }
-                });
-            } else {
-                // Fallback di sola emergenza in caso di API non raggiungibile al primo render
-                const defaultEmergenza = [
-                    { nome: 'Tutto', key: 'tutti', ordine: 0 },
-                    { nome: 'Kit Club', key: 'kit', ordine: 1 },
-                    { nome: 'Player Version', key: 'player', ordine: 2 },
-                    { nome: 'Fan Version', key: 'fan', ordine: 3 },
-                    { nome: 'Maglie Retro', key: 'retro', ordine: 4 },
-                    { nome: 'Kit Allenamento', key: 'kit allenamento', ordine: 5 },
-                    { nome: 'Tuta', key: 'tuta', ordine: 6 },
-                    { nome: 'Polo', key: 'polo', ordine: 7 },
-                    { nome: 'Smanicati', key: 'smanicati', ordine: 8 },
-                    { nome: 'Maniche Lunghe', key: 'maniche lunghe', ordine: 9 },
-                    { nome: 'Portiere', key: 'portiere', ordine: 10 },
-                    { nome: 'Kit Bambino', key: 'bambino', ordine: 11 }
-                ];
-                defaultEmergenza.forEach(def => {
-                    if (!keysAggiunte.has(def.key)) {
-                        keysAggiunte.add(def.key);
-                        listaFiltri.push(def);
-                    }
-                });
             }
 
             const containers = document.querySelectorAll('.bar-filtri-categorie-scroll');
+
+            // Se l'Admin ha rimosso tutti i filtri o non ci sono filtri attivi:
+            // Mostra esplicitamente che non ci sono filtri configurati (nessun fallback o bottone inventato!)
+            if (filtriCatalogo.length === 0) {
+                containers.forEach(container => {
+                    container.innerHTML = '<span style="font-size: 13px; color: var(--on-surface-de-emphasis, #888); font-style: italic; padding: 4px 12px;">Nessun filtro disponibile</span>';
+                });
+                filtroCategoriaCorrente = 'tutti';
+                aggiornaGraficaFiltriAttivi();
+                return;
+            }
+
+            // Verifica se il filtro correntemente selezionato esiste tra quelli attivi
+            const matchFiltroCorrente = filtriCatalogo.find(f => {
+                const fn = (f.nome || '').toLowerCase().trim();
+                const cur = (filtroCategoriaCorrente || '').toLowerCase().trim();
+                const fNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(fn) : fn;
+                const curNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(cur) : cur;
+                return fn === cur || fNorm === curNorm || (f.id && f.id.toLowerCase() === cur);
+            });
+
+            if (!matchFiltroCorrente) {
+                filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
+            }
+
             containers.forEach(container => {
                 let htmlBtns = '';
-                listaFiltri.forEach(item => {
-                    const rawName = item.nome;
-                    const valAttr = item.key;
-                    const curCatNorm = ottieniChiaveCanonicoFiltro(filtroCategoriaCorrente || 'tutti');
-                    const isSelected = curCatNorm === valAttr || ((valAttr === 'bambino' || valAttr === 'kit bambino') && (curCatNorm === 'bambino' || curCatNorm === 'kit bambino'));
+                filtriCatalogo.forEach(filtro => {
+                    const rawName = (filtro.nome || '').trim();
+                    if (!rawName) return;
+                    const fn = rawName.toLowerCase();
+                    const cur = (filtroCategoriaCorrente || '').toLowerCase().trim();
+                    const fNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(fn) : fn;
+                    const curNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(cur) : cur;
+
+                    const isSelected = fn === cur || fNorm === curNorm || (filtro.id && filtro.id.toLowerCase() === cur);
                     const activeClass = isSelected ? 'attivo' : '';
-                    
-                    let label = rawName;
-                    const lower = valAttr;
-                    if (lower === 'tutti' || lower === 'tutto') label = 'Tutto';
-                    else if (lower === 'kit') label = 'Kit Club';
-                    else if (lower === 'fan') label = 'Fan Version';
-                    else if (lower === 'player') label = 'Player Version';
-                    else if (lower === 'retro') label = 'Maglie Retro';
-                    else if (lower === 'kit allenamento') label = 'Kit Allenamento';
-                    else if (lower === 'tuta') label = 'Tuta';
-                    else if (lower === 'polo') label = 'Polo';
-                    else if (lower === 'smanicati') label = 'Smanicati';
-                    else if (lower === 'maniche lunghe') label = 'Maniche Lunghe';
-                    else if (lower === 'bambino' || lower === 'kit bambino') label = 'Kit Bambino';
-                    else if (lower === 'portiere') label = 'Portiere';
-                    
-                    htmlBtns += `<button class="btn-filtro-categoria ${activeClass}" data-categoria="${valAttr}" onclick="impostaFiltroCategoria('${valAttr}')">${label}</button>`;
+
+                    const safeName = rawName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    htmlBtns += `<button class="btn-filtro-categoria ${activeClass}" data-categoria="${safeName}" onclick="impostaFiltroCategoria('${safeName}')">${rawName}</button>`;
                 });
                 container.innerHTML = htmlBtns;
             });
+
             aggiornaGraficaFiltriAttivi();
         }
         window.renderizzaFiltriCatalogoPubblici = renderizzaFiltriCatalogoPubblici;
@@ -11029,14 +12579,14 @@ function renderizzaProdottiSquadraConFiltri() {
         window.resettaFiltriRicerca = resettaFiltriRicerca;
 
         function selezionaEFiltraClub(valoreLega) {
-            mostraSezioneCompleta('club');
             paginaCorrenteCatalogo = 1;
-            
             squadraSelezionata = 'lega_' + valoreLega;
             filtroSquadraDinamico = 'tutte';
-            filtroCategoriaCorrente = 'tutti';
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
             filtroStagioneCorrente = 'tutte';
             ordinamentoCorrente = 'piu-recenti';
+            
+            mostraSezioneCompleta('club');
             
             // Reset standard select selectors
             const selClub = document.getElementById('select-ordinamento-club');
@@ -11064,18 +12614,22 @@ function renderizzaProdottiSquadraConFiltri() {
             };
             document.getElementById('titolo-dinamico-club').innerText = mappaTitoli[valoreLega] || "Maglie Club";
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
         window.selezionaEFiltraClub = selezionaEFiltraClub;
 
         function selezionaEFiltraNazionali(valoreContinente) {
-            mostraSezioneCompleta('mondiali');
             paginaCorrenteCatalogo = 1;
-            
             squadraSelezionata = 'continent_' + valoreContinente;
             filtroSquadraDinamico = 'tutte';
-            filtroCategoriaCorrente = 'tutti';
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
             filtroStagioneCorrente = 'tutte';
             ordinamentoCorrente = 'piu-recenti';
+            
+            mostraSezioneCompleta('mondiali');
             
             const containerFiltriNaz = document.getElementById('filtri-nazionali-container');
             const containerOrdNaz = document.getElementById('ordinamento-nazionali-container');
@@ -11093,17 +12647,22 @@ function renderizzaProdottiSquadraConFiltri() {
             };
             document.getElementById('titolo-dinamico-nazionali').innerText = mappaTitoli[valoreContinente] || "Nazionali";
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
         window.selezionaEFiltraNazionali = selezionaEFiltraNazionali;
 
         function selezionaEFiltraRetro() {
-            mostraSezioneCompleta('club');
             paginaCorrenteCatalogo = 1;
             squadraSelezionata = 'categoria_retro';
             filtroSquadraDinamico = 'tutte';
-            filtroCategoriaCorrente = 'tutti';
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
             filtroStagioneCorrente = 'tutte';
             ordinamentoCorrente = 'piu-recenti';
+
+            mostraSezioneCompleta('club');
             
             const containerFiltriClub = document.getElementById('filtri-squadra-container');
             const containerOrdClub = document.getElementById('ordinamento-club-container');
@@ -11112,17 +12671,22 @@ function renderizzaProdottiSquadraConFiltri() {
             
             document.getElementById('titolo-dinamico-club').innerText = `👕 Edizioni Storiche Retro`;
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
         window.selezionaEFiltraRetro = selezionaEFiltraRetro;
 
         function selezionaEFiltraTute() {
-            mostraSezioneCompleta('club');
             paginaCorrenteCatalogo = 1;
             squadraSelezionata = 'categoria_tute';
             filtroSquadraDinamico = 'tutte';
-            filtroCategoriaCorrente = 'tutti';
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
             filtroStagioneCorrente = 'tutte';
             ordinamentoCorrente = 'piu-recenti';
+
+            mostraSezioneCompleta('club');
             
             const containerFiltriClub = document.getElementById('filtri-squadra-container');
             const containerOrdClub = document.getElementById('ordinamento-club-container');
@@ -11131,17 +12695,22 @@ function renderizzaProdottiSquadraConFiltri() {
             
             document.getElementById('titolo-dinamico-club').innerText = `🏃‍♂️ Completi & Tute`;
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
         window.selezionaEFiltraTute = selezionaEFiltraTute;
 
         function selezionaEFiltraCustomCategoria(categoria, valore) {
-            mostraSezioneCompleta('club');
             paginaCorrenteCatalogo = 1;
             squadraSelezionata = 'categoria-custom_' + categoria;
             filtroSquadraDinamico = 'tutte';
-            filtroCategoriaCorrente = 'tutti';
+            filtroCategoriaCorrente = ottieniFiltroDefaultCatalogo();
             filtroStagioneCorrente = 'tutte';
             ordinamentoCorrente = 'piu-recenti';
+
+            mostraSezioneCompleta('club');
             
             const containerFiltriClub = document.getElementById('filtri-squadra-container');
             const containerOrdClub = document.getElementById('ordinamento-club-container');
@@ -11154,18 +12723,22 @@ function renderizzaProdottiSquadraConFiltri() {
                 document.getElementById('titolo-dinamico-club').innerText = `⭐ Tutti i team ${categoria}`;
             }
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
         window.selezionaEFiltraCustomCategoria = selezionaEFiltraCustomCategoria;
 
         function selezionaEFiltraSoloCategoria(categoria) {
-            mostraSezioneCompleta('club');
             paginaCorrenteCatalogo = 1;
-            
             squadraSelezionata = 'tutti_prodotti';
             filtroSquadraDinamico = 'tutte';
             filtroCategoriaCorrente = categoria;
             filtroStagioneCorrente = 'tutte';
             ordinamentoCorrente = 'piu-recenti';
+
+            mostraSezioneCompleta('club');
             
             // Reset standard select selectors
             const selClub = document.getElementById('select-ordinamento-club');
@@ -11187,6 +12760,10 @@ function renderizzaProdottiSquadraConFiltri() {
                 titElement.innerText = mappaTitoli[categoria] || "Catalogo Prodotti";
             }
             renderizzaProdottiSquadraConFiltri();
+            if (typeof aggiornaGraficaFiltriAttivi === 'function') {
+                aggiornaGraficaFiltriAttivi();
+            }
+            ripristinaScrollInCima();
         }
         window.selezionaEFiltraSoloCategoria = selezionaEFiltraSoloCategoria;
 
@@ -11274,7 +12851,7 @@ function renderizzaProdottiSquadraConFiltri() {
         });
 
         function parseImageTransform(url) {
-            const defaults = { zoom: 1.15, x: 0, y: 0 };
+            const defaults = { zoom: 1.05, x: 0, y: 0 };
             if (!url) return defaults;
             try {
                 const hashIndex = url.indexOf('#');
@@ -11283,7 +12860,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 const params = new URLSearchParams(hash);
                 if (params.has('zoom') || params.has('x') || params.has('y')) {
                     return {
-                        zoom: parseFloat(params.get('zoom')) || 1.15,
+                        zoom: parseFloat(params.get('zoom')) || 1.05,
                         x: parseFloat(params.get('x')) || 0,
                         y: parseFloat(params.get('y')) || 0
                     };
@@ -11411,9 +12988,10 @@ function renderizzaProdottiSquadraConFiltri() {
         window.escapeHtml = escapeHtml;
 
         /* ==========================================================
-           GESTIONE WISHLIST CLIENTE PUBBLICO
+           GESTIONE WISHLIST CLIENTE PUBBLICO (FASE 13)
            ========================================================== */
         window.wishlistProdottiIds = [];
+        window.wishlistSelezionati = new Set();
 
         function ottieniChiaveWishlist() {
             return 'maglia_doro_wishlist_' + (window.sessioneUtente?.id || 'guest');
@@ -11441,6 +13019,8 @@ function renderizzaProdottiSquadraConFiltri() {
             renderWishlist();
         }
         window.caricaWishlist = caricaWishlist;
+        window.inizializzaSincronizzazioneWishlist = caricaWishlist;
+        window.renderingWishlistUtente = renderWishlist;
 
         function aggiornaIconeCuoriWishlist() {
             const ids = (window.wishlistProdottiIds || []).map(x => String(x));
@@ -11472,6 +13052,7 @@ function renderizzaProdottiSquadraConFiltri() {
             
             if (idx > -1) {
                 window.wishlistProdottiIds.splice(idx, 1);
+                if (window.wishlistSelezionati) window.wishlistSelezionati.delete(strId);
                 if (window.mostraToastPremium) window.mostraToastPremium("Rimosso dai preferiti", "info");
             } else {
                 window.wishlistProdottiIds.push(isNaN(numId) ? strId : numId);
@@ -11488,9 +13069,118 @@ function renderizzaProdottiSquadraConFiltri() {
         window.toggleWishlist = toggleWishlist;
 
         function rimuoviDaWishlist(idProdotto, event) {
-            toggleWishlist(idProdotto, event);
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            if (!idProdotto) return;
+            const strId = String(idProdotto);
+            const idx = (window.wishlistProdottiIds || []).findIndex(x => String(x) === strId);
+            if (idx > -1) {
+                window.wishlistProdottiIds.splice(idx, 1);
+                if (window.wishlistSelezionati) window.wishlistSelezionati.delete(strId);
+                const key = ottieniChiaveWishlist();
+                localStorage.setItem(key, JSON.stringify(window.wishlistProdottiIds));
+                localStorage.setItem('maglia_doro_wishlist', JSON.stringify(window.wishlistProdottiIds));
+                if (window.mostraToastPremium) window.mostraToastPremium("Prodotto rimosso dalla Wishlist", "info");
+                aggiornaIconeCuoriWishlist();
+                renderWishlist();
+            }
         }
         window.rimuoviDaWishlist = rimuoviDaWishlist;
+
+        function gestisciSelezioneWishlistSingle(checkbox, idProdotto, event) {
+            if (event) event.stopPropagation();
+            if (!idProdotto) return;
+            const strId = String(idProdotto);
+            if (!window.wishlistSelezionati) window.wishlistSelezionati = new Set();
+            
+            if (checkbox.checked) {
+                window.wishlistSelezionati.add(strId);
+            } else {
+                window.wishlistSelezionati.delete(strId);
+            }
+            
+            const cardEl = document.getElementById(`ac-wishlist-card-${strId}`);
+            if (cardEl) {
+                if (checkbox.checked) {
+                    cardEl.classList.add('is-selected');
+                } else {
+                    cardEl.classList.remove('is-selected');
+                }
+            }
+            
+            aggiornaStatoToolbarWishlist();
+        }
+        window.gestisciSelezioneWishlistSingle = gestisciSelezioneWishlistSingle;
+
+        function toggleSelezionaTuttiWishlist(checkbox) {
+            const isChecked = typeof checkbox === 'boolean' ? checkbox : checkbox.checked;
+            if (!window.wishlistSelezionati) window.wishlistSelezionati = new Set();
+            
+            const checkboxes = document.querySelectorAll('.ac-wishlist-check-input');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                const id = cb.getAttribute('data-id');
+                if (id) {
+                    if (isChecked) {
+                        window.wishlistSelezionati.add(String(id));
+                    } else {
+                        window.wishlistSelezionati.delete(String(id));
+                    }
+                    const card = document.getElementById(`ac-wishlist-card-${id}`);
+                    if (card) {
+                        if (isChecked) card.classList.add('is-selected');
+                        else card.classList.remove('is-selected');
+                    }
+                }
+            });
+            
+            aggiornaStatoToolbarWishlist();
+        }
+        window.toggleSelezionaTuttiWishlist = toggleSelezionaTuttiWishlist;
+
+        function aggiornaStatoToolbarWishlist() {
+            const count = window.wishlistSelezionati ? window.wishlistSelezionati.size : 0;
+            const btnBulk = document.getElementById('btn-bulk-remove-wishlist');
+            if (btnBulk) {
+                if (count > 0) {
+                    btnBulk.removeAttribute('disabled');
+                    btnBulk.innerHTML = `<span class="material-icons" style="font-size:16px;">delete</span> Rimuovi selezionati (${count})`;
+                } else {
+                    btnBulk.setAttribute('disabled', 'true');
+                    btnBulk.innerHTML = `<span class="material-icons" style="font-size:16px;">delete</span> Rimuovi selezionati`;
+                }
+            }
+            
+            const selectAllCb = document.getElementById('ac-wishlist-select-all');
+            const allCbs = document.querySelectorAll('.ac-wishlist-check-input');
+            if (selectAllCb && allCbs.length > 0) {
+                selectAllCb.checked = count === allCbs.length;
+                selectAllCb.indeterminate = count > 0 && count < allCbs.length;
+            }
+        }
+
+        function rimuoviSelezionatiWishlist() {
+            if (!window.wishlistSelezionati || window.wishlistSelezionati.size === 0) return;
+            const count = window.wishlistSelezionati.size;
+            
+            const idsToRemove = new Set(window.wishlistSelezionati);
+            window.wishlistProdottiIds = (window.wishlistProdottiIds || []).filter(id => !idsToRemove.has(String(id)));
+            window.wishlistSelezionati.clear();
+            
+            const key = ottieniChiaveWishlist();
+            localStorage.setItem(key, JSON.stringify(window.wishlistProdottiIds));
+            localStorage.setItem('maglia_doro_wishlist', JSON.stringify(window.wishlistProdottiIds));
+            
+            if (window.mostraToastPremium) {
+                window.mostraToastPremium(`${count} ${count === 1 ? 'prodotto rimosso' : 'prodotti rimossi'} dai preferiti`, "info");
+            }
+            
+            aggiornaIconeCuoriWishlist();
+            renderWishlist();
+        }
+        window.rimuoviSelezionatiWishlist = rimuoviSelezionatiWishlist;
 
         function renderWishlist() {
             const container = document.getElementById('ac-wishlist-content');
@@ -11498,13 +13188,18 @@ function renderizzaProdottiSquadraConFiltri() {
             
             const ids = (window.wishlistProdottiIds || []).map(x => String(x));
             if (ids.length === 0) {
+                if (window.wishlistSelezionati) window.wishlistSelezionati.clear();
                 container.innerHTML = `
-                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                    <div class="ac-dettaglio-sez" style="padding: 50px 24px; text-align: center;">
                         <div class="ac-empty-state">
-                            <div class="ac-empty-icon">❤️</div>
-                            <h3>Nessun prodotto salvato</h3>
-                            <p>Sfoglia il catalogo delle maglie storiche e dei club più esclusivi, clicca sul cuore per aggiungerli alla tua lista dei desideri.</p>
-                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')">Esplora il Catalogo</button>
+                            <div class="ac-empty-icon" style="font-size: 44px; margin-bottom: 12px;">❤️</div>
+                            <h3 style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">La tua Wishlist è vuota</h3>
+                            <p style="color: var(--on-surface-de-emphasis); max-width: 480px; margin: 0 auto 24px auto; font-size: 14px; line-height: 1.5;">
+                                Sfoglia il catalogo delle maglie storiche e dei club più esclusivi, clicca sul cuore per aggiungerli alla tua lista dei desideri.
+                            </p>
+                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; font-weight: 800; border-radius: 12px;">
+                                <span class="material-icons" style="font-size: 18px;">explore</span> Esplora il Catalogo
+                            </button>
                         </div>
                     </div>`;
                 return;
@@ -11521,40 +13216,123 @@ function renderizzaProdottiSquadraConFiltri() {
             
             if (prodottiTrovati.length === 0) {
                 container.innerHTML = `
-                    <div class="ac-dettaglio-sez" style="padding: 40px 20px;">
+                    <div class="ac-dettaglio-sez" style="padding: 50px 24px; text-align: center;">
                         <div class="ac-empty-state">
-                            <div class="ac-empty-icon">❤️</div>
-                            <h3>I tuoi preferiti (${ids.length})</h3>
-                            <p>I prodotti salvati sono memorizzati nel tuo account.</p>
-                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')">Esplora il Catalogo</button>
+                            <div class="ac-empty-icon" style="font-size: 44px; margin-bottom: 12px;">❤️</div>
+                            <h3 style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">I tuoi preferiti (${ids.length})</h3>
+                            <p style="color: var(--on-surface-de-emphasis); max-width: 480px; margin: 0 auto 24px auto; font-size: 14px;">I prodotti salvati sono memorizzati nel tuo account.</p>
+                            <button class="btn-ac-primary" onclick="mostraSezioneCompleta('club')" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; font-weight: 800; border-radius: 12px;">
+                                <span class="material-icons" style="font-size: 18px;">explore</span> Esplora il Catalogo
+                            </button>
                         </div>
                     </div>`;
                 return;
             }
-            
+
+            if (!window.wishlistSelezionati) window.wishlistSelezionati = new Set();
+            // Mantieni solo selezioni di prodotti ancora esistenti
+            const validIdsSet = new Set(prodottiTrovati.map(p => String(p.id || p.legacy_id)));
+            Array.from(window.wishlistSelezionati).forEach(selId => {
+                if (!validIdsSet.has(selId)) window.wishlistSelezionati.delete(selId);
+            });
+
+            const selCount = window.wishlistSelezionati.size;
+            const allSelected = selCount > 0 && selCount === prodottiTrovati.length;
+
             let html = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
+                <!-- Wishlist Toolbar -->
+                <div class="ac-wishlist-toolbar">
+                    <div class="ac-wishlist-toolbar-left">
+                        <div class="ac-wishlist-count-badge">
+                            <span class="material-icons" style="font-size: 14px;">favorite</span>
+                            <span>${prodottiTrovati.length} ${prodottiTrovati.length === 1 ? 'prodotto salvato' : 'prodotti salvati'}</span>
+                        </div>
+                        <label class="ac-wishlist-select-all-label">
+                            <input type="checkbox" id="ac-wishlist-select-all" onchange="toggleSelezionaTuttiWishlist(this)" ${allSelected ? 'checked' : ''}>
+                            <span>Seleziona tutti</span>
+                        </label>
+                    </div>
+                    <div class="ac-wishlist-toolbar-actions">
+                        <button class="btn-ac-wishlist-bulk-remove" id="btn-bulk-remove-wishlist" onclick="rimuoviSelezionatiWishlist()" ${selCount === 0 ? 'disabled' : ''}>
+                            <span class="material-icons" style="font-size:16px;">delete</span> Rimuovi selezionati ${selCount > 0 ? `(${selCount})` : ''}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Wishlist Grid Cards -->
+                <div class="ac-wishlist-grid">
             `;
             
             prodottiTrovati.forEach(p => {
                 const img = p.immagine || 'placeholder-maglia.jpg';
-                const title = p.nome || p.squadra || 'Maglia';
-                const price = Number(p.prezzo || 23.99).toFixed(2);
-                const cat = p.categoria || 'Maglia Ufficiale';
-                const idProd = p.id || p.legacy_id;
-                
+                const title = p.nome || p.squadra || 'Maglia Ufficiale';
+                const priceNum = Number(p.prezzo || 23.99);
+                const price = priceNum.toFixed(2).replace('.', ',');
+                const rawCat = p.categoria || 'Maglia Ufficiale';
+                const catClassif = typeof ottieniClassificazioneProdotto === 'function' ? ottieniClassificazioneProdotto(p) : rawCat;
+                const idProd = String(p.id || p.legacy_id);
+                const legacyId = String(p.legacy_id || '');
+                const target = p.target || (rawCat.toLowerCase().includes('bambino') ? 'Bambino' : 'Adulto');
+                const stagione = p.stagione || p.anno || (p.tag && p.tag.includes('/') ? p.tag : '');
+                const isSelected = window.wishlistSelezionati.has(idProd);
+                const isBambino = target === 'Bambino' || rawCat.toLowerCase().includes('bambino');
+
+                // Badges
+                let badgeTargetHtml = isBambino ? `<span class="ac-wishlist-tag-badge blue">Bambino</span>` : '';
+                let badgeStagioneHtml = stagione ? `<span class="ac-wishlist-tag-badge gold">${escapeHtml(stagione)}</span>` : '';
+                let badgeTipoHtml = p.tipo ? `<span class="ac-wishlist-tag-badge">${escapeHtml(p.tipo)}</span>` : '';
+
                 html += `
-                    <div class="card-prodotto" style="position: relative;">
-                        <button class="wishlist-heart-btn salvato" onclick="toggleWishlist('${idProd}', event)" title="Rimuovi dai preferiti" style="position: absolute; top: 12px; right: 12px; z-index: 10; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer;">❤️</button>
-                        <div class="card-img-container" onclick="apriPersonalizzazione('${escapeHtml(title)}', '${img}', ${price}, '${idProd}', '${p.legacy_id || ''}', '${p.target || ''}', '${cat}')">
-                            <img src="${img}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.src='placeholder-maglia.jpg'">
+                    <div class="ac-wishlist-card ${isSelected ? 'is-selected' : ''}" id="ac-wishlist-card-${idProd}">
+                        <!-- Topbar with Checkbox and Quick Remove -->
+                        <div class="ac-wishlist-card-topbar">
+                            <label class="ac-wishlist-check-box" onclick="event.stopPropagation()" title="Seleziona prodotto">
+                                <input type="checkbox" class="ac-wishlist-check-input" data-id="${idProd}" ${isSelected ? 'checked' : ''} onchange="gestisciSelezioneWishlistSingle(this, '${idProd}', event)">
+                                <span class="ac-wishlist-check-label-text">Seleziona</span>
+                            </label>
+                            <button class="ac-wishlist-quick-remove-btn" onclick="rimuoviDaWishlist('${idProd}', event)" title="Rimuovi dalla Wishlist">
+                                <span class="material-icons" style="font-size: 16px;">close</span>
+                            </button>
                         </div>
-                        <div class="card-info" style="padding: 15px;">
-                            <span class="card-categoria">${escapeHtml(ottieniClassificazioneProdotto(p))}</span>
-                            <h3 class="card-titolo">${escapeHtml(title)}</h3>
-                            <div class="card-prezzo-box" style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-                                <span class="card-prezzo">€${price}</span>
-                                <button class="btn-personalizza" style="padding: 6px 12px; font-size: 11px;" onclick="apriPersonalizzazione('${escapeHtml(title)}', '${img}', ${price}, '${idProd}', '${p.legacy_id || ''}', '${p.target || ''}', '${cat}')">Acquista</button>
+
+                        <!-- Product Image -->
+                        <div class="ac-wishlist-img-wrap" onclick="apriPersonalizzazione('${escapeHtml(title).replace(/'/g, "\\'")}', '${img.replace(/'/g, "\\'")}', ${priceNum}, '${idProd}', '${legacyId}', '${target.replace(/'/g, "\\'")}', '${rawCat.replace(/'/g, "\\'")}')" title="Clicca per configurare e acquistare">
+                            <img src="${img}" alt="${escapeHtml(title)}" class="ac-wishlist-img" onclick="apriZoomImmagine('${img.replace(/'/g, "\\'")}', event)" title="Clicca per ingrandire l'immagine" style="cursor: zoom-in;" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/300x300/181818/d6a43a?text=Maglia+d%27Oro'">
+                            <button type="button" class="ac-wishlist-zoom-btn" onclick="apriZoomImmagine('${img.replace(/'/g, "\\'")}', event)" title="Ingrandisci immagine">
+                                🔍 Zoom
+                            </button>
+                            <div class="ac-wishlist-badges-overlay">
+                                ${badgeTargetHtml}
+                                ${badgeStagioneHtml}
+                                ${badgeTipoHtml}
+                            </div>
+                        </div>
+
+                        <!-- Product Info & Action Buttons -->
+                        <div class="ac-wishlist-body">
+                            <div class="ac-wishlist-categoria">
+                                <span class="material-icons" style="font-size: 13px;">shield</span>
+                                <span>${escapeHtml(catClassif)}</span>
+                            </div>
+                            <h3 class="ac-wishlist-titolo" onclick="apriPersonalizzazione('${escapeHtml(title).replace(/'/g, "\\'")}', '${img.replace(/'/g, "\\'")}', ${priceNum}, '${idProd}', '${legacyId}', '${target.replace(/'/g, "\\'")}', '${rawCat.replace(/'/g, "\\'")}')" title="${escapeHtml(title)}">${escapeHtml(title)}</h3>
+                            
+                            <div class="ac-wishlist-meta-info">
+                                ${stagione ? `<span class="ac-wishlist-meta-pill"><span class="material-icons" style="font-size: 12px; color: var(--primary);">calendar_today</span> ${escapeHtml(stagione)}</span>` : ''}
+                                <span class="ac-wishlist-meta-pill"><span class="material-icons" style="font-size: 12px; color: var(--primary);">person</span> ${escapeHtml(target)}</span>
+                            </div>
+
+                            <div class="ac-wishlist-price-row">
+                                <span class="ac-wishlist-price-label">Prezzo</span>
+                                <span class="ac-wishlist-price">€${price}</span>
+                            </div>
+
+                            <div class="ac-wishlist-card-buttons">
+                                <button class="btn-ac-wishlist-view" onclick="apriPersonalizzazione('${escapeHtml(title).replace(/'/g, "\\'")}', '${img.replace(/'/g, "\\'")}', ${priceNum}, '${idProd}', '${legacyId}', '${target.replace(/'/g, "\\'")}', '${rawCat.replace(/'/g, "\\'")}')">
+                                    <span class="material-icons" style="font-size: 16px;">tune</span> Vedi Prodotto
+                                </button>
+                                <button class="btn-ac-wishlist-remove" onclick="rimuoviDaWishlist('${idProd}', event)" title="Rimuovi">
+                                    <span class="material-icons" style="font-size: 15px;">delete_outline</span> Rimuovi
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -12227,34 +14005,34 @@ function renderizzaProdottiSquadraConFiltri() {
                 const disponibiliEffettivi = Math.max(0, quotaRimanenteBase - completiniNelCarrello);
 
                 const catsHtml = (Array.isArray(f.categorie_autorizzate) && f.categorie_autorizzate.length > 0)
-                    ? `<div style="margin-top: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.8); background: rgba(0, 0, 0, 0.25); padding: 6px 10px; border-radius: var(--radius-s); border: 1px solid rgba(255, 255, 255, 0.05);"><strong style="color: var(--primary);">Categorie consentite:</strong> ${f.categorie_autorizzate.join(', ')}</div>`
+                    ? `<div class="cart-convenzione-cats"><strong style="color: var(--primary);">Categorie consentite:</strong> ${f.categorie_autorizzate.map(c => escapeHtml(c)).join(', ')}</div>`
                     : '';
                 container.innerHTML = `
-                    <div style="background: linear-gradient(135deg, rgba(214, 164, 58, 0.08) 0%, rgba(18, 18, 18, 0.95) 100%); border: 1px solid rgba(214, 164, 58, 0.35); border-radius: var(--radius-m); padding: 14px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                            <div style="display: flex; align-items: center; gap: 6px;">
+                    <div class="cart-convenzione-active-card">
+                        <div class="cart-convenzione-active-header">
+                            <div class="cart-convenzione-active-title">
                                 <span style="font-size: 15px;">🏆</span>
-                                <span style="font-size: 12px; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px;">CONVENZIONE TORNEO</span>
+                                <span>CONVENZIONE TORNEO</span>
                             </div>
-                            <button type="button" onclick="disattivaFornituraTorneo()" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: var(--radius-s); font-weight: 800; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; transition: all 0.2s;">DISATTIVA CONVENZIONE</button>
+                            <button type="button" class="btn-cart-convenzione-disattiva" onclick="disattivaFornituraTorneo()">DISATTIVA CONVENZIONE</button>
                         </div>
-                        <div style="font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, 0.85); margin-bottom: 2px;">Torneo: <span style="color: #ffffff; font-weight: 900;">${escapeHtml(f.torneo_nome || '')}</span></div>
-                        <div style="font-size: 13.5px; font-weight: 900; color: var(--primary); margin-bottom: 10px;">Squadra: <span style="color: var(--primary); font-weight: 900;">${escapeHtml(f.nome_squadra || '')}</span></div>
+                        <div class="cart-convenzione-info-row">Torneo: <strong>${escapeHtml(f.torneo_nome || '')}</strong></div>
+                        <div class="cart-convenzione-team-row">Squadra: <strong>${escapeHtml(f.nome_squadra || '')}</strong></div>
                         
-                        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: rgba(255, 255, 255, 0.85); background: rgba(0, 0, 0, 0.3); padding: 9px 12px; border-radius: var(--radius-s); border: 1px solid rgba(255, 255, 255, 0.05);">
-                            <div style="display: flex; justify-content: space-between;">
+                        <div class="cart-convenzione-stats-box">
+                            <div class="cart-convenzione-stat-item">
                                 <span>Completini assegnati:</span>
                                 <strong>${quantitaAssegnata}</strong>
                             </div>
-                            <div style="display: flex; justify-content: space-between;">
+                            <div class="cart-convenzione-stat-item">
                                 <span>Completini ordinati:</span>
                                 <strong>${quantitaOrdinata}</strong>
                             </div>
-                            <div style="display: flex; justify-content: space-between; color: #60a5fa;">
+                            <div class="cart-convenzione-stat-item highlight-blue">
                                 <span>Completini nel carrello:</span>
                                 <strong>${completiniNelCarrello}</strong>
                             </div>
-                            <div style="display: flex; justify-content: space-between; color: var(--primary);">
+                            <div class="cart-convenzione-stat-item highlight-gold">
                                 <span>Completini disponibili:</span>
                                 <strong>${disponibiliEffettivi}</strong>
                             </div>
@@ -12263,18 +14041,29 @@ function renderizzaProdottiSquadraConFiltri() {
                     </div>
                 `;
             } else {
+                let msgHtml = '';
+                if (fornituraStatusMsg) {
+                    const msgClass = fornituraStatusType === 'success' ? 'msg-success' : (fornituraStatusType === 'info' ? 'msg-info' : 'msg-error');
+                    msgHtml = `<div class="cart-convenzione-msg ${msgClass}">${escapeHtml(fornituraStatusMsg)}</div>`;
+                }
+
                 container.innerHTML = `
-                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(214, 164, 58, 0.2); border-radius: var(--radius-m); padding: 14px;">
-                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                            <span style="font-size: 15px;">🏆</span>
-                            <span style="font-size: 12px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">CONVENZIONE TORNEO</span>
+                    <div class="cart-convenzione-card">
+                        <div class="cart-convenzione-header">
+                            <div class="cart-convenzione-title">
+                                <span style="font-size: 15px;">🏆</span>
+                                <span>CONVENZIONE TORNEO</span>
+                            </div>
                         </div>
-                        <p style="font-size: 12px; color: var(--on-surface-de-emphasis); margin: 0 0 10px 0;">Hai un codice convenzione?</p>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="input-codice-fornitura-cart" placeholder="inserisci Codice" style="flex-grow: 1; background: #121212; border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 8px 10px; border-radius: var(--radius-s); font-size: 12px; text-transform: uppercase;" onkeydown="if(event.key === 'Enter') { event.preventDefault(); verificaCodiceFornitura(); }">
-                            <button onclick="verificaCodiceFornitura()" style="background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 11px; padding: 8px 12px; border-radius: var(--radius-s); cursor: pointer; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.5px;">VERIFICA CODICE</button>
+                        <p class="cart-convenzione-subtitle">Hai un codice convenzione?</p>
+                        <div class="cart-convenzione-form-group">
+                            <input type="text" id="input-codice-fornitura-cart" class="cart-convenzione-input" placeholder="Inserisci Codice" autocomplete="off" autocapitalize="characters" spellcheck="false" onkeydown="if(event.key === 'Enter') { event.preventDefault(); verificaCodiceFornitura(); }">
+                            <button type="button" class="btn-cart-convenzione-verifica" onclick="verificaCodiceFornitura()">
+                                <span class="material-icons" style="font-size: 16px;">verified</span>
+                                <span>VERIFICA CODICE</span>
+                            </button>
                         </div>
-                        ${fornituraStatusMsg ? `<div style="font-size: 11.5px; margin-top: 8px; color: ${fornituraStatusType === 'success' ? '#10B981' : (fornituraStatusType === 'info' ? '#3B82F6' : '#EF4444')}; font-weight: 700;">${fornituraStatusMsg}</div>` : ''}
+                        ${msgHtml}
                     </div>
                 `;
             }
@@ -12597,6 +14386,12 @@ function renderizzaProdottiSquadraConFiltri() {
                     carrello[indexInModifica].ha_prezzo_concordato = true;
                     carrello[indexInModifica].prezzo_concordato = prezzoFinaleOggetto;
                     carrello[indexInModifica].prezzo_originale = prezzoOriginaleCatalogoInConfigurazione || 23.99;
+                    carrello[indexInModifica].torneo_id = fornituraInConfigurazione.torneo_id;
+                    carrello[indexInModifica].torneo_squadra_id = fornituraInConfigurazione.torneo_squadra_id || fornituraInConfigurazione.id;
+                    carrello[indexInModifica].squadra_id = fornituraInConfigurazione.torneo_squadra_id || fornituraInConfigurazione.id;
+                    carrello[indexInModifica].codice_univoco = fornituraInConfigurazione.codice_univoco;
+                    carrello[indexInModifica].nome_squadra = fornituraInConfigurazione.nome_squadra;
+                    carrello[indexInModifica].torneo_nome = fornituraInConfigurazione.torneo_nome;
                 }
                 
                 indexInModifica = null;
@@ -12630,6 +14425,12 @@ function renderizzaProdottiSquadraConFiltri() {
                     nuovaMaglia.ha_prezzo_concordato = true;
                     nuovaMaglia.prezzo_concordato = prezzoFinaleOggetto;
                     nuovaMaglia.prezzo_originale = prezzoOriginaleCatalogoInConfigurazione || 23.99;
+                    nuovaMaglia.torneo_id = fornituraInConfigurazione.torneo_id;
+                    nuovaMaglia.torneo_squadra_id = fornituraInConfigurazione.torneo_squadra_id || fornituraInConfigurazione.id;
+                    nuovaMaglia.squadra_id = fornituraInConfigurazione.torneo_squadra_id || fornituraInConfigurazione.id;
+                    nuovaMaglia.codice_univoco = fornituraInConfigurazione.codice_univoco;
+                    nuovaMaglia.nome_squadra = fornituraInConfigurazione.nome_squadra;
+                    nuovaMaglia.torneo_nome = fornituraInConfigurazione.torneo_nome;
                 }
 
                 let giaPresente = carrello.find(item => 
@@ -12649,12 +14450,13 @@ function renderizzaProdottiSquadraConFiltri() {
                 } else {
                     aggiornaGraficaCarrello();
                 }
+
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium(`"${nuovaMaglia.squadra}" aggiunto al carrello!`, 'success');
+                }
             }
 
             chiudiPersonalizzazione(); 
-            if (window.innerWidth >= 768) {
-                toggleCarrello();
-            }
         }
 
         async function ricalcolaCouponSePresente() {
@@ -12885,6 +14687,7 @@ function renderizzaProdottiSquadraConFiltri() {
             const badgeConteggio = document.getElementById('conteggio-basso');
             const totaleBasso = document.getElementById('prezzo-totale-basso');
             const badgeIcona = document.getElementById('conteggio-carrello');
+            const badgeHeader = document.getElementById('conteggio-header');
 
             const isModoConvenzione = Boolean(window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid);
             const fornituraAttiva = isModoConvenzione ? window.fornituraTorneoAttiva : null;
@@ -12893,12 +14696,17 @@ function renderizzaProdottiSquadraConFiltri() {
             let subtotale = 0;
 
             carrello.forEach(item => {
-                conteggioTotale += (item.quantita || 1);
-                subtotale += (item.quantita || 1) * (item.prezzo || 0);
+                const q = Number(item.quantita) || 1;
+                conteggioTotale += q;
+                subtotale += q * (Number(item.prezzo) || 0);
             });
 
+            const numeroProdottiDistinti = carrello.length;
+            const formatoContatore = `${conteggioTotale}`;
+
+            if (badgeHeader) badgeHeader.innerText = formatoContatore;
+            if (badgeIcona) badgeIcona.innerText = formatoContatore;
             if (badgeConteggio) badgeConteggio.innerText = conteggioTotale;
-            if (badgeIcona) badgeIcona.innerText = conteggioTotale;
 
             if (typeof renderConvenzioneCarrello === 'function') {
                 renderConvenzioneCarrello();
@@ -12962,7 +14770,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
                     htmlArticoli += 
                         '<div class="item-carrello">' +
-                            '<img src="' + (item.imgUrl || '') + '" alt="' + (item.squadra || '') + '" style="width: 50px; height: 50px; object-fit: contain; background: #1a1a1a; border-radius: var(--radius-s); padding: 2px;">' +
+                            '<img src="' + (item.imgUrl || '') + '" alt="' + (item.squadra || '') + '" onclick="apriZoomImmagine(\'' + (item.imgUrl || '').replace(/'/g, "\\'") + '\', event)" title="Clicca per ingrandire l\'immagine" style="width: 50px; height: 50px; object-fit: contain; background: #1a1a1a; border-radius: var(--radius-s); padding: 2px; cursor: zoom-in;">' +
                             '<div class="item-info" style="flex-grow: 1;">' +
                                 '<h5>' + (item.squadra || '') + '</h5>' +
                                 '<p style="font-size: 11px; margin: 2px 0;">Taglia: <strong>' + (item.taglia || 'Unica') + '</strong> ' + (item.infoPerso && item.infoPerso !== 'Nessuna' ? ' | ' + item.infoPerso : '') + '</p>' +
@@ -12997,7 +14805,31 @@ function renderizzaProdottiSquadraConFiltri() {
                 listaElementi.innerHTML = htmlArticoli;
             }
 
+            const boxDatiCapitano = document.getElementById('box-dati-capitano');
+            const boxCapitanoEsistente = document.getElementById('box-capitano-esistente');
+            const capitanoEsistenteInfo = document.getElementById('capitano-esistente-info');
+            const boxDatiClienteStandard = document.getElementById('box-dati-cliente-standard');
+            const titoloDatiCliente = document.getElementById('titolo-dati-cliente');
+
             if (isModoConvenzione) {
+                // In modalità Convenzione Torneo, nascondi SEMPRE i dati cliente standard ("Dati di chi effettua questo ordine")
+                if (boxDatiClienteStandard) boxDatiClienteStandard.style.display = 'none';
+
+                if (fornituraAttiva.has_existing_order) {
+                    if (titoloDatiCliente) titoloDatiCliente.innerText = 'Riferimento Capitano Squadra';
+                    if (boxDatiCapitano) boxDatiCapitano.style.display = 'none';
+                    if (boxCapitanoEsistente) {
+                        boxCapitanoEsistente.style.display = 'block';
+                        if (capitanoEsistenteInfo) {
+                            capitanoEsistenteInfo.innerHTML = `<div>👤 <strong>${fornituraAttiva.capitano_nome || 'N/D'}</strong></div><div style="margin-top:2px; font-size:11px; opacity:0.85;">📞 ${fornituraAttiva.capitano_telefono || 'N/D'}</div>`;
+                        }
+                    }
+                } else {
+                    if (titoloDatiCliente) titoloDatiCliente.innerText = 'Dati Capitano Squadra';
+                    if (boxDatiCapitano) boxDatiCapitano.style.display = 'block';
+                    if (boxCapitanoEsistente) boxCapitanoEsistente.style.display = 'none';
+                }
+
                 // MODALITÀ CONVENZIONE TORNEO:
                 // Nascondere box spedizione dinamica (niente soglia 50€, niente barra progresso)
                 if (boxSpedizione) boxSpedizione.style.display = 'none';
@@ -13034,6 +14866,10 @@ function renderizzaProdottiSquadraConFiltri() {
                         '</div>';
                 }
             } else {
+                if (titoloDatiCliente) titoloDatiCliente.innerText = 'Dati di Spedizione / Contatto';
+                if (boxDatiClienteStandard) boxDatiClienteStandard.style.display = 'block';
+                if (boxDatiCapitano) boxDatiCapitano.style.display = 'none';
+                if (boxCapitanoEsistente) boxCapitanoEsistente.style.display = 'none';
                 // MODALITÀ NORMALE (Identica al comportamento standard esistente)
                 // Calcolo spedizione (gratuita sopra 50€)
                 const sogliaSpedizioneGratis = 50.0;
@@ -13072,7 +14908,7 @@ function renderizzaProdottiSquadraConFiltri() {
                         boxSuggerimenti.innerHTML = 
                             '<div style="background: rgba(214, 164, 58, 0.05); border: 1px dashed rgba(214, 164, 58, 0.3); border-radius: var(--radius-m); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
                                 '<div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">' +
-                                    '<img src="' + (prodottoSuggeritoCorrente.immagine || '') + '" style="width: 36px; height: 36px; object-fit: contain; background: #1a1a1a; border-radius: 4px;">' +
+                                    '<img src="' + (prodottoSuggeritoCorrente.immagine || '') + '" onclick="apriZoomImmagine(\'' + (prodottoSuggeritoCorrente.immagine || '').replace(/'/g, "\\'") + '\', event)" title="Clicca per ingrandire l\'immagine" style="width: 36px; height: 36px; object-fit: contain; background: #1a1a1a; border-radius: 4px; cursor: zoom-in;">' +
                                     '<div style="overflow: hidden;">' +
                                         '<div style="font-size: 11px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' + (prodottoSuggeritoCorrente.versione || prodottoSuggeritoCorrente.squadra || 'Consigliato') + '</div>' +
                                         '<div style="font-size: 11px; color: var(--primary); font-weight: 700;">+' + ((prodottoSuggeritoCorrente.prezzo || 23.99).toFixed(2).replace('.', ',')) + '€</div>' +
@@ -13101,13 +14937,15 @@ function renderizzaProdottiSquadraConFiltri() {
                     boxRiepilogo.style.display = 'block';
 
                     boxRiepilogo.innerHTML = 
-                        '<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-m); padding: 12px; margin-bottom: 10px;">' +
+                        '<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-m); padding: 12px; margin-bottom: 10px; width: 100%; box-sizing: border-box;">' +
                             '<!-- Box Coupon -->' +
-                            '<div class="coupon-box" style="display: flex; gap: 8px; margin-bottom: 10px;">' +
-                                '<input type="text" id="input-coupon-code" value="' + (couponCodeInputVal || (couponApplicato ? couponApplicato.code : '')) + '" oninput="couponCodeInputVal = this.value" placeholder="Codice Sconto" style="flex-grow: 1; background: #121212; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 8px 12px; border-radius: var(--radius-s); font-size: 12px; text-transform: uppercase;">' +
-                                '<button onclick="applicaCouponDaCarrello()" style="background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 12px; padding: 0 12px; border-radius: var(--radius-s); cursor: pointer;">Applica</button>' +
+                            '<div class="coupon-box" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; width: 100%; box-sizing: border-box;">' +
+                                '<div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box;">' +
+                                    '<input type="text" id="input-coupon-code" value="' + (couponCodeInputVal || (couponApplicato ? couponApplicato.code : '')) + '" oninput="couponCodeInputVal = this.value" placeholder="Codice Sconto" autocomplete="off" autocapitalize="characters" style="flex: 1 1 auto; min-width: 0; width: 100%; background: #0d0d0d; border: 1px solid rgba(255, 255, 255, 0.14); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 12px; text-transform: uppercase; box-sizing: border-box; height: 38px;">' +
+                                    '<button type="button" onclick="applicaCouponDaCarrello()" style="flex: 0 0 auto; background: var(--gold-gradient); border: none; color: #000; font-weight: 800; font-size: 11px; padding: 0 14px; border-radius: 8px; cursor: pointer; text-transform: uppercase; height: 38px; display: flex; align-items: center; justify-content: center;">Applica</button>' +
+                                '</div>' +
                             '</div>' +
-                            (couponStatusMsg ? ('<div style="font-size: 11px; margin-bottom: 8px; color: ' + (couponStatusType === 'success' ? '#10B981' : '#EF4444') + ';">' + couponStatusMsg + '</div>') : '') +
+                            (couponStatusMsg ? ('<div style="font-size: 11.5px; font-weight: 700; margin-bottom: 8px; color: ' + (couponStatusType === 'success' ? '#10B981' : '#EF4444') + '; word-break: break-word; overflow-wrap: anywhere; line-height: 1.4;">' + escapeHtml(couponStatusMsg) + '</div>') : '') +
                             
                             '<div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--on-surface-de-emphasis); margin-bottom: 4px;">' +
                                 '<span>Subtotale:</span>' +
@@ -13115,7 +14953,7 @@ function renderizzaProdottiSquadraConFiltri() {
                             '</div>' +
                             (scontoApplicatoVal > 0 ? (
                                 '<div style="display: flex; justify-content: space-between; font-size: 12px; color: #10B981; margin-bottom: 4px;">' +
-                                    '<span>Sconto (' + couponApplicato.code + '):</span>' +
+                                    '<span>Sconto (' + escapeHtml(couponApplicato.code) + '):</span>' +
                                     '<span>-' + scontoApplicatoVal.toFixed(2).replace('.', ',') + '€</span>' +
                                 '</div>'
                             ) : '') +
@@ -13163,18 +15001,50 @@ function renderizzaProdottiSquadraConFiltri() {
                 return;
             }
 
-            const inputNome = document.getElementById('cliente-nome');
-            const inputTel = document.getElementById('cliente-telefono');
-            const nome = inputNome ? inputNome.value.trim() : '';
-            const tel = inputTel ? inputTel.value.trim() : '';
+            const isConv = Boolean(window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid);
+            let nome = '';
+            let tel = '';
+            let capitanoNomeVal = null;
+            let capitanoTelVal = null;
 
-            if (!nome || !tel) {
-                if (window.mostraToastPremium) {
-                    window.mostraToastPremium("Compila Nome e Telefono/WhatsApp per procedere.", "warning");
+            if (isConv) {
+                if (!window.fornituraTorneoAttiva.has_existing_order) {
+                    const inpCapNome = document.getElementById('capitano-nome');
+                    const inpCapTel = document.getElementById('capitano-telefono');
+                    capitanoNomeVal = inpCapNome ? inpCapNome.value.trim() : '';
+                    capitanoTelVal = inpCapTel ? inpCapTel.value.trim() : '';
+
+                    if (!capitanoNomeVal || !capitanoTelVal) {
+                        const msgErr = "Nome e Cognome Capitano e Numero di Telefono Capitano sono obbligatori per il primo invio della Convenzione Torneo.";
+                        if (window.mostraToastPremium) {
+                            window.mostraToastPremium(msgErr, "warning");
+                        } else {
+                            alert(msgErr);
+                        }
+                        return;
+                    }
+                    nome = capitanoNomeVal;
+                    tel = capitanoTelVal;
                 } else {
-                    alert("Compila Nome e Telefono/WhatsApp per procedere.");
+                    capitanoNomeVal = window.fornituraTorneoAttiva.capitano_nome || null;
+                    capitanoTelVal = window.fornituraTorneoAttiva.capitano_telefono || null;
+                    nome = capitanoNomeVal || 'Capitano Squadra';
+                    tel = capitanoTelVal || '0000000000';
                 }
-                return;
+            } else {
+                const inputNome = document.getElementById('cliente-nome');
+                const inputTel = document.getElementById('cliente-telefono');
+                nome = inputNome ? inputNome.value.trim() : '';
+                tel = inputTel ? inputTel.value.trim() : '';
+
+                if (!nome || !tel) {
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium("Compila Nome e Telefono/WhatsApp per procedere.", "warning");
+                    } else {
+                        alert("Compila Nome e Telefono/WhatsApp per procedere.");
+                    }
+                    return;
+                }
             }
 
             // FASE 6: Controllo categorie autorizzate per convenzione torneo prima dell'invio
@@ -13209,6 +15079,8 @@ function renderizzaProdottiSquadraConFiltri() {
                 const payload = {
                     nome: nome,
                     telefono: tel,
+                    capitano_nome: capitanoNomeVal,
+                    capitano_telefono: capitanoTelVal,
                     carrello: carrello,
                     user_id: sessioneUtente ? sessioneUtente.id : null,
                     access_token: sessioneUtente ? sessioneUtente.access_token : null,
@@ -13218,7 +15090,9 @@ function renderizzaProdottiSquadraConFiltri() {
                     coupon_type: couponApplicato ? couponApplicato.type : null,
                     coupon_value: couponApplicato ? couponApplicato.value : null,
                     codice_fornitura: window.fornituraTorneoAttiva ? window.fornituraTorneoAttiva.codice_univoco : null,
-                    torneo_squadra_id: window.fornituraTorneoAttiva ? (window.fornituraTorneoAttiva.torneo_squadra_id || window.fornituraTorneoAttiva.id) : null
+                    torneo_squadra_id: window.fornituraTorneoAttiva ? (window.fornituraTorneoAttiva.torneo_squadra_id || window.fornituraTorneoAttiva.id) : null,
+                    squadra_id: window.fornituraTorneoAttiva ? (window.fornituraTorneoAttiva.torneo_squadra_id || window.fornituraTorneoAttiva.id) : null,
+                    torneo_id: window.fornituraTorneoAttiva ? window.fornituraTorneoAttiva.torneo_id : null
                 };
 
                 const res = await fetch('/api/orders', {
@@ -13229,6 +15103,13 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 const data = await res.json();
                 if (data.success) {
+                    if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                        window.fornituraTorneoAttiva.has_existing_order = true;
+                        if (data.capitano_nome) window.fornituraTorneoAttiva.capitano_nome = data.capitano_nome;
+                        if (data.capitano_telefono) window.fornituraTorneoAttiva.capitano_telefono = data.capitano_telefono;
+                        sessionStorage.setItem('fornituraTorneoAttiva', JSON.stringify(window.fornituraTorneoAttiva));
+                    }
+
                     carrello = [];
                     salvaCarrelloInLocalStorage();
                     couponApplicato = null;
@@ -13237,7 +15118,11 @@ function renderizzaProdottiSquadraConFiltri() {
                     toggleCarrello();
 
                     if (window.mostraToastPremium) {
-                        window.mostraToastPremium("Ordine inviato con successo!", "success");
+                        if (data.is_aggregated) {
+                            window.mostraToastPremium("Completini aggiunti con successo all'ordine del Torneo!", "success");
+                        } else {
+                            window.mostraToastPremium("Ordine inviato con successo!", "success");
+                        }
                     }
 
                     if (sessioneUtente && typeof window.sincronizzaOrdiniCliente === 'function') {
@@ -13781,8 +15666,9 @@ function renderizzaProdottiSquadraConFiltri() {
                     order.items.forEach(it => {
                         const qty = Number(it.quantita) || 1;
                         const pr = Number(it.prezzo) || 0;
-                        const lineTot = (qty * pr).toFixed(2).replace('.', ',');
-                        const prUnit = pr.toFixed(2).replace('.', ',');
+                        const isFornitura = Boolean(it.ha_prezzo_concordato || it.fornitura || pr === 0 || order.is_convenzione);
+                        const lineTot = isFornitura ? 'Incluso' : `€${(qty * pr).toFixed(2).replace('.', ',')}`;
+                        const prUnit = isFornitura ? 'Incluso nella convenzione' : `€${pr.toFixed(2).replace('.', ',')}`;
                         const pers = it.personalizzazione ? `<span style="display: block; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px;">${escapeHtml(it.personalizzazione)}</span>` : '';
                         const size = it.taglia ? `<span class="ac-taglia-badge" style="font-size: 11px; padding: 2px 6px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-right: 6px;">Taglia: ${escapeHtml(it.taglia)}</span>` : '';
                         
@@ -13800,13 +15686,13 @@ function renderizzaProdottiSquadraConFiltri() {
                                         <h5 style="margin: 0; font-size: 14px; font-weight: 700; color: #ffffff;">${escapeHtml(it.nome || 'Prodotto Maglia d\'Oro')}</h5>
                                         <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
                                             ${size}
-                                            <span style="font-size: 12px; color: rgba(255,255,255,0.6);">Quantità: <strong>${qty}</strong> × €${prUnit}</span>
+                                            <span style="font-size: 12px; color: rgba(255,255,255,0.6);">Quantità: <strong>${qty}</strong> × <span style="${isFornitura ? 'color: var(--primary); font-weight: 700;' : ''}">${prUnit}</span></span>
                                         </div>
                                         ${pers}
                                     </div>
                                 </div>
                                 <div style="text-align: right; min-width: 80px;">
-                                    <span class="oro" style="font-size: 15px; font-weight: 800;">€${lineTot}</span>
+                                    <span class="oro" style="font-size: 15px; font-weight: 800;">${lineTot}</span>
                                 </div>
                             </div>
                         `;
@@ -14133,6 +16019,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 };
                 window.sessioneUtente = sessioneUtente;
                 localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                syncProfileToServer(sessioneUtente);
 
                 chiudiAuth();
                 aggiornaUIAutenticazioneCliente();
@@ -14230,6 +16117,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     };
                     window.sessioneUtente = sessioneUtente;
                     localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                    syncProfileToServer(sessioneUtente);
                     chiudiAuth();
                     aggiornaUIAutenticazioneCliente();
                     caricaWishlist();
@@ -14361,12 +16249,54 @@ function renderizzaProdottiSquadraConFiltri() {
         }
         window.salvaProfiloCliente = salvaProfiloCliente;
 
+        async function syncProfileToServer(session) {
+            if (!session || !session.id) return;
+            try {
+                const meta = session.user_metadata || {};
+                const payload = {
+                    id: session.id,
+                    email: session.email,
+                    nome: meta.nome || session.nome || '',
+                    cognome: meta.cognome || session.cognome || '',
+                    telefono: meta.telefono || meta.phone || session.telefono || '',
+                    access_token: session.access_token || null
+                };
+
+                const client = await getCustomerSupabaseClient();
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session.id);
+                if (client && isUuid) {
+                    try {
+                        await client.from('profiles').upsert({
+                            id: session.id,
+                            email: session.email,
+                            nome: payload.nome,
+                            cognome: payload.cognome,
+                            telefono: payload.telefono,
+                            updated_at: new Date().toISOString()
+                        });
+                    } catch (dbErr) {
+                        console.warn("Client profiles upsert warning:", dbErr);
+                    }
+                }
+
+                await fetch('/api/auth/sync-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch(e) {
+                console.warn("Sync profile failed:", e);
+            }
+        }
+        window.syncProfileToServer = syncProfileToServer;
+
         async function inizializzaSessioneCliente() {
             try {
                 const saved = localStorage.getItem('maglia_doro_user_session');
                 if (saved) {
                     sessioneUtente = JSON.parse(saved);
                     window.sessioneUtente = sessioneUtente;
+                    syncProfileToServer(sessioneUtente);
                     aggiornaUIAutenticazioneCliente();
                     caricaWishlist();
                 }
@@ -14406,6 +16336,9 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
                 if (sessioneUtente && sessioneUtente.id) {
                     sincronizzaOrdiniCliente().catch(e => console.warn("Init sync ordini:", e));
+                }
+                if (typeof aggiornaGraficaCarrello === 'function') {
+                    aggiornaGraficaCarrello();
                 }
             } catch(err) {
                 console.warn("Errore inizializzazione sessione cliente:", err);

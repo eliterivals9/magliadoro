@@ -925,10 +925,28 @@ function parseCustomizationDetails(infoPerso, item = {}) {
     if (item.customNumber || item.numero_personalizzazione || (item.numero && typeof item.numero === "string" && !["nessuno", "nessuna", "no", ""].includes(item.numero.trim().toLowerCase()))) {
       numero = String(item.customNumber || item.numero_personalizzazione || item.numero).trim();
     }
-    if (item.customPatch || item.patch) {
-      const p = String(item.customPatch || item.patch).trim();
-      if (p && !["nessuna", "nessuno", "no", "false", ""].includes(p.toLowerCase())) {
-        patches.push(p);
+    if (item.customPatch || item.patch || item.patches) {
+      if (Array.isArray(item.patches)) {
+        item.patches.forEach(p => {
+          if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim());
+        });
+      } else {
+        const p = String(item.customPatch || item.patch).trim();
+        if (p && !["nessuna", "nessuno", "no", "false", ""].includes(p.toLowerCase())) {
+          patches.push(p);
+        }
+      }
+    }
+    if (item.personalizzazione && typeof item.personalizzazione === "object") {
+      if (item.personalizzazione.nome && !nome) nome = String(item.personalizzazione.nome).trim();
+      if (item.personalizzazione.numero && !numero) numero = String(item.personalizzazione.numero).trim();
+      if (Array.isArray(item.personalizzazione.patches)) {
+        item.personalizzazione.patches.forEach(p => {
+          if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim());
+        });
+      } else if (item.personalizzazione.patch) {
+        const p = String(item.personalizzazione.patch).trim();
+        if (p && !patches.includes(p)) patches.push(p);
       }
     }
   }
@@ -938,9 +956,15 @@ function parseCustomizationDetails(infoPerso, item = {}) {
   if (typeof infoPerso === "string") {
     rawText = infoPerso.trim();
   } else if (infoPerso && typeof infoPerso === "object") {
-    if (infoPerso.nome) nome = infoPerso.nome;
-    if (infoPerso.numero) numero = String(infoPerso.numero);
-    if (infoPerso.patch) patches.push(infoPerso.patch);
+    if (infoPerso.nome && !nome) nome = String(infoPerso.nome).trim();
+    if (infoPerso.numero && !numero) numero = String(infoPerso.numero).trim();
+    if (Array.isArray(infoPerso.patches)) {
+      infoPerso.patches.forEach(p => {
+        if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim());
+      });
+    } else if (infoPerso.patch) {
+      patches.push(String(infoPerso.patch).trim());
+    }
     rawText = JSON.stringify(infoPerso);
   }
 
@@ -951,7 +975,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
 
     if (!isNone) {
       // Estrai Patches / Badges
-      const patchRegex = /(?:Patch|Badge):\s*([^|\n-]+)/gi;
+      const patchRegex = /(?:Patch|Patches|Badge|Badges):\s*([^|\n\/-]+)/gi;
       let pMatch;
       while ((pMatch = patchRegex.exec(cleanText)) !== null) {
         const val = pMatch[1].trim();
@@ -963,9 +987,9 @@ function parseCustomizationDetails(infoPerso, item = {}) {
       }
 
       // Estrai Nome
-      const nomeRegex = /Nome:\s*([^|\n-]+)/i;
+      const nomeRegex = /Nome:\s*([^|\n\/,-]+)/i;
       const nMatch = cleanText.match(nomeRegex);
-      if (nMatch) {
+      if (nMatch && !nome) {
         const val = nMatch[1].trim();
         if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase())) {
           nome = val;
@@ -973,9 +997,9 @@ function parseCustomizationDetails(infoPerso, item = {}) {
       }
 
       // Estrai Numero
-      const numRegex = /Num(?:ero)?:\s*([^|\n\s-]+)/i;
+      const numRegex = /Num(?:ero)?:\s*([^|\n\/,\s-]+)/i;
       const numMatch = cleanText.match(numRegex);
-      if (numMatch) {
+      if (numMatch && !numero) {
         const val = numMatch[1].trim();
         if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase())) {
           numero = val;
@@ -984,14 +1008,14 @@ function parseCustomizationDetails(infoPerso, item = {}) {
 
       // Se non trovati con etichette standard, analizza testo non strutturato (es. "MESSI - 10" o "BAGGIO 10")
       if (!nome && !numero) {
-        let textWithoutPatches = cleanText.replace(/(?:Patch|Badge):\s*[^|\n-]+/gi, "").trim();
-        textWithoutPatches = textWithoutPatches.replace(/^[-|,\s]+|[-|,\s]+$/g, "");
+        let textWithoutPatches = cleanText.replace(/(?:Patch|Badge|Patches|Badges):\s*[^|\n\/-]+/gi, "").trim();
+        textWithoutPatches = textWithoutPatches.replace(/^[-|/,\s]+|[-|/,\s]+$/g, "");
 
         if (textWithoutPatches && !["nessuna", "nessuno", "no", "false", "none", ""].includes(textWithoutPatches.toLowerCase())) {
-          const hyphenParts = textWithoutPatches.split("-").map(s => s.trim()).filter(Boolean);
-          if (hyphenParts.length >= 2) {
-            nome = hyphenParts[0].replace(/Nome:\s*/i, "").trim();
-            numero = hyphenParts[1].replace(/Num(?:ero)?:\s*/i, "").trim();
+          const parts = textWithoutPatches.split(/[-|\/]/).map(s => s.trim()).filter(Boolean);
+          if (parts.length >= 2) {
+            nome = parts[0].replace(/Nome:\s*/i, "").trim();
+            numero = parts[1].replace(/Num(?:ero)?:\s*/i, "").trim();
           } else {
             const hasDigits = /\d+/.test(textWithoutPatches);
             const hasLetters = /[A-Za-z]+/.test(textWithoutPatches);
@@ -999,7 +1023,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
               const numPart = textWithoutPatches.match(/\b\d+\b/);
               if (numPart) {
                 numero = numPart[0];
-                nome = textWithoutPatches.replace(numPart[0], "").replace(/[-#]/g, "").trim();
+                nome = textWithoutPatches.replace(numPart[0], "").replace(/[-#\/]/g, "").trim();
               } else {
                 nome = textWithoutPatches;
               }
@@ -1014,12 +1038,16 @@ function parseCustomizationDetails(infoPerso, item = {}) {
     }
   }
 
+  // Pulizia finale
+  if (nome && ["nessuna", "nessuno", "no", "false", "none"].includes(nome.toLowerCase())) nome = "";
+  if (numero && ["nessuna", "nessuno", "no", "false", "none"].includes(numero.toLowerCase())) numero = "";
+
   // Calcolo costo fornitore personalizzazioni (Formula ufficiale del gestionale: $1 Nome, $1 Numero, $1 per Patch)
   let customizationCostUSD = 0.00;
-  if (nome && !["nessuno", "nessuna", "no", "false", ""].includes(nome.toLowerCase())) {
+  if (nome) {
     customizationCostUSD += 1.00;
   }
-  if (numero && !["nessuno", "nessuna", "no", "false", ""].includes(numero.toLowerCase())) {
+  if (numero) {
     customizationCostUSD += 1.00;
   }
   customizationCostUSD += (patches.length * 1.00);
@@ -1032,6 +1060,32 @@ function parseCustomizationDetails(infoPerso, item = {}) {
     patchStr: patches.join(", "),
     customizationCostUSD: Number(customizationCostUSD.toFixed(2))
   };
+}
+
+/**
+ * Formatta le personalizzazioni (Nome, Numero, Patch) per la colonna Excel di riepilogo torneo.
+ * Esempio: "Nome: MARIO / Numero: 10 / Patch: Serie A" o "Nome: LUCA / Numero: 7" o "Patch: Champions" o ""
+ */
+function formatCustomizationForSummaryExcel(infoPerso, item = {}) {
+  const details = parseCustomizationDetails(infoPerso, item);
+  const parts = [];
+  if (details.nome && details.nome.trim()) {
+    parts.push(`Nome: ${details.nome.trim()}`);
+  }
+  if (details.numero && details.numero.trim()) {
+    parts.push(`Numero: ${details.numero.trim()}`);
+  }
+  if (details.patches && details.patches.length > 0) {
+    const pStr = details.patches.join(", ").trim();
+    if (pStr) parts.push(`Patch: ${pStr}`);
+  } else if (details.patchStr && details.patchStr.trim()) {
+    parts.push(`Patch: ${details.patchStr.trim()}`);
+  }
+
+  if (parts.length > 0) {
+    return parts.join(" / ");
+  }
+  return "";
 }
 
 function parserPersonalizzazione(infoPerso, taglia, item = {}) {
@@ -1085,18 +1139,77 @@ function calcolaCostoFornitoreProdotto(prezzoBaseUSD, infoPerso, item = {}) {
 }
 
 /**
+ * Valida che un elenco di fasce di spedizione sia coerente:
+ * - min <= max per ogni fascia
+ * - Nessuna sovrapposizione tra fasce consecutive
+ * - Nessun buco (gap) tra fasce consecutive
+ * - Valori numerici positivi e costi >= 0
+ */
+function validateShippingTiers(tiers) {
+  if (!Array.isArray(tiers) || tiers.length === 0) {
+    return { valid: false, error: "Nessuna fascia di spedizione configurata." };
+  }
+
+  // Ordina per valore minimo crescente
+  const sorted = [...tiers].sort((a, b) => (Number(a.min) || 0) - (Number(b.min) || 0));
+
+  for (let i = 0; i < sorted.length; i++) {
+    const t = sorted[i];
+    const tierNum = i + 1;
+    const min = Number(t.min);
+    const cost = Number(t.cost);
+    const max = (t.max !== null && t.max !== undefined && t.max !== '' && t.max !== Infinity) ? Number(t.max) : null;
+
+    if (isNaN(min) || min < 1) {
+      return { valid: false, error: `Fascia ${tierNum}: il valore minimo deve essere un numero intero maggiore o uguale a 1.` };
+    }
+    if (isNaN(cost) || cost < 0) {
+      return { valid: false, error: `Fascia ${tierNum}: il costo deve essere un numero maggiore o uguale a 0.` };
+    }
+    if (max !== null) {
+      if (isNaN(max) || max < 1) {
+        return { valid: false, error: `Fascia ${tierNum}: il valore massimo deve essere un numero valido.` };
+      }
+      if (min > max) {
+        return { valid: false, error: `Fascia ${tierNum}: il valore minimo (${min}) non può essere superiore al valore massimo (${max}).` };
+      }
+    }
+
+    if (i > 0) {
+      const prev = sorted[i - 1];
+      const prevMax = (prev.max !== null && prev.max !== undefined && prev.max !== '' && prev.max !== Infinity) ? Number(prev.max) : null;
+
+      if (prevMax === null) {
+        return { valid: false, error: `Fascia ${i}: ha un massimo illimitato, non possono seguire ulteriori fasce.` };
+      }
+      if (min <= prevMax) {
+        return { valid: false, error: `Sovrapposizione tra Fascia ${i} (fino a ${prevMax}) e Fascia ${tierNum} (inizia da ${min}).` };
+      }
+      if (min > prevMax + 1) {
+        return { valid: false, error: `Intervallo scoperto tra Fascia ${i} (fino a ${prevMax}) e Fascia ${tierNum} (inizia da ${min}). Manca la copertura per i pezzi da ${prevMax + 1} a ${min - 1}.` };
+      }
+    }
+  }
+
+  return { valid: true, tiers: sorted };
+}
+
+/**
  * Estrae dinamicamente e ordina tutte le fasce di spedizione configurate in settings.spedizioneLotto.
- * Supporta qualsiasi numero di fasce (1, 2, 3, 4, 5, ... o formato array).
+ * Supporta qualsiasi numero di fasce (range1..rangeN o array tiers).
+ * Le 8 fasce ufficiali predefinite:
+ * 1-2 ($13), 3-5 ($9), 6-9 ($7), 10-20 ($4), 21-40 ($3), 41-59 ($2), 60-99 ($1), 100-200 ($0).
  */
 function extractShippingTiers(settings = null) {
   const currentSettings = settings || getSettings();
   const rules = (currentSettings && currentSettings.spedizioneLotto) || {};
 
   if (Array.isArray(rules.tiers) && rules.tiers.length > 0) {
-    return rules.tiers.map(t => ({
-      min: parseInt(t.min, 10) || 1,
+    return rules.tiers.map((t, idx) => ({
+      index: idx + 1,
+      min: (t.min !== undefined && t.min !== null && t.min !== '') ? parseInt(t.min, 10) : 1,
       max: (t.max !== undefined && t.max !== null && t.max !== '' && t.max !== Infinity) ? parseInt(t.max, 10) : null,
-      cost: parseFloat(t.cost) || 0
+      cost: (t.cost !== undefined && t.cost !== null && t.cost !== '') ? parseFloat(t.cost) : 0.0
     })).sort((a, b) => a.min - b.min);
   }
 
@@ -1110,48 +1223,49 @@ function extractShippingTiers(settings = null) {
       }
       const item = tierMap.get(idx);
       const prop = match[2].toLowerCase();
-      if (prop === 'min') item.min = parseInt(rules[key], 10);
-      else if (prop === 'max') item.max = parseInt(rules[key], 10);
-      else if (prop === 'cost') item.cost = parseFloat(rules[key]);
+      if (prop === 'min' && rules[key] !== null && rules[key] !== undefined && rules[key] !== '') {
+        item.min = parseInt(rules[key], 10);
+      } else if (prop === 'max' && rules[key] !== null && rules[key] !== undefined && rules[key] !== '') {
+        item.max = parseInt(rules[key], 10);
+      } else if (prop === 'cost' && rules[key] !== null && rules[key] !== undefined && rules[key] !== '') {
+        item.cost = parseFloat(rules[key]);
+      }
     }
   });
 
-  const tiers = Array.from(tierMap.values()).sort((a, b) => a.index - b.index);
+  const tiers = Array.from(tierMap.values()).filter(t => t.cost !== null && !isNaN(t.cost)).sort((a, b) => {
+    const aMin = (t => t.min !== null && !isNaN(t.min) ? t.min : t.index)(a);
+    const bMin = (t => t.min !== null && !isNaN(t.min) ? t.min : t.index)(b);
+    return aMin - bMin;
+  });
 
   if (tiers.length > 0) {
-    let prevMax = 0;
-    tiers.forEach((t) => {
-      if (t.min === null || isNaN(t.min)) {
-        t.min = prevMax + 1;
-      }
-      if (t.cost === null || isNaN(t.cost)) {
-        t.cost = 4.0;
-      }
-      if (t.max !== null && !isNaN(t.max)) {
-        prevMax = t.max;
-      } else {
-        t.max = null;
-      }
-    });
     return tiers;
   }
 
+  // Configurazione predefinita ufficiale a 8 scaglioni
   return [
-    { min: 1, max: 20, cost: 4.0 },
-    { min: 21, max: 40, cost: 3.0 },
-    { min: 41, max: null, cost: 2.0 }
+    { index: 1, min: 1, max: 2, cost: 13.0 },
+    { index: 2, min: 3, max: 5, cost: 9.0 },
+    { index: 3, min: 6, max: 9, cost: 7.0 },
+    { index: 4, min: 10, max: 20, cost: 4.0 },
+    { index: 5, min: 21, max: 40, cost: 3.0 },
+    { index: 6, min: 41, max: 59, cost: 2.0 },
+    { index: 7, min: 60, max: 99, cost: 1.0 },
+    { index: 8, min: 100, max: 200, cost: 0.0 }
   ];
 }
 
 /**
  * Calcola la tariffa di spedizione unitaria per pezzo (in USD) in base al numero totale di pezzi del lotto.
  * Legge tutte le fasce disponibili e restituisce automaticamente quella corretta in modo generico.
+ * Per quantità superiori a 200 pezzi (o al massimo configurato), applica la tariffa dell'ultimo scaglione.
  */
 function getShippingRateByQuantity(totalQuantity, settings = null) {
   const qty = Math.max(0, parseInt(totalQuantity, 10) || 0);
   const tiers = extractShippingTiers(settings);
   if (!tiers || tiers.length === 0) {
-    return 4.0;
+    return 0.0;
   }
 
   const effectiveQty = qty > 0 ? qty : 1;
@@ -1165,6 +1279,9 @@ function getShippingRateByQuantity(totalQuantity, settings = null) {
   }
 
   const lastTier = tiers[tiers.length - 1];
+  if (effectiveQty > (lastTier.max || 0)) {
+    console.log(`[SPEDIZIONE] Quantità (${effectiveQty}) superiore al massimo configurato (${lastTier.max}). Applicata tariffa dell'ultimo scaglione: $${lastTier.cost}`);
+  }
   return Number(lastTier.cost);
 }
 
@@ -1458,21 +1575,73 @@ async function downloadTemplateIfNeeded() {
   return result;
 }
 
-async function downloadImageAsBuffer(url) {
-  if (!url || !url.startsWith('http')) return null;
+async function downloadImageAsBuffer(rawUrl) {
+  if (!rawUrl) return null;
+  let url = String(rawUrl).trim();
+  // Pulisce formula =IMAGE("...") o apici
+  url = url.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
+  if (!url || url === '-' || url.toLowerCase() === 'undefined' || url.toLowerCase() === 'null') return null;
+
+  // 1. Base64 Data URI
+  if (url.startsWith('data:image/')) {
+    try {
+      const parts = url.split(',');
+      if (parts.length > 1) {
+        return Buffer.from(parts[1], 'base64');
+      }
+    } catch (e) {
+      console.warn("Failed to parse base64 image data:", e.message);
+    }
+    return null;
+  }
+
+  // 2. File locale su disco o path relativo
+  if (url.startsWith('/') || url.startsWith('./') || url.startsWith('src/') || url.startsWith('assets/') || url.startsWith('uploads/')) {
+    try {
+      const relPath = url.startsWith('/') ? url.slice(1) : url;
+      const candidates = [
+        path.join(__dirname, relPath),
+        path.join(__dirname, relPath.replace(/^src\//, '')),
+        path.join(__dirname, 'public', relPath),
+        path.join(__dirname, 'uploads', path.basename(relPath)),
+        path.join(__dirname, 'assets', path.basename(relPath)),
+        path.join(__dirname, 'assets', 'homepage', path.basename(relPath))
+      ];
+      for (const cand of candidates) {
+        if (fs.existsSync(cand) && fs.statSync(cand).isFile()) {
+          return fs.readFileSync(cand);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to read local image:", e.message);
+    }
+  }
+
+  if (!url.startsWith('http')) return null;
+
   try {
-    const res = await fetch(url, {
+    // Rimuove eventuale frammento hash es. #zoom=...
+    const fetchUrl = url.split('#')[0];
+    const res = await fetch(fetchUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15',
+        'Accept': 'image/png,image/jpeg,image/gif;q=0.9,*/*;q=0.1'
       },
       signal: AbortSignal.timeout(6000)
     });
     if (res.ok) {
+      const cType = (res.headers.get('content-type') || '').toLowerCase();
+      if (cType.includes('text/html') || cType.includes('application/json')) {
+        return null;
+      }
       const arrayBuffer = await res.arrayBuffer();
-      return Buffer.from(arrayBuffer);
+      const buf = Buffer.from(arrayBuffer);
+      if (buf.length >= 50 && buf[0] !== 0x3C) { // Non è un file HTML
+        return buf;
+      }
     }
   } catch (err) {
-    console.warn(`Failed to download image from ${url}:`, err.message);
+    // Timeout o errore di rete
   }
   return null;
 }
@@ -1657,7 +1826,8 @@ async function generaExcelLotto(lottoId, orders) {
       const squadra = matchedProd ? matchedProd.squadra.trim() : (item.squadra || "").trim();
       const categoria = matchedProd ? String(matchedProd.categoria || "").trim() : String(item.categoria || "").trim();
       const season = matchedProd ? String(matchedProd.stagione || "25/26").trim() : (item.stagione || "25/26");
-      const imageUrl = (matchedProd && matchedProd.immagine) ? matchedProd.immagine.trim() : (item.imgUrl || item.immagine || "").trim();
+      let rawImg = (matchedProd && matchedProd.immagine) ? matchedProd.immagine : (item.imgUrl || item.immagine || order.foto || "");
+      const imageUrl = (typeof rawImg === 'string') ? rawImg.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim() : "";
       const styleEng = getExcelProductStyle(item, matchedProd);
 
       const normalized = {
@@ -1695,8 +1865,8 @@ async function generaExcelLotto(lottoId, orders) {
   // Download parallelo delle immagini uniche con cache e limite di concorrenza
   const uniqueUrls = new Set();
   normalizedItems.forEach(item => {
-    if (item.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.startsWith('http')) {
-      uniqueUrls.add(item.imageUrl);
+    if (item.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.trim().length > 0) {
+      uniqueUrls.add(item.imageUrl.trim());
     }
   });
 
@@ -1719,10 +1889,13 @@ async function generaExcelLotto(lottoId, orders) {
     const { titleEng, titleCh, styleEng } = compileProductFieldsForExcel(item);
     const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
 
-    // Col A (1): Immagine incorporata realmente con verifica precisa del formato tramite magic bytes
+    // Col A (1): Immagine incorporata realmente nel workbook
+    row.height = 42;
     const imgUrl = item.imageUrl;
+    row.getCell(1).value = "";
     if (imgUrl) {
-      const imgBuffer = imageCache.get(imgUrl);
+      const cleanUrl = String(imgUrl).replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
+      const imgBuffer = imageCache.get(cleanUrl) || imageCache.get(imgUrl);
       if (imgBuffer) {
         const detectedExt = detectImageFormat(imgBuffer);
         if (detectedExt) {
@@ -1733,23 +1906,15 @@ async function generaExcelLotto(lottoId, orders) {
             });
             
             worksheet.addImage(imageId, {
-              tl: { col: 0, row: currentRowNum - 1 },
-              ext: { width: 45, height: 45 },
+              tl: { col: 0.1, row: currentRowNum - 1 + 0.05 },
+              ext: { width: 42, height: 42 },
               editAs: 'oneCell'
             });
-            row.height = 40;
           } catch (imgErr) {
-            console.warn("Real embedding failed, using formula fallback:", imgErr.message);
-            row.getCell(1).value = { formula: `IMAGE("${imgUrl}")` };
+            console.warn("Lotto image embedding failed:", imgErr.message);
           }
-        } else {
-          row.getCell(1).value = { formula: `IMAGE("${imgUrl}")` };
         }
-      } else {
-        row.getCell(1).value = { formula: `IMAGE("${imgUrl}")` };
       }
-    } else {
-      row.getCell(1).value = "";
     }
 
     row.getCell(2).value = titleEng;          // Col B (2): 标题(title)
@@ -1943,12 +2108,13 @@ async function handleDownloadExcelLotto(req, res, targetLottoId) {
 
 // Lazy initialization of the Supabase client to prevent startup crash if keys are missing
 let supabaseClient = null;
+let supabaseAdminClient = null;
 
 function getSupabaseClient() {
   if (supabaseClient) return supabaseClient;
   
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!supabaseUrl || !supabaseKey) {
     console.warn("⚠️ Warning: SUPABASE_URL or SUPABASE_ANON_KEY/SERVICE_ROLE_KEY not set. Falling back to local database.");
@@ -1961,6 +2127,30 @@ function getSupabaseClient() {
   } catch (err) {
     console.warn("⚠️ Information: Supabase client is not initialized or invalid credentials:", err.message);
     return null;
+  }
+}
+
+function getSupabaseAdminClient() {
+  if (supabaseAdminClient) return supabaseAdminClient;
+
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !adminKey) {
+    return getSupabaseClient();
+  }
+
+  try {
+    supabaseAdminClient = createClient(supabaseUrl, adminKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
+    return supabaseAdminClient;
+  } catch (err) {
+    console.warn("⚠️ Information: Supabase admin client initialization fallback:", err.message);
+    return getSupabaseClient();
   }
 }
 
@@ -2073,11 +2263,33 @@ async function getDbOrders() {
       const existing = mergedMap.get(matchedKey);
       const mergedStatus = dbo.status || existing.status || null;
       const mergedIsArchived = (dbo.is_archived !== undefined && dbo.is_archived !== null) ? dbo.is_archived : existing.is_archived;
+      const mergedCarrello = (dbo.carrello && Array.isArray(dbo.carrello) && dbo.carrello.length > 0) ? dbo.carrello : (existing.carrello || dbo.carrello);
+      const mergedCapitanoNome = dbo.capitano_nome || existing.capitano_nome || null;
+      const mergedCapitanoTelefono = dbo.capitano_telefono || existing.capitano_telefono || null;
+      const mergedTorneoNome = dbo.torneo_nome || existing.torneo_nome || null;
+      const mergedNomeSquadra = dbo.nome_squadra || existing.nome_squadra || null;
+      const mergedCodiceUnivoco = dbo.codice_univoco || existing.codice_univoco || null;
+      const mergedIsConvenzione = (dbo.is_convenzione !== undefined) ? dbo.is_convenzione : existing.is_convenzione;
+
+      const mergedObj = {
+        ...existing,
+        ...dbo,
+        status: mergedStatus,
+        is_archived: mergedIsArchived,
+        carrello: mergedCarrello,
+        capitano_nome: mergedCapitanoNome,
+        capitano_telefono: mergedCapitanoTelefono,
+        torneo_nome: mergedTorneoNome,
+        nome_squadra: mergedNomeSquadra,
+        codice_univoco: mergedCodiceUnivoco,
+        is_convenzione: mergedIsConvenzione
+      };
+
       if (keyById && matchedKey !== keyById) {
         mergedMap.delete(matchedKey);
-        mergedMap.set(keyById, { ...existing, ...dbo, status: mergedStatus, is_archived: mergedIsArchived });
+        mergedMap.set(keyById, mergedObj);
       } else {
-        mergedMap.set(matchedKey, { ...existing, ...dbo, status: mergedStatus, is_archived: mergedIsArchived });
+        mergedMap.set(matchedKey, mergedObj);
       }
     } else {
       const finalKey = keyById || keyByData || `item_${Math.random()}`;
@@ -2085,7 +2297,48 @@ async function getDbOrders() {
     }
   }
   
-  return Array.from(mergedMap.values());
+  const finalOrders = Array.from(mergedMap.values()).map(o => {
+    if (!o) return o;
+    let capNome = o.capitano_nome || null;
+    let capTel = o.capitano_telefono || null;
+    let torNome = o.torneo_nome || null;
+    let sqNome = o.nome_squadra || null;
+    let codUniv = o.codice_univoco || o.codice_fornitura || null;
+    let isConv = Boolean(o.is_convenzione || codUniv || torNome || sqNome);
+    let totCompletini = 0;
+
+    if (Array.isArray(o.carrello) && o.carrello.length > 0) {
+      for (const it of o.carrello) {
+        if (!it) continue;
+        if (it.fornitura || it.ha_prezzo_concordato || it.torneo_id || it.codice_univoco) {
+          isConv = true;
+          totCompletini += (Number(it.quantita) || 1);
+          const f = it.fornitura || {};
+          if (!capNome && (f.capitano_nome || it.capitano_nome)) capNome = f.capitano_nome || it.capitano_nome;
+          if (!capTel && (f.capitano_telefono || it.capitano_telefono)) capTel = f.capitano_telefono || it.capitano_telefono;
+          if (!torNome && (f.torneo_nome || it.torneo_nome)) torNome = f.torneo_nome || it.torneo_nome;
+          if (!sqNome && (f.nome_squadra || it.nome_squadra)) sqNome = f.nome_squadra || it.nome_squadra;
+          if (!codUniv && (f.codice_univoco || it.codice_univoco)) codUniv = f.codice_univoco || it.codice_univoco;
+        }
+      }
+    }
+
+    if (isConv) {
+      return {
+        ...o,
+        is_convenzione: true,
+        capitano_nome: capNome,
+        capitano_telefono: capTel,
+        torneo_nome: torNome,
+        nome_squadra: sqNome,
+        codice_univoco: codUniv,
+        totale_completini_convenzione: totCompletini > 0 ? totCompletini : (Array.isArray(o.carrello) ? o.carrello.length : 1)
+      };
+    }
+    return o;
+  });
+
+  return finalOrders;
 }
 
 async function ensureLottoExistsInDb(lottoId) {
@@ -2481,13 +2734,29 @@ const DEFAULT_SETTINGS = {
   },
   spedizioneLotto: {
     "range1_min": 1,
-    "range1_max": 10,
-    "range1_cost": 4.0,
-    "range2_min": 11,
-    "range2_max": 20,
-    "range2_cost": 3.0,
-    "range3_min": 21,
-    "range3_cost": 2.0
+    "range1_max": 2,
+    "range1_cost": 13.0,
+    "range2_min": 3,
+    "range2_max": 5,
+    "range2_cost": 9.0,
+    "range3_min": 6,
+    "range3_max": 9,
+    "range3_cost": 7.0,
+    "range4_min": 10,
+    "range4_max": 20,
+    "range4_cost": 4.0,
+    "range5_min": 21,
+    "range5_max": 40,
+    "range5_cost": 3.0,
+    "range6_min": 41,
+    "range6_max": 59,
+    "range6_cost": 2.0,
+    "range7_min": 60,
+    "range7_max": 99,
+    "range7_cost": 1.0,
+    "range8_min": 100,
+    "range8_max": 200,
+    "range8_cost": 0.0
   },
   cambioValuta: {
     "mode": "auto",
@@ -2582,8 +2851,8 @@ function assicuraMigrazioneCategorie(settings) {
 
 function assicuraMigrazioneFiltri(settings) {
   if (!settings) return settings;
-  if (!Array.isArray(settings.filtriCatalogo) || settings.filtriCatalogo.length === 0) {
-    settings.filtriCatalogo = JSON.parse(JSON.stringify(DEFAULT_SETTINGS.filtriCatalogo));
+  if (!Array.isArray(settings.filtriCatalogo)) {
+    settings.filtriCatalogo = [];
   }
   return settings;
 }
@@ -2652,21 +2921,18 @@ async function loadSettingsFromSupabase() {
         console.warn("⚠️ Errore lettura 'catalog_settings' da Supabase:", catErr.message);
       }
 
-      // Verifichiamo se occorre effettuare la MIGRAZIONE AUTOMATICA iniziale (se catalog_settings è vuoto o non contiene dati)
-      const keysToMigrate = ['categorie', 'filtriCatalogo', 'regoleImportazioneJson'];
-      const missingOrEmptyKeys = keysToMigrate.filter(k => 
-        !catalogMap[k] || (Array.isArray(catalogMap[k]) && catalogMap[k].length === 0)
-      );
+      // Verifichiamo se occorre effettuare la configurazione iniziale di chiavi mancanti in catalog_settings
+      const keysToMigrate = ['categorie', 'filtriCatalogo', 'regoleImportazioneJson', 'spedizioneLotto'];
+      const missingKeys = keysToMigrate.filter(k => catalogMap[k] === undefined);
 
-      if (missingOrEmptyKeys.length > 0) {
-        console.log(`[DEBUG] Rilevate chiavi mancanti o vuote in 'catalog_settings': [${missingOrEmptyKeys.join(', ')}]. Avvio migrazione automatica da settings.json...`);
+      if (missingKeys.length > 0) {
+        console.log(`[DEBUG] Rilevate chiavi mancanti in 'catalog_settings': [${missingKeys.join(', ')}]. Inizializzazione...`);
         const nowIso = new Date().toISOString();
         const rowsToUpsert = [];
 
-        keysToMigrate.forEach(k => {
-          const valToSave = (catalogMap[k] && Array.isArray(catalogMap[k]) && catalogMap[k].length > 0)
-            ? catalogMap[k]
-            : (settings[k] && Array.isArray(settings[k]) && settings[k].length > 0 ? settings[k] : DEFAULT_SETTINGS[k]);
+        missingKeys.forEach(k => {
+          const hasLocalVal = settings[k] !== undefined && Array.isArray(settings[k]) && settings[k].length > 0;
+          const valToSave = hasLocalVal ? settings[k] : JSON.parse(JSON.stringify(DEFAULT_SETTINGS[k] || []));
           
           rowsToUpsert.push({
             key: k,
@@ -2685,14 +2951,27 @@ async function loadSettingsFromSupabase() {
       }
 
       // Applicazione configurazione catalogo da catalog_settings (UNICA FONTE DI VERITÀ)
-      if (Array.isArray(catalogMap.categorie)) {
+      if (Array.isArray(catalogMap.categorie) && catalogMap.categorie.length > 0) {
         settings.categorie = catalogMap.categorie;
+      } else if (!Array.isArray(settings.categorie) || settings.categorie.length === 0) {
+        settings.categorie = JSON.parse(JSON.stringify(DEFAULT_SETTINGS.categorie));
       }
-      if (Array.isArray(catalogMap.filtriCatalogo)) {
+
+      if (Array.isArray(catalogMap.filtriCatalogo) && (catalogMap.filtriCatalogo.length > 0 || catalogMap.filtriCatalogo._isAdminEmpty === true)) {
         settings.filtriCatalogo = catalogMap.filtriCatalogo;
+      } else if (Array.isArray(settings.filtriCatalogo) && settings.filtriCatalogo.length > 0) {
+        // Mantiene filtri locali già in memoria se Supabase conteneva un array vuoto non intenzionale
+      } else {
+        settings.filtriCatalogo = JSON.parse(JSON.stringify(DEFAULT_SETTINGS.filtriCatalogo));
       }
-      if (Array.isArray(catalogMap.regoleImportazioneJson)) {
+
+      if (Array.isArray(catalogMap.regoleImportazioneJson) && catalogMap.regoleImportazioneJson.length > 0) {
         settings.regoleImportazioneJson = catalogMap.regoleImportazioneJson;
+      } else if (!Array.isArray(settings.regoleImportazioneJson) || settings.regoleImportazioneJson.length === 0) {
+        settings.regoleImportazioneJson = JSON.parse(JSON.stringify(DEFAULT_SETTINGS.regoleImportazioneJson));
+      }
+      if (catalogMap.spedizioneLotto && typeof catalogMap.spedizioneLotto === 'object') {
+        settings.spedizioneLotto = catalogMap.spedizioneLotto;
       }
       if (catalogMap.sicurezza && typeof catalogMap.sicurezza === 'object') {
         settings.sicurezza = {
@@ -3010,10 +3289,61 @@ app.post('/api/settings', async (req, res) => {
       settingsToSave = getSettings();
     }
 
+    // Carica la configurazione attuale salvata per fusione (Source of Truth)
+    const existingSettings = await loadSettingsFromSupabase();
+
     // Rimuovi proprietà speciali prima del salvataggio su file
-    const settingsCopy = JSON.parse(JSON.stringify(settingsToSave));
-    delete settingsCopy.applyToExisting;
-    delete settingsCopy.targetPairsToUpdate;
+    const incomingCopy = JSON.parse(JSON.stringify(settingsToSave || {}));
+    delete incomingCopy.applyToExisting;
+    delete incomingCopy.targetPairsToUpdate;
+
+    // FUSIONE GARANTITA: Mantieni tutti i dati esistenti salvo aggiornamenti espliciti
+    const settingsCopy = JSON.parse(JSON.stringify(existingSettings));
+
+    if (Array.isArray(incomingCopy.categorie)) {
+      settingsCopy.categorie = incomingCopy.categorie;
+    }
+    if (Array.isArray(incomingCopy.filtriCatalogo)) {
+      settingsCopy.filtriCatalogo = incomingCopy.filtriCatalogo;
+      if (incomingCopy.filtriCatalogo.length === 0) {
+        settingsCopy.filtriCatalogo._isAdminEmpty = true;
+      }
+    }
+
+    if (Array.isArray(incomingCopy.regoleImportazioneJson)) {
+      settingsCopy.regoleImportazioneJson = incomingCopy.regoleImportazioneJson;
+    }
+    if (incomingCopy.prezziPredefiniti && typeof incomingCopy.prezziPredefiniti === 'object') {
+      settingsCopy.prezziPredefiniti = { ...settingsCopy.prezziPredefiniti, ...incomingCopy.prezziPredefiniti };
+    }
+    if (incomingCopy.regolePrezzi && typeof incomingCopy.regolePrezzi === 'object') {
+      settingsCopy.regolePrezzi = { ...settingsCopy.regolePrezzi, ...incomingCopy.regolePrezzi };
+    }
+    if (incomingCopy.spedizioneLotto && typeof incomingCopy.spedizioneLotto === 'object') {
+      settingsCopy.spedizioneLotto = { ...settingsCopy.spedizioneLotto, ...incomingCopy.spedizioneLotto };
+    }
+    if (incomingCopy.cambioValuta && typeof incomingCopy.cambioValuta === 'object') {
+      settingsCopy.cambioValuta = { ...settingsCopy.cambioValuta, ...incomingCopy.cambioValuta };
+    }
+    if (incomingCopy.contatti && typeof incomingCopy.contatti === 'object') {
+      settingsCopy.contatti = { ...settingsCopy.contatti, ...incomingCopy.contatti };
+    }
+    if (incomingCopy.valoriPredefiniti && typeof incomingCopy.valoriPredefiniti === 'object') {
+      settingsCopy.valoriPredefiniti = { ...settingsCopy.valoriPredefiniti, ...incomingCopy.valoriPredefiniti };
+    }
+    if (incomingCopy.sicurezza && typeof incomingCopy.sicurezza === 'object') {
+      settingsCopy.sicurezza = { ...settingsCopy.sicurezza, ...incomingCopy.sicurezza };
+    }
+
+    // Validazione rigorosa delle fasce di spedizione se presenti
+    if (settingsCopy.spedizioneLotto && typeof settingsCopy.spedizioneLotto === 'object') {
+      const extractedTiers = extractShippingTiers({ spedizioneLotto: settingsCopy.spedizioneLotto });
+      const valResult = validateShippingTiers(extractedTiers);
+      if (!valResult.valid) {
+        console.warn("⚠️ Validazione fasce di spedizione fallita:", valResult.error);
+        return res.status(400).json({ success: false, error: valResult.error });
+      }
+    }
     
     const success = saveSettings(settingsCopy);
     if (!success) {
@@ -3033,6 +3363,14 @@ app.post('/api/settings', async (req, res) => {
           { key: 'regoleImportazioneJson', value: settingsCopy.regoleImportazioneJson || [], updated_at: nowIso }
         ];
 
+        if (settingsCopy.spedizioneLotto !== undefined) {
+          catalogRowsToUpsert.push({
+            key: 'spedizioneLotto',
+            value: settingsCopy.spedizioneLotto,
+            updated_at: nowIso
+          });
+        }
+
         if (settingsCopy.sicurezza !== undefined) {
           catalogRowsToUpsert.push({
             key: 'sicurezza',
@@ -3041,10 +3379,10 @@ app.post('/api/settings', async (req, res) => {
           });
         }
 
-        console.log("[DEBUG] Salvo la configurazione catalogo (categorie, filtriCatalogo, regoleImportazioneJson) su Supabase tabella 'catalog_settings'...");
+        console.log("[DEBUG] Salvo la configurazione catalogo su Supabase:", JSON.stringify(catalogRowsToUpsert));
         const { error: catUpsertErr } = await supabase.from('catalog_settings').upsert(catalogRowsToUpsert, { onConflict: 'key' });
         if (catUpsertErr) {
-          console.error("⚠️ Errore salvataggio 'catalog_settings' su Supabase:", catUpsertErr.message);
+          console.error("⚠️ Errore salvataggio 'catalog_settings' su Supabase:", catUpsertErr);
         } else {
           console.log("✅ Configurazione catalogo salvata con successo in 'catalog_settings' su Supabase.");
         }
@@ -6055,15 +6393,7 @@ function parseFlexibleDecimal(valStr) {
 }
 
 function parseItalianFloat(str) {
-  if (!str) return 0;
-  let clean = String(str).replace('€', '').replace(/\s/g, '');
-  if (clean.includes('.') && clean.includes(',')) {
-    clean = clean.replace(/\./g, '').replace(',', '.');
-  } else if (clean.includes(',')) {
-    clean = clean.replace(',', '.');
-  }
-  const parsed = parseFloat(clean);
-  return isNaN(parsed) ? 0 : parsed;
+  return parseFlexibleDecimal(str);
 }
 
 function estraiNumeroArticoliServer(squadraStr) {
@@ -6091,10 +6421,7 @@ function isOrderActiveForLotto(order) {
 function parseOrderTotalCustomerPaid(order) {
   if (!order) return 0;
   const raw = order.totale !== undefined ? order.totale : (order.totale_ordine !== undefined ? order.totale_ordine : (order.total !== undefined ? order.total : 0));
-  if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
-  const str = String(raw).trim().replace('€', '').replace(/\s/g, '');
-  const parsed = parseFloat(str.replace(/\./g, '').replace(',', '.'));
-  return isNaN(parsed) ? 0 : parsed;
+  return parseFlexibleDecimal(raw);
 }
 
 function calculateLottoTotals(orders, settings, extraExpenses = []) {
@@ -6716,7 +7043,21 @@ function getLocalOrders() {
 function saveLocalOrder(order) {
   try {
     const orders = getLocalOrders();
-    orders.push(order);
+    const idx = orders.findIndex(o => {
+      if (!o) return false;
+      if (order.id !== undefined && order.id !== null && o.id !== undefined && o.id !== null) {
+        return String(o.id) === String(order.id);
+      }
+      if (order.data && o.data) {
+        return String(o.data) === String(order.data);
+      }
+      return false;
+    });
+    if (idx >= 0) {
+      orders[idx] = { ...orders[idx], ...order };
+    } else {
+      orders.push(order);
+    }
     fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf8');
   } catch (err) {
     console.warn("⚠️ Errore scrittura orders_local.json:", err.message);
@@ -8332,19 +8673,7 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null) {
   });
 
   const settings = getSettings();
-  let spedizione_unitaria = 4.0;
-  const rules = settings.spedizioneLotto;
-  if (rules) {
-    if (quant_total >= rules.range1_min && quant_total <= rules.range1_max) {
-      spedizione_unitaria = parseFloat(rules.range1_cost);
-    } else if (quant_total >= rules.range2_min && quant_total <= rules.range2_max) {
-      spedizione_unitaria = parseFloat(rules.range2_cost);
-    } else if (quant_total >= rules.range3_min) {
-      spedizione_unitaria = parseFloat(rules.range3_cost);
-    } else if (rules.range1_cost) {
-      spedizione_unitaria = parseFloat(rules.range1_cost);
-    }
-  }
+  const spedizione_unitaria = getShippingRateByQuantity(quant_total, settings);
 
   const costo_spedizione_usd = quant_total * spedizione_unitaria;
   const costo_totale_usd = costo_completini_usd + costo_personalizzazioni_usd + costo_spedizione_usd;
@@ -9023,10 +9352,498 @@ app.get('/api/tornei/:id/squadre', async (req, res) => {
       return res.status(400).json({ success: false, error: "ID torneo mancante." });
     }
     const squadre = await getTorneoSquadreByTorneoId(id);
-    return res.json({ success: true, squadre });
+    const allOrders = await getDbOrders();
+    const enrichedSquadre = [];
+    for (const s of squadre) {
+      const qOrd = await calcolaQuantitaOrdinataSquadra(s, null, allOrders);
+      const qAss = parseInt(s.quantita_assegnata, 10) || 0;
+      const qRim = Math.max(0, qAss - qOrd);
+      enrichedSquadre.push({
+        ...s,
+        quantita_ordinata: qOrd,
+        quantita_rimanente: qRim
+      });
+    }
+    return res.json({ success: true, squadre: enrichedSquadre });
   } catch (err) {
     console.error("⚠️ Errore GET /api/tornei/:id/squadre:", err.message);
     return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * Genera il file Excel riepilogativo per la fornitura di un torneo.
+ * Comprende i completini ordinati dalle squadre selezionate (o tutte le squadre del torneo).
+ * Opzione per includere il Totale Dovuto per la Convenzione (senza mai mostrare costi interni, margini o spedizione fornitore).
+ * Colonne strictly in italiano con immagini incorporate.
+ */
+async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
+  const allTornei = await getTornei();
+  const torneo = allTornei.find(t => String(t.id) === String(torneoId) || (t.nome && t.nome.toLowerCase() === String(torneoId).toLowerCase()));
+  if (!torneo) {
+    return res.status(404).json({ success: false, error: "Torneo non trovato." });
+  }
+
+  const allSquadre = await getTorneoSquadreByTorneoId(torneo.id);
+  
+  // Filtraggio squadre richieste (se specificate)
+  let filteredSquadre = allSquadre;
+  if (options.squadre) {
+    const list = Array.isArray(options.squadre)
+      ? options.squadre
+      : String(options.squadre).split(',').map(s => s.trim()).filter(Boolean);
+    if (list.length > 0 && !list.includes('all') && !list.includes('tutte')) {
+      const selectedSet = new Set(list.map(s => String(s).toLowerCase()));
+      filteredSquadre = allSquadre.filter(s => {
+        const sId = String(s.id || '').toLowerCase();
+        const sName = String(s.nome_squadra || '').trim().toLowerCase();
+        const sCode = String(s.codice_univoco || '').trim().toLowerCase();
+        return selectedSet.has(sId) || selectedSet.has(sName) || selectedSet.has(sCode);
+      });
+    }
+  }
+
+  const teamMapById = new Map();
+  const teamMapByCode = new Map();
+  const squadraObjById = new Map();
+  filteredSquadre.forEach(s => {
+    if (s.id) {
+      teamMapById.set(String(s.id), s.nome_squadra);
+      squadraObjById.set(String(s.id), s);
+    }
+    if (s.codice_univoco) {
+      teamMapByCode.set(String(s.codice_univoco).trim().toUpperCase(), s);
+    }
+    if (Array.isArray(s.codice_alias)) {
+      s.codice_alias.forEach(al => {
+        if (al) teamMapByCode.set(String(al).trim().toUpperCase(), s);
+      });
+    }
+  });
+
+  // Caricamento catalogo prodotti per immagini e categorie certificate
+  let localProducts = [];
+  try { localProducts = getLocalProducts(); } catch (e) {}
+  let supabaseProducts = [];
+  try {
+    const supabase = getSupabaseClient();
+    if (supabase) supabaseProducts = await getAllProductsFromSupabase(supabase);
+  } catch (e) {}
+  const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+
+  const prodByIdMap = new Map();
+  const prodByLegacyIdMap = new Map();
+  const prodByVersioneMap = new Map();
+  allDbProducts.forEach(p => {
+    if (p.id !== undefined && p.id !== null && String(p.id).trim() !== "") {
+      prodByIdMap.set(String(p.id).trim(), p);
+    }
+    if (p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id).trim() !== "") {
+      prodByLegacyIdMap.set(String(p.legacy_id).trim(), p);
+    }
+    if (p.versione) {
+      prodByVersioneMap.set(String(p.versione).trim().toLowerCase(), p);
+    }
+  });
+
+  // Recupera ordini e filtra per questo torneo
+  const allOrders = await getDbOrders();
+  const canceledAdminOrderIds = new Set();
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data: cOrders } = await supabase
+        .from('customer_orders')
+        .select('admin_order_id, status')
+        .or('status.eq.annullato_dal_cliente,status.eq.Annullato dal Cliente');
+      if (Array.isArray(cOrders)) {
+        cOrders.forEach(co => {
+          if (co.admin_order_id) canceledAdminOrderIds.add(String(co.admin_order_id));
+        });
+      }
+    } catch (e) {}
+  }
+
+  const rawItems = [];
+
+  for (const order of allOrders) {
+    if (!order) continue;
+    if (isOrderCanceled(order) || (order.id !== undefined && order.id !== null && canceledAdminOrderIds.has(String(order.id)))) {
+      continue;
+    }
+
+    let cart = Array.isArray(order.carrello) && order.carrello.length > 0
+      ? order.carrello
+      : ricostruisciCarrelloDaStringhe(order);
+
+    for (const item of cart) {
+      if (!item) continue;
+      const itemName = item.squadra || item.versione || '';
+      if (isTechnicalShippingOrServiceLine(itemName)) continue;
+      if (String(itemName).toLowerCase().includes('spedizione')) continue;
+
+      let matchedTeamName = null;
+      let matchedSquadraObj = null;
+      const itTeamId = String(item.torneo_squadra_id || item.squadra_id || item.fornitura?.torneo_squadra_id || item.fornitura?.squadra_id || '').trim();
+      const itCode = String(item.codice_univoco || item.fornitura?.codice_univoco || order.codice_univoco || '').trim().toUpperCase();
+      const itTorneoId = String(item.torneo_id || item.fornitura?.torneo_id || order.torneo_id || '').trim();
+
+      if (itTeamId && squadraObjById.has(itTeamId)) {
+        matchedSquadraObj = squadraObjById.get(itTeamId);
+        matchedTeamName = matchedSquadraObj.nome_squadra;
+      } else if (itCode && teamMapByCode.has(itCode)) {
+        matchedSquadraObj = teamMapByCode.get(itCode);
+        matchedTeamName = matchedSquadraObj.nome_squadra;
+      } else if (itTorneoId && String(itTorneoId) === String(torneo.id)) {
+        const itemTeamNameClean = String(item.nome_squadra || item.fornitura?.nome_squadra || '').trim().toLowerCase();
+        const foundSq = filteredSquadre.find(sq => 
+          (sq.nome_squadra && sq.nome_squadra.trim().toLowerCase() === itemTeamNameClean) ||
+          String(sq.id) === String(itTeamId)
+        );
+        if (foundSq) {
+          matchedSquadraObj = foundSq;
+          matchedTeamName = foundSq.nome_squadra;
+        } else if (filteredSquadre.length === allSquadre.length && allSquadre.length === 1) {
+          matchedSquadraObj = filteredSquadre[0];
+          matchedTeamName = matchedSquadraObj.nome_squadra;
+        }
+      }
+
+      if (matchedTeamName) {
+        // Risoluzione prodotto nel catalogo
+        let matchedProd = null;
+        if (item.id && prodByIdMap.has(String(item.id).trim())) {
+          matchedProd = prodByIdMap.get(String(item.id).trim());
+        }
+        if (!matchedProd && item.legacy_id && prodByLegacyIdMap.has(String(item.legacy_id).trim())) {
+          matchedProd = prodByLegacyIdMap.get(String(item.legacy_id).trim());
+        }
+        if (!matchedProd && itemName) {
+          const cleanName = itemName.replace(/^\[?\d+x\s*\]?\s*/i, '').replace(/^\[|\]$/g, '').trim().toLowerCase();
+          matchedProd = prodByVersioneMap.get(cleanName);
+          if (!matchedProd) {
+            for (const [verKey, p] of prodByVersioneMap.entries()) {
+              if (verKey.includes(cleanName) || cleanName.includes(verKey)) {
+                matchedProd = p;
+                break;
+              }
+            }
+          }
+        }
+
+        const nomeCompletino = matchedProd ? matchedProd.versione.trim() : itemName.replace(/^\[?\d+x\s*\]?\s*/i, '').replace(/^\[|\]$/g, '').trim();
+        let categoria = matchedProd ? String(matchedProd.categoria || 'Kit').trim() : String(item.categoria || 'Kit').trim();
+        if (!categoria || categoria.toLowerCase() === 'undefined' || categoria === '__coupon__') categoria = 'Kit';
+
+        let taglia = String(item.taglia || 'M').replace(/^1x\s*\[|\]$/g, '').replace(/^\[|\]$/g, '').replace(/^Taglia\s*/i, '').trim();
+        if (!taglia || taglia === '-') taglia = 'M';
+
+        let rawImgUrl = (matchedProd && matchedProd.immagine) ? matchedProd.immagine : (item.imgUrl || item.immagine || order.foto || '');
+        if (typeof rawImgUrl === 'string') {
+          rawImgUrl = rawImgUrl.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
+        }
+
+        // Personalizzazioni effettive (Nome, Numero, Patch)
+        const personalizzazioneTesto = formatCustomizationForSummaryExcel(item.infoPerso || item.personalizzazione || '', item);
+
+        const quantita = parseInt(item.quantita, 10) || 1;
+
+        // Calcolo prezzo concordato unitario secondo il sistema economico esistente
+        let itemUnitPrice = 0;
+        if (item.fornitura && item.fornitura.prezzo_concordato_unitario !== undefined && item.fornitura.prezzo_concordato_unitario !== null && Number(item.fornitura.prezzo_concordato_unitario) > 0) {
+          itemUnitPrice = Number(item.fornitura.prezzo_concordato_unitario);
+        } else if (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null && Number(item.prezzo_concordato) > 0) {
+          itemUnitPrice = Number(item.prezzo_concordato);
+        } else if (matchedSquadraObj && matchedSquadraObj.prezzo_concordato_unitario !== undefined && matchedSquadraObj.prezzo_concordato_unitario !== null && Number(matchedSquadraObj.prezzo_concordato_unitario) > 0) {
+          itemUnitPrice = Number(matchedSquadraObj.prezzo_concordato_unitario);
+        } else if (torneo.prezzo_concordato_unitario !== undefined && torneo.prezzo_concordato_unitario !== null && Number(torneo.prezzo_concordato_unitario) > 0) {
+          itemUnitPrice = Number(torneo.prezzo_concordato_unitario);
+        } else if (item.prezzo !== undefined && item.prezzo !== null && Number(item.prezzo) > 0) {
+          itemUnitPrice = Number(item.prezzo);
+        } else {
+          itemUnitPrice = 20.00;
+        }
+
+        rawItems.push({
+          squadra: matchedTeamName,
+          nomeCompletino,
+          categoria,
+          taglia,
+          personalizzazioni: personalizzazioneTesto,
+          quantita,
+          imageUrl: rawImgUrl,
+          unitPrice: itemUnitPrice
+        });
+      }
+    }
+  }
+
+  // Aggregazione per righe identiche (stessa squadra, completino, categoria, taglia, personalizzazione)
+  const groupedMap = new Map();
+  for (const it of rawItems) {
+    const key = `${it.squadra}___${it.nomeCompletino}___${it.categoria}___${it.taglia}___${it.personalizzazioni}___${it.imageUrl}`;
+    if (groupedMap.has(key)) {
+      groupedMap.get(key).quantita += it.quantita;
+    } else {
+      groupedMap.set(key, { ...it });
+    }
+  }
+
+  const finalItems = Array.from(groupedMap.values()).sort((a, b) => {
+    if (a.squadra !== b.squadra) return a.squadra.localeCompare(b.squadra);
+    if (a.nomeCompletino !== b.nomeCompletino) return a.nomeCompletino.localeCompare(b.nomeCompletino);
+    return a.taglia.localeCompare(b.taglia);
+  });
+
+  // Download parallelo delle immagini uniche con cache
+  const uniqueUrls = new Set();
+  finalItems.forEach(it => {
+    if (it.imageUrl && typeof it.imageUrl === 'string') uniqueUrls.add(it.imageUrl);
+  });
+  const imageCache = new Map();
+  const urlList = Array.from(uniqueUrls);
+  for (let i = 0; i < urlList.length; i += 10) {
+    const chunk = urlList.slice(i, i + 10);
+    await Promise.all(chunk.map(async (u) => {
+      const buf = await downloadImageAsBuffer(u);
+      if (buf) imageCache.set(u, buf);
+    }));
+  }
+
+  // Costruzione Workbook ExcelJS
+  const workbook = new exceljs.Workbook();
+  workbook.creator = 'Elite Tournament Store';
+  workbook.lastModifiedBy = 'Elite Tournament Store';
+  workbook.created = new Date();
+
+  const worksheet = workbook.addWorksheet('Riepilogo Fornitura', {
+    views: [{ showGridLines: true }]
+  });
+
+  worksheet.columns = [
+    { header: '', key: 'squadra', width: 24 },
+    { header: '', key: 'immagine', width: 14 },
+    { header: '', key: 'nomeCompletino', width: 34 },
+    { header: '', key: 'categoria', width: 18 },
+    { header: '', key: 'taglia', width: 12 },
+    { header: '', key: 'personalizzazioni', width: 24 },
+    { header: '', key: 'quantita', width: 14 }
+  ];
+
+  // Row 1: Banner Torneo
+  worksheet.mergeCells('A1:G1');
+  const titleCell = worksheet.getCell('A1');
+  titleCell.value = `RIEPILOGO FORNITURA — TORNEO: ${(torneo.nome || 'TORNEO').toUpperCase()}`;
+  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  worksheet.getRow(1).height = 36;
+
+  // Row 2: Info Metadati
+  worksheet.mergeCells('A2:G2');
+  const subCell = worksheet.getCell('A2');
+  const totalPz = finalItems.reduce((sum, item) => sum + item.quantita, 0);
+  const totalDueEur = finalItems.reduce((sum, item) => sum + (item.unitPrice * item.quantita), 0);
+  subCell.value = `Data Esportazione: ${new Date().toLocaleDateString('it-IT')} | Squadre Coinvolte: ${filteredSquadre.length} | Totale Pezzi Ordinati: ${totalPz}`;
+  subCell.font = { name: 'Segoe UI', size: 10, italic: true, color: { argb: 'FF334155' } };
+  subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+  subCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  worksheet.getRow(2).height = 22;
+
+  // Row 3: Spaziatura
+  worksheet.getRow(3).height = 10;
+
+  // Row 4: Intestazioni Tabella (STRETTAMENTE IN ITALIANO)
+  const headerRow = worksheet.getRow(4);
+  headerRow.height = 28;
+  const headers = ['SQUADRA', 'IMMAGINE', 'NOME COMPLETINO', 'CATEGORIA', 'TAGLIA', 'PERSONALIZZAZIONI', 'QUANTITÀ'];
+  headers.forEach((h, colIdx) => {
+    const cell = headerRow.getCell(colIdx + 1);
+    cell.value = h;
+    cell.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FF0F172A' } },
+      bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
+      left: { style: 'thin', color: { argb: 'FF334155' } },
+      right: { style: 'thin', color: { argb: 'FF334155' } }
+    };
+  });
+
+  // Righe Dati
+  let currentRowNum = 5;
+  if (finalItems.length === 0) {
+    const emptyRow = worksheet.getRow(currentRowNum);
+    emptyRow.height = 30;
+    worksheet.mergeCells(`A${currentRowNum}:G${currentRowNum}`);
+    const cell = emptyRow.getCell(1);
+    cell.value = "Nessun completino ordinato al momento per le squadre selezionate.";
+    cell.font = { name: 'Segoe UI', size: 11, italic: true, color: { argb: 'FF64748B' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    currentRowNum++;
+  } else {
+    for (let i = 0; i < finalItems.length; i++) {
+      const it = finalItems[i];
+      const row = worksheet.getRow(currentRowNum);
+      row.height = 42;
+
+      const isEven = i % 2 === 0;
+      const bgArgb = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
+
+      // Col 1: SQUADRA
+      const cell1 = row.getCell(1);
+      cell1.value = it.squadra;
+      cell1.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+      cell1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+
+      // Col 2: IMMAGINE
+      const cell2 = row.getCell(2);
+      cell2.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell2.value = "";
+      if (it.imageUrl) {
+        const cleanUrl = String(it.imageUrl).replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
+        const buf = imageCache.get(cleanUrl) || imageCache.get(it.imageUrl);
+        if (buf) {
+          const ext = detectImageFormat(buf);
+          if (ext) {
+            try {
+              const imgId = workbook.addImage({ buffer: buf, extension: ext });
+              worksheet.addImage(imgId, {
+                tl: { col: 1.1, row: currentRowNum - 1 + 0.05 },
+                ext: { width: 42, height: 42 },
+                editAs: 'oneCell'
+              });
+            } catch (imgErr) {
+              console.warn("⚠️ Error adding image to excel tournament summary:", imgErr.message);
+            }
+          }
+        }
+      }
+
+      // Col 3: NOME COMPLETINO
+      const cell3 = row.getCell(3);
+      cell3.value = it.nomeCompletino;
+      cell3.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+      cell3.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+
+      // Col 4: CATEGORIA
+      const cell4 = row.getCell(4);
+      cell4.value = it.categoria;
+      cell4.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF475569' } };
+      cell4.alignment = { vertical: 'middle', horizontal: 'center' };
+
+      // Col 5: TAGLIA
+      const cell5 = row.getCell(5);
+      cell5.value = it.taglia;
+      cell5.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+      cell5.alignment = { vertical: 'middle', horizontal: 'center' };
+
+      // Col 6: PERSONALIZZAZIONI
+      const cell6 = row.getCell(6);
+      cell6.value = it.personalizzazioni;
+      cell6.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF334155' } };
+      cell6.alignment = { vertical: 'middle', horizontal: 'center' };
+
+      // Col 7: QUANTITÀ
+      const cell7 = row.getCell(7);
+      cell7.value = it.quantita;
+      cell7.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF0F172A' } };
+      cell7.alignment = { vertical: 'middle', horizontal: 'center' };
+
+      // Bordi e sfondo
+      for (let c = 1; c <= 7; c++) {
+        const cCell = row.getCell(c);
+        cCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+        cCell.border = {
+          top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+        };
+      }
+
+      currentRowNum++;
+    }
+  }
+
+  // Riga Totale Complessivo Pezzi
+  const totalRow = worksheet.getRow(currentRowNum);
+  totalRow.height = 30;
+  worksheet.mergeCells(`A${currentRowNum}:F${currentRowNum}`);
+  const totalLabelCell = totalRow.getCell(1);
+  totalLabelCell.value = "TOTALE COMPLESSIVO CAPI FORNITURA:";
+  totalLabelCell.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF0F172A' } };
+  totalLabelCell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+
+  const totalValCell = totalRow.getCell(7);
+  totalValCell.value = totalPz;
+  totalValCell.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF0F172A' } };
+  totalValCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  for (let c = 1; c <= 7; c++) {
+    const cell = totalRow.getCell(c);
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+    cell.border = {
+      top: { style: 'medium', color: { argb: 'FF94A3B8' } },
+      bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+    };
+  }
+
+  // Sezione Totale Economico Convenzione (se richiesta esplicitamente)
+  if (options.include_prezzo) {
+    currentRowNum++;
+    const priceRow = worksheet.getRow(currentRowNum);
+    priceRow.height = 32;
+    worksheet.mergeCells(`A${currentRowNum}:F${currentRowNum}`);
+    const priceLabelCell = priceRow.getCell(1);
+    priceLabelCell.value = "TOTALE DOVUTO PER LA CONVENZIONE:";
+    priceLabelCell.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF92400E' } };
+    priceLabelCell.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+
+    const priceValCell = priceRow.getCell(7);
+    priceValCell.value = `€ ${totalDueEur.toFixed(2).replace('.', ',')}`;
+    priceValCell.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF92400E' } };
+    priceValCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    for (let c = 1; c <= 7; c++) {
+      const cell = priceRow.getCell(c);
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } }; // Light Amber/Gold
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFF59E0B' } },
+        bottom: { style: 'double', color: { argb: 'FFB45309' } },
+        left: { style: 'thin', color: { argb: 'FFF59E0B' } },
+        right: { style: 'thin', color: { argb: 'FFF59E0B' } }
+      };
+    }
+  }
+
+  const cleanTorneoName = (torneo.nome || 'Torneo').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const filename = `Riepilogo_Fornitura_${cleanTorneoName}.xlsx`;
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+  await workbook.xlsx.write(res);
+  res.end();
+}
+
+app.get('/api/tornei/:id/excel-riepilogo', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID torneo mancante." });
+    }
+    const squadreParam = req.query.squadre;
+    const includePrezzo = req.query.include_prezzo === 'true' || req.query.include_prezzo === '1';
+    await generaExcelRiepilogoTorneo(id, res, { squadre: squadreParam, include_prezzo: includePrezzo });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/tornei/:id/excel-riepilogo:", err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
   }
 });
 
@@ -9100,6 +9917,73 @@ async function getAuthoritativeProduct(item) {
   return null;
 }
 
+// Helper per trovare una squadra torneo per codice_univoco o codice_alias
+function findSquadraByCodice(tutteSquadre, rawCodice) {
+  if (!Array.isArray(tutteSquadre) || !rawCodice) return null;
+  const codClean = String(rawCodice).trim().toUpperCase();
+  return tutteSquadre.find(s => {
+    if (!s) return false;
+    if (s.codice_univoco && String(s.codice_univoco).trim().toUpperCase() === codClean) return true;
+    if (Array.isArray(s.codice_alias) && s.codice_alias.some(a => String(a).trim().toUpperCase() === codClean)) return true;
+    if (s.codice_alias && typeof s.codice_alias === 'string' && String(s.codice_alias).trim().toUpperCase() === codClean) return true;
+    return false;
+  }) || null;
+}
+
+// Helper per determinare se un ordine è annullato
+function isOrderCanceled(order) {
+  if (!order) return false;
+  const statusStr = String(order.status || order.data_status || order.stato || (order.data && order.data.status) || '').trim().toLowerCase();
+  return statusStr === 'annullato_dal_cliente' || 
+         statusStr === 'annullato dal cliente' || 
+         statusStr === 'annullato' || 
+         statusStr.includes('annullat') || 
+         statusStr === 'canceled' || 
+         statusStr === 'cancelled';
+}
+
+// Helper per verificare se un ordine appartiene alla convenzione specificata
+function isOrderMatchingConvenzione(order, targetCodice, targetSquadraId) {
+  if (!order) return false;
+  const codTarget = targetCodice ? String(targetCodice).trim().toUpperCase() : null;
+  const sqTarget = targetSquadraId ? String(targetSquadraId) : null;
+
+  if (codTarget) {
+    if (order.codice_univoco && String(order.codice_univoco).trim().toUpperCase() === codTarget) return true;
+    if (order.codice_fornitura && String(order.codice_fornitura).trim().toUpperCase() === codTarget) return true;
+  }
+  if (sqTarget) {
+    if (order.squadra_id && String(order.squadra_id) === sqTarget) return true;
+    if (order.torneo_squadra_id && String(order.torneo_squadra_id) === sqTarget) return true;
+  }
+
+  if (Array.isArray(order.carrello) && order.carrello.length > 0) {
+    for (const item of order.carrello) {
+      if (!item) continue;
+      if (item.fornitura) {
+        if (typeof item.fornitura === 'object') {
+          const itCod = item.fornitura.codice_univoco || item.fornitura.codice_fornitura || item.fornitura.codice;
+          if (codTarget && itCod && String(itCod).trim().toUpperCase() === codTarget) return true;
+          const itSq = item.fornitura.squadra_id || item.fornitura.id || item.fornitura.torneo_squadra_id;
+          if (sqTarget && itSq && String(itSq) === sqTarget) return true;
+        } else if (typeof item.fornitura === 'string' && codTarget) {
+          if (String(item.fornitura).trim().toUpperCase() === codTarget) return true;
+        }
+      }
+      if (codTarget) {
+        const itCod = item.codice_univoco || item.codice_fornitura || item.fornitura_codice;
+        if (itCod && String(itCod).trim().toUpperCase() === codTarget) return true;
+      }
+      if (sqTarget) {
+        const itSq = item.squadra_id || item.torneo_squadra_id;
+        if (itSq && String(itSq) === sqTarget) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 // Helper e API per validazione server-side della configurazione personalizzazione e categorie fornitura tornei
 async function validaPersonalizzazioneFornitura(item, reqBody = {}, providedProduct = null) {
   try {
@@ -9137,8 +10021,7 @@ async function validaPersonalizzazioneFornitura(item, reqBody = {}, providedProd
       squadraTrovata = tutteSquadre.find(s => String(s.id) === String(squadraRef));
     }
     if (!squadraTrovata && codiceRef) {
-      const codClean = String(codiceRef).trim().toUpperCase();
-      squadraTrovata = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.toUpperCase() === codClean);
+      squadraTrovata = findSquadraByCodice(tutteSquadre, codiceRef);
     }
 
     if (!squadraTrovata) {
@@ -9248,13 +10131,28 @@ async function validaPersonalizzazioneFornitura(item, reqBody = {}, providedProd
 }
 
 // Helper per calcolo quantita_ordinata dinamica di una squadra torneo dagli ordini reali
-async function calcolaQuantitaOrdinataSquadra(squadra) {
-  if (!squadra) return 0;
+async function calcolaQuantitaOrdinataSquadra(squadraParam, optionalId = null, optionalOrders = null) {
+  if (!squadraParam) return 0;
   try {
-    const orders = await getDbOrders();
+    const squadra = (typeof squadraParam === 'object' && squadraParam !== null)
+      ? squadraParam
+      : { codice_univoco: String(squadraParam), id: optionalId };
+
+    const orders = (Array.isArray(optionalOrders) && optionalOrders.length > 0)
+      ? optionalOrders
+      : await getDbOrders();
     let quantitaTotale = 0;
     const codiceClean = (squadra.codice_univoco || '').toUpperCase();
     const squadraIdStr = String(squadra.id || '');
+
+    const isCodMatch = (cod) => {
+      if (!cod) return false;
+      const c = String(cod).trim().toUpperCase();
+      if (c === codiceClean) return true;
+      if (Array.isArray(squadra.codice_alias) && squadra.codice_alias.some(a => String(a).trim().toUpperCase() === c)) return true;
+      if (squadra.codice_alias && String(squadra.codice_alias).trim().toUpperCase() === c) return true;
+      return false;
+    };
 
     // Recupera eventuali ID ordini annullati da customer_orders per coerenza massima con lo stato utente
     const canceledAdminOrderIds = new Set();
@@ -9279,41 +10177,35 @@ async function calcolaQuantitaOrdinataSquadra(squadra) {
       if (!order) continue;
 
       // Se l'ordine è esplicitamente annullato (in orders o in customer_orders), NON consuma quota!
-      const statusStr = String(order.status || order.data_status || order.stato || (order.data && order.data.status) || '').trim().toLowerCase();
-      const isCanceled = statusStr === 'annullato_dal_cliente' || 
-                         statusStr === 'annullato dal cliente' || 
-                         statusStr === 'annullato' || 
-                         statusStr.includes('annullat') || 
-                         statusStr === 'canceled' || 
-                         statusStr === 'cancelled' ||
-                         (order.id !== undefined && order.id !== null && canceledAdminOrderIds.has(String(order.id)));
-
-      if (isCanceled) {
+      if (isOrderCanceled(order) || (order.id !== undefined && order.id !== null && canceledAdminOrderIds.has(String(order.id)))) {
         continue;
       }
 
       // NOTA BENE: Gli ordini con order.is_archived === true CONTINUANO a consumare quota (non vengono esclusi)
+      const isWholeOrderMatch = isOrderMatchingConvenzione(order, codiceClean, squadraIdStr);
 
       if (Array.isArray(order.carrello) && order.carrello.length > 0) {
         for (const item of order.carrello) {
           if (!item) continue;
-          let isMatch = false;
-          if (item.fornitura) {
+          if (item.squadra && isTechnicalShippingOrServiceLine(item.squadra)) continue;
+
+          let isMatch = isWholeOrderMatch;
+          if (!isMatch && item.fornitura) {
             if (typeof item.fornitura === 'object') {
               if (item.fornitura.squadra_id && String(item.fornitura.squadra_id) === squadraIdStr) isMatch = true;
               else if (item.fornitura.id && String(item.fornitura.id) === squadraIdStr) isMatch = true;
               else if (item.fornitura.torneo_squadra_id && String(item.fornitura.torneo_squadra_id) === squadraIdStr) isMatch = true;
-              else if (item.fornitura.codice_univoco && item.fornitura.codice_univoco.toUpperCase() === codiceClean) isMatch = true;
-              else if (item.fornitura.codice && item.fornitura.codice.toUpperCase() === codiceClean) isMatch = true;
-            } else if (typeof item.fornitura === 'string' && item.fornitura.toUpperCase() === codiceClean) {
+              else if (item.fornitura.codice_univoco && isCodMatch(item.fornitura.codice_univoco)) isMatch = true;
+              else if (item.fornitura.codice && isCodMatch(item.fornitura.codice)) isMatch = true;
+            } else if (typeof item.fornitura === 'string' && isCodMatch(item.fornitura)) {
               isMatch = true;
             }
           }
           if (!isMatch) {
             if (item.squadra_id && String(item.squadra_id) === squadraIdStr) isMatch = true;
             else if (item.torneo_squadra_id && String(item.torneo_squadra_id) === squadraIdStr) isMatch = true;
-            else if (item.codice_fornitura && item.codice_fornitura.toUpperCase() === codiceClean) isMatch = true;
-            else if (item.fornitura_codice && item.fornitura_codice.toUpperCase() === codiceClean) isMatch = true;
+            else if (item.codice_fornitura && isCodMatch(item.codice_fornitura)) isMatch = true;
+            else if (item.fornitura_codice && isCodMatch(item.fornitura_codice)) isMatch = true;
           }
 
           if (isMatch) {
@@ -9342,7 +10234,7 @@ app.post('/api/tornei/verifica-codice', async (req, res) => {
 
     const codiceUpper = rawCodice.toUpperCase();
     const tutteSquadre = await getAllTorneoSquadre();
-    const squadra = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.trim().toUpperCase() === codiceUpper);
+    const squadra = findSquadraByCodice(tutteSquadre, codiceUpper);
 
     if (!squadra) {
       return res.status(404).json({
@@ -9376,6 +10268,24 @@ app.post('/api/tornei/verifica-codice', async (req, res) => {
       ? squadra.configurazione_personalizzazione
       : (torneo.configurazione_personalizzazione || { permetti_nome: true, permetti_numero: true, permetti_patch: false });
 
+    // Verifica se esiste già un ordine convenzione per questo codice
+    const allDbOrders = await getDbOrders();
+    const existingOrder = allDbOrders.find(o => {
+      if (!o || isOrderCanceled(o)) return false;
+      return isOrderMatchingConvenzione(o, squadra.codice_univoco, squadra.id);
+    });
+
+    const has_existing_order = Boolean(existingOrder);
+    let capitano_nome = null;
+    let capitano_telefono = null;
+    let ordine_id = null;
+
+    if (existingOrder) {
+      ordine_id = existingOrder.id;
+      capitano_nome = existingOrder.capitano_nome || (Array.isArray(existingOrder.carrello) && existingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || existingOrder.nome || null;
+      capitano_telefono = existingOrder.capitano_telefono || (Array.isArray(existingOrder.carrello) && existingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || existingOrder.telefono || null;
+    }
+
     return res.json({
       valid: true,
       torneo_id: torneo.id,
@@ -9388,7 +10298,11 @@ app.post('/api/tornei/verifica-codice', async (req, res) => {
       quantita_rimanente: quantita_rimanente,
       prezzo_concordato_unitario: (squadra.prezzo_concordato_unitario !== undefined && squadra.prezzo_concordato_unitario !== null && squadra.prezzo_concordato_unitario !== '') ? Number(squadra.prezzo_concordato_unitario) : (Number(torneo.prezzo_concordato_unitario) || 0),
       categorie_autorizzate: Array.isArray(squadra.categorie_autorizzate) ? squadra.categorie_autorizzate : (Array.isArray(torneo.categorie_autorizzate) ? torneo.categorie_autorizzate : []),
-      configurazione_personalizzazione: configurazione_personalizzazione
+      configurazione_personalizzazione: configurazione_personalizzazione,
+      has_existing_order: has_existing_order,
+      capitano_nome: capitano_nome,
+      capitano_telefono: capitano_telefono,
+      ordine_id: ordine_id
     });
   } catch (err) {
     console.error("⚠️ Errore /api/tornei/verifica-codice:", err.message);
@@ -9628,11 +10542,7 @@ async function saveDbProfitShares(data) {
 function parseOrderProfitValue(order) {
   if (!order) return 0;
   const raw = order["Profitto (EUR)"] !== undefined ? order["Profitto (EUR)"] : (order.profitto_eur !== undefined ? order.profitto_eur : order.profitto);
-  if (raw === undefined || raw === null) return 0;
-  if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
-  const str = String(raw).trim().replace('€', '').replace(/\s/g, '');
-  const parsed = parseFloat(str.replace(/\./g, '').replace(',', '.'));
-  return isNaN(parsed) ? 0 : parsed;
+  return parseFlexibleDecimal(raw);
 }
 
 function parseOrderCostEUR(order, exchangeRate = 0.92) {
@@ -9647,9 +10557,7 @@ function parseOrderCostEUR(order, exchangeRate = 0.92) {
     : (order.costo_fornitore_eur !== undefined ? order.costo_fornitore_eur
     : (order.costo !== undefined ? order.costo : undefined))))))));
   if (raw !== undefined && raw !== null) {
-    if (typeof raw === 'number') return isNaN(raw) ? 0 : raw;
-    const str = String(raw).trim().replace('€', '').replace('$', '').replace(/\s/g, '');
-    const parsed = parseFloat(str.replace(/\./g, '').replace(',', '.'));
+    const parsed = parseFlexibleDecimal(raw);
     if (!isNaN(parsed) && parsed > 0) return parsed;
   }
 
@@ -9661,12 +10569,7 @@ function parseOrderCostEUR(order, exchangeRate = 0.92) {
     : (order.costo_fornitore_usd !== undefined ? order.costo_fornitore_usd
     : (order.costo_usd !== undefined ? order.costo_usd : undefined)))));
   if (rawUsd !== undefined && rawUsd !== null) {
-    let usdVal = 0;
-    if (typeof rawUsd === 'number') usdVal = isNaN(rawUsd) ? 0 : rawUsd;
-    else {
-      const strUsd = String(rawUsd).trim().replace('$', '').replace('€', '').replace(/\s/g, '');
-      usdVal = parseFloat(strUsd.replace(/\./g, '').replace(',', '.')) || 0;
-    }
+    const usdVal = parseFlexibleDecimal(rawUsd);
     if (usdVal > 0) {
       return Number((usdVal * (exchangeRate || 0.92)).toFixed(2));
     }
@@ -10868,6 +11771,47 @@ app.post('/api/orders', async (req, res) => {
           }
         });
       }
+
+      // FASE 10: Arricchimento autoritativo e persistenza completa dei metadati Convenzione Torneo
+      if (valFornitura.isFornitura && valFornitura.squadra) {
+        const sq = valFornitura.squadra;
+        const tuttiTornei = await getTornei();
+        const torneo = tuttiTornei.find(t => String(t.id) === String(sq.torneo_id));
+        const torneoNome = torneo ? (torneo.nome_torneo || torneo.nome || 'Torneo') : 'Torneo';
+
+        const prezzoConcordatoVal = (sq.prezzo_concordato_unitario !== undefined && sq.prezzo_concordato_unitario !== null)
+          ? Number(sq.prezzo_concordato_unitario)
+          : (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null
+            ? Number(item.prezzo_concordato)
+            : (item.prezzo !== undefined && !isNaN(Number(item.prezzo)) ? Number(item.prezzo) : 23.99));
+
+        const prezzoOrigVal = (item.prezzo_originale !== undefined && item.prezzo_originale !== null)
+          ? Number(item.prezzo_originale)
+          : (matchedProd ? (Number(matchedProd.prezzo) || 23.99) : 23.99);
+
+        item.fornitura = {
+          torneo_id: sq.torneo_id,
+          torneo_squadra_id: sq.id,
+          squadra_id: sq.id,
+          codice_univoco: sq.codice_univoco,
+          nome_squadra: sq.nome_squadra,
+          torneo_nome: torneoNome,
+          prezzo_concordato_unitario: prezzoConcordatoVal,
+          quantita_assegnata: sq.quantita_assegnata
+        };
+        item.torneo_id = sq.torneo_id;
+        item.torneo_squadra_id = sq.id;
+        item.squadra_id = sq.id;
+        item.codice_univoco = sq.codice_univoco;
+        item.nome_squadra = sq.nome_squadra;
+        item.torneo_nome = torneoNome;
+        item.ha_prezzo_concordato = true;
+        item.prezzo_concordato = prezzoConcordatoVal;
+        item.prezzo_originale = prezzoOrigVal;
+        if (item.prezzo === undefined || item.prezzo === null || isNaN(Number(item.prezzo))) {
+          item.prezzo = prezzoConcordatoVal;
+        }
+      }
     }
 
     // Calcoliamo i totali dell'ordine
@@ -10953,6 +11897,7 @@ app.post('/api/orders', async (req, res) => {
         prezzoFornUnitarioUSD = calcolaCostoFornitoreProdotto(prezzoFornUnitarioUSD, item.infoPerso);
       }
 
+      item.prezzo_fornitore = prezzoFornUnitarioUSD;
       costo_prodotti_usd += isSpedizioneCliente ? 0 : (prezzoFornUnitarioUSD * (q || 1));
 
       // Formatta prezzo_fornitore del singolo prodotto nel report
@@ -11131,7 +12076,7 @@ app.post('/api/orders', async (req, res) => {
       : getCurrentActiveLottoId();
 
     // Salva l'ordine e ricalcola il lotto in modo atomico (sincronizzato) per evitare race condition
-    const { insertedAdminOrder, finalLotto } = await runWithLottoLock(async () => {
+    const { insertedAdminOrder, finalLotto, isAggregated } = await runWithLottoLock(async () => {
       // =========================================================================
       // FASE 9: CONTROLLO ATOMICO DELLA QUOTA CONVENZIONE TORNEO
       // =========================================================================
@@ -11175,8 +12120,7 @@ app.post('/api/orders', async (req, res) => {
               squadraTrovata = tutteSquadre.find(s => String(s.id) === String(squadraRef));
             }
             if (!squadraTrovata && codiceRef) {
-              const codClean = String(codiceRef).trim().toUpperCase();
-              squadraTrovata = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.toUpperCase() === codClean);
+              squadraTrovata = findSquadraByCodice(tutteSquadre, codiceRef);
             }
 
             if (squadraTrovata) {
@@ -11203,8 +12147,7 @@ app.post('/api/orders', async (req, res) => {
           squadraTrovata = tutteSquadre.find(s => String(s.id) === String(squadraRef));
         }
         if (!squadraTrovata && codiceRef) {
-          const codClean = String(codiceRef).trim().toUpperCase();
-          squadraTrovata = tutteSquadre.find(s => s.codice_univoco && s.codice_univoco.toUpperCase() === codClean);
+          squadraTrovata = findSquadraByCodice(tutteSquadre, codiceRef);
         }
         if (squadraTrovata) {
           let qTot = 0;
@@ -11244,12 +12187,233 @@ app.post('/api/orders', async (req, res) => {
         }
       }
 
+      // =========================================================================
+      // FASE 10: GESTIONE AGGREGAZIONE ORDINE CONVENZIONE TORNEO & DATI CAPITANO
+      // =========================================================================
+      let isConvenzioneTorneo = fornituraSquadreMap.size > 0;
+      let targetExistingOrder = null;
+      let squadConv = null;
+
+      if (isConvenzioneTorneo) {
+        const sqEntry = Array.from(fornituraSquadreMap.values())[0];
+        squadConv = sqEntry ? sqEntry.squadra : null;
+        const codConv = squadConv ? squadConv.codice_univoco : (req.body.codice_fornitura || '');
+
+        // Cerca l'ordine convenzione già aperto e non annullato per questo codice convenzione
+        const allDbOrders = await getDbOrders();
+        targetExistingOrder = allDbOrders.find(o => {
+          if (!o || isOrderCanceled(o)) return false;
+          return isOrderMatchingConvenzione(o, codConv, squadConv?.id);
+        });
+      }
+
+      if (isConvenzioneTorneo && targetExistingOrder) {
+        console.log(`🔄 [AGGREGAZIONE CONVENZIONE] Trovato ordine esistente #${targetExistingOrder.id} per convenzione "${squadConv?.nome_squadra}". Aggrego i nuovi completini...`);
+        
+        // 1. Dati Capitano: NON sovrascrivere mai il Capitano esistente
+        const capitanoNome = targetExistingOrder.capitano_nome || 
+                             (Array.isArray(targetExistingOrder.carrello) && targetExistingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || 
+                             targetExistingOrder.nome || 'N/D';
+        const capitanoTelefono = targetExistingOrder.capitano_telefono || 
+                                 (Array.isArray(targetExistingOrder.carrello) && targetExistingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || 
+                                 targetExistingOrder.telefono || 'N/D';
+
+        // 2. Tagga i nuovi articoli con info di questo invio
+        const invioTimestamp = new Date().toLocaleString('it-IT');
+        const newItemsAnnotated = (carrello || []).map(item => {
+          const itCopy = { ...item };
+          itCopy.fornitura = (itCopy.fornitura && typeof itCopy.fornitura === 'object') ? { ...itCopy.fornitura } : {};
+          itCopy.fornitura.capitano_nome = capitanoNome;
+          itCopy.fornitura.capitano_telefono = capitanoTelefono;
+          itCopy.fornitura.torneo_nome = squadConv?.torneo_nome || itCopy.fornitura.torneo_nome || 'Torneo';
+          itCopy.fornitura.nome_squadra = squadConv?.nome_squadra || itCopy.fornitura.nome_squadra || 'Squadra';
+          itCopy.fornitura.codice_univoco = squadConv?.codice_univoco || itCopy.fornitura.codice_univoco || '';
+          itCopy.invio_nome = nome;
+          itCopy.invio_telefono = telefono;
+          itCopy.invio_data = invioTimestamp;
+          return itCopy;
+        });
+
+        // 3. Aggiungi SOLO i nuovi articoli al carrello esistente
+        const existingCarrello = Array.isArray(targetExistingOrder.carrello) ? targetExistingOrder.carrello : [];
+        const combinedCarrello = [...existingCarrello, ...newItemsAnnotated];
+
+        // 4. Ricalcola totali e descrizioni dell'ordine aggregato
+        const squadSummary = combinedCarrello.map(it => `${it.quantita || 1}x ${it.squadra || 'Maglia'}`).join(' / ');
+        const persSummary = combinedCarrello.map(it => `${it.quantita || 1}x [${it.infoPerso || it.personalizzazione || 'Nessuna'}]`).join(' | ');
+        const tagliaSummary = combinedCarrello.map(it => `${it.quantita || 1}x [${it.taglia || 'M'}]`).join(' / ');
+        
+        let subtotalEur = 0;
+        let costoProdottiUsdAgg = 0;
+        let totArticoliAgg = 0;
+        const formuleImmaginiAgg = [];
+
+        combinedCarrello.forEach(item => {
+          const q = Number(item.quantita) || 1;
+          const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+          if (!isSped) {
+            totArticoliAgg += q;
+            
+            // Prezzo cliente dell'articolo
+            let itemPrice = Number(item.prezzo);
+            if (item.fornitura && item.fornitura.prezzo_concordato_unitario !== undefined && item.fornitura.prezzo_concordato_unitario !== null) {
+              itemPrice = Number(item.fornitura.prezzo_concordato_unitario);
+            } else if (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null) {
+              itemPrice = Number(item.prezzo_concordato);
+            }
+            if (isNaN(itemPrice) || itemPrice <= 0) {
+              itemPrice = 20;
+            }
+            item.prezzo = itemPrice;
+            subtotalEur += (itemPrice * q);
+
+            // Costo fornitore dell'articolo in USD
+            let pUnit = (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0)
+              ? Number(item.prezzo_fornitore)
+              : 0;
+
+            if (pUnit <= 0) {
+              const matched = allDbProducts.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && p.versione.toLowerCase() === String(item.squadra || '').toLowerCase()));
+              const baseUSD = matched && matched.prezzo_fornitore !== undefined && matched.prezzo_fornitore !== null ? Number(matched.prezzo_fornitore) : 14.50;
+              pUnit = calcolaCostoFornitoreProdotto(baseUSD, item.infoPerso || item.personalizzazione, item);
+            }
+
+            item.prezzo_fornitore = pUnit;
+            costoProdottiUsdAgg += (pUnit * q);
+            if (item.imgUrl && formuleImmaginiAgg.length === 0) {
+              formuleImmaginiAgg.push(`=IMAGE("${item.imgUrl}")`);
+            }
+          }
+        });
+
+        const exRate = await getLiveOrSettingsExchangeRate(settings);
+        const spedUnitaria = getShippingRateByQuantity(totArticoliAgg, settings);
+        const orderShippingUsd = Number((totArticoliAgg * spedUnitaria).toFixed(2));
+        const costoTotaleUsd = Number((costoProdottiUsdAgg + orderShippingUsd).toFixed(2));
+        const costoTotaleEur = convertUsdToEur(costoTotaleUsd, exRate, 'Aggregazione Ordine Convenzione');
+        const profittoEur = Number((subtotalEur - costoTotaleEur).toFixed(2));
+
+        const updatedFields = {
+          squadra: squadSummary,
+          personalizzazione: persSummary,
+          taglia: tagliaSummary,
+          totale: `${subtotalEur.toFixed(2).replace('.', ',')}€`,
+          carrello: combinedCarrello,
+          "Costo prodotti (USD)": costoProdottiUsdAgg.toFixed(2).replace('.', ','),
+          "Costo spedizione (USD)": orderShippingUsd.toFixed(2).replace('.', ','),
+          "osto spedizione (USD)": orderShippingUsd.toFixed(2).replace('.', ','),
+          "Costo totale (USD)": costoTotaleUsd.toFixed(2).replace('.', ','),
+          "Cambio USD/EUR": exRate.toFixed(4).replace('.', ','),
+          "Costo totale (EUR)": costoTotaleEur.toFixed(2).replace('.', ','),
+          "Profitto (EUR)": profittoEur.toFixed(2).replace('.', ','),
+          costo_prodotti_usd: costoProdottiUsdAgg.toFixed(2),
+          costo_spedizione_usd: orderShippingUsd.toFixed(2),
+          costo_totale_usd: costoTotaleUsd.toFixed(2),
+          cambio_usd_eur: exRate.toFixed(4),
+          costo_totale_eur: costoTotaleEur.toFixed(2),
+          profitto_eur: profittoEur.toFixed(2)
+        };
+
+        if (formuleImmaginiAgg.length > 0 && (!targetExistingOrder.foto || targetExistingOrder.foto === '')) {
+          updatedFields.foto = formuleImmaginiAgg[0];
+        }
+
+        // Prepara payload pulito per Supabase (solo colonne supportate dallo schema orders)
+        const supabaseUpdateData = {
+          squadra: updatedFields.squadra,
+          personalizzazione: updatedFields.personalizzazione,
+          taglia: updatedFields.taglia,
+          totale: updatedFields.totale,
+          carrello: combinedCarrello,
+          costo_prodotti_usd: updatedFields.costo_prodotti_usd,
+          costo_spedizione_usd: updatedFields.costo_spedizione_usd,
+          costo_totale_usd: updatedFields.costo_totale_usd,
+          cambio_usd_eur: updatedFields.cambio_usd_eur,
+          costo_totale_eur: updatedFields.costo_totale_eur,
+          profitto_eur: updatedFields.profitto_eur
+        };
+        if (updatedFields.foto) {
+          supabaseUpdateData.foto = updatedFields.foto;
+        }
+
+        // Salva su Supabase
+        const supabase = getSupabaseClient();
+        if (supabase && targetExistingOrder.id) {
+          try {
+            const { error: updErr } = await supabase.from('orders').update(supabaseUpdateData).eq('id', targetExistingOrder.id);
+            if (updErr) {
+              console.warn("⚠️ Errore update ordine aggregato su Supabase:", updErr.message);
+            }
+          } catch (e) {
+            console.warn("⚠️ Eccezione update Supabase:", e.message);
+          }
+        }
+
+        // Aggiorna ordine locale
+        Object.assign(targetExistingOrder, updatedFields);
+        targetExistingOrder.capitano_nome = capitanoNome;
+        targetExistingOrder.capitano_telefono = capitanoTelefono;
+        targetExistingOrder.is_convenzione = true;
+        targetExistingOrder.torneo_nome = squadConv?.torneo_nome || targetExistingOrder.torneo_nome;
+        targetExistingOrder.nome_squadra = squadConv?.nome_squadra || targetExistingOrder.nome_squadra;
+        targetExistingOrder.codice_univoco = squadConv?.codice_univoco || targetExistingOrder.codice_univoco;
+        targetExistingOrder.totale_completini_convenzione = totArticoliAgg;
+        saveLocalOrder(targetExistingOrder);
+
+        const lotto = await recalculateCurrentLottoInternal();
+        return {
+          insertedAdminOrder: targetExistingOrder,
+          finalLotto: lotto,
+          isAggregated: true
+        };
+      }
+
+      // Se è un ordine Convenzione MA NON esiste ancora un ordine aperto (PRIMO INVIO):
+      if (isConvenzioneTorneo) {
+        console.log(`✨ [PRIMO INVIO CONVENZIONE] Creazione nuovo ordine aggregato per convenzione "${squadConv?.nome_squadra}"...`);
+        const capNome = (req.body.capitano_nome || '').trim();
+        const capTel = (req.body.capitano_telefono || '').trim();
+
+        if (!capNome || !capTel) {
+          const err = new Error("Nome e Cognome del Capitano e Numero di Telefono del Capitano sono obbligatori per il primo invio della Convenzione Torneo.");
+          err.statusCode = 400;
+          throw err;
+        }
+
+        rigaOrdine.capitano_nome = capNome;
+        rigaOrdine.capitano_telefono = capTel;
+        rigaOrdine.is_convenzione = true;
+        rigaOrdine.torneo_nome = squadConv?.torneo_nome || 'Torneo';
+        rigaOrdine.nome_squadra = squadConv?.nome_squadra || 'Squadra';
+        rigaOrdine.codice_univoco = squadConv?.codice_univoco || req.body.codice_fornitura || '';
+
+        const invioTimestamp = new Date().toLocaleString('it-IT');
+        rigaOrdine.carrello = (carrello || []).map(item => {
+          const itCopy = { ...item };
+          itCopy.fornitura = (itCopy.fornitura && typeof itCopy.fornitura === 'object') ? { ...itCopy.fornitura } : {};
+          itCopy.fornitura.capitano_nome = capNome;
+          itCopy.fornitura.capitano_telefono = capTel;
+          itCopy.fornitura.torneo_nome = rigaOrdine.torneo_nome;
+          itCopy.fornitura.nome_squadra = rigaOrdine.nome_squadra;
+          itCopy.fornitura.codice_univoco = rigaOrdine.codice_univoco;
+          itCopy.invio_nome = nome;
+          itCopy.invio_telefono = telefono;
+          itCopy.invio_data = invioTimestamp;
+          return itCopy;
+        });
+      }
+
       console.log("📤 Registrazione dell'ordine nel database Supabase (atomica)...");
       const insertedOrder = await insertDbOrder(rigaOrdine);
       console.log("📤 Ricalcolo automatico del lotto corrente (atomico)...");
       const lotto = await recalculateCurrentLottoInternal();
-      return { insertedAdminOrder: insertedOrder, finalLotto: lotto };
+      return { insertedAdminOrder: insertedOrder, finalLotto: lotto, isAggregated: false };
     });
+
+    if (insertedAdminOrder && insertedAdminOrder.id) {
+      rigaOrdine.id = insertedAdminOrder.id;
+      if (insertedAdminOrder.created_at) rigaOrdine.created_at = insertedAdminOrder.created_at;
+    }
 
     // Se l'utente è autenticato ed è stato fornito un token, salviamo l'ordine nell'Area Cliente
     console.log("=================================");
@@ -11278,7 +12442,9 @@ console.log("=================================");
         let shipping = 0;
         carrello.forEach(item => {
           const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-          const itemPrezzo = (Number(item.prezzo) || 0) * (Number(item.quantita) || 1);
+          const isFornitura = Boolean(item.fornitura || item.ha_prezzo_concordato);
+          // Per la convenzione torneo, l'importo al cliente al checkout è €0 (Incluso nella convenzione)
+          const itemPrezzo = isFornitura ? 0 : ((Number(item.prezzo) || 0) * (Number(item.quantita) || 1));
           if (isSpedizione) {
             shipping += itemPrezzo;
           } else {
@@ -11352,7 +12518,7 @@ console.log("=================================");
               stagione: matchedProd ? matchedProd.stagione : '2026/2027',
               taglia: item.taglia || '-',
               personalizzazione: item.infoPerso || 'No',
-              prezzo: Number(item.prezzo) || 0,
+              prezzo: (item.fornitura || item.ha_prezzo_concordato) ? 0 : (Number(item.prezzo) || 0),
               quantita: Number(item.quantita) || 1
             });
           }
@@ -11376,7 +12542,15 @@ console.log("=================================");
     }
 
     console.log("=== DEBUG SERVER SUCCESS ===");
-    return res.json({ success: true, order: rigaOrdine, lotto: finalLotto });
+    return res.json({
+      success: true,
+      order: insertedAdminOrder || rigaOrdine,
+      order_id: (insertedAdminOrder && insertedAdminOrder.id) ? insertedAdminOrder.id : rigaOrdine.id,
+      lotto: finalLotto,
+      is_aggregated: Boolean(isAggregated),
+      capitano_nome: (insertedAdminOrder && insertedAdminOrder.capitano_nome) || rigaOrdine.capitano_nome,
+      capitano_telefono: (insertedAdminOrder && insertedAdminOrder.capitano_telefono) || rigaOrdine.capitano_telefono
+    });
   } catch (err) {
     console.error("⚠️ Errore durante la registrazione dell'ordine:", err);
     const statusCode = err.statusCode || 500;
@@ -11678,7 +12852,6 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
     const itemSupplierPrices = [];
 
     const settings = getSettings();
-    const rules = settings.spedizioneLotto;
 
     // Ricalcoliamo il lotto
     const lottoFile = path.join(__dirname, 'lotto.json');
@@ -12214,11 +13387,276 @@ async function getDbOrdersMerged() {
       audit_log: [
         { time: new Date(ord.created_at || Date.now()).toLocaleString('it-IT'), action: "Creazione ordine", description: "L'ordine è stato registrato nel pannello." }
       ],
-      user_id: custOrd ? custOrd.user_id : null,
+      user_id: (custOrd && custOrd.user_id) ? custOrd.user_id : (ord.user_id || null),
       registered_name: custOrd ? ord.nome : null
     };
   });
 }
+
+// ----------------------
+// LOCAL USERS CACHE & PROFILE SYNC
+// ----------------------
+const LOCAL_USERS_FILE = path.join(__dirname, 'users_local.json');
+
+function getLocalUsers() {
+  try {
+    if (fs.existsSync(LOCAL_USERS_FILE)) {
+      return JSON.parse(fs.readFileSync(LOCAL_USERS_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.warn("⚠️ Errore lettura users_local.json:", err.message);
+  }
+  return [];
+}
+
+function saveLocalUser(user) {
+  try {
+    const users = getLocalUsers();
+    const idx = users.findIndex(u => String(u.id) === String(user.id) || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()));
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...user };
+    } else {
+      users.push(user);
+    }
+    fs.writeFileSync(LOCAL_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+  } catch (err) {
+    console.warn("⚠️ Errore scrittura users_local.json:", err.message);
+  }
+}
+
+// POST /api/auth/sync-profile - Sincronizza il profilo utente registrato nel backend
+app.post('/api/auth/sync-profile', async (req, res) => {
+  try {
+    const { id, email, nome, cognome, telefono, access_token } = req.body;
+    if (!id || !email) {
+      return res.status(400).json({ success: false, error: "ID ed Email sono obbligatori." });
+    }
+
+    const cleanId = String(id).trim();
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanNome = nome ? String(nome).trim() : '';
+    const cleanCognome = cognome ? String(cognome).trim() : '';
+    const cleanTelefono = telefono ? String(telefono).trim() : '';
+    const fullName = (cleanNome || cleanCognome) ? `${cleanNome} ${cleanCognome}`.trim() : cleanEmail;
+
+    const userData = {
+      id: cleanId,
+      email: cleanEmail,
+      nome: cleanNome,
+      cognome: cleanCognome,
+      nome_completo: fullName,
+      telefono: cleanTelefono,
+      updated_at: new Date().toISOString()
+    };
+
+    saveLocalUser(userData);
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+        if (isUuid) {
+          const dbProfileData = {
+            id: cleanId,
+            email: cleanEmail,
+            nome: cleanNome,
+            cognome: cleanCognome,
+            telefono: cleanTelefono,
+            updated_at: new Date().toISOString()
+          };
+
+          let clientToUse = supabase;
+          if (access_token) {
+            clientToUse = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+              global: { headers: { Authorization: `Bearer ${access_token}` } }
+            });
+          }
+
+          const { error: upsertErr } = await clientToUse.from('profiles').upsert(dbProfileData);
+          if (upsertErr) {
+            console.warn("⚠️ Upsert profile in Supabase warning:", upsertErr.message);
+          } else {
+            console.log(`✅ Profilo Supabase ${cleanId} (${cleanEmail}) aggiornato con successo.`);
+          }
+        }
+      } catch (e) {
+        console.warn("⚠️ Upsert profile in Supabase non riuscito (proseguito con backup locale):", e.message);
+      }
+    }
+
+    return res.json({ success: true, user: userData });
+  } catch (err) {
+    console.error("⚠️ Errore in /api/auth/sync-profile:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/admin/registered-accounts - Recupera la lista di tutti gli account clienti registrati direttamente da Supabase profiles
+app.get('/api/admin/registered-accounts', async (req, res) => {
+  try {
+    const supabase = getSupabaseAdminClient();
+    if (!supabase) {
+      console.error("⚠️ Client Supabase non disponibile sul server.");
+      return res.status(500).json({
+        success: false,
+        error: "Impossibile connettersi a Supabase. Client non inizializzato."
+      });
+    }
+
+    const { data: profilesData, error: profErr } = await supabase
+      .from('profiles')
+      .select('id, email, nome, cognome, telefono, updated_at');
+
+    if (profErr) {
+      console.error("⚠️ Errore query Supabase profiles in /api/admin/registered-accounts:", profErr.message);
+      return res.status(500).json({
+        success: false,
+        error: `Impossibile recuperare gli account registrati da Supabase: ${profErr.message}`
+      });
+    }
+
+    if (!profilesData || !Array.isArray(profilesData)) {
+      return res.json({ success: true, accounts: [] });
+    }
+
+    const accountsList = profilesData.map(p => {
+      const pNome = p.nome || '';
+      const pCognome = p.cognome || '';
+      const pEmail = p.email || '';
+      const pTel = p.telefono || '';
+      const pFullName = (pNome || pCognome) ? `${pNome} ${pCognome}`.trim() : pEmail;
+
+      return {
+        id: String(p.id),
+        email: pEmail,
+        nome: pNome,
+        cognome: pCognome,
+        nome_completo: pFullName,
+        telefono: pTel,
+        updated_at: p.updated_at || new Date().toISOString()
+      };
+    });
+
+    return res.json({ success: true, accounts: accountsList });
+  } catch (err) {
+    console.error("⚠️ Errore in /api/admin/registered-accounts:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/orders/assign-account - Assegna o scollega un ordine esistente a un account cliente
+app.post('/api/admin/orders/assign-account', async (req, res) => {
+  try {
+    const { order_id, user_id } = req.body;
+    if (!order_id) {
+      return res.status(400).json({ success: false, error: "Identificatore ordine mancante." });
+    }
+
+    const orderIdNum = Number(order_id);
+    const targetUserId = (user_id !== undefined && user_id !== null && String(user_id).trim()) ? String(user_id).trim() : null;
+
+    // 1. Aggiorna orders_local.json
+    try {
+      const localOrders = getLocalOrders();
+      const localIdx = localOrders.findIndex(o => Number(o.id) === orderIdNum);
+      if (localIdx !== -1) {
+        localOrders[localIdx].user_id = targetUserId;
+        fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+        console.log(`✅ Cache locale orders_local.json aggiornata: ordine #${orderIdNum} user_id = ${targetUserId}`);
+      }
+    } catch (e) {
+      console.warn("⚠️ Errore aggiornamento orders_local.json user_id:", e.message);
+    }
+
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      // 2. Aggiorna la tabella 'orders' in Supabase
+      try {
+        await supabase.from('orders').update({ user_id: targetUserId }).eq('id', orderIdNum);
+      } catch (e) {
+        console.warn("⚠️ Errore aggiornamento tabella orders user_id:", e.message);
+      }
+
+      // 3. Aggiorna o crea il record in customer_orders
+      try {
+        const { data: existingCustOrd } = await supabase
+          .from('customer_orders')
+          .select('*')
+          .eq('admin_order_id', orderIdNum);
+
+        if (existingCustOrd && existingCustOrd.length > 0) {
+          // Aggiorna user_id sul record esistente in customer_orders
+          await supabase
+            .from('customer_orders')
+            .update({ user_id: targetUserId, updated_at: new Date().toISOString() })
+            .eq('admin_order_id', orderIdNum);
+          console.log(`✅ Record customer_orders aggiornato per admin_order_id ${orderIdNum}: user_id = ${targetUserId}`);
+        } else if (targetUserId) {
+          // Crea nuovo record in customer_orders per questo ordine admin se viene assegnato ad un utente
+          const mergedOrders = await getDbOrdersMerged();
+          const targetOrd = mergedOrders.find(o => Number(o.id) === orderIdNum) || {};
+
+          let totalVal = targetOrd.totale ? parseFloat(String(targetOrd.totale).replace('€', '').replace(/\s+/g, '').replace(',', '.')) || 0 : 0;
+          let payStat = (targetOrd.payment_status === 'Pagato' || targetOrd.payment_status === 'paid') ? 'paid' : 'pending';
+
+          const nodeCrypto = require('crypto');
+          const newCustOrdId = nodeCrypto.randomUUID();
+          const newCustOrd = {
+            id: newCustOrdId,
+            user_id: targetUserId,
+            admin_order_id: orderIdNum,
+            order_number: `ORD-${orderIdNum}`,
+            subtotal: totalVal,
+            shipping: 0,
+            total: totalVal,
+            payment_status: payStat,
+            status: targetOrd.status || 'In preparazione',
+            created_at: targetOrd.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+
+          const { data: insertedCust, error: insErr } = await supabase.from('customer_orders').insert(newCustOrd).select();
+          if (insErr) {
+            console.warn("⚠️ Errore inserimento in customer_orders:", insErr.message);
+          } else if (insertedCust && insertedCust.length > 0) {
+            const custOrdId = insertedCust[0].id;
+            // Popola gli articoli in customer_order_items se carrello è presente
+            let cart = targetOrd.carrello || [];
+            if (typeof cart === 'string') {
+              try { cart = JSON.parse(cart); } catch(e) { cart = []; }
+            }
+            if (Array.isArray(cart) && cart.length > 0) {
+              const itemsToInsert = cart.map(item => ({
+                order_id: custOrdId,
+                product_id: item.id || item.product_id || ((typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `prod_${Date.now()}`),
+                nome: item.squadra || item.nome || 'Prodotto Custom',
+                categoria: item.categoria || 'Kit',
+                stagione: item.stagione || '2026/2027',
+                taglia: item.taglia || 'M',
+                personalizzazione: item.infoPerso || item.personalizzazione || 'Nessuna',
+                prezzo: parseFloat(item.prezzo) || 0,
+                quantita: parseInt(item.quantita, 10) || 1
+              }));
+              await supabase.from('customer_order_items').insert(itemsToInsert);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("⚠️ Errore gestione customer_orders per assegnazione:", e.message);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: targetUserId ? "Account cliente assegnato all'ordine con successo!" : "Assegnazione account rimossa con successo!",
+      order_id: orderIdNum,
+      user_id: targetUserId
+    });
+  } catch (err) {
+    console.error("⚠️ Errore in /api/admin/orders/assign-account:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 function compileCRMClienti(mergedOrders) {
   const clientsMap = {};

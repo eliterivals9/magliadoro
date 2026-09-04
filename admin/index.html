@@ -34,8 +34,8 @@
     <!-- Sidebar Laterale (Sleek Dark Theme per creare contrasto) -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-brand-dark text-slate-300 flex flex-col border-r border-slate-800/60 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
         <!-- Logo Header -->
-        <div class="h-20 flex items-center px-6 border-b border-zinc-800/60 gap-3">
-            <img src="https://i.postimg.cc/fy73GrmK/logo-jpeg.jpg" alt="Maglia d'Oro" class="h-10 w-10 rounded-full object-cover border border-[#D6A43A] shadow-[0_0_8px_rgba(214,164,58,0.2)]">
+        <div class="h-16 flex items-center px-5 border-b border-zinc-800/60 gap-3">
+            <img src="https://i.postimg.cc/fy73GrmK/logo-jpeg.jpg" alt="Maglia d'Oro" class="h-9 w-9 rounded-full object-cover border border-[#D6A43A] shadow-[0_0_8px_rgba(214,164,58,0.2)]">
             <div>
                 <h1 class="text-white font-extrabold tracking-wide uppercase text-xs leading-none">Maglia d'Oro</h1>
                 <span class="text-[9px] font-bold text-brand-gold uppercase tracking-[2px] mt-1 block" style="text-shadow: 0 0 10px rgba(214, 164, 58, 0.25);">PANNELLO ADMIN</span>
@@ -43,64 +43,81 @@
         </div>
 
         <!-- Navigazione Principale -->
-        <nav class="flex-grow py-6 px-4 space-y-1 overflow-y-auto max-h-[calc(100vh-180px)]">
-            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-white bg-brand-gold/15 border-l-4 border-brand-gold">
-                <span>🏠</span> Dashboard
-            </a>
-            <a href="#" onclick="switchTab('prodotti')" id="nav-prodotti" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>👕</span> Prodotti
-            </a>
-            <a href="#" onclick="switchTab('ordini')" id="nav-ordini" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>🛒</span> Ordini Prodotti
-            </a>
-            <a href="#" onclick="switchTab('gestione-ordini')" id="nav-gestione-ordini" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>📦</span> Gestione Ordini
-            </a>
-            <a href="#" onclick="switchTab('lotto')" id="nav-lotto" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>📦</span> Lotti
-            </a>
-            <a href="#" onclick="switchTab('impostazioni')" id="nav-impostazioni" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>⚙️</span> Impostazioni
-            </a>
-            <a href="#" onclick="switchTab('gestione-catalogo')" id="nav-gestione-catalogo" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>📦</span> Gestione Catalogo
-            </a>
-            <a href="#" onclick="switchTab('marketing')" id="nav-marketing" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>📢</span> Promo Home
-            </a>
-            <a href="#" onclick="switchTab('recensioni')" id="nav-recensioni" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span class="flex items-center gap-3">
-                    <span>⭐</span> Recensioni
+        <nav class="flex-grow py-3 px-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-white bg-brand-gold/15 border-l-4 border-brand-gold">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">🏠</span>
+                    <span>Dashboard</span>
                 </span>
-                <span id="admin-recensioni-badge" class="hidden px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none animate-pulse">0</span>
             </a>
-            <a href="#" onclick="switchTab('coupon')" id="nav-coupon" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>🎟️</span> Coupon Sconto
+            <a href="#" onclick="switchTab('prodotti')" id="nav-prodotti" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">👕</span>
+                    <span>Prodotti</span>
+                </span>
             </a>
-            <a href="#" onclick="switchTab('fornitura-tornei')" id="nav-fornitura-tornei" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>🏆</span> Fornitura Tornei
+            <a href="#" onclick="switchTab('ordini')" id="nav-ordini" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">🛒</span>
+                    <span>Ordini Prodotti</span>
+                </span>
             </a>
-            <a href="#" onclick="switchTab('suddivisione-conti')" id="nav-suddivisione-conti" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>⚖️</span> Suddivisione Conti
+            <a href="#" onclick="switchTab('gestione-ordini')" id="nav-gestione-ordini" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">📦</span>
+                    <span>Gestione Ordini</span>
+                </span>
             </a>
-            <a href="#" onclick="switchTab('chat')" id="nav-chat" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span class="flex items-center gap-3">
-                    <span>💬</span> Chat Assistenza
+            <a href="#" onclick="switchTab('lotto')" id="nav-lotto" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">📦</span>
+                    <span>Lotti</span>
+                </span>
+            </a>
+            <a href="#" onclick="switchTab('chat')" id="nav-chat" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">💬</span>
+                    <span>Chat Assistenza</span>
                 </span>
                 <span id="admin-chat-badge" class="hidden px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none animate-pulse">0</span>
             </a>
-            <a href="/admin/accessori" id="nav-admin-accessori" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
-                <span>🎒</span> Accessori
+            <a href="#" onclick="switchTab('fornitura-tornei')" id="nav-fornitura-tornei" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">🏆</span>
+                    <span>Fornitura Tornei</span>
+                </span>
+            </a>
+
+            <!-- Divisore per Area Secondaria -->
+            <div class="pt-2.5 pb-1 border-t border-slate-800/40 mt-1.5">
+                <p class="px-3.5 text-[9px] font-bold text-slate-500 uppercase tracking-wider">Area Secondaria</p>
+            </div>
+
+            <!-- Accesso Area Secondaria -->
+            <a href="#" onclick="switchTab('strumenti')" id="nav-strumenti" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">🛠️</span>
+                    <span>Strumenti & Utilità</span>
+                </span>
+                <span id="admin-recensioni-badge" class="hidden px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none animate-pulse">0</span>
+            </a>
+
+            <!-- Riferimento Accessori -->
+            <a href="/admin/accessori" id="nav-admin-accessori" class="nav-item flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-2">
+                    <span class="w-5 text-center flex-shrink-0">🎒</span>
+                    <span>Accessori</span>
+                </span>
             </a>
         </nav>
 
         <!-- Sidebar Footer & Logout -->
-        <div class="p-4 border-t border-slate-800/60 space-y-3">
-            <div class="px-4">
+        <div class="p-3.5 border-t border-slate-800/60 space-y-2">
+            <div class="px-3.5">
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Autenticato come:</p>
                 <p id="user-email-display" class="text-xs text-brand-gold font-mono truncate">Caricamento...</p>
             </div>
-            <button onclick="window.logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 hover:text-red-300 font-bold text-xs rounded-xl transition-all duration-200">
+            <button onclick="window.logout()" class="w-full flex items-center justify-center gap-2 px-3.5 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 hover:text-red-300 font-bold text-xs rounded-lg transition-all duration-200">
                 <span>🚪</span> Esci dal Pannello
             </button>
         </div>
@@ -839,59 +856,182 @@
                                 <span class="text-2xl">📦</span>
                                 <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Costo spedizione per pezzo ($)</h3>
                             </div>
-                            <p class="text-xs text-slate-500">Configura i costi di spedizione per scaglioni di articoli nel Lotto Corrente.</p>
+                            <p class="text-xs text-slate-500">Configura i costi di spedizione per scaglioni di articoli nel Lotto Corrente (8 fasce modificabili).</p>
                         </div>
-                        <div class="space-y-4">
-                            <!-- Scaglione 1 -->
-                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
-                                <div class="text-xs font-bold text-slate-700">Fascia 1 (Modificabile)</div>
-                                <div class="flex items-center gap-3">
+                        <div id="shipping-tiers-container" class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                            <!-- Fascia 1 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 1</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">1 - 2 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
-                                        <span class="text-slate-400">Min:</span>
-                                        <input type="number" id="setting-shipping-range1-min" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="1">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range1-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="1">
                                     </div>
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
-                                        <span class="text-slate-400">Max:</span>
-                                        <input type="number" id="setting-shipping-range1-max" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="20">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range1-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="2">
                                     </div>
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
-                                        <span class="text-slate-400">Costo:</span>
-                                        <span>$</span>
-                                        <input type="number" id="setting-shipping-range1" step="0.01" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="4.00">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range1" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="13.00">
                                     </div>
                                 </div>
                             </div>
-                            <!-- Scaglione 2 -->
-                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
-                                <div class="text-xs font-bold text-slate-700">Fascia 2 (Modificabile)</div>
-                                <div class="flex items-center gap-3">
+                            <!-- Fascia 2 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 2</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">3 - 5 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
-                                        <span class="text-slate-400">Min:</span>
-                                        <input type="number" id="setting-shipping-range2-min" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="21">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range2-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="3">
                                     </div>
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
-                                        <span class="text-slate-400">Max:</span>
-                                        <input type="number" id="setting-shipping-range2-max" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="40">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range2-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="5">
                                     </div>
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
-                                        <span class="text-slate-400">Costo:</span>
-                                        <span>$</span>
-                                        <input type="number" id="setting-shipping-range2" step="0.01" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="3.00">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range2" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="9.00">
                                     </div>
                                 </div>
                             </div>
-                            <!-- Scaglione 3 -->
-                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-2">
-                                <div class="text-xs font-bold text-slate-700">Fascia 3 (Modificabile)</div>
-                                <div class="flex items-center gap-3">
+                            <!-- Fascia 3 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 3</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">6 - 9 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
-                                        <span class="text-slate-400">Oltre:</span>
-                                        <input type="number" id="setting-shipping-range3-min" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="41">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range3-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="6">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range3-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="9">
                                     </div>
                                     <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
-                                        <span class="text-slate-400">Costo:</span>
-                                        <span>$</span>
-                                        <input type="number" id="setting-shipping-range3" step="0.01" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="2.00">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range3" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="7.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fascia 4 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 4</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">10 - 20 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range4-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="10">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range4-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="20">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range4" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="4.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fascia 5 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 5</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">21 - 40 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range5-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="21">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range5-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="40">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range5" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="3.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fascia 6 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 6</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">41 - 59 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range6-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="41">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range6-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="59">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range6" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="2.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fascia 7 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 7</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">60 - 99 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range7-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="60">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range7-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="99">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range7" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="1.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Fascia 8 -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-xs font-bold text-slate-700">Fascia 8</div>
+                                    <span class="text-[10px] text-slate-400 font-medium">100 - 200 pezzi</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">Da:</span>
+                                        <input type="number" id="setting-shipping-range8-min" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="100">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                                        <span class="text-slate-400 text-[11px]">A:</span>
+                                        <input type="number" id="setting-shipping-range8-max" min="1" class="w-full text-center font-bold text-slate-800 bg-transparent focus:outline-none" value="200">
+                                    </div>
+                                    <div class="flex-1 flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-mono">
+                                        <span class="text-slate-400 text-[11px]">Costo:</span>
+                                        <span class="text-slate-600 font-bold">$</span>
+                                        <input type="number" id="setting-shipping-range8" step="0.01" min="0" class="w-full text-center font-bold text-slate-900 bg-transparent focus:outline-none" value="0.00">
                                     </div>
                                 </div>
                             </div>
@@ -1092,6 +1232,44 @@
                         </div>
                     </div>
 
+                </div>
+            </section>
+
+            <!-- SECTION: AREA SECONDARIA (STRUMENTI & UTILITÀ) -->
+            <section id="section-strumenti" class="tab-content hidden space-y-6">
+                <!-- Sub-header & Sub-navigation -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                                <span>🛠️</span> Area Secondaria — Strumenti & Utilità
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">Gestione Recensioni, Coupon, Suddivisione Conti, Promo Home e Catalogo.</p>
+                        </div>
+                        <button onclick="switchTab('dashboard')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer">
+                            <span>←</span> Torna alla Dashboard
+                        </button>
+                    </div>
+
+                    <!-- Sub-Nav Buttons -->
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="switchSubTab('recensioni')" id="subnav-recensioni" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>⭐</span> Recensioni
+                            <span id="subnav-recensioni-badge" class="hidden px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none animate-pulse">0</span>
+                        </button>
+                        <button onclick="switchSubTab('coupon')" id="subnav-coupon" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>🎟️</span> Coupon Sconto
+                        </button>
+                        <button onclick="switchSubTab('suddivisione-conti')" id="subnav-suddivisione-conti" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>⚖️</span> Suddivisione Conti
+                        </button>
+                        <button onclick="switchSubTab('marketing')" id="subnav-marketing" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>📢</span> Promo Home
+                        </button>
+                        <button onclick="switchSubTab('gestione-catalogo')" id="subnav-gestione-catalogo" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>📦</span> Gestione Catalogo
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -1938,8 +2116,13 @@
                                 <button onclick="tornaAListaTornei()" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/15 transition-all flex items-center gap-2 cursor-pointer">
                                     <span>←</span> Torna alla lista tornei
                                 </button>
-                                <div id="torneo-dettaglio-stato-badge">
-                                    <!-- Badge Stato Iniettato Dinamicamente -->
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <button id="btn-scarica-excel-riepilogativo-torneo" onclick="scaricaExcelRiepilogativoTorneo()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs rounded-xl shadow-md border border-emerald-500/30 transition-all flex items-center gap-2 cursor-pointer" title="Scarica il file Excel con tutti i completini ordinati da tutte le squadre di questo torneo">
+                                        <span>📊</span> SCARICA EXCEL RIEPILOGATIVO
+                                    </button>
+                                    <div id="torneo-dettaglio-stato-badge">
+                                        <!-- Badge Stato Iniettato Dinamicamente -->
+                                    </div>
                                 </div>
                             </div>
 
@@ -1966,8 +2149,8 @@
                         </div>
                     </div>
 
-                    <!-- Riepilogo Quote (3 Cards Matematiche) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Riepilogo Quote (4 Cards Matematiche) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
                             <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-xl font-bold">
                                 👕
@@ -1987,11 +2170,20 @@
                             </div>
                         </div>
                         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-xl font-bold">
+                                ⚽
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pezzi Effettivamente Ordinati</span>
+                                <span id="torneo-totale-ordinati" class="text-lg font-black text-indigo-600 font-mono">0 pz</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
                             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xl font-bold">
                                 📦
                             </div>
                             <div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Quota Rimanente Non Assegnata</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Quota Non Assegnata</span>
                                 <span id="torneo-quota-rimanente" class="text-lg font-black text-emerald-600 font-mono">0 pz</span>
                             </div>
                         </div>
@@ -2017,6 +2209,7 @@
                                         <th class="px-6 py-4">Nome Squadra</th>
                                         <th class="px-6 py-4">Codice Fornitura</th>
                                         <th class="px-6 py-4 text-center">Quota Assegnata</th>
+                                        <th class="px-6 py-4 text-center">Pezzi Ordinati</th>
                                         <th class="px-6 py-4 text-center">Categorie Autorizzate</th>
                                         <th class="px-6 py-4 text-center">Personalizzazioni</th>
                                         <th class="px-6 py-4">Note</th>
@@ -3478,10 +3671,44 @@
 
                 <!-- Colonna Destra (1/3): Cliente, Pagamento, Situazione Economica Ricalcolata -->
                 <div class="space-y-6">
+                    <!-- Informazioni Convenzione Torneo & Capitano (se applicabile) -->
+                    <div id="gestione-ordine-convenzione-box" class="hidden bg-amber-950/20 border border-amber-500/30 p-5 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+                            <h4 class="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>🏆</span> Convenzione Torneo
+                            </h4>
+                            <span id="gestione-ordine-conv-codice" class="text-[10px] font-mono font-bold px-2 py-0.5 bg-amber-900/40 text-amber-300 border border-amber-500/30 rounded">--</span>
+                        </div>
+                        <div class="space-y-2.5 text-xs">
+                            <div>
+                                <span class="text-[rgba(255,255,255,0.5)] font-bold block">Torneo</span>
+                                <span id="gestione-ordine-conv-torneo" class="font-extrabold text-white">--</span>
+                            </div>
+                            <div>
+                                <span class="text-[rgba(255,255,255,0.5)] font-bold block">Squadra</span>
+                                <span id="gestione-ordine-conv-squadra" class="font-extrabold text-white">--</span>
+                            </div>
+                            <div>
+                                <span class="text-[rgba(255,255,255,0.5)] font-bold block">Prodotti Totali Aggregati</span>
+                                <span id="gestione-ordine-conv-totale-completini" class="font-extrabold text-emerald-400 font-mono">--</span>
+                            </div>
+                            <div class="pt-2 border-t border-white/5">
+                                <span class="text-amber-400 font-bold block flex items-center gap-1 text-[11px] uppercase tracking-wider">
+                                    <span>👑</span> Capitano Squadra
+                                </span>
+                                <span id="gestione-ordine-conv-capitano-nome" class="font-extrabold text-white text-sm">--</span>
+                            </div>
+                            <div>
+                                <span class="text-[rgba(255,255,255,0.5)] font-bold block">Telefono Capitano</span>
+                                <span id="gestione-ordine-conv-capitano-telefono" class="font-semibold text-white font-mono">--</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Informazioni Cliente -->
                     <div class="bg-[#0B0B0B] border border-[rgba(255,255,255,0.08)] p-5 rounded-2xl space-y-4">
                         <div class="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-2">
-                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Cliente</h4>
+                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Cliente (Ultimo Invio)</h4>
                             <div id="gestione-ordine-cliente-badge-placeholder"></div>
                         </div>
                         <div class="space-y-3 text-xs">
@@ -3501,6 +3728,25 @@
                                 <span class="text-[rgba(255,255,255,0.5)] font-bold block">Indirizzo di Spedizione</span>
                                 <span id="gestione-ordine-cliente-indirizzo" class="font-medium text-[rgba(255,255,255,0.88)] block mt-1 bg-[#111111] p-2 border border-[rgba(255,255,255,0.08)] rounded-lg">--</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Cliente Registrato -->
+                    <div class="bg-[#0B0B0B] border border-[rgba(255,255,255,0.08)] p-5 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-2">
+                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Account Cliente Registrato</h4>
+                            <div id="gestione-ordine-account-status-badge"></div>
+                        </div>
+                        <div id="gestione-ordine-account-info-box" class="text-xs space-y-1">
+                            <span class="text-[rgba(255,255,255,0.5)] font-semibold">Nessun account cliente assegnato</span>
+                        </div>
+                        <div class="flex gap-2 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+                            <button type="button" id="btn-gestione-ordine-assegna-account" onclick="apriModalAssegnaAccount()" class="px-3.5 py-2 bg-brand-gold text-slate-950 font-bold text-xs rounded-xl hover:bg-brand-gold/90 transition-all flex items-center gap-1.5 shadow-sm">
+                                <span>👤</span> <span id="btn-gestione-ordine-assegna-label">ASSEGNA ACCOUNT</span>
+                            </button>
+                            <button type="button" id="btn-gestione-ordine-scollega-account" onclick="scollegaAccountOrdine()" class="px-3.5 py-2 bg-rose-950/40 text-rose-400 border border-rose-900/40 font-bold text-xs rounded-xl hover:bg-rose-900/50 transition-all hidden flex items-center gap-1">
+                                ❌ Scollega Account
+                            </button>
                         </div>
                     </div>
 
@@ -3970,6 +4216,83 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIGURAZIONE EXPORT RIEPILOGO FORNITURA TORNEO -->
+    <div id="modal-export-riepilogo-torneo" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out max-h-[90vh] flex flex-col" id="modal-export-riepilogo-container">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">📊</span>
+                    <div>
+                        <h3 id="export-riepilogo-modal-title" class="text-base font-extrabold text-slate-900 leading-tight">RIEPILOGO FORNITURA</h3>
+                        <p id="export-riepilogo-modal-subtitle" class="text-xs text-slate-500 font-medium">Configura le squadre e le opzioni prima di esportare</p>
+                    </div>
+                </div>
+                <button type="button" onclick="chiudiModalExportRiepilogoTorneo()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors cursor-pointer">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 space-y-5 overflow-y-auto flex-1">
+                <!-- Sezione 1: SQUADRE DA INCLUDERE -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-black text-slate-700 uppercase tracking-wider">
+                            Squadre da Includere *
+                        </label>
+                        <span id="export-riepilogo-squadre-counter" class="text-[11px] font-bold text-amber-600 font-mono">
+                            0 squadre selezionate
+                        </span>
+                    </div>
+
+                    <!-- Card Selezione Globale: Tutte le squadre -->
+                    <label class="flex items-center gap-3 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl cursor-pointer hover:bg-amber-500/15 transition-all">
+                        <input type="checkbox" id="export-riepilogo-tutte-squadre" onchange="toggleTutteSquadreExportRiepilogo(this.checked)" class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold cursor-pointer" checked>
+                        <div>
+                            <span class="font-extrabold text-slate-900 text-xs uppercase tracking-wide block">Tutte le squadre</span>
+                            <span class="text-[11px] text-slate-500 font-normal">Seleziona o deseleziona rapidamente tutte le squadre del torneo</span>
+                        </div>
+                    </label>
+
+                    <!-- Lista Squadre Singole Dinamica -->
+                    <div id="export-riepilogo-squadre-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        <!-- Popolato dinamicamente da admin.js -->
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100"></div>
+
+                <!-- Sezione 2: INFORMAZIONI ECONOMICHE -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider">
+                        Informazioni Economiche
+                    </label>
+
+                    <label class="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer hover:border-brand-gold/50 hover:bg-slate-100/60 transition-all">
+                        <input type="checkbox" id="export-riepilogo-include-prezzo" class="w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold mt-0.5 cursor-pointer">
+                        <div>
+                            <span class="font-bold text-slate-900 text-xs block">Inserisci totale dovuto per la Convenzione</span>
+                            <span class="text-[11px] text-slate-500 leading-relaxed block mt-0.5">
+                                Aggiunge alla fine del file il riepilogo del totale dovuto dall'organizzatore per le sole squadre selezionate. Nessun costo interno o margine fornitore verrà mostrato.
+                            </span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+                <button type="button" onclick="chiudiModalExportRiepilogoTorneo()" class="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-white transition-all uppercase tracking-wider cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="btn-conferma-export-riepilogo" onclick="confermaGenerazioneExcelRiepilogativoTorneo()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2 cursor-pointer">
+                    <span>📊</span> Genera Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL NUOVA CATEGORIA -->
     <div id="categoria-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div id="categoria-modal-container" class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl transform transition-all scale-95 opacity-0 border border-slate-100 space-y-5">
@@ -4072,23 +4395,32 @@
             </div>
             
             <div class="space-y-3">
-                <div class="flex items-center justify-between px-1">
-                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Categorie da includere in questo filtro:</span>
-                    <button type="button" onclick="toggleSelezionaTutteCategorieFiltro()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-all">
-                        Seleziona / Deseleziona Tutte
-                    </button>
+                <div class="flex items-center justify-between px-1 flex-wrap gap-2">
+                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Configura Categorie e Target:</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="toggleTuttiTargetFiltro('Adulto')" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg transition-all">
+                            Tutti Adulto
+                        </button>
+                        <button type="button" onclick="toggleTuttiTargetFiltro('Bambino')" class="text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg transition-all">
+                            Tutti Bambino
+                        </button>
+                        <button type="button" onclick="toggleSelezionaTutteCategorieFiltro()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-all px-1">
+                            Tutto / Nessuno
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="max-h-72 overflow-y-auto border border-slate-200/80 rounded-2xl">
+                <div class="max-h-80 overflow-y-auto border border-slate-200/80 rounded-2xl">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
-                                <th class="px-4 py-3 text-center w-20">MOSTRA</th>
                                 <th class="px-4 py-3">CATEGORIA</th>
+                                <th class="px-4 py-3 text-center w-28">ADULTO</th>
+                                <th class="px-4 py-3 text-center w-28">BAMBINO</th>
                             </tr>
                         </thead>
                         <tbody id="modifica-filtro-categorie-tbody" class="divide-y divide-slate-100 text-xs font-semibold text-slate-800 bg-white">
-                            <!-- Popolato dinamicamente con le categorie di appSettings.categorie -->
+                            <!-- Popolato dinamicamente con le categorie di appSettings.categorie e target Adulto/Bambino -->
                         </tbody>
                     </table>
                 </div>
@@ -5355,6 +5687,45 @@
                 </div>
                 <button id="btn-salva-prezzo-ordine" onclick="salvaPrezzoConcordatoOrdine()" type="button" disabled class="px-5 py-2 bg-brand-gold hover:bg-brand-goldHover disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
                     <span>💾</span> Salva Modifica Prezzo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SELEZIONE ACCOUNT CLIENTE -->
+    <div id="modal-assegna-account" class="fixed inset-0 z-[9999] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#111111] border border-[rgba(255,255,255,0.12)] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="p-5 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-[#0B0B0B]">
+                <div>
+                    <h3 class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                        <span>👤</span> <span id="modal-assegna-account-title">ASSEGNA ORDINE AD ACCOUNT</span>
+                    </h3>
+                    <p class="text-[11px] text-[rgba(255,255,255,0.6)] mt-0.5" id="modal-assegna-account-sub">Seleziona l'account cliente registrato a cui associare l'ordine.</p>
+                </div>
+                <button type="button" onclick="chiudiModalAssegnaAccount()" class="text-slate-400 hover:text-white p-1 rounded-lg text-lg">✕</button>
+            </div>
+
+            <!-- Search input -->
+            <div class="p-4 border-b border-[rgba(255,255,255,0.08)] bg-[#0B0B0B]">
+                <div class="relative">
+                    <input type="text" id="search-account-input" oninput="filtraModalAccount()" placeholder="Cerca cliente (nome, cognome, email...)" class="w-full pl-9 pr-4 py-2.5 bg-[#181818] border border-[rgba(255,255,255,0.1)] rounded-xl text-xs text-white placeholder:text-[rgba(255,255,255,0.4)] focus:outline-none focus:border-brand-gold font-semibold">
+                    <span class="absolute left-3 top-2.5 text-slate-500 text-sm">🔍</span>
+                </div>
+            </div>
+
+            <!-- Account List -->
+            <div id="modal-account-list-container" class="p-4 overflow-y-auto space-y-2 flex-1 max-h-[380px]">
+                <div class="text-center py-8 text-xs text-slate-500">Caricamento account registrati...</div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-[rgba(255,255,255,0.08)] bg-[#0B0B0B] flex items-center justify-end gap-3">
+                <button type="button" onclick="chiudiModalAssegnaAccount()" class="px-4 py-2.5 bg-[#1A1A1A] hover:bg-[#222222] text-white text-xs font-bold rounded-xl transition-all border border-[rgba(255,255,255,0.08)]">
+                    ANNULLA
+                </button>
+                <button type="button" id="btn-conferma-assegna-account" onclick="confermaAssegnazioneAccount()" class="px-5 py-2.5 bg-brand-gold text-slate-950 hover:bg-brand-gold/90 text-xs font-black rounded-xl transition-all shadow-md">
+                    ASSEGNA
                 </button>
             </div>
         </div>

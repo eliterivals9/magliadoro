@@ -1,0 +1,76 @@
+{
+  "conversations": [
+    {
+      "id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "user_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "nome": "Mario Rossi",
+      "email": "mario@example.com",
+      "stato": "In attesa",
+      "created_at": "2026-09-04T17:20:33.262Z",
+      "updated_at": "2026-09-04T17:20:33.563Z",
+      "last_message_at": "2026-09-04T17:20:33.563Z"
+    },
+    {
+      "id": "7786ecae-9625-4feb-aa19-081425d337d4",
+      "user_id": "7786ecae-9625-4feb-aa19-081425d337d4",
+      "nome": "Giuseppe Verdi",
+      "email": "giuseppe@example.com",
+      "stato": "Risposto",
+      "created_at": "2026-09-04T17:20:49.188Z",
+      "updated_at": "2026-09-04T17:20:49.557Z",
+      "last_message_at": "2026-09-04T17:20:49.524Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": 1788542434368,
+      "conversation_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "sender": "client",
+      "message": "Salve, vorrei info sulla taglia L della maglia Napoli.",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-04T17:20:33.451Z"
+    },
+    {
+      "id": 1788542434202,
+      "conversation_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "sender": "admin",
+      "message": "Grazie per aver contattato l'assistenza di Maglia d'Oro.\nAbbiamo ricevuto correttamente il tuo messaggio.\nRispondiamo normalmente entro 24 ore lavorative.\nSe desideri essere ricontattato più rapidamente puoi inviarci il tuo numero di telefono direttamente in questa chat e un membro del nostro team ti richiamerà il prima possibile.\nGrazie per la fiducia.",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-04T17:20:33.530Z"
+    },
+    {
+      "id": 1788542450099,
+      "conversation_id": "7786ecae-9625-4feb-aa19-081425d337d4",
+      "sender": "client",
+      "message": "Buongiorno, vorrei informazioni sui tempi di consegna.",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-04T17:20:49.376Z"
+    },
+    {
+      "id": 1788542449979,
+      "conversation_id": "7786ecae-9625-4feb-aa19-081425d337d4",
+      "sender": "admin",
+      "message": "Grazie per aver contattato l'assistenza di Maglia d'Oro.\nAbbiamo ricevuto correttamente il tuo messaggio.\nRispondiamo normalmente entro 24 ore lavorative.\nSe desideri essere ricontattato più rapidamente puoi inviarci il tuo numero di telefono direttamente in questa chat e un membro del nostro team ti richiamerà il prima possibile.\nGrazie per la fiducia.",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-04T17:20:49.444Z"
+    },
+    {
+      "id": 1788542450362,
+      "conversation_id": "7786ecae-9625-4feb-aa19-081425d337d4",
+      "sender": "admin",
+      "message": "Salve Giuseppe, i tempi standard sono 2-4 giorni lavorativi!",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-04T17:20:49.492Z"
+    }
+  ]
+}
