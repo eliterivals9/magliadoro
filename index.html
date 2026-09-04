@@ -13864,23 +13864,59 @@ function renderizzaProdottiSquadraConFiltri() {
             console.warn("Errore lettura convenzione da sessionStorage:", e);
         }
 
+        function ricalcolaPrezzoDopoRimozioneConvenzione(item) {
+            let prezzoDiPartenza = 23.99;
+            if (item.prezzo_originale !== undefined && item.prezzo_originale !== null && Number(item.prezzo_originale) > 0) {
+                prezzoDiPartenza = Number(item.prezzo_originale);
+            } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+                const prod = databaseProdotti.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && item.squadra && p.versione.toLowerCase() === item.squadra.toLowerCase()));
+                if (prod && prod.prezzo) {
+                    prezzoDiPartenza = Number(prod.prezzo);
+                }
+            }
+            
+            if (item.infoPerso && item.infoPerso !== "Nessuna") {
+                const matchNome = item.infoPerso.match(/Nome:\s*([^-|]+)/i);
+                const matchNum = item.infoPerso.match(/Num:\s*([^\s|]+)/i);
+                
+                let nome = "";
+                let numero = "";
+                let patch = "";
+                
+                if (matchNome) nome = matchNome[1].trim();
+                if (matchNum) numero = matchNum[1].trim();
+                
+                const matchPatch = item.infoPerso.match(/Patch:\s*(.+)$/i);
+                if (matchPatch) {
+                    patch = matchPatch[1].trim();
+                } else if (item.infoPerso.includes("Patch") || item.infoPerso.includes("Con Patch") || item.infoPerso.includes("Patch Attiva")) {
+                    patch = "Lega/Torneo";
+                }
+                
+                const cNome = (typeof costoNome !== 'undefined') ? costoNome : 1.50;
+                const cNumero = (typeof costoNumero !== 'undefined') ? costoNumero : 1.50;
+                const cPatch = (typeof costoPatch !== 'undefined') ? costoPatch : 1.00;
+                
+                if (nome && nome !== "Nessuno" && nome !== "Nessuna") {
+                    prezzoDiPartenza += cNome;
+                }
+                if (numero && numero !== "Nessuno" && numero !== "Nessuna") {
+                    prezzoDiPartenza += cNumero;
+                }
+                if (patch && patch !== "Nessuno" && patch !== "Nessuna" && patch !== "Senza Patch") {
+                    prezzoDiPartenza += cPatch;
+                }
+            }
+            return prezzoDiPartenza;
+        }
+        window.ricalcolaPrezzoDopoRimozioneConvenzione = ricalcolaPrezzoDopoRimozioneConvenzione;
+
         // Se la convenzione non è attiva nella sessione, riconcilia eventuali residui nel carrello ripristinando i prezzi originali
         if (!window.fornituraTorneoAttiva && Array.isArray(carrello)) {
             let carrelloAggiornato = false;
             carrello.forEach(item => {
                 if (item && (item.fornitura || item.ha_prezzo_concordato)) {
-                    if (item.prezzo_originale !== undefined && item.prezzo_originale !== null && Number(item.prezzo_originale) > 0) {
-                        item.prezzo = Number(item.prezzo_originale);
-                    } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
-                        const prod = databaseProdotti.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && item.squadra && p.versione.toLowerCase() === item.squadra.toLowerCase()));
-                        if (prod && prod.prezzo) {
-                            item.prezzo = Number(prod.prezzo);
-                        } else {
-                            item.prezzo = 23.99;
-                        }
-                    } else {
-                        item.prezzo = 23.99;
-                    }
+                    item.prezzo = ricalcolaPrezzoDopoRimozioneConvenzione(item);
                     delete item.fornitura;
                     delete item.ha_prezzo_concordato;
                     delete item.prezzo_concordato;
@@ -13958,18 +13994,7 @@ function renderizzaProdottiSquadraConFiltri() {
             if (Array.isArray(carrello)) {
                 carrello.forEach(item => {
                     if (item && (item.fornitura || item.ha_prezzo_concordato)) {
-                        if (item.prezzo_originale !== undefined && item.prezzo_originale !== null && Number(item.prezzo_originale) > 0) {
-                            item.prezzo = Number(item.prezzo_originale);
-                        } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
-                            const prod = databaseProdotti.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && item.squadra && p.versione.toLowerCase() === item.squadra.toLowerCase()));
-                            if (prod && prod.prezzo) {
-                                item.prezzo = Number(prod.prezzo);
-                            } else {
-                                item.prezzo = 23.99;
-                            }
-                        } else {
-                            item.prezzo = 23.99;
-                        }
+                        item.prezzo = ricalcolaPrezzoDopoRimozioneConvenzione(item);
                         delete item.fornitura;
                         delete item.ha_prezzo_concordato;
                         delete item.prezzo_concordato;

@@ -5884,12 +5884,31 @@ function pulisciLottiArchivio() {
  */
 function getOrdersForArchivedLotto(lotto, allOrders = []) {
   if (!lotto) return [];
-  const lottoIdNum = Number(lotto.id);
-  const realOrders = (allOrders || []).filter(o => Number(o.lotto_id) === lottoIdNum);
-  if (realOrders.length > 0) {
-    return realOrders;
+  const snapshotOrders = Array.isArray(lotto.orders) ? lotto.orders : [];
+  if (snapshotOrders.length === 0) {
+    const lottoIdNum = Number(lotto.id);
+    return (allOrders || []).filter(o => Number(o.lotto_id) === lottoIdNum);
   }
-  return Array.isArray(lotto.orders) ? lotto.orders : [];
+
+  return snapshotOrders.map(snapOrder => {
+    const realOrder = (allOrders || []).find(o => 
+      (o.id && snapOrder.id && String(o.id) === String(snapOrder.id)) || 
+      (o.data && snapOrder.data && String(o.data) === String(snapOrder.data))
+    );
+    if (realOrder) {
+      return {
+        ...snapOrder,
+        status: realOrder.status !== undefined ? realOrder.status : snapOrder.status,
+        foto: realOrder.foto !== undefined ? realOrder.foto : snapOrder.foto,
+        tracking_code: realOrder.tracking_code !== undefined ? realOrder.tracking_code : snapOrder.tracking_code,
+        tracking_url: realOrder.tracking_url !== undefined ? realOrder.tracking_url : snapOrder.tracking_url,
+        corriere: realOrder.corriere !== undefined ? realOrder.corriere : snapOrder.corriere,
+        data_spedizione: realOrder.data_spedizione !== undefined ? realOrder.data_spedizione : snapOrder.data_spedizione,
+        note_admin: realOrder.note_admin !== undefined ? realOrder.note_admin : snapOrder.note_admin
+      };
+    }
+    return snapOrder;
+  });
 }
 
 function calcolaNumeroArticoliOrdini(orders) {
