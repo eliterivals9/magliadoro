@@ -170,9 +170,332 @@
   "filtriCatalogo": [
     {
       "id": "f1",
-      "nome": "Filtro Uno",
+      "nome": "Tutti",
       "stato": "attivo",
-      "ordine": 1
+      "ordine": 1,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Kit"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Player"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Fan"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Retro"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Kit Allenamento"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Tuta"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Polo"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Smanicati"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Maniche Lunghe"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Kit Bambino"
+        },
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Portiere"
+        }
+      ],
+      "categorie_associate": [
+        "Kit",
+        "Player",
+        "Fan",
+        "Retro",
+        "Kit Allenamento",
+        "Tuta",
+        "Polo",
+        "Smanicati",
+        "Maniche Lunghe",
+        "Kit Bambino",
+        "Portiere"
+      ]
+    },
+    {
+      "id": "fil_1788554198610",
+      "nome": "KIt",
+      "stato": "attivo",
+      "ordine": 2,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Kit"
+        }
+      ],
+      "categorie_associate": [
+        "Kit"
+      ]
+    },
+    {
+      "id": "fil_1788554210237",
+      "nome": "Maniche Lunghe",
+      "stato": "attivo",
+      "ordine": 3,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Maniche Lunghe"
+        }
+      ],
+      "categorie_associate": [
+        "Maniche Lunghe"
+      ]
+    },
+    {
+      "id": "fil_1788554230517",
+      "nome": "Kit allenamento",
+      "stato": "attivo",
+      "ordine": 4
+    },
+    {
+      "id": "fil_1788554243607",
+      "nome": "Smanicati",
+      "stato": "attivo",
+      "ordine": 5
+    },
+    {
+      "id": "fil_1788554268389",
+      "nome": "Portiere",
+      "stato": "attivo",
+      "ordine": 6,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Portiere"
+        }
+      ],
+      "categorie_associate": [
+        "Portiere"
+      ]
+    },
+    {
+      "id": "fil_1788554283312",
+      "nome": "Tuta",
+      "stato": "attivo",
+      "ordine": 7,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto",
+            "Bambino"
+          ],
+          "categoria": "Tuta"
+        }
+      ],
+      "categorie_associate": [
+        "Tuta"
+      ]
+    },
+    {
+      "id": "fil_1788554303416",
+      "nome": "Retrò",
+      "stato": "attivo",
+      "ordine": 8,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Retro"
+        }
+      ],
+      "categorie_associate": [
+        "Retro"
+      ]
+    },
+    {
+      "id": "fil_1788554320040",
+      "nome": "Versione Fan",
+      "stato": "attivo",
+      "ordine": 9,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Fan"
+        }
+      ],
+      "categorie_associate": [
+        "Fan"
+      ]
+    },
+    {
+      "id": "fil_1788554327256",
+      "nome": "Versione Player",
+      "stato": "attivo",
+      "ordine": 10,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Player"
+        }
+      ],
+      "categorie_associate": [
+        "Player"
+      ]
+    },
+    {
+      "id": "fil_1788554340634",
+      "nome": "Polo",
+      "stato": "attivo",
+      "ordine": 11
+    },
+    {
+      "id": "fil_1788554345240",
+      "nome": "Antivento",
+      "stato": "attivo",
+      "ordine": 12
+    },
+    {
+      "id": "fil_1788554365362",
+      "nome": "Tutto bambino",
+      "stato": "attivo",
+      "ordine": 13,
+      "categorieTarget": [
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Kit"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Player"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Fan"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Retro"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Kit Allenamento"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Tuta"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Polo"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Smanicati"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Maniche Lunghe"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Kit Bambino"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Portiere"
+        }
+      ],
+      "categorie_associate": [
+        "Kit",
+        "Player",
+        "Fan",
+        "Retro",
+        "Kit Allenamento",
+        "Tuta",
+        "Polo",
+        "Smanicati",
+        "Maniche Lunghe",
+        "Kit Bambino",
+        "Portiere"
+      ]
     }
   ],
   "regoleImportazioneJson": [

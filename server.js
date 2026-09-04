@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
@@ -9,8 +10,13 @@ import crypto from 'crypto';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Wrapper per salvare i log del server in un file locale server.log
+// Wrapper per salvare i log del server in un file locale server.log tramite uno stream asincrono non bloccante
 const logFile = path.join(__dirname, 'server.log');
+const logStream = fs.createWriteStream(logFile, { flags: 'a', encoding: 'utf8' });
+logStream.on('error', (err) => {
+  // Gestione errori di scrittura stream senza causare crash del server
+});
+
 const originalLog = console.log;
 const originalError = console.error;
 const originalWarn = console.warn;
@@ -18,8 +24,20 @@ const originalWarn = console.warn;
 function writeToLogFile(level, args) {
   try {
     const timestamp = new Date().toISOString();
-    const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
-    fs.appendFileSync(logFile, `[${timestamp}] [${level}] ${message}\n`, 'utf8');
+    const message = args.map(arg => {
+      if (typeof arg === 'object' && arg !== null) {
+        if (arg instanceof Error) {
+          return arg.stack || arg.message;
+        }
+        try {
+          return JSON.stringify(arg, null, 2);
+        } catch (e) {
+          return String(arg);
+        }
+      }
+      return String(arg);
+    }).join(' ');
+    logStream.write(`[${timestamp}] [${level}] ${message}\n`);
   } catch (err) {
     // ignorato
   }
@@ -63,6 +81,7 @@ if (fs.existsSync(ENV_FILE)) {
 }
 
 const app = express();
+app.use(compression({ level: 6, threshold: 1024 }));
 const PORT = 3000;
 
 // Local fallback database file and custom uploads configuration
@@ -2154,6 +2173,36 @@ function getSupabaseAdminClient() {
   }
 }
 
+// ==========================================
+// IN-MEMORY CACHE PER /api/products (Fase 25)
+// ==========================================
+const PRODUCTS_CACHE_TTL_MS = 5 * 60 * 1000; // TTL: 5 minuti (300.000 ms)
+let productsCacheData = null;       // Oggetto { responseJson, timestamp }
+let productsFetchPromise = null;    // Promise attiva per dedup richieste contemporanee
+
+function invalidateProductsCache() {
+  if (productsCacheData) {
+    console.log('[CACHE /api/products] Cache in memoria invalidata per aggiornamento dati.');
+  }
+  productsCacheData = null;
+  productsFetchPromise = null;
+}
+
+// ==========================================
+// IN-MEMORY CACHE PER /api/settings (Fase 28)
+// ==========================================
+const SETTINGS_CACHE_TTL_MS = 5 * 60 * 1000; // TTL: 5 minuti (300.000 ms)
+let settingsCacheData = null;       // Oggetto { responseJson, timestamp }
+let settingsFetchPromise = null;    // Promise attiva per dedup richieste contemporanee
+
+function invalidateSettingsCache() {
+  if (settingsCacheData) {
+    console.log('[CACHE /api/settings] Cache in memoria invalidata per aggiornamento impostazioni.');
+  }
+  settingsCacheData = null;
+  settingsFetchPromise = null;
+}
+
 // Helper per scaricare in modo resiliente e paginato TUTTI i prodotti da Supabase (evitando il limite di 1000 righe)
 async function getAllProductsFromSupabase(supabase) {
   if (!supabase) return [];
@@ -3162,6 +3211,7 @@ async function saveDuplicateExceptionInSupabase(urlNormalized) {
         updated_at: now
       }, { onConflict: 'key' });
 
+      invalidateSettingsCache();
       return savedObj;
     } catch (e2) {
       console.error("⚠️ Fallback salvataggio eccezione duplicati fallito:", e2.message);
@@ -3203,6 +3253,7 @@ async function deleteDuplicateExceptionFromSupabase(identifier) {
         value: exceptions,
         updated_at: new Date().toISOString()
       }, { onConflict: 'key' });
+      invalidateSettingsCache();
     } catch (e2) {}
   }
 }
@@ -3263,13 +3314,49 @@ app.delete('/api/catalog/duplicate-exceptions', async (req, res) => {
 });
 
 // GET /api/settings - Ottieni le impostazioni correnti o predefinite
+// GET /api/settings - Carica le impostazioni del catalogo (con Cache RAM Server-Side)
 app.get('/api/settings', async (req, res) => {
-  console.log(">>> ENTRATA GET /api/settings");
   try {
-    const currentSettings = await loadSettingsFromSupabase();
-    res.json({ success: true, settings: currentSettings });
+    const now = Date.now();
+
+    // 1. Serviamo dalla RAM cache se ancora valida (< 5 minuti)
+    if (settingsCacheData && (now - settingsCacheData.timestamp < SETTINGS_CACHE_TTL_MS)) {
+      return res.json(settingsCacheData.responseJson);
+    }
+
+    // 2. Se è già in corso un caricamento da Supabase/DB, attendiamo quella promessa per dedup richieste contemporanee
+    if (settingsFetchPromise) {
+      const responseJson = await settingsFetchPromise;
+      return res.json(responseJson);
+    }
+
+    // 3. Altrimenti avviamo la fetch
+    settingsFetchPromise = (async () => {
+      const currentSettings = await loadSettingsFromSupabase();
+      const responseJson = { success: true, settings: currentSettings };
+
+      // Salviamo in memoria cache RAM lato server
+      settingsCacheData = {
+        responseJson,
+        timestamp: Date.now()
+      };
+
+      return responseJson;
+    })();
+
+    try {
+      const responseJson = await settingsFetchPromise;
+      return res.json(responseJson);
+    } finally {
+      settingsFetchPromise = null;
+    }
+
   } catch (err) {
     console.error("⚠️ Errore durante il caricamento delle impostazioni:", err.message);
+    if (settingsCacheData && settingsCacheData.responseJson) {
+      console.log("⚠️ Servendo cache impostazioni precedente come fallback d'emergenza");
+      return res.json(settingsCacheData.responseJson);
+    }
     res.json({ success: true, settings: getSettings() });
   }
 });
@@ -3600,6 +3687,10 @@ app.post('/api/settings', async (req, res) => {
         const totalUpdated = Object.values(counts).reduce((a, b) => a + b, 0);
         summary = lines.join("\n") + `\nTotale prodotti aggiornati:\n${totalUpdated}`;
 
+        if (totalUpdated > 0) {
+          invalidateProductsCache();
+        }
+
         console.log("\n=================================================");
         console.log("RIEPILOGO AGGIORNAMENTO MASSIVO PREZZI (STORED RULES)");
         console.log("=================================================");
@@ -3633,6 +3724,7 @@ app.post('/api/settings', async (req, res) => {
         }
       } catch (e) {}
     }
+    invalidateSettingsCache();
     return res.json({ success: true, settings: finalSettings, summary: summary });
   } catch (error) {
     console.error("🔴 ERRORE FATALE IN POST /api/settings:", error);
@@ -3868,6 +3960,7 @@ app.post('/api/settings/teams/rename', async (req, res) => {
       console.warn("⚠️ Attenzione: errore aggiornamento tabella teams:", teamUpdateError.message);
     }
 
+    invalidateProductsCache();
     return res.json({ success: true, count: data ? data.length : 0 });
   } catch (err) {
     console.error("⚠️ Errore rinomina squadra:", err.message);
@@ -4060,6 +4153,7 @@ app.post('/api/settings/products/import', async (req, res) => {
         }));
         localProds = [...localProds, ...mapped];
         fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+        invalidateProductsCache();
         return res.json({
           success: true,
           count: mapped.length,
@@ -4082,6 +4176,7 @@ app.post('/api/settings/products/import', async (req, res) => {
 
     if (error) throw error;
 
+    invalidateProductsCache();
     return res.json({
       success: true,
       count: data ? data.length : 0,
@@ -4469,76 +4564,111 @@ app.get('/api/connections/status', async (req, res) => {
   }
 });
 
-// GET /api/products - Ottieni i prodotti directly from Supabase or with Local Fallback
+// GET /api/products - Ottieni i prodotti directly from Supabase or with Local Fallback (con Cache RAM Server-Side)
 app.get('/api/products', async (req, res) => {
   try {
-    const supabase = getSupabaseClient();
-    let data = [];
-    let source = 'supabase';
-
-    if (supabase) {
-      try {
-        const startTime = Date.now();
-        const allProductsRaw = await getAllProductsFromSupabase(supabase);
-        const elapsed = Date.now() - startTime;
-        console.log(`[API /api/products] Successfully loaded ${allProductsRaw.length} products from Supabase via helper in ${elapsed}ms`);
-        data = allProductsRaw;
-      } catch (dbErr) {
-        console.warn("⚠️ Fallito recupero prodotti da Supabase, uso fallback locale:", dbErr.message);
-        if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
-          data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
-          source = 'local';
-        } else {
-          throw dbErr;
-        }
-      }
-    } else if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
-      data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
-      source = 'local';
-    } else {
-      throw new Error("Nessun database configurato o trovato.");
+    const now = Date.now();
+    // 1. Serviamo dalla RAM cache se ancora valida (< 5 minuti)
+    if (productsCacheData && (now - productsCacheData.timestamp < PRODUCTS_CACHE_TTL_MS)) {
+      return res.json(productsCacheData.responseJson);
     }
 
-    // Ordina i prodotti per legacy_id crescente per consistenza con il pannello
-    const products = data.map(p => {
-      let target = p.target;
-      let categoria = normalizzaCategoria(p.categoria);
-      
-      // If category is "Kit" and the original category or target implies "Bambino"
-      if (categoria === "Kit" && (p.categoria === "Kit Bambino" || target === "Bambino")) {
-        target = "Bambino";
-      }
-      
-      if (!target) {
-        // Compatibility: check if it's Kids
-        const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${p.categoria || ''}`.toLowerCase();
-        if (textToCheck.includes('kids') || textToCheck.includes('bambino') || textToCheck.includes('child') || textToCheck.includes('youth')) {
-          target = "Bambino";
-        } else {
-          target = "Adulto";
-        }
-      }
-      
-      return {
-        id: p.id,
-        legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
-        squadra: p.squadra || '',
-        categoria: categoria,
-        target: target,
-        versione: p.versione || '',
-        stagione: p.stagione || '',
-        prezzo: p.prezzo !== undefined ? Number(p.prezzo) : 23.99,
-        prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null && p.prezzo_fornitore !== "" ? Number(p.prezzo_fornitore) : null,
-        immagine: p.immagine || '',
-        filtro_catalogo: p.filtro_catalogo || '',
-        tag: p.tag || '',
-        tipo: p.tipo || ''
-      };
-    });
+    // 2. Se è già in corso un caricamento da Supabase, attendiamo quella promessa per dedup richieste contemporanee
+    if (productsFetchPromise) {
+      const responseJson = await productsFetchPromise;
+      return res.json(responseJson);
+    }
 
-    return res.json({ success: true, source, products });
+    // 3. Altrimenti avviamo la fetch da Supabase o dal file di fallback locale
+    productsFetchPromise = (async () => {
+      const supabase = getSupabaseClient();
+      let data = [];
+      let source = 'supabase';
+
+      if (supabase) {
+        try {
+          const startTime = Date.now();
+          const allProductsRaw = await getAllProductsFromSupabase(supabase);
+          const elapsed = Date.now() - startTime;
+          console.log(`[API /api/products] Successfully loaded ${allProductsRaw.length} products from Supabase via helper in ${elapsed}ms`);
+          data = allProductsRaw;
+        } catch (dbErr) {
+          console.warn("⚠️ Fallito recupero prodotti da Supabase, uso fallback locale:", dbErr.message);
+          if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+            data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+            source = 'local';
+          } else {
+            throw dbErr;
+          }
+        }
+      } else if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+        data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        source = 'local';
+      } else {
+        throw new Error("Nessun database configurato o trovato.");
+      }
+
+      // Ordina i prodotti per legacy_id crescente per consistenza con il pannello
+      const products = data.map(p => {
+        let target = p.target;
+        let categoria = normalizzaCategoria(p.categoria);
+        
+        // If category is "Kit" and the original category or target implies "Bambino"
+        if (categoria === "Kit" && (p.categoria === "Kit Bambino" || target === "Bambino")) {
+          target = "Bambino";
+        }
+        
+        if (!target) {
+          // Compatibility: check if it's Kids
+          const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${p.categoria || ''}`.toLowerCase();
+          if (textToCheck.includes('kids') || textToCheck.includes('bambino') || textToCheck.includes('child') || textToCheck.includes('youth')) {
+            target = "Bambino";
+          } else {
+            target = "Adulto";
+          }
+        }
+        
+        return {
+          id: p.id,
+          legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+          squadra: p.squadra || '',
+          categoria: categoria,
+          target: target,
+          versione: p.versione || '',
+          stagione: p.stagione || '',
+          prezzo: p.prezzo !== undefined ? Number(p.prezzo) : 23.99,
+          prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null && p.prezzo_fornitore !== "" ? Number(p.prezzo_fornitore) : null,
+          immagine: p.immagine || '',
+          filtro_catalogo: p.filtro_catalogo || '',
+          tag: p.tag || '',
+          tipo: p.tipo || ''
+        };
+      });
+
+      const responseJson = { success: true, source, products };
+      
+      // Salviamo in memoria cache RAM lato server
+      productsCacheData = {
+        responseJson,
+        timestamp: Date.now()
+      };
+
+      return responseJson;
+    })();
+
+    try {
+      const responseJson = await productsFetchPromise;
+      return res.json(responseJson);
+    } finally {
+      productsFetchPromise = null;
+    }
+
   } catch (err) {
     console.warn("⚠️ Errore nel caricamento dei prodotti:", err.message);
+    if (productsCacheData && productsCacheData.responseJson) {
+      console.log("⚠️ Servendo cache precedente come fallback d'emergenza");
+      return res.json(productsCacheData.responseJson);
+    }
     return res.json({ success: false, error: err.message, products: [] });
   }
 });
@@ -4589,6 +4719,7 @@ app.post('/api/products', async (req, res) => {
 
     if (error) throw error;
 
+    invalidateProductsCache();
     return res.json({ success: true, source: 'supabase', product: data ? data[0] : payload });
   } catch (err) {
     console.warn("⚠️ Errore durante l'inserimento su Supabase:", err.message);
@@ -4642,6 +4773,7 @@ app.put('/api/products/:id', async (req, res) => {
 
     if (error) throw error;
 
+    invalidateProductsCache();
     return res.json({ success: true, source: 'supabase', product: data ? data[0] : payload });
   } catch (err) {
     console.warn("⚠️ Errore durante la modifica su Supabase:", err.message);
@@ -4815,6 +4947,7 @@ app.post('/api/products/batch-update', async (req, res) => {
       }
     }
 
+    invalidateProductsCache();
     return res.json({
       success: true,
       source,
@@ -4904,6 +5037,7 @@ app.post('/api/products/batch-custom-update', async (req, res) => {
       }
     }
 
+    invalidateProductsCache();
     return res.json({
       success: true,
       count: updatedCount || items.length
@@ -4978,6 +5112,7 @@ app.delete('/api/products/bulk/delete_unconfigured', async (req, res) => {
     }
 
     console.log(`[BACKEND DEBUG] Supabase: Eliminazione completata con successo. Eliminati ${deletedCount} prodotti.`);
+    invalidateProductsCache();
     return res.json({ success: true, source: 'supabase', deletedCount });
   } catch (err) {
     console.error("🔴 [BACKEND DEBUG] ERRORE IN BULK DELETE:", err);
@@ -5587,6 +5722,7 @@ app.delete('/api/products/:id', async (req, res) => {
 
     if (error) throw error;
 
+    invalidateProductsCache();
     return res.json({ success: true, source: 'supabase', deleted: data });
   } catch (err) {
     console.warn("⚠️ Errore durante l'eliminazione su Supabase:", err.message);
@@ -13142,6 +13278,7 @@ app.post('/api/products/seed', async (req, res) => {
       prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null ? Number(p.prezzo_fornitore) : null
     }));
     saveLocalProducts(cleanProducts);
+    invalidateProductsCache();
     return res.json({ success: true, message: "Database locale popolato con successo (seeding locale)!", count: cleanProducts.length });
   } catch (err) {
     console.warn("⚠️ Errore durante il seeding locale:", err.message);

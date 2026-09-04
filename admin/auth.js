@@ -14,9 +14,13 @@ async function getSupabase() {
     
     supabasePromise = (async () => {
         try {
-            const res = await fetch('/api/config');
-            if (!res.ok) throw new Error("Impossibile recuperare i dati dal server (/api/config).");
-            const config = await res.json();
+            const config = (typeof window.fetchAppConfig === 'function')
+                ? await window.fetchAppConfig()
+                : await (async () => {
+                    const res = await fetch('/api/config');
+                    if (!res.ok) throw new Error("Impossibile recuperare i dati dal server (/api/config).");
+                    return await res.json();
+                  })();
             
             if (!config.supabaseUrl || !config.supabaseAnonKey) {
                 const errorMsg = "Configurazione di Supabase mancante! Assicurati di impostare SUPABASE_URL e SUPABASE_ANON_KEY nel file .env.";

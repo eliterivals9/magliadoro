@@ -8,10 +8,8 @@
     <!-- 1. Librerie Esterne -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Icons&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Material+Icons&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <!-- BOOTSTRAP PRE-DECLARATION & RESILIENCE PROXY -->
     <script>
         window._pendingActionsQueue = window._pendingActionsQueue || [];
@@ -233,7 +231,7 @@ body {
 
     background:
         linear-gradient(rgba(11,11,11,.55), rgba(11,11,11,.95)),
-        url('assets/homepage/hero-background.webp');
+        url('assets/homepage/hero-background.webp.png');
 
     background-size: cover;
     background-position: center top;
@@ -6533,7 +6531,7 @@ body {
                 <div class="glow-card-frame" id="suspended-card-frame">
                     <div class="glow-card-shine"></div>
                     <div class="suspended-shirt-container">
-                        <img src="assets/homepage//jersey.png - Modificata.png" alt="Maglia d'Oro suspended kit" class="suspended-shirt-img" onerror="this.src='https://jerseys-catalog.com/upload/20260701/7250a7fdb9a4f4a84350373b9cf8cd11.png'">
+                        <img src="assets/homepage/jersey.png - Modificata.png" alt="Maglia d'Oro suspended kit" class="suspended-shirt-img" onerror="this.src='https://jerseys-catalog.com/upload/20260701/7250a7fdb9a4f4a84350373b9cf8cd11.png'">
                         <div class="suspended-shirt-shadow"></div>
                     </div>
                     <div class="suspended-shirt-tag">
@@ -9666,13 +9664,9 @@ document.addEventListener('keydown', function(e) {
         async function seedSupabase() {
             try {
                 // 1. Recupera la configurazione di Supabase in modo sicuro
-                const configRes = await fetch('/api/config');
-                if (!configRes.ok) {
-                    throw new Error("Impossibile recuperare la configurazione di Supabase.");
-                }
-                const config = await configRes.json();
-                const supabaseUrl = config.supabaseUrl;
-                const supabaseAnonKey = config.supabaseAnonKey;
+                const config = await fetchAppConfig();
+                const supabaseUrl = config ? config.supabaseUrl : null;
+                const supabaseAnonKey = config ? config.supabaseAnonKey : null;
 
                 if (!supabaseUrl || !supabaseAnonKey) {
                     alert("Supabase non configurato. Assicurati che SUPABASE_URL e SUPABASE_ANON_KEY siano presenti nel file .env.");
@@ -10636,8 +10630,9 @@ for (const cat in hierarchy) {
                 } catch(e) {}
             }
 
-            checkBadge();
-            customerChatBadgeInterval = setInterval(checkBadge, 15000);
+            // Sospende la chiamata immediata al caricamento iniziale per evitare traffico inutile;
+            // il controllo badge periodico avverrà ogni 30s.
+            customerChatBadgeInterval = setInterval(checkBadge, 30000);
         }
 
         // Global functions export
@@ -10651,19 +10646,15 @@ for (const cat in hierarchy) {
         window.avviaControlloBadgeCustomer = avviaControlloBadgeCustomer;
 
         window.onload = async function() {
-            if (typeof caricaSettingsEFiltriPubblici === 'function') {
-                await caricaSettingsEFiltriPubblici();
-            }
-            await caricaProdottiDaDatabase();
+            // Esegue in parallelo il caricamento di filtri, prodotti e navigazione
+            const pSettings = (typeof caricaSettingsEFiltriPubblici === 'function') ? caricaSettingsEFiltriPubblici() : Promise.resolve();
+            const pProdotti = caricaProdottiDaDatabase();
+            const pNav = caricaNavigazioneDinamica();
+            await Promise.all([pSettings, pProdotti, pNav]);
+
             inizializzaCarouselNuoviArrivi();
-            await caricaNavigazioneDinamica();
             avviaCountdownFittizio();
             aggiornaGraficaCarrello();
-            
-            // Sincronizza la wishlist iniziale dell'utente ed i consigliati
-            if (typeof inizializzaSincronizzazioneWishlist === 'function') {
-                await inizializzaSincronizzazioneWishlist();
-            }
 
             // Inizializza controllo messaggi non letti chat assistenza
             if (typeof avviaControlloBadgeCustomer === 'function') {
@@ -10672,8 +10663,8 @@ for (const cat in hierarchy) {
 
             // Inizializza marketing promo
             await checkAndInitMarketingPromo();
-            // Polling per far partire/scadere la promo in tempo reale (ogni 15 secondi)
-            setInterval(checkAndInitMarketingPromo, 15000);
+            // Polling per far partire/scadere la promo in tempo reale (ogni 60 secondi)
+            setInterval(checkAndInitMarketingPromo, 60000);
 
             // Gestione routing URL per apertura diretta / refresh (es. /accessori, /club, /mondiali, etc.)
             if (typeof inizializzaRoutingURL === 'function') {
@@ -11366,6 +11357,7 @@ for (const cat in hierarchy) {
                         <p style="font-size: 13px; opacity: 0.8;">Prova a cercare un'altra squadra, stagione o tipologia di maglia, oppure reimposta i filtri.</p>
                     </div>`;
             } else {
+                let cardsHtmlBuffer = '';
                 pageProducts.forEach((p, idx) => {
                     let tag = "";
                     const classif = ottieniClassificazioneProdotto(p);
@@ -11380,12 +11372,14 @@ for (const cat in hierarchy) {
                     else if (classif === "Portiere") tag = `Portiere ${p.stagione || ''}`.trim();
                     else tag = `${classif || p.categoria} ${p.stagione || ''}`.trim();
 
-                    contenitore.innerHTML += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
+                    cardsHtmlBuffer += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
                 });
 
                 if (totalPages > 1) {
-                    contenitore.innerHTML += generaHTMLPaginazione(paginaCorrenteRicerca, totalPages, totalItems, startIdx + 1, Math.min(endIdx, totalItems), 'cambiaPaginaRicerca');
+                    cardsHtmlBuffer += generaHTMLPaginazione(paginaCorrenteRicerca, totalPages, totalItems, startIdx + 1, Math.min(endIdx, totalItems), 'cambiaPaginaRicerca');
                 }
+
+                contenitore.innerHTML = cardsHtmlBuffer;
             }
 
             aggiornaGraficaFiltriAttivi();
@@ -12372,6 +12366,7 @@ function renderizzaProdottiSquadraConFiltri() {
                         </div>`;
                 }
             } else {
+                let cardsHtmlBuffer = '';
                 pageProducts.forEach((p, idx) => {
                     let tag = "";
                     const classif = ottieniClassificazioneProdotto(p);
@@ -12386,12 +12381,14 @@ function renderizzaProdottiSquadraConFiltri() {
                     else if (classif === "Portiere") tag = `Portiere ${p.stagione || ''}`.trim();
                     else tag = `${classif || p.categoria} ${p.stagione || ''}`.trim();
 
-                    contenitore.innerHTML += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
+                    cardsHtmlBuffer += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
                 });
                 
                 if (totalPages > 1) {
-                    contenitore.innerHTML += generaHTMLPaginazione(paginaCorrenteCatalogo, totalPages, totalItems, startIdx + 1, Math.min(endIdx, totalItems), 'cambiaPaginaCatalogo');
+                    cardsHtmlBuffer += generaHTMLPaginazione(paginaCorrenteCatalogo, totalPages, totalItems, startIdx + 1, Math.min(endIdx, totalItems), 'cambiaPaginaCatalogo');
                 }
+
+                contenitore.innerHTML = cardsHtmlBuffer;
             }
             
             aggiornaGraficaFiltriAttivi();
@@ -12941,7 +12938,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     ${htmlBadgeTipo}
                     ${heartButtonHtml}
                     <div class="contenitore-foto" onclick="apriLightbox(event, '${immagineDaUsare.replace(/'/g, "\\'")}', '${nome.replace(/'/g, "\\'")}')" style="cursor: pointer; overflow: hidden; position: relative;">
-                        <img src="${immagineDaUsare}" alt="${nome}" class="foto-maglia" loading="${lazyLoad ? 'lazy' : 'eager'}" ${lazyLoad ? '' : 'fetchpriority="high"'} style="transform:translate3d(${transform.x}%,${transform.y}%,0) scale(${transform.zoom}); width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Kit+Calcio'">
+                        <img src="${immagineDaUsare}" alt="${nome}" class="foto-maglia" loading="${lazyLoad ? 'lazy' : 'eager'}" decoding="async" ${lazyLoad ? '' : 'fetchpriority="high"'} style="transform:translate3d(${transform.x}%,${transform.y}%,0) scale(${transform.zoom}); width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Kit+Calcio'">
                     </div>
                     <div class="info-maglia">
                         <div>
@@ -15217,15 +15214,40 @@ function renderizzaProdottiSquadraConFiltri() {
         }
         window.mostraToastPremium = mostraToastPremium;
 
+        // Config App Helper (con deduplicazione e cache in memoria della risposta /api/config)
+        let _appConfigCache = null;
+        let _appConfigPromise = null;
+        async function fetchAppConfig() {
+            if (_appConfigCache) return _appConfigCache;
+            if (_appConfigPromise) return _appConfigPromise;
+
+            _appConfigPromise = (async () => {
+                try {
+                    const res = await fetch('/api/config');
+                    if (!res.ok) throw new Error("Impossibile recuperare la configurazione da /api/config");
+                    _appConfigCache = await res.json();
+                    return _appConfigCache;
+                } catch (err) {
+                    _appConfigPromise = null;
+                    throw err;
+                }
+            })();
+
+            return _appConfigPromise;
+        }
+        window.fetchAppConfig = fetchAppConfig;
+
         // Customer Supabase Client Helper
         let _customerSupabaseClient = null;
+        let _customerSupabasePromise = null;
         async function getCustomerSupabaseClient() {
             if (_customerSupabaseClient) return _customerSupabaseClient;
-            try {
-                const res = await fetch('/api/config');
-                if (res.ok) {
-                    const cfg = await res.json();
-                    if (cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase && typeof window.supabase.createClient === 'function') {
+            if (_customerSupabasePromise) return _customerSupabasePromise;
+
+            _customerSupabasePromise = (async () => {
+                try {
+                    const cfg = await fetchAppConfig();
+                    if (cfg && cfg.supabaseUrl && cfg.supabaseAnonKey && window.supabase && typeof window.supabase.createClient === 'function') {
                         _customerSupabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
                             auth: {
                                 persistSession: true,
@@ -15235,11 +15257,15 @@ function renderizzaProdottiSquadraConFiltri() {
                         });
                         return _customerSupabaseClient;
                     }
+                } catch (err) {
+                    console.warn("Impossibile inizializzare Supabase client cliente:", err);
+                } finally {
+                    _customerSupabasePromise = null;
                 }
-            } catch (err) {
-                console.warn("Impossibile inizializzare Supabase client cliente:", err);
-            }
-            return null;
+                return null;
+            })();
+
+            return _customerSupabasePromise;
         }
         window.getCustomerSupabaseClient = getCustomerSupabaseClient;
 
@@ -16296,9 +16322,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 if (saved) {
                     sessioneUtente = JSON.parse(saved);
                     window.sessioneUtente = sessioneUtente;
-                    syncProfileToServer(sessioneUtente);
                     aggiornaUIAutenticazioneCliente();
-                    caricaWishlist();
                 }
                 const client = await getCustomerSupabaseClient();
                 if (client) {
