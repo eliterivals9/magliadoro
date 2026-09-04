@@ -1,7 +1,390 @@
 {
+  "prezziPredefiniti": {
+    "Kit": 26.99,
+    "Player": 21.99,
+    "Fan": 21.99,
+    "Retro": 21.99,
+    "Kit Allenamento": 25.99,
+    "Tuta": 44.99,
+    "Polo": 26.99,
+    "Smanicati": 26.99,
+    "Maniche Lunghe": 25.99,
+    "Kit Bambino": 19.99
+  },
+  "regolePrezzi": {
+    "Kit_Adulto": 23.99,
+    "Kit_Bambino": 21.99,
+    "Player_Adulto": 21.99,
+    "Player_Bambino": 19.99,
+    "Fan_Adulto": 21.99,
+    "Fan_Bambino": 19.99,
+    "Retro_Adulto": 21.99,
+    "Retro_Bambino": 19.99,
+    "Kit Allenamento_Adulto": 25.99,
+    "Kit Allenamento_Bambino": 21.99,
+    "Tuta_Adulto": 44.99,
+    "Tuta_Bambino": 40,
+    "Polo_Adulto": 26.99,
+    "Polo_Bambino": 21.99,
+    "Maniche Lunghe_Adulto": 25.99,
+    "Maniche Lunghe_Bambino": 21.99,
+    "Smanicato_Adulto": 26.99,
+    "Smanicato_Bambino": 23.99,
+    "Portiere_Adulto": 0,
+    "Portiere_Bambino": 20.99,
+    "Antivento_Adulto": 45,
+    "Antivento_Bambino": 40
+  },
+  "spedizioneLotto": {
+    "range1_min": 1,
+    "range1_max": 10,
+    "range1_cost": 4,
+    "range2_min": 11,
+    "range2_max": 20,
+    "range2_cost": 3,
+    "range3_min": 21,
+    "range3_cost": 2
+  },
+  "cambioValuta": {
+    "mode": "auto",
+    "manual_rate": 0.86
+  },
+  "alibabaFee": {
+    "percentage": 3
+  },
+  "contatti": {
+    "whatsapp_number": "393282218320",
+    "support_email": "assistenza@elitetournamentstore.com"
+  },
+  "valoriPredefiniti": {
+    "stagione": "2024/2025",
+    "categoria": "Kit",
+    "versione": "Home"
+  },
   "sicurezza": {
     "conferma_elimina_prodotto": false,
-    "conferma_elimina_ordine": true,
+    "conferma_elimina_ordine": false,
     "conferma_elimina_recensione": false
-  }
+  },
+  "categorie": [
+    {
+      "id": "cat_kit",
+      "nome": "Kit",
+      "stato": "attivo",
+      "ordine": 1,
+      "prezzo_adulto": 23.99,
+      "prezzo_bambino": 21.99
+    },
+    {
+      "id": "cat_player",
+      "nome": "Player",
+      "stato": "attivo",
+      "ordine": 2,
+      "prezzo_adulto": 21.99,
+      "prezzo_bambino": 19.99
+    },
+    {
+      "id": "cat_fan",
+      "nome": "Fan",
+      "stato": "attivo",
+      "ordine": 3,
+      "prezzo_adulto": 21.99,
+      "prezzo_bambino": 19.99
+    },
+    {
+      "id": "cat_retro",
+      "nome": "Retro",
+      "stato": "attivo",
+      "ordine": 4,
+      "prezzo_adulto": 21.99,
+      "prezzo_bambino": 19.99
+    },
+    {
+      "id": "cat_allenamento",
+      "nome": "Kit Allenamento",
+      "stato": "attivo",
+      "ordine": 5,
+      "prezzo_adulto": 25.99,
+      "prezzo_bambino": 21.99
+    },
+    {
+      "id": "cat_tuta",
+      "nome": "Tuta",
+      "stato": "attivo",
+      "ordine": 6,
+      "prezzo_adulto": 44.99,
+      "prezzo_bambino": 40
+    },
+    {
+      "id": "cat_1788286181419",
+      "nome": "Polo",
+      "stato": "attivo",
+      "ordine": 7,
+      "prezzo_adulto": 26.99,
+      "prezzo_bambino": 21.99
+    },
+    {
+      "id": "cat_1788286210145",
+      "nome": "Maniche Lunghe",
+      "stato": "attivo",
+      "ordine": 8,
+      "prezzo_adulto": 25.99,
+      "prezzo_bambino": 21.99
+    },
+    {
+      "id": "cat_1788286242493",
+      "nome": "Smanicato",
+      "stato": "attivo",
+      "ordine": 9,
+      "prezzo_adulto": 26.99,
+      "prezzo_bambino": 23.99
+    },
+    {
+      "id": "cat_portiere",
+      "nome": "Portiere",
+      "stato": "attivo",
+      "ordine": 10,
+      "prezzo_bambino": 20.99
+    },
+    {
+      "id": "cat_1788521561643",
+      "nome": "Antivento",
+      "stato": "attivo",
+      "ordine": 11,
+      "prezzo_adulto": 45,
+      "prezzo_bambino": 40
+    }
+  ],
+  "filtriCatalogo": [
+    {
+      "id": "fil_tutti",
+      "nome": "Tutti",
+      "stato": "attivo",
+      "ordine": 1,
+      "categorie_associate": [
+        "Kit",
+        "Player",
+        "Fan",
+        "Retro",
+        "Kit Allenamento",
+        "Tuta",
+        "Polo",
+        "Maniche Lunghe",
+        "Smanicato",
+        "Portiere",
+        "Antivento"
+      ]
+    },
+    {
+      "id": "fil_kit",
+      "nome": "Kit",
+      "stato": "attivo",
+      "ordine": 2,
+      "categorie_associate": [
+        "Kit"
+      ]
+    },
+    {
+      "id": "fil_player",
+      "nome": "Player",
+      "stato": "attivo",
+      "ordine": 3,
+      "categorie_associate": [
+        "Player"
+      ]
+    },
+    {
+      "id": "fil_fan",
+      "nome": "Fan",
+      "stato": "attivo",
+      "ordine": 4,
+      "categorie_associate": [
+        "Fan"
+      ]
+    },
+    {
+      "id": "fil_retro",
+      "nome": "Retro",
+      "stato": "attivo",
+      "ordine": 5,
+      "categorie_associate": [
+        "Retro"
+      ]
+    },
+    {
+      "id": "fil_allenamento",
+      "nome": "Kit Allenamento",
+      "stato": "attivo",
+      "ordine": 6,
+      "categorie_associate": [
+        "Kit Allenamento"
+      ]
+    },
+    {
+      "id": "fil_tuta",
+      "nome": "Tuta",
+      "stato": "attivo",
+      "ordine": 7,
+      "categorie_associate": [
+        "Tuta"
+      ]
+    },
+    {
+      "id": "fil_1788286256552",
+      "nome": "Polo",
+      "stato": "attivo",
+      "ordine": 8,
+      "categorie_associate": [
+        "Polo"
+      ]
+    },
+    {
+      "id": "fil_1788286260253",
+      "nome": "Maniche Lunghe",
+      "stato": "attivo",
+      "ordine": 9,
+      "categorie_associate": [
+        "Maniche Lunghe"
+      ]
+    },
+    {
+      "id": "fil_1788286263216",
+      "nome": "Smanicato",
+      "stato": "attivo",
+      "ordine": 10,
+      "categorie_associate": [
+        "Smanicato"
+      ]
+    },
+    {
+      "id": "fil_portiere",
+      "nome": "Portiere",
+      "stato": "attivo",
+      "ordine": 11,
+      "categorie_associate": [
+        "Portiere"
+      ]
+    },
+    {
+      "id": "fil_1788529831719",
+      "nome": "Kit Bambino",
+      "ordine": 12,
+      "stato": "attivo",
+      "categorie_associate": [
+        "Kit"
+      ]
+    }
+  ],
+  "regoleImportazioneJson": [
+    {
+      "id": "rule_1",
+      "categoria": "Kit",
+      "valore_json": "Full Kit"
+    },
+    {
+      "id": "rule_2",
+      "categoria": "Kit Allenamento",
+      "valore_json": "Training Kit"
+    },
+    {
+      "id": "rule_3",
+      "categoria": "Kit Allenamento",
+      "valore_json": "Vest"
+    },
+    {
+      "id": "rule_4",
+      "categoria": "Polo",
+      "valore_json": "Polo"
+    },
+    {
+      "id": "rule_5",
+      "categoria": "Smanicato",
+      "valore_json": "Sleeveless"
+    },
+    {
+      "id": "rule_6",
+      "categoria": "Player",
+      "valore_json": "Player Version"
+    },
+    {
+      "id": "rule_7",
+      "categoria": "Player",
+      "valore_json": "Player Jersey"
+    },
+    {
+      "id": "rule_8",
+      "categoria": "Fan",
+      "valore_json": "Fan Version"
+    },
+    {
+      "id": "rule_9",
+      "categoria": "Fan",
+      "valore_json": "Fan Jersey"
+    },
+    {
+      "id": "rule_10",
+      "categoria": "Retro",
+      "valore_json": "Retro"
+    },
+    {
+      "id": "rule_11",
+      "categoria": "Retro",
+      "valore_json": "Vintage"
+    },
+    {
+      "id": "rule_12",
+      "categoria": "Tuta",
+      "valore_json": "Tracksuit"
+    },
+    {
+      "id": "rule_13",
+      "categoria": "Kit Bambino",
+      "valore_json": "Kit Bambino"
+    },
+    {
+      "id": "rule_14",
+      "categoria": "Portiere",
+      "valore_json": "Goalkeeper"
+    },
+    {
+      "id": "rule_15",
+      "categoria": "Portiere",
+      "valore_json": "GK"
+    },
+    {
+      "id": "rule_16",
+      "categoria": "Portiere",
+      "valore_json": "Keeper"
+    },
+    {
+      "id": "rule_17",
+      "categoria": "Portiere",
+      "valore_json": "Portiere"
+    },
+    {
+      "id": "rule_1788521778033",
+      "categoria": "Maniche Lunghe",
+      "valore_json": "Maniche lunghe"
+    },
+    {
+      "id": "rule_1788521786879",
+      "categoria": "Tuta",
+      "valore_json": "Giacca"
+    },
+    {
+      "id": "rule_1788521791936",
+      "categoria": "Antivento",
+      "valore_json": "Antivento"
+    },
+    {
+      "id": "rule_1788522267642",
+      "categoria": "Smanicato",
+      "valore_json": "Smanicato"
+    },
+    {
+      "id": "rule_1788522286198",
+      "categoria": "Kit Allenamento",
+      "valore_json": "Kit allenamento"
+    }
+  ]
 }

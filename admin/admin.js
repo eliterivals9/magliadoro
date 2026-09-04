@@ -48,6 +48,7 @@ const TEAM_ALIASES = {
     "switzerland": "Svizzera",
     "morocco": "Marocco",
     "japan": "Giappone",
+    "japanese": "Giappone",
     "south korea": "Corea del Sud",
     "uruguay": "Uruguay",
     "colombia": "Colombia",
@@ -123,6 +124,7 @@ const ALIAS_SQUADRE_MAP = {
     "juventus fc": "Juventus",
     "milan": "AC Milan",
     "ac milan": "AC Milan",
+    "acmilan": "AC Milan",
     "roma": "AS Roma",
     "as roma": "AS Roma",
     "lazio": "SS Lazio",
@@ -134,6 +136,7 @@ const ALIAS_SQUADRE_MAP = {
     "barcelona": "Barcellona",
     "barca": "Barcellona",
     "barça": "Barcellona",
+    "barc": "Barcellona",
     "fc barcelona": "Barcellona",
     "real madrid": "Real Madrid",
     "real madrid cf": "Real Madrid",
@@ -141,6 +144,9 @@ const ALIAS_SQUADRE_MAP = {
     "atletico de madrid": "Atletico Madrid",
     "sevilla": "Siviglia",
     "girona fc": "Girona F.C.",
+    "betis": "Real Betis",
+    "real betis": "Real Betis",
+    "real betis balompie": "Real Betis",
 
     // Bundesliga
     "fc bayern": "Bayern Monaco",
@@ -161,12 +167,35 @@ const ALIAS_SQUADRE_MAP = {
     "psg": "Paris Saint-Germain",
     "paris sg": "Paris Saint-Germain",
     "paris saint germain": "Paris Saint-Germain",
+    "paris": "Paris Saint-Germain",
     "marseille": "Olympique Marsiglia",
     "marsiglia": "Olympique Marsiglia",
     "olympique marseille": "Olympique Marsiglia",
     "olympique marsiglia": "Olympique Marsiglia",
     "monaco": "AS Monaco",
     "as monaco": "AS Monaco",
+    "lyon": "Olympique Lione (Lyon)",
+    "olympique lyon": "Olympique Lione (Lyon)",
+    "olympique lione": "Olympique Lione (Lyon)",
+    "lione": "Olympique Lione (Lyon)",
+
+    // Portogallo
+    "sporting lisbon": "Sporting Lisbona (Sporting CP)",
+    "sporting lisbona": "Sporting Lisbona (Sporting CP)",
+    "sporting cp": "Sporting Lisbona (Sporting CP)",
+    "sporting": "Sporting Lisbona (Sporting CP)",
+    "benfica": "Benfica",
+    "porto": "Porto",
+
+    // Sudamerica
+    "flamengo": "Flamengo",
+    "cr flamengo": "Flamengo",
+    "boca": "Boca Juniors",
+    "boca juniors": "Boca Juniors",
+    "river": "River Plate",
+    "river plate": "River Plate",
+    "riverbed": "River Plate",
+    "river bed": "River Plate",
 
     // Nazionali (alias in varie lingue)
     "italy": "Italia",
@@ -187,6 +216,7 @@ const ALIAS_SQUADRE_MAP = {
     "switzerland": "Svizzera",
     "morocco": "Marocco",
     "japan": "Giappone",
+    "japanese": "Giappone",
     "south korea": "Corea del Sud",
     "uruguay": "Uruguay",
     "colombia": "Colombia",
@@ -209,21 +239,164 @@ const ALIAS_SQUADRE_MAP = {
     "south africa": "Sudafrica",
     "peru": "Perù",
     "jamaica": "Giamaica",
-    "hungary": "Ungheria"
+    "hungary": "Ungheria",
+
+    // MLS e campionati esteri
+    "inter miami": "Inter Miami",
+    "miami": "Inter Miami",
+    "los angeles fc": "Los Angeles FC (LAFC)",
+    "lafc": "Los Angeles FC (LAFC)",
+    "los angeles galaxy": "LA Galaxy",
+    "la galaxy": "LA Galaxy",
+    "galaxy": "LA Galaxy"
 };
+
+/**
+ * Segmenta semanticamente token e parole concatenate (es. quando il fornitore non inserisce spazi:
+ * 24/25paris -> 24/25 paris, 24/25adult kitsparis -> 24/25 adult kits paris,
+ * 24/25kids kitacmilan -> 24/25 kids kit acmilan, 25/26adult kitsmiami -> 25/26 adult kits miami,
+ * 25/26playerversionbarcelona -> 25/26 player version barcelona, 25/26trainingkitsarsenal -> 25/26 training kits arsenal,
+ * 25-26Barc -> 25-26 Barc)
+ */
+function segmentaTestoConcatenato(raw) {
+    if (!raw || typeof raw !== 'string') return raw || '';
+    let s = raw.trim();
+
+    // 1. Stacca stagione attaccata a lettere (es. 24/25paris -> 24/25 paris, 25-26Barc -> 25-26 Barc)
+    s = s.replace(/((?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2})|\d{2}[/-]\d{2})(?=[a-zA-Z])/g, "$1 ");
+    s = s.replace(/([a-zA-Z])((?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2})|\d{2}[/-]\d{2})/g, "$1 $2");
+
+    // 2. Separa CamelCase (es. AdultKits -> Adult Kits, PlayerVersion -> Player Version)
+    s = s.replace(/([a-z])([A-Z])/g, "$1 $2");
+
+    // 3. Prefissi noti strutturali da segmentare progressivamente
+    const knownPrefixes = [
+        // Versioni e categorie composte
+        "playerversion", "fanversion", "trainingkits", "trainingkit", "rainingsuit",
+        "shortleeved", "shortsleeved", "longsleeved",
+        // Target
+        "adults", "adult", "kids", "junior", "bambini", "bambino",
+        // Categorie e tipologie
+        "tracksuit", "windbreaker", "training", "kits", "kit", "jersey", "jerseys", "shirt", "shirts", "vest",
+        // Squadre composte o alias frequenti attaccati
+        "acmilan", "intermiami"
+    ];
+    knownPrefixes.sort((a, b) => b.length - a.length);
+
+    function segmentaParola(w) {
+        if (!w || w.length < 4) return w;
+        const wLower = w.toLowerCase();
+        for (const pfx of knownPrefixes) {
+            if (wLower.startsWith(pfx) && w.length > pfx.length) {
+                const rem = w.slice(pfx.length);
+                if (rem.toLowerCase() === "s" || rem.toLowerCase() === "es") {
+                    continue;
+                }
+                const firstPart = w.slice(0, pfx.length);
+                let normalizedFirst = firstPart;
+                if (pfx === "playerversion") normalizedFirst = "player version";
+                else if (pfx === "fanversion") normalizedFirst = "fan version";
+                else if (pfx === "trainingkits") normalizedFirst = "training kits";
+                else if (pfx === "trainingkit") normalizedFirst = "training kit";
+                else if (pfx === "rainingsuit") normalizedFirst = "raining suit";
+                else if (pfx === "acmilan") normalizedFirst = "ac milan";
+                else if (pfx === "intermiami") normalizedFirst = "inter miami";
+
+                return normalizedFirst + " " + segmentaParola(rem);
+            }
+        }
+        return w;
+    }
+
+    const words = s.split(/\s+/);
+    const resultWords = words.map(segmentaParola);
+    return resultWords.join(" ").replace(/\s+/g, " ").trim();
+}
+window.segmentaTestoConcatenato = segmentaTestoConcatenato;
+
+/**
+ * Rimuove dal testo i token già riconosciuti come informazioni di prodotto (categoria, target, versione, manica, colore, kit).
+ * Preserva i nomi di squadre composte (es. Los Angeles FC, Boca Juniors, Sporting Lisbona, Manchester United).
+ */
+function rimuoviTokenProdottoDaTesto(input) {
+    if (!input || typeof input !== 'string') return '';
+    let text = segmentaTestoConcatenato(input.trim());
+
+    // 1. Rimuove pattern di stagioni (es. 2024/2025, 24/25, 25-26, 2024)
+    text = text.replace(/(?<![0-9])(?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2})(?![0-9])/g, " ");
+    text = text.replace(/(?<![0-9])\d{2}[/-]\d{2}(?![0-9])/g, " ");
+    text = text.replace(/\b(\d{2})\s+(\d{2})\b/g, (m, p1, p2) => ((parseInt(p1, 10) + 1) % 100 === parseInt(p2, 10) ? " " : m));
+    text = text.replace(/(?<![0-9/-])(?:19\d{2}|20\d{2})(?![0-9/-])/g, " ");
+
+    // 2. Rimuove accessori tra parentesi (es. with cropped pants, match with shorts, ecc.)
+    text = text.replace(/[\(\[（【]\s*(?:with|con|match\s+with|pairosso\s+with)?\s*[^)\]）】]*(?:pants|cropped|shorts|trousers|socks|calze|calzettoni|pantaloncini|pantaloni)[^)\]）】]*[\)\]）】]/gi, " ");
+
+    // 3. Token e frasi semantiche di prodotto da rimuovere (ordinate per lunghezza decrescente)
+    const frasiProdotto = [
+        // Versioni e edizioni commerciali
+        "player version", "player edition", "versione player",
+        "fan version", "fans version", "fan edition", "fans edition", "versione fan",
+        "special edition", "limited edition",
+        // Maniche e zip/pull
+        "long sleeve", "long sleeved", "short sleeve", "short sleeved",
+        "long pull", "half pull", "half zip", "full zip", "mezza zip", "zip lunga", "zip intera",
+        // Kit composti
+        "training kits", "training kit", "adult kits", "adult kit", "kids kit", "kids kits", "full kit",
+        "raining suit", "pre match", "warm up",
+        // Singole parole target
+        "adults", "adult", "adulto", "adulti",
+        "kids", "kid", "child", "children", "youth", "junior", "baby", "bambini", "bambino",
+        // Categorie e tipologie
+        "tracksuit", "tracksuits", "sweatshirt", "jackets", "jacket", "windbreaker", "antivento",
+        "sleeveless", "smanicato", "polo", "vest", "training", "allenamento",
+        "jerseys", "jersey", "shirts", "shirt", "maglie", "maglia",
+        "completi", "completo", "kits", "kit",
+        "shorts", "pantaloncini", "trousers", "pants", "pantaloni", "socks", "calzettoni", "calze",
+        "goalkeeper", "keeper", "portieri", "portiere", "gk",
+        // Versioni singole parole
+        "player", "fans", "fan", "retro", "retrò", "vintage", "classic", "classica", "storica", "heritage",
+        // Kit partita e posizioni
+        "fourth", "third", "three", "second", "away", "home", "quarta", "terza", "trasferta", "casa",
+        // Colori
+        "black", "white", "green", "yellow", "purple", "orange", "blue", "grey", "gray", "gold", "navy", "pink", "red",
+        "nero", "nera", "neri", "nere", "bianco", "bianca", "bianchi", "bianche",
+        "rosso", "rossa", "rossi", "rosse", "verde", "verdi", "giallo", "gialla", "gialli", "gialle",
+        "blu", "azzurro", "azzurra", "arancione", "grigio", "grigia", "rosa", "viola", "oro"
+    ];
+    frasiProdotto.sort((a, b) => b.length - a.length);
+
+    for (const frase of frasiProdotto) {
+        const esc = frase.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const re = new RegExp("(?<![a-zA-Z0-9])" + esc + "(?![a-zA-Z0-9])", "gi");
+        text = text.replace(re, " ");
+    }
+
+    return text.replace(/\s+/g, " ").trim();
+}
+window.rimuoviTokenProdottoDaTesto = rimuoviTokenProdottoDaTesto;
 
 /**
  * Cerca una squadra dal database ufficiale delle squadre del sito (squadreCatalogo)
  * basandosi sul testo di input fornito (es. p.squadra, p.name o p.alt_text).
  * Restituisce l'oggetto squadra completo dal database o null se non trovata.
+ * 
+ * Implementa 5 livelli di risoluzione:
+ * LIVELLO 1: Cerca esattamente nella stringa originale
+ * LIVELLO 2: Normalizza la stringa
+ * LIVELLO 3: Segmentazione semantica token concatenati (es. 24/25paris, 24/25kids kitacmilan)
+ * LIVELLO 4: Rimozione token di prodotto (categoria, target, kit, manica)
+ * LIVELLO 5: Ricerca nome squadra / alias nel testo residuo
  */
 function trovaSquadraInDatabase(candidateText, dbSquadre) {
     if (!candidateText || typeof candidateText !== 'string') return null;
     const textRaw = candidateText.trim();
     if (!textRaw) return null;
 
-    const textClean = pulisciStringaSquadra(textRaw);
-    if (!textClean) return null;
+    const stopwords = ["fc", "cf", "ac", "as", "afc", "ss", "sc", "us", "asd", "fk", "club", "calcio"];
+    // Se il testo candidato è puramente una stopword isolata (es. "AC", "FC", "CF", "Club"), è ambiguo e NON deve essere matchato
+    if (stopwords.includes(textRaw.toLowerCase())) {
+        return null;
+    }
 
     const listaTeams = Array.isArray(dbSquadre) && dbSquadre.length > 0 ? dbSquadre : squadreCatalogo;
     if (!Array.isArray(listaTeams) || listaTeams.length === 0) return null;
@@ -231,53 +404,143 @@ function trovaSquadraInDatabase(candidateText, dbSquadre) {
     const findByOfficialName = (targetName) => {
         if (!targetName) return null;
         const targetClean = pulisciStringaSquadra(targetName);
-        return listaTeams.find(t => t.name && (
-            t.name.toLowerCase() === targetName.toLowerCase() ||
-            pulisciStringaSquadra(t.name) === targetClean
-        ));
+        const tLower = targetName.toLowerCase().trim();
+        return listaTeams.find(t => {
+            if (!t || !t.name) return false;
+            const tDb = t.name.toLowerCase().trim();
+            const tDbClean = pulisciStringaSquadra(t.name);
+            if (tDb === tLower || tDbClean === targetClean) return true;
+
+            // Decomposizione parentesi, es. "Olympique Lione (Lyon)", "Los Angeles FC (LAFC)", "Sporting Lisbona (Sporting CP)"
+            const m = t.name.match(/^(.*?)\s*\((.*?)\)$/);
+            if (m) {
+                const mainPart = m[1].toLowerCase().trim();
+                const parenPart = m[2].toLowerCase().trim();
+                if (mainPart === tLower || parenPart === tLower) return true;
+                if (pulisciStringaSquadra(mainPart) === targetClean || pulisciStringaSquadra(parenPart) === targetClean) return true;
+            }
+
+            // Equivalenze bilingue e alias ufficiali
+            if ((tLower === 'barcelona' || tLower === 'barcellona') && (tDb === 'barcelona' || tDb === 'barcellona')) return true;
+            if ((tLower === 'paris saint-germain' || tLower === 'psg' || tLower === 'paris') && (tDb.includes('paris') || tDb === 'psg')) return true;
+            if ((tLower === 'inter miami' || tLower === 'miami') && tDb.includes('miami')) return true;
+            if ((tLower === 'ac milan' || tLower === 'milan') && tDb.includes('milan')) return true;
+            if ((tLower === 'sporting lisbon' || tLower === 'sporting lisbona' || tLower === 'sporting cp') && tDb.includes('sporting lisbon')) return true;
+            if ((tLower === 'real betis' || tLower === 'betis') && tDb.includes('betis')) return true;
+            if ((tLower === 'boca juniors' || tLower === 'boca') && tDb.includes('boca')) return true;
+            if ((tLower === 'river plate' || tLower === 'river' || tLower === 'riverbed') && tDb.includes('river plate')) return true;
+            if ((tLower === 'japan' || tLower === 'japanese' || tLower === 'giappone') && (tDb.includes('giappone') || tDb === 'japan')) return true;
+            if ((tLower === 'los angeles galaxy' || tLower === 'la galaxy' || tLower === 'galaxy') && tDb.includes('galaxy')) return true;
+            if ((tLower === 'los angeles fc' || tLower === 'lafc') && (tDb.includes('los angeles fc') || tDb.includes('lafc'))) return true;
+
+            return false;
+        });
     };
 
-    // 1. Controllo corrispondenza esatta o alias sul candidato completo
+    // LIVELLO 1: Cerca esattamente nella stringa originale
     for (const t of listaTeams) {
-        if (t.name && t.name.trim().toLowerCase() === textRaw.toLowerCase()) {
-            return t;
+        if (t.name && t.name.trim().toLowerCase() === textRaw.toLowerCase()) return t;
+    }
+    if (ALIAS_SQUADRE_MAP[textRaw.toLowerCase()]) {
+        const dbM = findByOfficialName(ALIAS_SQUADRE_MAP[textRaw.toLowerCase()]);
+        if (dbM) return dbM;
+    }
+
+    // LIVELLO 2: Normalizza la stringa
+    const textClean = pulisciStringaSquadra(textRaw);
+    if (textClean) {
+        if (ALIAS_SQUADRE_MAP[textClean]) {
+            const dbM = findByOfficialName(ALIAS_SQUADRE_MAP[textClean]);
+            if (dbM) return dbM;
         }
-        if (t.name && pulisciStringaSquadra(t.name) === textClean) {
-            return t;
+        for (const t of listaTeams) {
+            if (t.name && pulisciStringaSquadra(t.name) === textClean) return t;
         }
     }
 
-    if (ALIAS_SQUADRE_MAP[textClean]) {
-        const dbMatch = findByOfficialName(ALIAS_SQUADRE_MAP[textClean]);
-        if (dbMatch) return dbMatch;
+    // LIVELLO 3: Segmentazione semantica token concatenati (es. 24/25paris, 24/25kids kitacmilan)
+    const textSegmented = segmentaTestoConcatenato(textRaw);
+    const segClean = pulisciStringaSquadra(textSegmented);
+    if (segClean && segClean !== textClean) {
+        if (ALIAS_SQUADRE_MAP[segClean]) {
+            const dbM = findByOfficialName(ALIAS_SQUADRE_MAP[segClean]);
+            if (dbM) return dbM;
+        }
+        for (const t of listaTeams) {
+            if (t.name && pulisciStringaSquadra(t.name) === segClean) return t;
+        }
     }
 
-    // 2. Controllo se un alias o nome squadra del DB è contenuto nel testo candidato
-    const aliasEntries = Object.entries(ALIAS_SQUADRE_MAP).sort((a, b) => b[0].length - a[0].length);
-    for (const [aliasKey, officialName] of aliasEntries) {
-        const aliasClean = pulisciStringaSquadra(aliasKey);
-        if (aliasClean && aliasClean.length >= 3) {
-            const regex = new RegExp("\\b" + aliasClean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "\\b", "i");
-            if (regex.test(textClean)) {
+    // Controllo se un alias o nome squadra (ordinati per lunghezza decrescente per dare priorità a nomi composti più lunghi) è contenuto nel testo segmentato
+    const sortedAliases = Object.entries(ALIAS_SQUADRE_MAP).sort((a, b) => b[0].length - a[0].length);
+    for (const [aliasKey, officialName] of sortedAliases) {
+        const aClean = pulisciStringaSquadra(aliasKey);
+        if (aClean && aClean.length >= 3 && !stopwords.includes(aClean)) {
+            const regex = new RegExp("\\b" + aClean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "\\b", "i");
+            if (regex.test(segClean || textClean)) {
                 const dbMatch = findByOfficialName(officialName);
                 if (dbMatch) return dbMatch;
             }
         }
     }
 
-    const dbTeamsSorted = [...listaTeams].sort((a, b) => {
+    const sortedTeams = [...listaTeams].sort((a, b) => {
         const lenA = pulisciStringaSquadra(a.name || "").length;
         const lenB = pulisciStringaSquadra(b.name || "").length;
         return lenB - lenA;
     });
 
-    for (const t of dbTeamsSorted) {
+    for (const t of sortedTeams) {
         if (!t.name) continue;
         const tClean = pulisciStringaSquadra(t.name);
-        if (tClean && tClean.length >= 3) {
+        if (tClean && tClean.length >= 4 && !stopwords.includes(tClean)) {
             const regex = new RegExp("\\b" + tClean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "\\b", "i");
-            if (regex.test(textClean)) {
+            if (regex.test(segClean || textClean)) {
                 return t;
+            }
+        }
+    }
+
+    // LIVELLO 4 & 5: Rimuove i token di prodotto (categoria, target, kit, manica) e cerca nel testo residuo
+    const residual = rimuoviTokenProdottoDaTesto(textSegmented);
+    if (residual && residual.toLowerCase() !== textRaw.toLowerCase()) {
+        const resClean = pulisciStringaSquadra(residual);
+        if (resClean && !stopwords.includes(resClean)) {
+            // 5a. Corrispondenza diretta sul testo residuo
+            const directMatch = findByOfficialName(residual) || findByOfficialName(resClean);
+            if (directMatch) return directMatch;
+
+            // 5b. Alias sul testo residuo
+            if (ALIAS_SQUADRE_MAP[residual.toLowerCase()]) {
+                const dbM = findByOfficialName(ALIAS_SQUADRE_MAP[residual.toLowerCase()]);
+                if (dbM) return dbM;
+            }
+            if (ALIAS_SQUADRE_MAP[resClean]) {
+                const dbM = findByOfficialName(ALIAS_SQUADRE_MAP[resClean]);
+                if (dbM) return dbM;
+            }
+
+            // 5c. Ricerca alias / team contenuto nel residuo (ordinati per lunghezza decrescente)
+            for (const [aliasKey, officialName] of sortedAliases) {
+                const aClean = pulisciStringaSquadra(aliasKey);
+                if (aClean && aClean.length >= 3 && !stopwords.includes(aClean)) {
+                    const regex = new RegExp("\\b" + aClean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "\\b", "i");
+                    if (regex.test(resClean)) {
+                        const dbMatch = findByOfficialName(officialName);
+                        if (dbMatch) return dbMatch;
+                    }
+                }
+            }
+
+            for (const t of sortedTeams) {
+                if (!t.name) continue;
+                const tClean = pulisciStringaSquadra(t.name);
+                if (tClean && tClean.length >= 3 && !stopwords.includes(tClean)) {
+                    const regex = new RegExp("\\b" + tClean.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "\\b", "i");
+                    if (regex.test(resClean)) {
+                        return t;
+                    }
+                }
             }
         }
     }
@@ -286,10 +549,37 @@ function trovaSquadraInDatabase(candidateText, dbSquadre) {
 }
 
 /**
+ * Estrae una squadra candidata dal prodotto quando non è presente nel database.
+ * Rimuove i token di prodotto per ottenere il nome squadra pulito (es. "Adult Kits Heart" -> "Heart").
+ */
+function estraiNomeSquadraCandidato(p) {
+    if (!p) return '';
+    const raw = p.squadra || p.team || p.product_team || p.club || p.squadra_nome || p.squadra_originale || p.category_name;
+    if (raw && String(raw).trim() !== '' && String(raw).trim() !== 'SQUADRA NON RICONOSCIUTA' && String(raw).trim() !== 'Sconosciuta') {
+        const cleanedRaw = rimuoviTokenProdottoDaTesto(String(raw));
+        if (cleanedRaw && cleanedRaw.length >= 2) {
+            return cleanedRaw;
+        }
+        return String(raw).trim();
+    }
+    const rawName = p.name || p.title || p.nome || p.product_title || p.product_name || '';
+    if (rawName && String(rawName).trim() !== '') {
+        const cleanedName = rimuoviTokenProdottoDaTesto(String(rawName));
+        if (cleanedName && cleanedName.length >= 2) {
+            return cleanedName;
+        }
+        return String(rawName).trim();
+    }
+    return '';
+}
+window.estraiNomeSquadraCandidato = estraiNomeSquadraCandidato;
+
+/**
  * Estrae ed identifica la squadra ed il campionato dal JSON rispettando le priorità:
  * 1. Campo `squadra` (p.squadra, p.team, p.product_team, p.club, p.squadra_nome)
  * 2. Nome prodotto (p.name, p.title, p.nome, p.product_title, p.product_name)
  * 3. Alt text (p.alt_text, p.image_alt)
+ * 4. Categoria / Nome categoria (p.category_name, p.categoria)
  * 
  * Mai utilizzare il nome del file. Mai utilizzare l'URL.
  */
@@ -298,21 +588,25 @@ function estraiEIdentificaSquadra(p, dbSquadre) {
         return {
             dbTeam: null,
             squadra: 'SQUADRA NON RICONOSCIUTA',
-            campionato: 'SQUADRA NON RICONOSCIUTA'
+            campionato: '',
+            trovata: false,
+            squadra_candidata: 'Sconosciuta'
         };
     }
 
     const listaTeams = Array.isArray(dbSquadre) && dbSquadre.length > 0 ? dbSquadre : squadreCatalogo;
 
     // Priorità 1: Campo squadra esplicito
-    const rawSquadra = p.squadra || p.team || p.product_team || p.club || p.squadra_nome;
+    const rawSquadra = p.squadra || p.team || p.product_team || p.club || p.squadra_nome || p.squadra_originale;
     if (rawSquadra && String(rawSquadra).trim() !== '') {
         const found = trovaSquadraInDatabase(String(rawSquadra), listaTeams);
         if (found) {
             return {
                 dbTeam: found,
                 squadra: found.name,
-                campionato: found.sezione || found.campionato || found.categoria || 'SQUADRA NON RICONOSCIUTA'
+                campionato: found.sezione || found.campionato || found.categoria || '',
+                trovata: true,
+                squadra_candidata: found.name
             };
         }
     }
@@ -325,7 +619,9 @@ function estraiEIdentificaSquadra(p, dbSquadre) {
             return {
                 dbTeam: found,
                 squadra: found.name,
-                campionato: found.sezione || found.campionato || found.categoria || 'SQUADRA NON RICONOSCIUTA'
+                campionato: found.sezione || found.campionato || found.categoria || '',
+                trovata: true,
+                squadra_candidata: found.name
             };
         }
     }
@@ -338,16 +634,36 @@ function estraiEIdentificaSquadra(p, dbSquadre) {
             return {
                 dbTeam: found,
                 squadra: found.name,
-                campionato: found.sezione || found.campionato || found.categoria || 'SQUADRA NON RICONOSCIUTA'
+                campionato: found.sezione || found.campionato || found.categoria || '',
+                trovata: true,
+                squadra_candidata: found.name
+            };
+        }
+    }
+
+    // Priorità 4: Categoria / Nome categoria fornitore (es. "Adult Kits Lyon", "Kits Betis")
+    const rawCat = p.category_name || p.categoria || p.categoria_nome || p.category;
+    if (rawCat && String(rawCat).trim() !== '') {
+        const found = trovaSquadraInDatabase(String(rawCat), listaTeams);
+        if (found) {
+            return {
+                dbTeam: found,
+                squadra: found.name,
+                campionato: found.sezione || found.campionato || found.categoria || '',
+                trovata: true,
+                squadra_candidata: found.name
             };
         }
     }
 
     // FALLBACK: Squadra NON trovata nel database del sito
+    const candidate = estraiNomeSquadraCandidato(p);
     return {
         dbTeam: null,
-        squadra: 'SQUADRA NON RICONOSCIUTA',
-        campionato: 'SQUADRA NON RICONOSCIUTA'
+        squadra: candidate || 'SQUADRA NON RICONOSCIUTA',
+        campionato: '',
+        trovata: false,
+        squadra_candidata: candidate || 'Sconosciuta'
     };
 }
 
@@ -1147,6 +1463,9 @@ async function creaSquadraDaForm() {
             aggiornaCategorieSelezionabili();
             aggiornaSquadreDropdown();
             generaOpzioniFiltri();
+            if (typeof rimappaProdottiPerNuovaSquadra === 'function') {
+                await rimappaProdottiPerNuovaSquadra(name);
+            }
         } else {
             showToast("Errore aggiunta squadra: " + (data.error || "errore sconosciuto"), "error");
         }
@@ -3474,16 +3793,32 @@ window.confermaEseguiFindReplace = async function() {
             return { id: item.id, updates };
         });
 
-        const response = await fetch('/api/products/batch-custom-update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ items: itemsPayload })
-        });
+        const CLIENT_CHUNK_SIZE = 100;
+        let totalReplaced = 0;
+        let replaceError = null;
 
-        const data = await response.json();
+        for (let i = 0; i < itemsPayload.length; i += CLIENT_CHUNK_SIZE) {
+            const chunk = itemsPayload.slice(i, i + CLIENT_CHUNK_SIZE);
+            if (btnApplica && itemsPayload.length > CLIENT_CHUNK_SIZE) {
+                const cur = Math.min(i + CLIENT_CHUNK_SIZE, itemsPayload.length);
+                btnApplica.innerHTML = `<span>⏳ Sostituzione (${cur}/${itemsPayload.length})...</span>`;
+            }
 
-        if (data && data.success) {
-            showToast(`Sostituzione completata con successo su ${data.count || count} prodotti!`, "success");
+            const data = await inviaRichiestaBatchSicura('/api/products/batch-custom-update', { items: chunk });
+            if (data && data.success) {
+                totalReplaced += (data.count || chunk.length);
+            } else {
+                replaceError = data ? data.error : 'Errore sconosciuto';
+                break;
+            }
+
+            if (i + CLIENT_CHUNK_SIZE < itemsPayload.length) {
+                await new Promise(r => setTimeout(r, 60));
+            }
+        }
+
+        if (!replaceError) {
+            showToast(`Sostituzione completata con successo su ${totalReplaced || count} prodotti!`, "success");
 
             findreplacePendingList.forEach(item => {
                 const prod = (prodotti || []).find(p => String(p.id) === String(item.id));
@@ -3522,11 +3857,11 @@ window.confermaEseguiFindReplace = async function() {
 
             aggiornaStatoSelezioneMassiva();
         } else {
-            showToast("Errore durante la sostituzione: " + (data ? data.error : 'Errore sconosciuto'), "error");
+            showToast("Errore durante la sostituzione: " + replaceError, "error");
         }
     } catch (err) {
         console.error("Errore durante Trova e Sostituisci:", err);
-        showToast("Errore di connessione durante l'operazione.", "error");
+        showToast("Errore durante l'operazione: " + (err.message || "Errore di connessione"), "error");
     } finally {
         if (btnApplica) {
             btnApplica.disabled = false;
@@ -3636,6 +3971,74 @@ window.chiudiConfermaModificaMassiva = function() {
     }
 };
 
+/**
+ * Invia una richiesta batch al server gestendo rate limit (HTTP 429), risposte testuali non JSON,
+ * ed eseguendo retry con backoff esponenziale per evitare crash del parser JSON.
+ */
+async function inviaRichiestaBatchSicura(url, payload, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const status = response.status;
+            const text = await response.text();
+
+            // Rilevamento esplicito di Rate Limit (HTTP 429 o testo "Rate exceeded")
+            if (status === 429 || (text && (text.includes('Rate exceeded') || text.includes('rate limit')))) {
+                if (attempt < maxRetries) {
+                    const waitMs = 1500 * attempt;
+                    console.warn(`⏳ [Rate Limit] "${text ? text.slice(0, 40) : status}" rilevato su ${url} (tentativo ${attempt}/${maxRetries}), attendo ${waitMs}ms...`);
+                    await new Promise(r => setTimeout(r, waitMs));
+                    continue;
+                }
+                return {
+                    success: false,
+                    error: "Limite di frequenza richieste superato (Rate exceeded). Riprova tra qualche istante."
+                };
+            }
+
+            let data = null;
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch (jsonErr) {
+                if (attempt < maxRetries) {
+                    console.warn(`⚠️ Risposta non JSON da ${url} (${status}), riprovo tra 1s...`);
+                    await new Promise(r => setTimeout(r, 1000 * attempt));
+                    continue;
+                }
+                return {
+                    success: false,
+                    error: `Risposta non valida dal server (${status}): ${text ? text.slice(0, 80) : 'vuota'}`
+                };
+            }
+
+            if (!response.ok && data && !data.error) {
+                data.error = `Errore server HTTP ${status}`;
+            }
+
+            return data || { success: false, error: 'Risposta vuota dal server' };
+        } catch (fetchErr) {
+            if (attempt < maxRetries) {
+                console.warn(`⚠️ Errore di rete su ${url} (tentativo ${attempt}/${maxRetries}):`, fetchErr.message);
+                await new Promise(r => setTimeout(r, 1000 * attempt));
+                continue;
+            }
+            return {
+                success: false,
+                error: fetchErr.message || "Errore di connessione"
+            };
+        }
+    }
+    return { success: false, error: "Operazione non riuscita dopo molteplici tentativi." };
+}
+window.inviaRichiestaBatchSicura = inviaRichiestaBatchSicura;
+
 window.eseguiAggiornamentoMassivoBatch = async function() {
     if (selectedProductIds.size < 1 || Object.keys(pendingBatchUpdates).length === 0) {
         showToast("Operazione non valida o nessuna modifica selezionata.", "error");
@@ -3652,21 +4055,36 @@ window.eseguiAggiornamentoMassivoBatch = async function() {
         }
 
         const idsArray = Array.from(selectedProductIds);
-        const response = await fetch('/api/products/batch-update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                ids: idsArray,
+        const CLIENT_CHUNK_SIZE = 150;
+        let totalUpdated = 0;
+        let encounteredError = null;
+
+        for (let i = 0; i < idsArray.length; i += CLIENT_CHUNK_SIZE) {
+            const chunkIds = idsArray.slice(i, i + CLIENT_CHUNK_SIZE);
+            if (btnApplica && idsArray.length > CLIENT_CHUNK_SIZE) {
+                const currentEnd = Math.min(i + CLIENT_CHUNK_SIZE, idsArray.length);
+                btnApplica.innerHTML = `<span>⏳ Salvataggio (${currentEnd}/${idsArray.length})...</span>`;
+            }
+
+            const data = await inviaRichiestaBatchSicura('/api/products/batch-update', {
+                ids: chunkIds,
                 updates: pendingBatchUpdates
-            })
-        });
+            });
 
-        const data = await response.json();
+            if (data && data.success) {
+                totalUpdated += (data.count || chunkIds.length);
+            } else {
+                encounteredError = data ? data.error : 'Errore sconosciuto';
+                break;
+            }
 
-        if (data && data.success) {
-            showToast(`Modificati con successo ${data.count || idsArray.length} prodotti in batch!`, "success");
+            if (i + CLIENT_CHUNK_SIZE < idsArray.length) {
+                await new Promise(r => setTimeout(r, 60));
+            }
+        }
+
+        if (!encounteredError) {
+            showToast(`Modificati con successo ${totalUpdated || idsArray.length} prodotti in batch!`, "success");
             
             // Chiudi i modal
             chiudiConfermaModificaMassiva();
@@ -3678,11 +4096,11 @@ window.eseguiAggiornamentoMassivoBatch = async function() {
             // Ricarica i dati per aggiornare la tabella
             await caricaDati();
         } else {
-            showToast("Errore durante l'aggiornamento batch: " + (data ? data.error : 'Errore sconosciuto'), "error");
+            showToast("Errore durante l'aggiornamento batch: " + encounteredError, "error");
         }
     } catch (err) {
         console.error("Errore durante l'aggiornamento batch prodotti:", err);
-        showToast("Errore di connessione durante la modifica massiva.", "error");
+        showToast("Errore durante la modifica massiva: " + (err.message || "Errore di connessione"), "error");
     } finally {
         if (btnApplica) {
             btnApplica.disabled = false;
@@ -5407,7 +5825,11 @@ function getRegoleImportazioneJson() {
         { id: 'rule_10', valore_json: 'Retro', categoria: 'Retro' },
         { id: 'rule_11', valore_json: 'Vintage', categoria: 'Retro' },
         { id: 'rule_12', valore_json: 'Tracksuit', categoria: 'Tuta' },
-        { id: 'rule_13', valore_json: 'Kit Bambino', categoria: 'Kit Bambino' }
+        { id: 'rule_13', valore_json: 'Kit Bambino', categoria: 'Kit Bambino' },
+        { id: 'rule_14', valore_json: 'Goalkeeper', categoria: 'Portiere' },
+        { id: 'rule_15', valore_json: 'GK', categoria: 'Portiere' },
+        { id: 'rule_16', valore_json: 'Keeper', categoria: 'Portiere' },
+        { id: 'rule_17', valore_json: 'Portiere', categoria: 'Portiere' }
     ];
 }
 
@@ -5763,7 +6185,8 @@ function assicuratiCategorieDinamiche() {
             { id: 'cat_polo', nome: 'Polo', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 7, stato: 'attivo' },
             { id: 'cat_smanicati', nome: 'Smanicati', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
             { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
-            { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' }
+            { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' },
+            { id: 'cat_portiere', nome: 'Portiere', ordine: 11, stato: 'attivo' }
         ];
 
         window.appSettings.categorie = defaultCats.map((cat, idx) => {
@@ -6537,13 +6960,14 @@ async function processaArrayProdottiScansionati(productsArray, totalFiles = 1) {
         // 4. Estrazione Target / Tipo Kit (Adulto/Bambino)
         const target = extractTarget(p);
         
-        // 5. Estrazione Stagione
-        const stagione = extractStagione(p);
+        // 5. Estrazione Stagione (strutturata e normalizzata, rilevando eventuali ambiguità)
+        const infoStagione = analizzaStagioniProdotto(p);
+        const stagione = infoStagione.stagione;
         
-        // 6. Versione e Nome Prodotto (normalizzato e tradotto)
-        const versioneOriginale = p.name || p.title || p.product_title || p.nome || alt || 'Prodotto Importato';
-        const versione = traduciTestoProdotto(versioneOriginale);
-        const nomeFinale = versione;
+        // 6. Versione e Nome Prodotto (costruzione strutturata senza alcuna duplicazione della stagione)
+        const infoNome = generaNomeTradottoAutomatico(p, squadra, categoria, target);
+        const nomeFinale = infoNome.nome || traduciTestoProdotto(p.name || p.title || p.product_title || p.product_name || 'Prodotto Importato');
+        const versione = nomeFinale;
 
         // 7. Estrazione Prezzi (Fornitore e Vendita suggerita)
         const prezzoFornitore = extractPrezzoFornitore(p);
@@ -6560,15 +6984,22 @@ async function processaArrayProdottiScansionati(productsArray, totalFiles = 1) {
             immagine: imgUrl,
             nome_finale: nomeFinale,
             squadra: squadra,
+            squadra_candidata: infoSquadra.squadra_candidata || squadra,
+            squadra_non_presente: !infoSquadra.trovata,
             categoria: categoria,
+            filtro_catalogo: categoria === 'Portiere' ? 'Portiere' : (p.filtro_catalogo || ''),
             campionato: campionato,
             target: target,
             stagione: stagione,
+            stagione_ambigua: infoStagione.is_ambigua || false,
+            stagioni_rilevate: infoStagione.stagioni_rilevate || [],
             versione: versione,
             prezzo: prezzoVendita,
             prezzo_fornitore: prezzoFornitore,
             disponibilita: disponibilita,
-            id_autogenerato: false
+            id_autogenerato: false,
+            termini_sconosciuti: infoNome.termini_sconosciuti || [],
+            _manual_nome: false
         };
 
         // Genera sempre l'ID univoco sicuro automaticamente
@@ -7259,6 +7690,13 @@ const importPageSize = 100;
 
 
 const colorsMapping = {
+    // Colori composti inglesi
+    "navy blue": { m: "Blu Navy", f: "Blu Navy" },
+    "sky blue": { m: "Celeste", f: "Celeste" },
+    "light blue": { m: "Celeste", f: "Celeste" },
+    "royal blue": { m: "Blu Royal", f: "Blu Royal" },
+    
+    // Colori singoli inglesi
     "black": { m: "Nero", f: "Nera" },
     "white": { m: "Bianco", f: "Bianca" },
     "red": { m: "Rosso", f: "Rossa" },
@@ -7267,13 +7705,44 @@ const colorsMapping = {
     "yellow": { m: "Giallo", f: "Gialla" },
     "purple": { m: "Viola", f: "Viola" },
     "pink": { m: "Rosa", f: "Rosa" },
+    "rose": { m: "Rosa", f: "Rosa" },
     "orange": { m: "Arancione", f: "Arancione" },
     "navy": { m: "Blu Navy", f: "Blu Navy" },
     "grey": { m: "Grigio", f: "Grigia" },
     "gray": { m: "Grigio", f: "Grigia" },
-    "sky blue": { m: "Azzurro", f: "Azzurra" },
     "gold": { m: "Oro", f: "Oro" },
-    "silver": { m: "Argento", f: "Argento" }
+    "silver": { m: "Argento", f: "Argento" },
+    "maroon": { m: "Bordeaux", f: "Bordeaux" },
+    "burgundy": { m: "Bordeaux", f: "Bordeaux" },
+    "teal": { m: "Turchese", f: "Turchese" },
+    "mint": { m: "Menta", f: "Menta" },
+    "beige": { m: "Beige", f: "Beige" },
+    "brown": { m: "Marrone", f: "Marrone" },
+    "violet": { m: "Viola", f: "Viola" },
+    "lilac": { m: "Lilla", f: "Lilla" },
+
+    // Varianti italiane già presenti nel testo
+    "nero": { m: "Nero", f: "Nera" },
+    "nera": { m: "Nero", f: "Nera" },
+    "bianco": { m: "Bianco", f: "Bianca" },
+    "bianca": { m: "Bianco", f: "Bianca" },
+    "rosso": { m: "Rosso", f: "Rossa" },
+    "rossa": { m: "Rosso", f: "Rossa" },
+    "blu": { m: "Blu", f: "Blu" },
+    "verde": { m: "Verde", f: "Verde" },
+    "giallo": { m: "Giallo", f: "Gialla" },
+    "gialla": { m: "Giallo", f: "Gialla" },
+    "viola": { m: "Viola", f: "Viola" },
+    "rosa": { m: "Rosa", f: "Rosa" },
+    "arancione": { m: "Arancione", f: "Arancione" },
+    "grigio": { m: "Grigio", f: "Grigia" },
+    "grigia": { m: "Grigio", f: "Grigia" },
+    "celeste": { m: "Celeste", f: "Celeste" },
+    "azzurro": { m: "Celeste", f: "Celeste" },
+    "azzurra": { m: "Celeste", f: "Celeste" },
+    "oro": { m: "Oro", f: "Oro" },
+    "argento": { m: "Argento", f: "Argento" },
+    "bordeaux": { m: "Bordeaux", f: "Bordeaux" }
 };
 
 function extractSquadra(p, squadreEsistenti) {
@@ -7284,10 +7753,23 @@ function extractSquadra(p, squadreEsistenti) {
 function extractCategoria(p) {
     if (!p) return 'Kit';
 
+    // RICONOSCIMENTO PRIORITARIO PORTIERE (Goalkeeper / GK / Keeper / Portiere)
+    // Valutato ad altissima priorità prima di qualsiasi classificazione generica (Kit, Player, Fan, Kit Bambino, Kit Allenamento, ecc.)
+    const rawName = p.name || p.title || p.nome || p.product_title || p.product_name || '';
+    const nameVal = segmentaTestoConcatenato(rawName);
+    const altVal = p.alt_text || p.image_alt || '';
+    const linkVal = p.product_link || '';
+    const rawVal = (p.categoria || p.category || p.cat || p.type || p.category_name || '').toString().trim();
+    const cleanedLink = linkVal ? decodeURIComponent(linkVal).toLowerCase().replace(/[\/_.-]/g, " ") : "";
+    const allSearchText = [rawVal, nameVal, altVal, linkVal, cleanedLink].filter(Boolean).join(' ');
+
+    if (/\b(goalkeeper|keeper|portiere|portieri|gk)\b/i.test(allSearchText)) {
+        return 'Portiere';
+    }
+
     const regole = getRegoleImportazioneJson();
 
     // 1. Cerca prima un valore di categoria esplicito nel JSON
-    const rawVal = (p.categoria || p.category || p.cat || p.type || p.category_name || '').toString().trim();
     if (rawVal) {
         const lowerRaw = rawVal.toLowerCase();
 
@@ -7312,10 +7794,6 @@ function extractCategoria(p) {
     }
 
     // 2. Se non c'è un campo categoria esplicito nel JSON, cerca nei campi di testo (nome, titolo, alt text, link)
-    const nameVal = p.name || p.title || p.nome || p.product_title || '';
-    const altVal = p.alt_text || p.image_alt || '';
-    const linkVal = p.product_link || '';
-    const cleanedLink = linkVal ? decodeURIComponent(linkVal).toLowerCase().replace(/[\/_.-]/g, " ") : "";
     const fields = [nameVal, altVal, linkVal, cleanedLink].filter(Boolean);
     const text = fields.join(' ').toLowerCase();
 
@@ -7333,7 +7811,8 @@ function extractCategoria(p) {
 
 function extractTarget(p) {
     if (!p) return 'Adulto';
-    const nameVal = p.name || p.title || p.nome || p.product_title || '';
+    const rawName = p.name || p.title || p.nome || p.product_title || p.product_name || '';
+    const nameVal = segmentaTestoConcatenato(rawName);
     const altVal = p.alt_text || p.image_alt || '';
     const linkVal = p.product_link || '';
     const cleanedLink = linkVal ? linkVal.replace(/%20/g, ' ').replace(/[\/_.-]/g, ' ') : '';
@@ -7348,9 +7827,140 @@ function extractTarget(p) {
     return 'Adulto';
 }
 
-function extractStagione(p) {
-    if (!p) return '2024/2025';
-    const nameVal = p.name || p.title || p.nome || p.product_title || '';
+function normalizzaFormatoStagione(token) {
+    if (!token) return null;
+    const str = String(token).trim();
+    
+    // Formato 4 cifre / 4 cifre: 2026/2027 o 2026-2027 o 1997/1998
+    let m = str.match(/(?<![0-9])(19\d{2}|20\d{2})[/-](\d{4})(?![0-9])/);
+    if (m) {
+        return `${m[1]}/${m[2]}`;
+    }
+    
+    // Formato 4 cifre / 2 cifre: 2026/27 o 2026-27 o 1997/98 o 1999/00
+    m = str.match(/(?<![0-9])(19\d{2}|20\d{2})[/-](\d{2})(?![0-9])/);
+    if (m) {
+        const y1 = m[1];
+        const s2 = m[2];
+        let y2;
+        if (parseInt(s2, 10) < parseInt(y1.slice(2), 10) && y1.startsWith("19")) {
+            y2 = "20" + s2;
+        } else {
+            y2 = y1.substring(0, 2) + s2;
+        }
+        return `${y1}/${y2}`;
+    }
+    
+    // Formato 2 cifre / 2 cifre: 26/27 o 26-27 o 97/98 o 06/07 o 99/00
+    m = str.match(/(?<![0-9])(\d{2})[/-](\d{2})(?![0-9])/);
+    if (m) {
+        const n1 = parseInt(m[1], 10);
+        const n2 = parseInt(m[2], 10);
+        const p1 = n1 >= 70 ? "19" : "20";
+        let p2;
+        if (n1 === 99 && n2 === 0) {
+            p2 = "20";
+        } else {
+            p2 = n2 >= 70 ? "19" : "20";
+        }
+        return `${p1}${m[1]}/${p2}${m[2]}`;
+    }
+    
+    // Formato due anni a 2 cifre separati da spazio: 11 12, 06 07, 97 98, 26 27, 99 00
+    m = str.match(/\b(\d{2})\s+(\d{2})\b/);
+    if (m) {
+        const n1 = parseInt(m[1], 10);
+        const n2 = parseInt(m[2], 10);
+        if ((n1 + 1) % 100 === n2) {
+            const p1 = n1 >= 70 ? "19" : "20";
+            const p2 = (n1 === 99 && n2 === 0) ? "20" : (n2 >= 70 ? "19" : "20");
+            return `${p1}${m[1]}/${p2}${m[2]}`;
+        }
+    }
+    
+    // Formato due anni a 4 cifre separati da spazio: 1997 1998
+    m = str.match(/\b(19\d{2}|20\d{2})\s+(19\d{2}|20\d{2})\b/);
+    if (m) {
+        if (parseInt(m[2], 10) === parseInt(m[1], 10) + 1) {
+            return `${m[1]}/${m[2]}`;
+        }
+    }
+    
+    // Formato singolo anno a 4 cifre: 2006, 1998, 1997
+    m = str.match(/\b(19\d{2}|20\d{2})\b/);
+    if (m) {
+        const y = parseInt(m[1], 10);
+        return `${y}/${y + 1}`;
+    }
+    
+    // Formato singolo anno a 2 cifre (YY -> (YY-1)/YY): 11 -> 2010/2011, 27 -> 2026/2027
+    m = str.match(/^\s*(\d{2})\s*$/);
+    if (m) {
+        const val = parseInt(m[1], 10);
+        let endYear;
+        if (val >= 70) endYear = 1900 + val;
+        else if (val === 0) endYear = 2000;
+        else endYear = 2000 + val;
+        const startYear = endYear - 1;
+        return `${startYear}/${endYear}`;
+    }
+    
+    return null;
+}
+window.normalizzaFormatoStagione = normalizzaFormatoStagione;
+
+function rimuoviStagioneDaTesto(text, optContext) {
+    if (!text || typeof text !== 'string') return text || '';
+    let clean = text;
+    
+    // 1. Formati con slash o trattino (es. 2026/2027, 2026/27, 26/27, 26-27)
+    clean = clean.replace(/(?<![0-9])(?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2})(?![0-9])/g, ' ');
+    clean = clean.replace(/(?<![0-9])\d{2}[/-]\d{2}(?![0-9])/g, ' ');
+    
+    // 2. Due anni a 2 cifre consecutivi con spazio (es. 11 12, 06 07, 97 98, 26 27)
+    clean = clean.replace(/\b(\d{2})\s+(\d{2})\b/g, (match, p1, p2) => {
+        const n1 = parseInt(p1, 10);
+        const n2 = parseInt(p2, 10);
+        if ((n1 + 1) % 100 === n2) return ' ';
+        return match;
+    });
+    
+    // 3. Due anni a 4 cifre consecutivi con spazio (es. 1997 1998)
+    clean = clean.replace(/\b(19\d{2}|20\d{2})\s+(19\d{2}|20\d{2})\b/g, (match, p1, p2) => {
+        if (parseInt(p2, 10) === parseInt(p1, 10) + 1) return ' ';
+        return match;
+    });
+    
+    // 4. Parola chiave stagione + anno (es. Season 27, Stagione 11)
+    clean = clean.replace(/\b(?:season|stagione|yr|year|saison)\s*[:#-]?\s*\d{2,4}\b/gi, ' ');
+    clean = clean.replace(/\b\d{2,4}\s*(?:season|stagione)\b/gi, ' ');
+    
+    // 5. Singolo anno a 4 cifre (es. 2006, 1998)
+    clean = clean.replace(/(?<![0-9/-])(?:19\d{2}|20\d{2})(?![0-9/-])/g, ' ');
+    
+    // 6. Singolo anno a 2 cifre SOLO in contesto Retro verificato (es. 11 Liverpool Retro, 12 Liverpool Retro)
+    const isRetro = /\b(?:retro|retrò|vintage|classic|classica|storica|heritage)\b/i.test(text + ' ' + (optContext ? (optContext.categoria || optContext.category || '') : ''));
+    if (isRetro) {
+        clean = clean.replace(/(?<![0-9/-])(\d{2})(?![0-9/-])/g, ' ');
+    }
+    
+    return clean.replace(/\s+/g, ' ').trim();
+}
+window.rimuoviStagioneDaTesto = rimuoviStagioneDaTesto;
+
+function haStagioniDuplicate(text) {
+    if (!text || typeof text !== 'string') return false;
+    const pattern = /(?<![0-9])((?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2})|\d{2}[/-]\d{2}|(?:19\d{2}|20\d{2}))(?![0-9])/g;
+    const matches = text.match(pattern);
+    return !!(matches && matches.length > 1);
+}
+window.haStagioniDuplicate = haStagioniDuplicate;
+
+function analizzaStagioniProdotto(p) {
+    if (!p) return { stagione: '', is_ambigua: false, stagioni_rilevate: [] };
+    
+    const rawName = p.name || p.title || p.nome || p.product_title || p.product_name || p.versione || '';
+    const nameVal = segmentaTestoConcatenato(rawName);
     const altVal = p.alt_text || p.image_alt || '';
     const linkVal = p.product_link || '';
     let decodedLink = '';
@@ -7360,33 +7970,164 @@ function extractStagione(p) {
         decodedLink = linkVal || '';
     }
     
-    const fields = [p.stagione, nameVal, altVal, linkVal, decodedLink].filter(Boolean);
-    const searchStr = fields.join(' ');
+    const fullText = (nameVal + ' ' + (p.categoria || '') + ' ' + (p.category || '') + ' ' + (p.target || '')).toLowerCase();
+    const isRetro = /\b(?:retro|retrò|vintage|classic|classica|storica|heritage)\b/i.test(fullText);
     
-    const match1 = searchStr.match(/\b(19\d{2}|20\d{2})[/-](\d{2,4})\b/);
-    if (match1) {
-        let y1 = match1[1];
-        let y2 = match1[2];
-        if (y2.length === 2) {
-            y2 = y1.substring(0, 2) + y2;
+    let occurrences = [];
+    let singleYearsFound = [];
+    let ambiguousCandidates = [];
+    
+    // 1. Campo stagione esplicito fornito nel JSON
+    if (p.stagione && String(p.stagione).trim() !== '') {
+        const rawStag = String(p.stagione).trim();
+        const norm = normalizzaFormatoStagione(rawStag);
+        if (norm) {
+            occurrences.push(norm);
         }
-        return `${y1}/${y2}`;
     }
-    const match2 = searchStr.match(/\b(\d{2})[/-](\d{2})\b/);
-    if (match2) {
-        let y1 = parseInt(match2[1]);
-        let y2 = parseInt(match2[2]);
-        let prefix1 = y1 >= 90 ? "19" : "20";
-        let prefix2 = y2 >= 90 ? "19" : "20";
-        return `${prefix1}${match2[1]}/${prefix2}${match2[2]}`;
+    
+    // 2. Analisi del testo principale del prodotto
+    if (nameVal && String(nameVal).trim() !== '') {
+        const text = String(nameVal);
+        
+        // A) Formati 4 cifre / 4 cifre o 4 cifre / 2 cifre (es. 2026/2027, 2026/27, 2026-27)
+        const re42 = /(?<![0-9])((?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2}))(?![0-9])/g;
+        let m;
+        while ((m = re42.exec(text)) !== null) {
+            const norm = normalizzaFormatoStagione(m[0]);
+            if (norm) occurrences.push(norm);
+        }
+        
+        // B) Formati 2 cifre / 2 cifre (es. 26/27, 26-27, 06/07, 97/98)
+        const re22 = /(?<![0-9])(\d{2}[/-]\d{2})(?![0-9])/g;
+        while ((m = re22.exec(text)) !== null) {
+            const norm = normalizzaFormatoStagione(m[0]);
+            if (norm) occurrences.push(norm);
+        }
+        
+        // C) Due anni a due cifre consecutivi con spazio (es. 11 12, 06 07, 97 98, 26 27)
+        const reConsecutive = /\b(\d{2})\s+(\d{2})\b/g;
+        while ((m = reConsecutive.exec(text)) !== null) {
+            const n1 = parseInt(m[1], 10);
+            const n2 = parseInt(m[2], 10);
+            if ((n1 + 1) % 100 === n2) {
+                const norm = normalizzaFormatoStagione(m[0]);
+                if (norm) occurrences.push(norm);
+            }
+        }
+        
+        // D) Parola chiave stagione + numero (es. Season 27, Stagione 11, Yr 26)
+        const reKeyword = /\b(?:season|stagione|yr|year|saison)\s*[:#-]?\s*(\d{2,4})\b/gi;
+        while ((m = reKeyword.exec(text)) !== null) {
+            const norm = normalizzaFormatoStagione(m[1]);
+            if (norm) occurrences.push(norm);
+        }
+        const reKeywordPost = /\b(\d{2,4})\s*(?:season|stagione)\b/gi;
+        while ((m = reKeywordPost.exec(text)) !== null) {
+            const norm = normalizzaFormatoStagione(m[1]);
+            if (norm) occurrences.push(norm);
+        }
+        
+        // E) Singolo anno a 4 cifre ISOLATO (non contiguo a / o - o altre cifre)
+        const re4 = /(?<![0-9/-])(19\d{2}|20\d{2})(?![0-9/-])/g;
+        while ((m = re4.exec(text)) !== null) {
+            singleYearsFound.push(m[1]);
+        }
+        
+        // F) Singolo anno a 2 cifre in contesto Retro: 11 Liverpool Retro, 12 Liverpool Retro, 98 Barcelona Retro
+        if (isRetro && occurrences.length === 0 && singleYearsFound.length === 0) {
+            const reSingleRetro = /(?<![0-9/-])(\d{2})(?![0-9/-])/g;
+            while ((m = reSingleRetro.exec(text)) !== null) {
+                const norm = normalizzaFormatoStagione(m[1]);
+                if (norm) occurrences.push(norm);
+            }
+        }
+        
+        // G) Singolo numero a 2 cifre SENZA contesto dimostrabile (es. 27 Liverpool)
+        if (!isRetro && occurrences.length === 0 && singleYearsFound.length === 0) {
+            const reSingleIsolated = /(?<![0-9/-])(\d{2})(?![0-9/-])/g;
+            while ((m = reSingleIsolated.exec(text)) !== null) {
+                ambiguousCandidates.push(m[1]);
+            }
+        }
     }
-    const match3 = searchStr.match(/\b(19\d{2}|20\d{2})\b/);
-    if (match3) {
-        const y = parseInt(match3[1]);
-        return `${y}/${y + 1}`;
+    
+    // Se abbiamo trovato anni a 4 cifre isolati:
+    // Controlliamo se sono già coperti da un intervallo stagione trovato (es. 2008 in 2007/2008)
+    if (singleYearsFound.length > 0) {
+        singleYearsFound.forEach(sy => {
+            const yNum = parseInt(sy, 10);
+            const coveredByOccurrence = occurrences.some(occ => {
+                const parts = occ.split("/").map(Number);
+                return parts.includes(yNum);
+            });
+            if (!coveredByOccurrence) {
+                const norm = normalizzaFormatoStagione(sy);
+                if (norm) occurrences.push(norm);
+            }
+        });
     }
-    return '2024/2025';
+    
+    // 3. Fallback su alt o link solo se nessuna stagione e nessun candidato ambiguo
+    if (occurrences.length === 0 && ambiguousCandidates.length === 0) {
+        [altVal, linkVal, decodedLink].forEach(src => {
+            if (!src) return;
+            const reFallback = /(?<![0-9])((?:19\d{2}|20\d{2})[/-](?:\d{4}|\d{2})|\d{2}[/-]\d{2})(?![0-9])/g;
+            let m;
+            while ((m = reFallback.exec(src)) !== null) {
+                const norm = normalizzaFormatoStagione(m[0]);
+                if (norm) occurrences.push(norm);
+            }
+        });
+    }
+    
+    const uniqueSeasons = Array.from(new Set(occurrences));
+    
+    // Caso 1: Trovate due o più stagioni differenti nel testo sorgente -> Ambiguità (Section 8 / Test J)
+    if (uniqueSeasons.length > 1) {
+        return {
+            stagione: '',
+            is_ambigua: true,
+            stagioni_rilevate: uniqueSeasons
+        };
+    }
+    
+    // Caso 2: Trovata esattamente una stagione valida e sicura
+    if (uniqueSeasons.length === 1) {
+        return {
+            stagione: uniqueSeasons[0],
+            is_ambigua: false,
+            stagioni_rilevate: uniqueSeasons
+        };
+    }
+    
+    // Caso 3: Candidato numerico a 2 cifre senza contesto di stagione (Section 5 / Test H: "27 Liverpool")
+    if (ambiguousCandidates.length > 0) {
+        return {
+            stagione: '',
+            is_ambigua: true,
+            stagioni_rilevate: ambiguousCandidates.map(c => `${c} (da verificare)`)
+        };
+    }
+    
+    // Caso 4: Nessuna stagione rilevata
+    return {
+        stagione: '',
+        is_ambigua: false,
+        stagioni_rilevate: []
+    };
 }
+window.analizzaStagioniProdotto = analizzaStagioniProdotto;
+
+function extractStagione(p) {
+    const info = analizzaStagioniProdotto(p);
+    if (p && typeof p === 'object') {
+        p.stagione_ambigua = info.is_ambigua;
+        p.stagioni_rilevate = info.stagioni_rilevate;
+    }
+    return info.stagione;
+}
+window.extractStagione = extractStagione;
 
 function extractVersione(imageAlt) {
     if (!imageAlt) return 'Home';
@@ -7406,7 +8147,7 @@ function extractVersione(imageAlt) {
 
 function traduciNome(nome) {
     if (!nome) return '';
-    let tradotto = nome;
+    let tradotto = rimuoviStagioneDaTesto(nome);
     const words = [
         ["special edition", "Edizione Speciale"],
         ["pre-match", "Pre-partita"],
@@ -7442,6 +8183,7 @@ function traduciNome(nome) {
         const regex = new RegExp(`\\b${en}\\b`, 'gi');
         tradotto = tradotto.replace(regex, it);
     }
+    tradotto = rimuoviStagioneDaTesto(tradotto);
     return tradotto.charAt(0).toUpperCase() + tradotto.slice(1);
 }
 
@@ -8321,8 +9063,14 @@ function validaProdotto(p) {
     if (!p.nome_finale || p.nome_finale.trim() === '') {
         errori.push("Nome prodotto mancante");
     }
-    if (!p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA') {
-        errori.push("Squadra non riconosciuta nel database");
+
+    const isTeamInDb = squadreCatalogo.some(t => t.name && (
+        t.name.toLowerCase() === (p.squadra || '').trim().toLowerCase() ||
+        pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
+    )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
+
+    if (!p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA' || !isTeamInDb || p.squadra_non_presente) {
+        errori.push("Squadra non presente nel database");
     }
     const catsPrezzi = getListaCategorieRegolePrezzi();
     const rulesImport = typeof getRegoleImportazioneJson === 'function' ? getRegoleImportazioneJson() : [];
@@ -8335,12 +9083,14 @@ function validaProdotto(p) {
         errori.push(`Categoria non valida o non supportata: '${p.categoria}'`);
     }
     
-    const campionatiValidi = [
+    const sezioniDb = Array.from(new Set(squadreCatalogo.map(t => t.sezione).filter(Boolean)));
+    const campionatiValidi = Array.from(new Set([
         'Premier League', 'Serie A', 'La Liga', 'Bundesliga', 'Ligue 1', 'Champions League',
         'USA MLS', 'Saudi League', 'Altri Club', 'Europa', 'Sud America', 'Nord America',
         'Asia', 'Oceania', 'Africa', 'Eastern Conference', 'Western Conference', 'Liga Mx',
-        'Brasileiro Serie A', 'Japan Series', 'Nazionali', 'Mondiali', 'NBA'
-    ];
+        'Brasileiro Serie A', 'Japan Series', 'Nazionali', 'Mondiali', 'NBA',
+        ...sezioniDb
+    ]));
     if (!p.campionato || p.campionato.trim() === '' || p.campionato === 'SQUADRA NON RICONOSCIUTA') {
         errori.push("Campionato non riconosciuto");
     } else {
@@ -8360,6 +9110,13 @@ function validaProdotto(p) {
         if (!regex.test(p.stagione.trim())) {
             errori.push("Stagione formato non valido (es. 2024/25)");
         }
+    }
+    if (p.stagione_ambigua) {
+        const stagText = Array.isArray(p.stagioni_rilevate) && p.stagioni_rilevate.length > 0 ? p.stagioni_rilevate.join(' vs ') : '';
+        errori.push(`Stagione ambigua nel testo${stagText ? ' (' + stagText + ')' : ''}: selezionare o confermare manualmente`);
+    }
+    if (p.nome_finale && haStagioniDuplicate(p.nome_finale)) {
+        errori.push("Nome prodotto contiene stagioni duplicate");
     }
     if (!p.immagine || p.immagine.trim() === '') {
         errori.push("Immagine mancante");
@@ -8648,7 +9405,12 @@ function renderAnteprimaTabella() {
         const borderError = 'border-red-300 focus:border-red-500 bg-red-50/50';
         const borderNormal = 'border-slate-200 focus:border-brand-gold bg-slate-50/50';
 
-        const teamErr = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta';
+        const isTeamInDb = squadreCatalogo.some(t => t.name && (
+            t.name.toLowerCase() === (p.squadra || '').trim().toLowerCase() ||
+            pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
+        )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
+
+        const teamErr = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA' || !isTeamInDb || p.squadra_non_presente;
         const campErr = !p.campionato || p.campionato.trim() === '' || !listCampionati.some(l => l.toLowerCase() === p.campionato.trim().toLowerCase());
         const idErr = !p.legacy_id || p.legacy_id === '';
 
@@ -8678,13 +9440,30 @@ function renderAnteprimaTabella() {
                     <input type="text" value="${escapeHtml(p.nome_finale)}" 
                         onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'nome_finale', this.value)"
                         class="w-full text-xs font-extrabold text-slate-850 rounded-xl px-3 py-2.5 border ${!p.nome_finale ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all">
+                    ${(p.termini_sconosciuti && p.termini_sconosciuti.length > 0) ? `
+                        <div class="mt-1 flex items-center gap-1">
+                            <span class="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5 font-medium" title="Termini del fornitore non riconosciuti dal dizionario">
+                                ⚠️ Non tradotto: ${escapeHtml(p.termini_sconosciuti.join(', '))}
+                            </span>
+                        </div>
+                    ` : ''}
                 </td>
 
                 <!-- Squadra -->
                 <td class="px-5 py-4 align-middle">
-                    <input type="text" list="datalist-squadre" value="${escapeHtml(p.squadra)}" 
-                        onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'squadra', this.value)"
-                        class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2.5 border ${teamErr ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. Real Madrid">
+                    <div class="space-y-1.5 min-w-[210px]">
+                        <input type="text" list="datalist-squadre" value="${escapeHtml(p.squadra || '')}" 
+                            onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'squadra', this.value)"
+                            class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2 border ${teamErr ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. Real Madrid">
+                        ${teamErr ? `
+                            <div class="flex items-center justify-between gap-1.5 p-1.5 bg-rose-50 border border-rose-200 rounded-lg">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 whitespace-nowrap">⚠️ SQUADRA NON PRESENTE</span>
+                                <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(p.squadra || p.squadra_candidata || '')}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all shadow-xs whitespace-nowrap cursor-pointer flex items-center gap-1">
+                                    <span>➕</span> AGGIUNGI SQUADRA
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
                 </td>
 
                 <!-- Categoria -->
@@ -8715,7 +9494,14 @@ function renderAnteprimaTabella() {
                 <td class="px-5 py-4 align-middle">
                     <input type="text" value="${escapeHtml(p.stagione)}" 
                         onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'stagione', this.value)"
-                        class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2.5 border ${!p.stagione || !/^\d{2,4}\/\d{2,4}$/.test(p.stagione) ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. 2024/2025">
+                        class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2.5 border ${!p.stagione || !/^\d{2,4}\/\d{2,4}$/.test(p.stagione) || p.stagione_ambigua ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. 2024/2025">
+                    ${p.stagione_ambigua ? `
+                        <div class="mt-1">
+                            <span class="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5 font-bold block" title="Nel testo del fornitore sono state rilevate stagioni differenti">
+                                ⚠️ Ambigua: ${escapeHtml((p.stagioni_rilevate || []).join(' / '))}
+                            </span>
+                        </div>
+                    ` : ''}
                 </td>
 
                 <!-- Prezzo Fornitore -->
@@ -8770,6 +9556,9 @@ function renderAnteprimaTabella() {
 
     aggiornaConteggiAnteprima();
     renderPaginationControls(totalCount);
+    if (typeof aggiornaAvvisoSquadreMancanti === 'function') {
+        aggiornaAvvisoSquadreMancanti();
+    }
 }
 
 /**
@@ -8869,22 +9658,65 @@ function aggiornaCampoAnteprima(id_anteprima, field, value) {
     const pIndex = findProdIndex(id_anteprima);
     if (pIndex === -1) return;
     
-    if (field === 'squadra') {
-        const dbMatch = trovaSquadraInDatabase(value, squadreCatalogo);
-        if (dbMatch) {
-            prodottiInAnteprima[pIndex]['squadra'] = dbMatch.name;
-            if (dbMatch.sezione) {
-                prodottiInAnteprima[pIndex]['campionato'] = dbMatch.sezione;
-            }
-        } else {
-            prodottiInAnteprima[pIndex]['squadra'] = value.trim();
-        }
+    if (field === 'nome_finale') {
+        prodottiInAnteprima[pIndex]['nome_finale'] = value;
+        prodottiInAnteprima[pIndex]['versione'] = value;
+        prodottiInAnteprima[pIndex]._manual_nome = true;
         prodottiInAnteprima[pIndex]._errors = validaProdotto(prodottiInAnteprima[pIndex]);
         renderAnteprimaTabella();
         return;
     }
 
+    if (field === 'squadra') {
+        const valClean = (value || '').trim();
+        const dbMatch = trovaSquadraInDatabase(valClean, squadreCatalogo);
+        if (dbMatch) {
+            prodottiInAnteprima[pIndex]['squadra'] = dbMatch.name;
+            prodottiInAnteprima[pIndex]['squadra_candidata'] = dbMatch.name;
+            prodottiInAnteprima[pIndex]['squadra_non_presente'] = false;
+            if (dbMatch.sezione) {
+                prodottiInAnteprima[pIndex]['campionato'] = dbMatch.sezione;
+            }
+        } else {
+            prodottiInAnteprima[pIndex]['squadra'] = valClean;
+            prodottiInAnteprima[pIndex]['squadra_candidata'] = valClean;
+            prodottiInAnteprima[pIndex]['squadra_non_presente'] = true;
+        }
+
+        // Se l'utente non ha modificato manualmente il nome, ricalcola la nomenclatura italiana
+        if (!prodottiInAnteprima[pIndex]._manual_nome) {
+            const nomeInfo = generaNomeTradottoAutomatico(
+                prodottiInAnteprima[pIndex],
+                prodottiInAnteprima[pIndex]['squadra'],
+                prodottiInAnteprima[pIndex]['categoria'],
+                prodottiInAnteprima[pIndex]['target']
+            );
+            prodottiInAnteprima[pIndex]['nome_finale'] = nomeInfo.nome;
+            prodottiInAnteprima[pIndex]['versione'] = nomeInfo.nome;
+            prodottiInAnteprima[pIndex]['termini_sconosciuti'] = nomeInfo.termini_sconosciuti || [];
+        }
+
+        prodottiInAnteprima[pIndex]._errors = validaProdotto(prodottiInAnteprima[pIndex]);
+        if (typeof invalidateDuplicateCache === 'function') invalidateDuplicateCache();
+        renderAnteprimaTabella();
+        aggiornaConteggiAnteprima();
+        if (typeof aggiornaAvvisoSquadreMancanti === 'function') {
+            aggiornaAvvisoSquadreMancanti();
+        }
+        return;
+    }
+
     prodottiInAnteprima[pIndex][field] = value;
+
+    if (field === 'stagione') {
+        const valNorm = normalizzaFormatoStagione(value) || (value || '').trim();
+        prodottiInAnteprima[pIndex]['stagione'] = valNorm;
+        prodottiInAnteprima[pIndex].stagione_ambigua = false; // L'amministratore ha confermato o modificato manualmente la stagione
+        prodottiInAnteprima[pIndex]._errors = validaProdotto(prodottiInAnteprima[pIndex]);
+        renderAnteprimaTabella();
+        aggiornaConteggiAnteprima();
+        return;
+    }
 
     // Se l'utente corregge categoria o target, ricalcola automaticamente il prezzo di vendita consigliato
     if (field === 'categoria' || field === 'target') {
@@ -8892,6 +9724,22 @@ function aggiornaCampoAnteprima(id_anteprima, field, value) {
         const tgtVal = field === 'target' ? value : (prodottiInAnteprima[pIndex]['target'] || 'Adulto');
         const nuovoPrezzo = getPrezzoVendita(catVal, tgtVal);
         prodottiInAnteprima[pIndex]['prezzo'] = nuovoPrezzo;
+        if (field === 'categoria' && value === 'Portiere') {
+            prodottiInAnteprima[pIndex]['filtro_catalogo'] = 'Portiere';
+        }
+
+        // Se l'utente non ha modificato manualmente il nome, ricalcola la nomenclatura italiana
+        if (!prodottiInAnteprima[pIndex]._manual_nome) {
+            const nomeInfo = generaNomeTradottoAutomatico(
+                prodottiInAnteprima[pIndex],
+                prodottiInAnteprima[pIndex]['squadra'],
+                catVal,
+                tgtVal
+            );
+            prodottiInAnteprima[pIndex]['nome_finale'] = nomeInfo.nome;
+            prodottiInAnteprima[pIndex]['versione'] = nomeInfo.nome;
+            prodottiInAnteprima[pIndex]['termini_sconosciuti'] = nomeInfo.termini_sconosciuti || [];
+        }
         
         // Trattandosi di ricalcoli a cascata che coinvolgono più campi visibili della riga,
         // ridisegniamo la tabella per mantenere l'interfaccia perfettamente allineata
@@ -9253,35 +10101,122 @@ async function eseguiImportazioneSottoConferma() {
 
 function traduciTestoProdotto(text) {
     if (!text || typeof text !== 'string') return text || '';
+    text = rimuoviStagioneDaTesto(text);
     
-    // Lista di coppie [Regex, Sostituto] in ordine di specificità
+    // Lista ordinata per specificità decrescente
     const regole = [
-        // Frasi composte
+        // Frasi composte e versioni
         [/\bPlayer Version\b/gi, "Versione Player"],
-        [/\bFan Version\b/gi, "Versione Fan"],
+        [/\bPlayer Edition\b/gi, "Versione Player"],
+        [/\bFans? Version\b/gi, "Versione Fan"],
+        [/\bFans? Edition\b/gi, "Versione Fan"],
         [/\bTraining Kit\b/gi, "Kit Allenamento"],
+        [/\bTraining Tracksuit\b/gi, "Tuta Allenamento"],
+        [/\bTraining Suit\b/gi, "Tuta Allenamento"],
         [/\bSpecial Edition\b/gi, "Edizione Speciale"],
         [/\bLimited Edition\b/gi, "Edizione Limitata"],
+        [/\bHalf[- ]Pull\b/gi, "Mezza Zip"],
+        [/\bHalf[- ]Zip\b/gi, "Mezza Zip"],
+        [/\bLong[- ]Pull\b/gi, "Tuta Zip Intera"],
+        [/\bFull[- ]Zip\b/gi, "Zip Intera"],
+        [/\bJackets? Sets?\b/gi, "Tuta"],
+        [/\bTracksuit\b/gi, "Tuta"],
+        [/\bWindbreaker\b/gi, "Antivento"],
+        [/\bGoalkeeper Shirt\b/gi, "Maglia Portiere"],
+        [/\bGoalkeeper Kit\b/gi, "Kit Portiere"],
+        [/\bGK Shirt\b/gi, "Maglia Portiere"],
+        [/\bGK Kit\b/gi, "Kit Portiere"],
+        [/\bGoalkeeper\b/gi, "Portiere"],
+        [/\bKeeper\b/gi, "Portiere"],
+        [/\bGK\b/g, "Portiere"],
+        [/\bgk\b/g, "Portiere"],
         [/\bLong Sleeve\b/gi, "Maniche Lunghe"],
         [/\bShort Sleeve\b/gi, "Maniche Corte"],
-        [/\bGoalkeeper\b/gi, "Portiere"],
-        [/\bTracksuit\b/gi, "Tuta"],
+        [/\bTwo Stars?\b/gi, "Due Stelle"],
+        [/\b2 Stars?\b/gi, "Due Stelle"],
+        [/\bThree Stars?\b/gi, "Tre Stelle"],
+        [/\b3 Stars?\b/gi, "Tre Stelle"],
+        [/\bSecond Away\b/gi, "Seconda Trasferta"],
+        [/\bSecond Trasferta\b/gi, "Seconda Trasferta"],
         [/\bAnniversary\b/gi, "Anniversario"],
-        
-        // Parole singole
+        [/\bCommemorative\s+Edition\b/gi, "Edizione Speciale"],
+        [/\bNight\s+Edition\b/gi, "Edizione Speciale"],
+        [/\bPre[- ]Match\b/gi, "Pre-Partita"],
+        [/\bWarm[- ]Up\b/gi, "Riscaldamento"],
+        [/\bKids? Kits?\b/gi, "Kit Bambino"],
+        [/\bAdults? Kits?\b/gi, "Kit Adulto"],
+
+        // Combinazioni Colori
+        [/\bBlack\s*(?:\/|&|\band\b|\bwith\b)\s*Gold\b/gi, "Nero e Oro"],
+        [/\bBlack\s*(?:\/|&|\band\b|\bwith\b)\s*Pink\b/gi, "Nero e Rosa"],
+        [/\bNero\s*(?:\/|&|\band\b|\be\b|\bwith\b)\s*Rose(?:\s*Rosso)?\b/gi, "Nero e Rosa"],
+        [/\bWhite\s*(?:\/|&|\band\b|\bwith\b)\s*Red\b/gi, "Bianco e Rosso"],
+        [/\bWhite\s*(?:\/|&|\band\b|\bwith\b)\s*Blue\b/gi, "Bianco e Blu"],
+        [/\bPurple\s*(?:\/|&|\band\b|\bwith\b)\s*White\b/gi, "Viola e Bianco"],
+        [/\bWhite\s*(?:\/|&|\band\b)\s*Black\b/gi, "Bianco/Nero"],
+        [/\bBlack\s*(?:\/|&|\band\b)\s*White\b/gi, "Nero/Bianco"],
+        [/\bGreen\s*(?:\/|&|\band\b)\s*White\b/gi, "Verde/Bianco"],
+        [/\bBlue\s*(?:\/|&|\band\b)\s*Red\b/gi, "Blu/Rosso"],
+        [/\bRed\s*(?:\/|&|\band\b)\s*White\b/gi, "Rosso/Bianco"],
+        [/\bYellow\s*(?:\/|&|\band\b)\s*Blue\b/gi, "Giallo/Blu"],
+
+        // Colori Singoli (Multi-parola prima)
+        [/\bNavy Blue\b/gi, "Blu Navy"],
+        [/\bSky Blue\b/gi, "Celeste"],
+        [/\bLight Blue\b/gi, "Celeste"],
+        [/\bRoyal Blue\b/gi, "Blu Royal"],
+        [/\bBlack\b/gi, "Nero"],
+        [/\bWhite\b/gi, "Bianco"],
+        [/\bRed\b/gi, "Rosso"],
+        [/\bBlue\b/gi, "Blu"],
+        [/\bGreen\b/gi, "Verde"],
+        [/\bYellow\b/gi, "Giallo"],
+        [/\bPurple\b/gi, "Viola"],
+        [/\bPink\b/gi, "Rosa"],
+        [/\bRose\b/gi, "Rosa"],
+        [/\bOrange\b/gi, "Arancione"],
+        [/\bNavy\b/gi, "Blu Navy"],
+        [/\bGrey\b/gi, "Grigio"],
+        [/\bGray\b/gi, "Grigio"],
+        [/\bGold\b/gi, "Oro"],
+        [/\bSilver\b/gi, "Argento"],
+        [/\bMaroon\b/gi, "Bordeaux"],
+        [/\bBurgundy\b/gi, "Bordeaux"],
+        [/\bTeal\b/gi, "Turchese"],
+        [/\bMint\b/gi, "Menta"],
+        [/\bBeige\b/gi, "Beige"],
+        [/\bBrown\b/gi, "Marrone"],
+        [/\bLilac\b/gi, "Lilla"],
+        [/\bViolet\b/gi, "Viola"],
+
+        // Varianti e Capi Singoli
+        [/\bThree\s+Trasferta\b/gi, "Terza Trasferta"],
+        [/\bThree\s+Away\b/gi, "Terza Trasferta"],
         [/\bHome\b/gi, "Casa"],
+        [/\bHosts?\b/gi, "Casa"],
         [/\bAway\b/gi, "Trasferta"],
         [/\bThird\b/gi, "Terza"],
         [/\bFourth\b/gi, "Quarta"],
+        [/\b3rd\b/gi, "Terza"],
+        [/\b4th\b/gi, "Quarta"],
         [/\bTraining\b/gi, "Allenamento"],
-        [/\bKids\b/gi, "Bambino"],
-        [/\bAdults\b/gi, "Adulto"],
+        [/\bKids?\b/gi, "Bambino"],
+        [/\bYouth\b/gi, "Bambino"],
+        [/\bChildren\b/gi, "Bambino"],
+        [/\bAdults?\b/gi, "Adulto"],
         [/\bJersey\b/gi, "Maglia"],
-        [/\bRetro\b/gi, "Retro"],
+        [/\bShirt\b/gi, "Maglia"],
+        [/\bShorts\b/gi, "Pantaloncini"],
+        [/\bPants\b/gi, "Pantaloni"],
+        [/\bTrousers\b/gi, "Pantaloni"],
+        [/\bSocks\b/gi, "Calzettoni"],
+        [/\bSleeveless\b/gi, "Smanicato"],
+        [/\bVest\b/gi, "Smanicato"],
+        [/\bRetro\b/gi, "Retrò"],
+        [/\bVintage\b/gi, "Retrò"],
+        [/\bClassic\b/gi, "Retrò"],
         [/\bWomen's\b/gi, "Donna"],
-        [/\bWomen\b/gi, "Donna"],
-        [/\bGK\b/g, "Portiere"],
-        [/\bgk\b/g, "Portiere"]
+        [/\bWomen\b/gi, "Donna"]
     ];
 
     let tradotto = text;
@@ -9290,7 +10225,6 @@ function traduciTestoProdotto(text) {
     }
 
     // Risolviamo anche l'ordine del nome se ci sono combinazioni particolari:
-    // Ad esempio, "Maniche Lunghe Casa" -> "Casa Maniche Lunghe"
     const swaps = [
         [/\bManiche Lunghe Casa\b/gi, "Casa Maniche Lunghe"],
         [/\bManiche Lunghe Trasferta\b/gi, "Trasferta Maniche Lunghe"],
@@ -9306,159 +10240,682 @@ function traduciTestoProdotto(text) {
         tradotto = tradotto.replace(pattern, replacement);
     }
 
-    // Pulisce spazi doppi o spazi extra ai bordi
-    tradotto = tradotto.replace(/\s+/g, ' ').trim();
-    
+    // Pulisce spazi doppi o spazi extra ai bordi e rimuove residui di stagione
+    tradotto = rimuoviStagioneDaTesto(tradotto).replace(/\s+/g, ' ').trim();
     return tradotto;
 }
 
 function generaNomeTradottoAutomatico(p, squadraRiconosciuta, categoriaRiconosciuta, targetRiconosciuto) {
-    const rawText = [p.name, p.title, p.nome, p.image_alt, p.product_link].filter(Boolean).join(' ').toLowerCase();
+    const rawParts = [
+        p.name, p.title, p.nome, p.product_title, p.product_name,
+        p.image_alt, p.alt_text, p.product_link, p.versione
+    ].filter(Boolean).map(segmentaTestoConcatenato);
+    const rawCleaned = rawParts.map(part => rimuoviStagioneDaTesto(part)).filter(Boolean);
+    const rawText = rawCleaned.join(' ');
     
-    // 1. Determina Categoria / Tipo Base in Italiano
-    let baseType = "Kit";
-    let isFeminine = false;
-    
-    if (categoriaRiconosciuta === 'Player') {
-        baseType = "Maglia Player";
-        isFeminine = true;
-    } else if (categoriaRiconosciuta === 'Fan') {
-        baseType = "Maglia Fan";
-        isFeminine = true;
-    } else if (categoriaRiconosciuta === 'Retro') {
-        baseType = "Maglia Retrò";
-        isFeminine = true;
-    } else if (categoriaRiconosciuta === 'Kit Allenamento') {
-        baseType = "Kit Allenamento";
-        isFeminine = false;
-    } else if (categoriaRiconosciuta === 'Tuta') {
-        baseType = "Tuta";
-        isFeminine = true;
-    } else {
-        // Fallback o Kit generico vs Maglia
-        if (rawText.includes('jersey') || rawText.includes('shirt') || rawText.includes('maglia') || rawText.includes('vest')) {
-            baseType = "Maglia";
-            isFeminine = true;
-        } else if (rawText.includes('kit') || rawText.includes('completo') || rawText.includes('shorts')) {
-            baseType = "Kit";
-            isFeminine = false;
-        } else {
-            baseType = "Maglia";
-            isFeminine = true;
-        }
-    }
-    
-    // Aggiunge la versione se presente (Casa, Trasferta, ecc.)
-    let versionPart = "";
-    if (rawText.includes('home') || rawText.includes('casa')) {
-        versionPart = "Casa";
-    } else if (rawText.includes('away') || rawText.includes('trasferta')) {
-        versionPart = "Trasferta";
-    } else if (rawText.includes('third') || rawText.includes('terza')) {
-        versionPart = "Third";
-    } else if (rawText.includes('fourth') || rawText.includes('quarta')) {
-        versionPart = "Quarta";
-    } else if (rawText.includes('special') || rawText.includes('speciale')) {
-        versionPart = "Speciale";
-    }
-    
-    if (versionPart) {
-        baseType = `${baseType} ${versionPart}`;
+    // Separa eventuali cifre e lettere attaccate (es. 26tottenham -> 26 tottenham)
+    const normalizedRaw = rawText.replace(/([0-9]+)([a-zA-Z]+)/g, '$1 $2').replace(/([a-zA-Z]+)([0-9]+)/g, '$1 $2');
+    const textLower = (' ' + normalizedRaw + ' ').toLowerCase().replace(/[∕\/]/g, ' / ');
+
+    // Rimuove annotazioni accessorie tra parentesi per non inquinare la tipologia principale (es. with cropped pants, with shorts, ecc.)
+    const bracketAccessoryRegex = /[\(\[（【]\s*(?:with|con|match\s+with|pairosso\s+with)?\s*[^)\]）】]*(?:pants|cropped|shorts|trousers|socks|calze|calzettoni|pantaloncini|pantaloni)[^)\]）】]*[\)\]）】]/gi;
+    const textForTypeDetermination = textLower.replace(bracketAccessoryRegex, ' ');
+
+    // 1. Portiere (Priorità assoluta)
+    const isPortiere = /\b(goalkeeper|keeper|gk|portiere)\b/i.test(textLower) || categoriaRiconosciuta === 'Portiere';
+
+    // 2. Target (Bambino / Adulto)
+    let target = targetRiconosciuto || 'Adulto';
+    if (/\b(kids?|children|child|junior|youth|baby|bambin[oi])\b/i.test(textLower) || categoriaRiconosciuta === 'Kit Bambino') {
+        target = 'Bambino';
+    } else if (/\b(adults?|adulto)\b/i.test(textLower)) {
+        target = 'Adulto';
     }
 
-    // 2. Componente Target
-    let targetPart = "";
-    if (targetRiconosciuto === 'Bambino') {
-        targetPart = "Bambino";
+    // 3. Versioni commerciali
+    const isPlayer = !isPortiere && (/\b(player\s+version|player\s+edition|versione\s+player)\b/i.test(textLower) || categoriaRiconosciuta === 'Player');
+    const isFan = !isPortiere && !isPlayer && (/\b(fans?\s+version|fan\s+edition|versione\s+fan)\b/i.test(textLower) || categoriaRiconosciuta === 'Fan');
+    const isRetro = !isPortiere && (/\b(retro|retrò|vintage|classic)\b/i.test(textLower) || categoriaRiconosciuta === 'Retro');
+
+    // 4. Tipologie capo (determinate sul testo principale senza accessori tra parentesi)
+    const isPolo = /\b(polo)\b/i.test(textForTypeDetermination) || categoriaRiconosciuta === 'Polo';
+    const isSmanicato = /\b(sleeveless|vest|smanicato)\b/i.test(textForTypeDetermination) || categoriaRiconosciuta === 'Smanicato';
+    const isHalfPull = /\b(half\s*pull|half[- ]zip|mezza\s*zip)\b/i.test(textForTypeDetermination);
+    const isLongPull = /\b(long\s*pull|full[- ]zip|zip\s*lunga|zip\s*intera)\b/i.test(textForTypeDetermination);
+    const isTuta = !isSmanicato && (isHalfPull || isLongPull || /\b(tracksuit|sweatshirt|jackets?\s*sets?|suit|tuta)\b/i.test(textForTypeDetermination) || categoriaRiconosciuta === 'Tuta');
+    const isGiacca = !isTuta && !isSmanicato && /\b(jackets?|giacca)\b/i.test(textForTypeDetermination);
+    const isAntivento = /\b(windbreaker|antivento)\b/i.test(textForTypeDetermination);
+    const isPantaloncini = !isPolo && /\b(shorts|pantaloncini)\b/i.test(textForTypeDetermination);
+    const isPantaloni = !isPolo && /\b(pants|trousers|pantaloni)\b/i.test(textForTypeDetermination);
+    const isCalzettoni = /\b(socks|calzettoni)\b/i.test(textForTypeDetermination);
+    const isMaglia = /\b(shirt|jersey|maglia)\b/i.test(textForTypeDetermination);
+    const isTraining = /\b(training|allenamento|pre[- ]match|pre\s+match|warm[- ]up|riscaldamento)\b/i.test(textLower);
+
+    // 5. Varianti (Casa, Fuori Casa, Terza...)
+    let variante = '';
+    if (/\b(second\s+away|second\s+trasferta|seconda\s+trasferta|seconda\s+fuori\s+casa)\b/i.test(textLower)) {
+        variante = 'Seconda Trasferta';
+    } else if (/\b(fourth|4th|quarta)\b/i.test(textLower)) {
+        variante = 'Quarta';
+    } else if (/\b(third|3rd|three\s+away|three\s+trasferta|terza)\b/i.test(textLower)) {
+        variante = 'Terza';
+    } else if (/\b(away|trasferta|fuori\s+casa)\b/i.test(textLower)) {
+        variante = 'Fuori Casa';
+    } else if (/\b(home|casa|hosts?|host\'s)\b/i.test(textLower)) {
+        variante = 'Casa';
+    } else if (/\b(commemorative\s+edition|commemorative|anniversary|anniversario)\b/i.test(textLower)) {
+        variante = 'Edizione Speciale';
+    } else if (/\b(special\s+edition|special|limited\s+edition|speciale|night\s+edition)\b/i.test(textLower)) {
+        variante = 'Edizione Speciale';
     }
-    
-    // 3. Componente Colore
-    let colorPart = "";
-    for (const [engColor, translations] of Object.entries(colorsMapping)) {
-        if (rawText.includes(engColor)) {
-            colorPart = isFeminine ? translations.f : translations.m;
-            break;
+
+    // 6. Colori e Combinazioni di Colori (preservando combinazioni distinte come Nero e Rosa, Bianco e Rosso, ecc.)
+    let colore = '';
+    const colorKeys = Object.keys(colorsMapping).sort((a, b) => b.length - a.length);
+    const colorPatternStr = colorKeys.join('|');
+    const comboRegex = new RegExp(`\\b(${colorPatternStr})\\s*(?:\\/|&|\\band\\b|\\be\\b|\\bwith\\b|\\bcon\\b|\\bmatch\\s+with\\b)\\s*(?:pairosso\\s+)?(${colorPatternStr})\\b`, 'i');
+    const comboMatch = textLower.match(comboRegex);
+
+    if (comboMatch) {
+        const c1Raw = comboMatch[1].toLowerCase();
+        const c2Raw = comboMatch[2].toLowerCase();
+        const c1Obj = colorsMapping[c1Raw];
+        const c2Obj = colorsMapping[c2Raw];
+        const col1 = c1Obj ? c1Obj.m : (c1Raw.charAt(0).toUpperCase() + c1Raw.slice(1));
+        const col2 = c2Obj ? c2Obj.m : (c2Raw.charAt(0).toUpperCase() + c2Raw.slice(1));
+        if (col1 && col2 && col1.toLowerCase() !== col2.toLowerCase()) {
+            colore = `${col1} e ${col2}`;
+        } else {
+            colore = col1 || col2;
+        }
+    } else {
+        const sortedColors = Object.entries(colorsMapping).sort((a, b) => b[0].length - a[0].length);
+        for (const [eng, dict] of sortedColors) {
+            const re = new RegExp('\\b' + eng + '\\b', 'i');
+            if (re.test(textLower)) {
+                colore = dict.m;
+                break;
+            }
         }
     }
-    
-    // 4. Costruisci le parti finali del nome
-    const parts = [baseType];
-    if (targetPart) parts.push(targetPart);
-    if (colorPart) parts.push(colorPart);
-    if (squadraRiconosciuta && squadraRiconosciuta !== 'Sconosciuta') {
+
+    // 7. Maniche & Stelle
+    const isManicheLunghe = /\b(long\s+sleeves?|maniche\s+lunghe)\b/i.test(textLower);
+    const isDueStelle = /\b(two\s+stars?|2\s+stars?|due\s+stelle)\b/i.test(textLower);
+    const isTreStelle = /\b(three\s+stars?|3\s+stars?|tre\s+stelle)\b/i.test(textLower);
+
+    // 8. Costruzione Prefisso Italiano & Concordanza di Genere
+    let prefisso = 'Kit';
+    let isFemminile = false;
+
+    if (isPortiere) {
+        if (target === 'Bambino') {
+            prefisso = 'Kit Bambino Portiere';
+        } else if (isPlayer) {
+            prefisso = 'Versione Player Portiere';
+            isFemminile = true;
+        } else if (isFan) {
+            prefisso = 'Versione Fan Portiere';
+            isFemminile = true;
+        } else if (isMaglia) {
+            prefisso = 'Maglia Portiere';
+            isFemminile = true;
+        } else {
+            prefisso = 'Kit Portiere';
+        }
+    } else if (isPlayer) {
+        prefisso = 'Versione Player';
+        isFemminile = true;
+    } else if (isFan) {
+        prefisso = 'Versione Fan';
+        isFemminile = true;
+    } else if (isRetro) {
+        prefisso = 'Maglia Retrò';
+        isFemminile = true;
+    } else if (isPolo) {
+        prefisso = isTraining ? 'Polo Allenamento' : 'Polo';
+        isFemminile = true;
+    } else if (isHalfPull) {
+        prefisso = isTraining ? 'Mezza Zip Allenamento' : 'Mezza Zip';
+        isFemminile = true;
+    } else if (isLongPull) {
+        prefisso = 'Tuta Zip Intera';
+        isFemminile = true;
+    } else if (isTuta) {
+        prefisso = isTraining ? 'Tuta Allenamento' : 'Tuta';
+        isFemminile = true;
+    } else if (isGiacca) {
+        prefisso = 'Giacca';
+        isFemminile = true;
+    } else if (isAntivento) {
+        prefisso = 'Antivento';
+    } else if (isSmanicato) {
+        prefisso = isTraining ? 'Smanicato Allenamento' : 'Smanicato';
+    } else if (isPantaloncini) {
+        prefisso = 'Pantaloncini';
+    } else if (isPantaloni) {
+        prefisso = 'Pantaloni';
+    } else if (isCalzettoni) {
+        prefisso = 'Calzettoni';
+    } else if (target === 'Bambino') {
+        prefisso = 'Kit Bambino';
+    } else if (isMaglia) {
+        prefisso = 'Maglia';
+        isFemminile = true;
+    }
+
+    // Regola Target Bambino (integrata in modo uniforme e pulito senza doppioni)
+    if (target === 'Bambino' && !/\bbambin[oi]\b/i.test(prefisso)) {
+        if (prefisso === 'Kit') {
+            prefisso = 'Kit Bambino';
+        } else if (prefisso.includes(' Allenamento')) {
+            prefisso = prefisso.replace(' Allenamento', ' Bambino Allenamento');
+        } else {
+            prefisso += ' Bambino';
+        }
+    }
+
+    const parts = [prefisso];
+    if (variante) {
+        parts.push(variante);
+    } else if (isTraining && !prefisso.includes('Allenamento')) {
+        parts.push('Allenamento');
+    }
+
+    const squadraValida = squadraRiconosciuta && squadraRiconosciuta !== 'Sconosciuta' && squadraRiconosciuta !== 'SQUADRA NON RICONOSCIUTA';
+    if (squadraValida) {
         parts.push(squadraRiconosciuta);
     }
+
+    function accordaSingoloColore(col, femm) {
+        if (!col) return '';
+        if (femm) {
+            if (col === 'Nero') return 'Nera';
+            if (col === 'Bianco') return 'Bianca';
+            if (col === 'Rosso') return 'Rossa';
+            if (col === 'Giallo') return 'Gialla';
+            if (col === 'Grigio') return 'Grigia';
+        } else {
+            if (col === 'Nera') return 'Nero';
+            if (col === 'Bianca') return 'Bianco';
+            if (col === 'Rossa') return 'Rosso';
+            if (col === 'Gialla') return 'Giallo';
+            if (col === 'Grigia') return 'Grigio';
+        }
+        return col;
+    }
+
+    if (colore) {
+        let col = colore;
+        if (col.includes(' e ')) {
+            col = col.split(' e ').map(c => accordaSingoloColore(c.trim(), isFemminile)).join(' e ');
+        } else if (col.includes('/')) {
+            col = col.split('/').map(c => accordaSingoloColore(c.trim(), isFemminile)).join('/');
+        } else {
+            col = accordaSingoloColore(col, isFemminile);
+        }
+        parts.push(col);
+    }
+
+    if (isManicheLunghe) parts.push('Maniche Lunghe');
+    if (isDueStelle) parts.push('Due Stelle');
+    if (isTreStelle) parts.push('Tre Stelle');
+
+    // 9. Riconoscimento termini sconosciuti del fornitore (non tradotti)
+    const knownWords = new Set([
+        // Termini commerciali e tecnici
+        "player", "version", "edition", "fans", "fan", "retro", "classic", "vintage", "stadium",
+        "home", "away", "third", "fourth", "special", "limited", "second", "anniversary", "commemorative", "night",
+        "kids", "kid", "children", "child", "junior", "youth", "baby", "bambino", "bambina", "bambini",
+        "adults", "adult", "adulto", "adulti", "donna", "donne", "uomo", "uomini",
+        "goalkeeper", "keeper", "gk", "portiere", "portieri",
+        "training", "pre", "match", "warm", "up", "riscaldamento", "allenamento",
+        "kit", "kits", "completo", "completi", "set", "sets", "suit", "suits", "tracksuit", "sweatshirt", "jackets", "jacket", "windbreaker",
+        "half", "pull", "long", "full", "zip",
+        "shorts", "pantaloncini", "pants", "trousers", "pantaloni", "socks", "calzettoni", "sleeveless", "vest", "smanicato", "smanicati", "polo", "shirt", "jersey", "maglia", "maglie",
+        "sleeves", "sleeve", "maniche", "lunghe", "corte",
+        "two", "three", "four", "stars", "star", "stelle", "stella",
+        "1st", "2nd", "3rd", "4th", "first", "second",
+        "casa", "trasferta", "fuori", "terza", "quarta", "speciale", "speciali", "retrò", "versione",
+        "tuta", "tute", "giacca", "giacche", "antivento", "felpa", "felpe", "mezza", "intera", "seconda", "edizione", "edizioni", "storica", "storico",
+        "fc", "cf", "sc", "ac", "as", "ss", "afc", "rb", "club", "the", "and", "e", "di", "del", "della", "de", "la", "in", "with", "con", "for", "per",
+        "style", "host", "hosts", "cropped", "pairosso", "boran", "bright", "mid", "uniform", "king", "ads", "joint", "color", "berlin", "roman", "argentine"
+    ]);
+
+    for (const k of Object.keys(colorsMapping)) {
+        k.split(/\s+/).forEach(w => knownWords.add(w.toLowerCase()));
+        if (colorsMapping[k].m) colorsMapping[k].m.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w));
+        if (colorsMapping[k].f) colorsMapping[k].f.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w));
+    }
+
+    const teamWords = (squadraRiconosciuta || '').toLowerCase().split(/\s+/);
+    teamWords.forEach(w => knownWords.add(w.replace(/[^a-z0-9]/g, '')));
+
+    if (typeof TEAM_ALIASES !== 'undefined') {
+        Object.entries(TEAM_ALIASES).forEach(([alias, name]) => {
+            alias.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w));
+            name.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w));
+        });
+    }
+    if (typeof ALIAS_SQUADRE_MAP !== 'undefined') {
+        Object.entries(ALIAS_SQUADRE_MAP).forEach(([alias, name]) => {
+            alias.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w));
+            name.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w));
+        });
+    }
+    if (typeof popularClubs !== 'undefined' && Array.isArray(popularClubs)) {
+        popularClubs.forEach(club => {
+            if (club.name) club.name.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w.replace(/[^a-z0-9]/g, '')));
+            if (Array.isArray(club.keys)) {
+                club.keys.forEach(k => k.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w.replace(/[^a-z0-9]/g, ''))));
+            }
+        });
+    }
+    if (typeof squadreCatalogo !== 'undefined' && Array.isArray(squadreCatalogo)) {
+        squadreCatalogo.forEach(t => {
+            if (t.name) t.name.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w.replace(/[^a-z0-9]/g, '')));
+            if (t.campionato) t.campionato.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w.replace(/[^a-z0-9]/g, '')));
+            if (t.sezione) t.sezione.toLowerCase().split(/\s+/).forEach(w => knownWords.add(w.replace(/[^a-z0-9]/g, '')));
+        });
+    }
+
+    const tokens = (normalizedRaw || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+    const unknown = [];
+    tokens.forEach(tok => {
+        if (/^\d+$/.test(tok)) return; // numeri o anni (26, 27, 2024, etc.)
+        if (tok.length <= 2) return; // abbreviazioni brevissime
+        if (!knownWords.has(tok) && !unknown.includes(tok)) {
+            unknown.push(tok);
+        }
+    });
+
+    const finalNome = rimuoviStagioneDaTesto(parts.join(' ')).replace(/\s+/g, ' ').trim();
     
-    return parts.join(' ');
+    // Oggetto con metodi stringa per retrocompatibilità trasparente
+    const resultObj = {
+        nome: finalNome,
+        termini_sconosciuti: unknown,
+        attributi: {
+            squadra: squadraRiconosciuta,
+            target,
+            isPortiere,
+            isPlayer,
+            isFan,
+            isRetro,
+            isTuta,
+            isHalfPull,
+            isLongPull,
+            isTraining,
+            isGiacca,
+            isAntivento,
+            isPantaloncini,
+            isPantaloni,
+            isCalzettoni,
+            isSmanicato,
+            isPolo,
+            isMaglia,
+            variante,
+            colore,
+            isManicheLunghe,
+            isDueStelle,
+            isTreStelle
+        },
+        toString: function() { return this.nome; },
+        valueOf: function() { return this.nome; }
+    };
+
+    return resultObj;
 }
 
 function generaNomeUniforme(p) {
-    const squadreEsistenti = [...new Set(prodotti.map(prod => prod.squadra).filter(Boolean))].sort();
-    const squadra = extractSquadra(p, squadreEsistenti);
+    const infoSquadra = estraiEIdentificaSquadra(p, squadreCatalogo);
+    const squadra = infoSquadra.squadra;
     const categoria = extractCategoria(p);
     const target = extractTarget(p);
-    return generaNomeTradottoAutomatico(p, squadra, categoria, target);
+    const res = generaNomeTradottoAutomatico(p, squadra, categoria, target);
+    return res && res.nome ? res.nome : res;
 }
 
 /**
- * Processa l'importazione dei prodotti via JSON
+ * Raggruppa tutte le squadre mancanti presenti nei prodotti in anteprima.
+ * Restituisce un array di oggetti: [{ nome: "Sergio FC", count: 12, ids: [0, 1, ...] }]
  */
-function chiediInserimentoSquadra(nomeSquadra) {
-    return new Promise((resolve) => {
-        // Create modal backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = "fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in";
-        
-        // Create modal box
-        const box = document.createElement('div');
-        box.className = "bg-white border border-slate-200 rounded-3xl w-full max-w-md p-6 shadow-2xl flex flex-col gap-4 transform scale-100 transition-all duration-300 ease-out";
-        
-        box.innerHTML = `
-            <div class="flex items-center gap-3 text-brand-gold">
-                <span class="text-3xl">⚠️</span>
-                <h3 class="text-lg font-black text-slate-800">Squadra Mancante</h3>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">
-                La squadra <strong class="text-slate-800">"${nomeSquadra}"</strong> non è presente nel catalogo generale. Come vuoi procedere per l'importazione?
-            </p>
-            <div class="flex flex-col gap-2 mt-2">
-                <button id="add-as-club-btn" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all">
-                    ⚽ Aggiungi come Club
-                </button>
-                <button id="add-as-naz-btn" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all">
-                    🌍 Aggiungi come Nazionale
-                </button>
-                <button id="add-as-nba-btn" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-all">
-                    🏀 Aggiungi come NBA
-                </button>
-                <button id="skip-team-btn" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition-all border border-rose-100">
-                    ⏭️ Salta Prodotti di questa Squadra
-                </button>
-            </div>
-        `;
-        
-        backdrop.appendChild(box);
-        document.body.appendChild(backdrop);
-        
-        // Bind buttons
-        box.querySelector('#add-as-club-btn').onclick = () => {
-            document.body.removeChild(backdrop);
-            resolve({ action: 'add', sezione: 'Club' });
-        };
-        box.querySelector('#add-as-naz-btn').onclick = () => {
-            document.body.removeChild(backdrop);
-            resolve({ action: 'add', sezione: 'Nazionali' });
-        };
-        box.querySelector('#add-as-nba-btn').onclick = () => {
-            document.body.removeChild(backdrop);
-            resolve({ action: 'add', sezione: 'NBA' });
-        };
-        box.querySelector('#skip-team-btn').onclick = () => {
-            document.body.removeChild(backdrop);
-            resolve({ action: 'skip' });
-        };
+function ottieniSquadreMancantiRaggruppate() {
+    if (!Array.isArray(prodottiInAnteprima) || prodottiInAnteprima.length === 0) {
+        return [];
+    }
+    const map = new Map();
+    prodottiInAnteprima.forEach(p => {
+        const isTeamInDb = squadreCatalogo.some(t => t.name && (
+            t.name.toLowerCase() === (p.squadra || '').trim().toLowerCase() ||
+            pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
+        )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
+
+        const isMissing = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA' || !isTeamInDb || p.squadra_non_presente;
+
+        if (isMissing) {
+            const rawName = (p.squadra_candidata || p.squadra || 'Sconosciuta').trim();
+            const key = rawName.toLowerCase();
+            if (!map.has(key)) {
+                map.set(key, {
+                    nome: rawName,
+                    count: 0,
+                    ids: []
+                });
+            }
+            const item = map.get(key);
+            item.count++;
+            item.ids.push(p.id_anteprima);
+        }
     });
+    return Array.from(map.values());
 }
+
+/**
+ * Aggiorna il banner / avviso riassuntivo delle squadre non presenti nel database
+ */
+function aggiornaAvvisoSquadreMancanti() {
+    const alertBox = document.getElementById('import-missing-teams-alert');
+    if (!alertBox) return;
+
+    const mancanti = ottieniSquadreMancantiRaggruppate();
+    if (mancanti.length === 0) {
+        alertBox.innerHTML = '';
+        alertBox.classList.add('hidden');
+        return;
+    }
+
+    const totalProdottiMancanti = mancanti.reduce((acc, m) => acc + m.count, 0);
+    alertBox.innerHTML = `
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl">⚠️</span>
+                    <div>
+                        <h4 class="text-xs font-black text-rose-900 uppercase tracking-wider">
+                            Squadre Non Presenti nel Catalogo (${mancanti.length} ${mancanti.length === 1 ? 'squadra' : 'squadre'}, ${totalProdottiMancanti} ${totalProdottiMancanti === 1 ? 'prodotto' : 'prodotti'})
+                        </h4>
+                        <p class="text-xs text-rose-800 mt-0.5">
+                            Le seguenti squadre sono state rilevate nel file importato ma non esistono ancora nel catalogo del sito.
+                            Puoi aggiungerle cliccando su <strong>Aggiungi</strong> per riconoscerle automaticamente in tutte le righe.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-1">
+                ${mancanti.map(m => `
+                    <div class="inline-flex items-center gap-2 bg-white border border-rose-200 rounded-xl px-3 py-1.5 shadow-2xs">
+                        <span class="text-xs font-bold text-slate-800">${escapeHtml(m.nome)}</span>
+                        <span class="px-1.5 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md">${m.count} ${m.count === 1 ? 'art' : 'art'}</span>
+                        <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(m.nome)}')" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all cursor-pointer">
+                            ➕ Aggiungi
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    alertBox.classList.remove('hidden');
+}
+
+/**
+ * Apre la modal per aggiungere una nuova squadra con pre-compilazione del nome
+ */
+function apriModalAggiungiSquadra(nomeSquadra) {
+    const modal = document.getElementById('modal-aggiungi-squadra-catalogo');
+    const container = document.getElementById('modal-aggiungi-squadra-container');
+    const inputNome = document.getElementById('modal-squadra-nome');
+    if (!modal || !container) return;
+
+    popolaOpzioniCategoriaModalSquadra();
+    aggiornaSezioniModalSquadra();
+
+    if (inputNome) {
+        inputNome.value = (nomeSquadra && nomeSquadra !== 'SQUADRA NON RICONOSCIUTA' && nomeSquadra !== 'Sconosciuta') ? nomeSquadra.trim() : '';
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        container.classList.remove('scale-95', 'opacity-0');
+        container.classList.add('scale-100', 'opacity-100');
+        if (inputNome) inputNome.focus();
+    }, 20);
+}
+
+/**
+ * Chiude la modal di aggiunta squadra
+ */
+function chiudiModalAggiungiSquadra() {
+    const modal = document.getElementById('modal-aggiungi-squadra-catalogo');
+    const container = document.getElementById('modal-aggiungi-squadra-container');
+    if (modal && container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 250);
+    }
+}
+
+/**
+ * Popola il menu a tendina Categoria della modal
+ */
+function popolaOpzioniCategoriaModalSquadra() {
+    const sel = document.getElementById('modal-squadra-categoria');
+    if (!sel) return;
+
+    const categorieEsistenti = Array.from(new Set([
+        'Club', 'Nazionali', 'Speciali',
+        ...squadreCatalogo.map(s => s.categoria).filter(Boolean)
+    ]));
+
+    sel.innerHTML = categorieEsistenti.map(cat => 
+        `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`
+    ).join('') + `<option value="custom">+ Nuova Categoria...</option>`;
+}
+
+function onCambioCategoriaModalSquadra() {
+    const sel = document.getElementById('modal-squadra-categoria');
+    const customContainer = document.getElementById('modal-custom-categoria-container');
+    if (!sel || !customContainer) return;
+
+    if (sel.value === 'custom') {
+        customContainer.classList.remove('hidden');
+        const customInput = document.getElementById('modal-squadra-categoria-custom');
+        if (customInput) customInput.focus();
+    } else {
+        customContainer.classList.add('hidden');
+    }
+    aggiornaSezioniModalSquadra();
+}
+
+/**
+ * Aggiorna il menu a tendina Sezioni / Campionato in base alla categoria
+ */
+function aggiornaSezioniModalSquadra() {
+    const catSel = document.getElementById('modal-squadra-categoria');
+    const sezSel = document.getElementById('modal-squadra-sezione');
+    const customSezContainer = document.getElementById('modal-custom-sezione-container');
+    if (!catSel || !sezSel) return;
+
+    if (customSezContainer) customSezContainer.classList.add('hidden');
+
+    const catValue = catSel.value;
+    let opzioni = [];
+
+    if (catValue === 'Nazionali') {
+        opzioni = ['Mondiali', 'Europa', 'Sud America', 'Nord America', 'Asia', 'Africa', 'Oceania'];
+    } else if (catValue === 'Speciali') {
+        opzioni = ['Speciali', 'Vintage', 'Edizioni Limitate'];
+    } else {
+        opzioni = [
+            'Serie A', 'Premier League', 'La Liga', 'Bundesliga', 'Ligue 1',
+            'Champions League', 'USA MLS', 'Saudi League', 'Altri Club',
+            'Eastern Conference', 'Western Conference', 'Liga Mx', 'Brasileiro Serie A', 'Japan Series', 'NBA'
+        ];
+    }
+
+    const sezioniDb = Array.from(new Set(
+        squadreCatalogo
+            .filter(s => s.categoria === catValue && s.sezione)
+            .map(s => s.sezione)
+    ));
+    const tutteSezioni = Array.from(new Set([...opzioni, ...sezioniDb]));
+
+    sezSel.innerHTML = tutteSezioni.map(sez => 
+        `<option value="${escapeHtml(sez)}">${escapeHtml(sez)}</option>`
+    ).join('') + `<option value="custom">+ Nuova Sezione...</option>`;
+}
+
+function onCambioSezioneModalSquadra() {
+    const sel = document.getElementById('modal-squadra-sezione');
+    const customContainer = document.getElementById('modal-custom-sezione-container');
+    if (!sel || !customContainer) return;
+
+    if (sel.value === 'custom') {
+        customContainer.classList.remove('hidden');
+        const customInput = document.getElementById('modal-squadra-sezione-custom');
+        if (customInput) customInput.focus();
+    } else {
+        customContainer.classList.add('hidden');
+    }
+}
+
+/**
+ * Salva la nuova squadra tramite API /api/teams e ricarica i prodotti
+ */
+async function salvaSquadraDaModal() {
+    const inputNome = document.getElementById('modal-squadra-nome');
+    const selCat = document.getElementById('modal-squadra-categoria');
+    const inputCatCustom = document.getElementById('modal-squadra-categoria-custom');
+    const selSez = document.getElementById('modal-squadra-sezione');
+    const inputSezCustom = document.getElementById('modal-squadra-sezione-custom');
+    const btnSubmit = document.getElementById('modal-squadra-submit-btn');
+
+    const nome = (inputNome ? inputNome.value : '').trim();
+    if (!nome) {
+        showToast("Inserisci il nome della squadra.", "error");
+        return;
+    }
+
+    let categoria = selCat ? selCat.value : 'Club';
+    if (categoria === 'custom') {
+        categoria = (inputCatCustom ? inputCatCustom.value : '').trim();
+        if (!categoria) {
+            showToast("Inserisci il nome della nuova categoria.", "error");
+            return;
+        }
+    }
+
+    let sezione = selSez ? selSez.value : 'Serie A';
+    if (sezione === 'custom') {
+        sezione = (inputSezCustom ? inputSezCustom.value : '').trim();
+        if (!sezione) {
+            showToast("Inserisci il nome della nuova sezione.", "error");
+            return;
+        }
+    }
+
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Salvataggio...";
+    }
+
+    try {
+        const res = await fetch('/api/teams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: nome, categoria, sezione })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            showToast(`Squadra "${nome}" creata con successo!`, "success");
+            chiudiModalAggiungiSquadra();
+
+            // Aggiorna l'elenco globale squadre da Supabase
+            await caricaSquadre();
+            if (typeof aggiornaCategorieSelezionabili === 'function') aggiornaCategorieSelezionabili();
+            if (typeof aggiornaSquadreDropdown === 'function') aggiornaSquadreDropdown();
+            if (typeof generaOpzioniFiltri === 'function') generaOpzioniFiltri();
+
+            // Rivaluta automaticamente TUTTE le righe del JSON che corrispondono alla squadra
+            await rimappaProdottiPerNuovaSquadra(nome);
+        } else {
+            showToast("Errore: " + (data.error || "Impossibile salvare la squadra"), "error");
+        }
+    } catch (err) {
+        console.error("Errore salvataggio squadra:", err);
+        showToast("Errore di connessione durante il salvataggio.", "error");
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Salva Squadra";
+        }
+    }
+}
+
+/**
+ * Rivaluta automaticamente tutte le righe nell'anteprima di importazione per una squadra appena aggiunta
+ */
+async function rimappaProdottiPerNuovaSquadra(nomeSquadraAggiunta) {
+    if (!Array.isArray(prodottiInAnteprima) || prodottiInAnteprima.length === 0) {
+        return;
+    }
+
+    const teamDb = trovaSquadraInDatabase(nomeSquadraAggiunta, squadreCatalogo);
+    if (!teamDb) return;
+
+    let modificatiCount = 0;
+
+    prodottiInAnteprima.forEach(p => {
+        const candidato = (p.squadra_candidata || p.squadra || '').toLowerCase().trim();
+        const candClean = pulisciStringaSquadra(candidato);
+        const addedClean = pulisciStringaSquadra(nomeSquadraAggiunta);
+        const addedLower = nomeSquadraAggiunta.toLowerCase().trim();
+
+        const matchCandidate = candidato === addedLower || candClean === addedClean || candidato.includes(addedLower) || addedLower.includes(candidato);
+        const matchTitle = (p.nome_finale && trovaSquadraInDatabase(p.nome_finale, [teamDb]) !== null);
+
+        if (p.squadra_non_presente || p.squadra === 'SQUADRA NON RICONOSCIUTA' || p.squadra === 'Sconosciuta' || matchCandidate || matchTitle) {
+            const match = trovaSquadraInDatabase(p.squadra_candidata || p.squadra || p.nome_finale, squadreCatalogo);
+            if (match && match.name === teamDb.name) {
+                p.squadra = match.name;
+                p.squadra_candidata = match.name;
+                p.squadra_non_presente = false;
+                if (match.sezione) {
+                    p.campionato = match.sezione;
+                }
+                // Se non modificato manualmente, ricalcola la nomenclatura italiana con il nome ufficiale della squadra
+                if (!p._manual_nome) {
+                    const nomeInfo = generaNomeTradottoAutomatico(p, match.name, p.categoria, p.target);
+                    p.nome_finale = nomeInfo.nome;
+                    p.versione = nomeInfo.nome;
+                    p.termini_sconosciuti = nomeInfo.termini_sconosciuti || [];
+                }
+                p._errors = validaProdotto(p);
+                modificatiCount++;
+            }
+        }
+    });
+
+    if (modificatiCount > 0) {
+        if (typeof invalidateDuplicateCache === 'function') invalidateDuplicateCache();
+        renderAnteprimaTabella();
+        aggiornaConteggiAnteprima();
+        aggiornaAvvisoSquadreMancanti();
+        showToast(`Riconosciuti automaticamente ${modificatiCount} prodotti per ${teamDb.name}!`, "success");
+    }
+}
+
+window.ottieniSquadreMancantiRaggruppate = ottieniSquadreMancantiRaggruppate;
+window.aggiornaAvvisoSquadreMancanti = aggiornaAvvisoSquadreMancanti;
+window.apriModalAggiungiSquadra = apriModalAggiungiSquadra;
+window.chiudiModalAggiungiSquadra = chiudiModalAggiungiSquadra;
+window.salvaSquadraDaModal = salvaSquadraDaModal;
+window.onCambioCategoriaModalSquadra = onCambioCategoriaModalSquadra;
+window.onCambioSezioneModalSquadra = onCambioSezioneModalSquadra;
+window.rimappaProdottiPerNuovaSquadra = rimappaProdottiPerNuovaSquadra;
 
 /**
  * Processa l'importazione dei prodotti via JSON
@@ -13047,10 +14504,16 @@ function renderFiltriCatalogoTabella() {
                     </select>
                 </td>
                 <td class="px-4 py-3 text-center">
-                    <button type="button" onclick="eliminaFiltroCatalogo('${filtro.id || index}')" title="Elimina Filtro"
-                        class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all">
-                        🗑️
-                    </button>
+                    <div class="flex items-center justify-center gap-1.5">
+                        <button type="button" onclick="apriModalModificaFiltroCatalogo('${filtro.id || index}')" title="Modifica Categorie Filtro"
+                            class="p-2 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-xl transition-all font-bold">
+                            ✏️
+                        </button>
+                        <button type="button" onclick="eliminaFiltroCatalogo('${filtro.id || index}')" title="Elimina Filtro"
+                            class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-all">
+                            🗑️
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -13156,6 +14619,181 @@ function eliminaFiltroCatalogo(idOrIndex) {
     showToast(`Filtro "${filtro.nome}" eliminato. Clicca "Salva Filtri Catalogo" per salvare le modifiche.`, "info");
 }
 
+let filtroCatalogoInModificaId = null;
+
+function getCategorieAssociateFiltro(filtro) {
+    if (!filtro) return [];
+    if (Array.isArray(filtro.categorie_associate)) {
+        return filtro.categorie_associate;
+    }
+    
+    // Inizializzazione coerente di default basata sulle categorie esistenti in appSettings.categorie
+    assicuratiCategorieDinamiche();
+    const categorieEsistenti = (window.appSettings?.categorie || []).map(c => c.nome).filter(Boolean);
+    const nomeFiltro = (filtro.nome || '').toLowerCase().trim();
+    const idFiltro = (filtro.id || '').toLowerCase().trim();
+
+    if (nomeFiltro === 'tutti' || nomeFiltro === 'tutto' || idFiltro === 'fil_tutti') {
+        return [...categorieEsistenti];
+    }
+    if (nomeFiltro.includes('bambino') || idFiltro.includes('bambino')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('kit') || c.toLowerCase().includes('bambino'));
+        return found.length > 0 ? found : ['Kit'];
+    }
+    if (nomeFiltro === 'kit' || nomeFiltro === 'kit club' || idFiltro === 'fil_kit') {
+        const found = categorieEsistenti.filter(c => c.toLowerCase() === 'kit');
+        return found.length > 0 ? found : ['Kit'];
+    }
+    if (nomeFiltro.includes('player') || idFiltro.includes('player')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('player'));
+        return found.length > 0 ? found : ['Player'];
+    }
+    if (nomeFiltro.includes('fan') || idFiltro.includes('fan')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('fan'));
+        return found.length > 0 ? found : ['Fan'];
+    }
+    if (nomeFiltro.includes('retro') || nomeFiltro.includes('retrò') || idFiltro === 'fil_retro') {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('retro') || c.toLowerCase().includes('retrò'));
+        return found.length > 0 ? found : ['Retro'];
+    }
+    if (nomeFiltro.includes('allenamento') || nomeFiltro.includes('training') || idFiltro.includes('allenamento')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('allenamento') || c.toLowerCase().includes('training'));
+        return found.length > 0 ? found : ['Kit Allenamento'];
+    }
+    if (nomeFiltro.includes('tuta') || nomeFiltro.includes('tute') || idFiltro.includes('tuta')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('tuta') || c.toLowerCase().includes('tute'));
+        return found.length > 0 ? found : ['Tuta'];
+    }
+    if (nomeFiltro.includes('polo') || idFiltro.includes('polo')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('polo'));
+        return found.length > 0 ? found : ['Polo'];
+    }
+    if (nomeFiltro.includes('smanicato') || nomeFiltro.includes('smanicati') || idFiltro.includes('smanicato')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('smanicat'));
+        return found.length > 0 ? found : ['Smanicato'];
+    }
+    if (nomeFiltro.includes('maniche lunghe') || nomeFiltro === 'manica lunga' || idFiltro.includes('maniche_lunghe')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('maniche lunghe') || c.toLowerCase().includes('manica'));
+        return found.length > 0 ? found : ['Maniche Lunghe'];
+    }
+    if (nomeFiltro.includes('portiere') || idFiltro.includes('portiere')) {
+        const found = categorieEsistenti.filter(c => c.toLowerCase().includes('portiere'));
+        return found.length > 0 ? found : ['Portiere'];
+    }
+    
+    // Match diretto per nome categoria
+    const match = categorieEsistenti.find(c => c.toLowerCase().trim() === nomeFiltro);
+    if (match) return [match];
+
+    return [filtro.nome];
+}
+
+function apriModalModificaFiltroCatalogo(idOrIndex) {
+    assicuratiFiltriDinamici();
+    assicuratiCategorieDinamiche();
+
+    const filtro = window.appSettings.filtriCatalogo.find((f, idx) => f.id === idOrIndex || String(idx) === String(idOrIndex));
+    if (!filtro) {
+        showToast("Filtro non trovato", "error");
+        return;
+    }
+
+    filtroCatalogoInModificaId = filtro.id || idOrIndex;
+
+    const modal = document.getElementById('modal-modifica-filtro-catalogo');
+    const container = document.getElementById('modal-modifica-filtro-container');
+    const titleNome = document.getElementById('modifica-filtro-nome-display');
+    const tbody = document.getElementById('modifica-filtro-categorie-tbody');
+    if (!modal || !container || !tbody) return;
+
+    if (titleNome) {
+        titleNome.textContent = filtro.nome || 'Filtro';
+    }
+
+    // Prendi le categorie esistenti da window.appSettings.categorie ordinate per ordine
+    const categorieEsistenti = [...(window.appSettings.categorie || [])]
+        .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
+
+    // Determina le categorie attualmente associate
+    const associateAttuali = getCategorieAssociateFiltro(filtro);
+    const associateSet = new Set(associateAttuali.map(c => c.toLowerCase().trim()));
+
+    let rowsHtml = '';
+    categorieEsistenti.forEach(cat => {
+        const catNome = (cat.nome || '').trim();
+        if (!catNome) return;
+        const isChecked = associateSet.has(catNome.toLowerCase());
+        rowsHtml += `
+            <tr class="hover:bg-slate-50 transition-all border-b border-slate-100 last:border-0">
+                <td class="px-4 py-3 text-center">
+                    <input type="checkbox" class="categoria-filtro-checkbox rounded border-slate-300 text-brand-gold focus:ring-brand-gold w-4 h-4 cursor-pointer"
+                        value="${catNome}" ${isChecked ? 'checked' : ''}>
+                </td>
+                <td class="px-4 py-3 font-bold text-slate-800 text-xs">
+                    ${catNome}
+                </td>
+            </tr>
+        `;
+    });
+
+    if (!rowsHtml) {
+        rowsHtml = `<tr><td colspan="2" class="px-4 py-6 text-center text-slate-400 text-xs">Nessuna categoria trovata in Impostazioni Categorie.</td></tr>`;
+    }
+
+    tbody.innerHTML = rowsHtml;
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        container.classList.remove('scale-95', 'opacity-0');
+        container.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function chiudiModalModificaFiltroCatalogo() {
+    const modal = document.getElementById('modal-modifica-filtro-catalogo');
+    const container = document.getElementById('modal-modifica-filtro-container');
+    if (!modal || !container) return;
+
+    container.classList.remove('scale-100', 'opacity-100');
+    container.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        filtroCatalogoInModificaId = null;
+    }, 200);
+}
+
+function toggleSelezionaTutteCategorieFiltro() {
+    const checkboxes = document.querySelectorAll('.categoria-filtro-checkbox');
+    if (!checkboxes || checkboxes.length === 0) return;
+    const tutteSelezionate = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => { cb.checked = !tutteSelezionate; });
+}
+
+async function salvaModificaFiltroCatalogo() {
+    if (!filtroCatalogoInModificaId) return;
+    assicuratiFiltriDinamici();
+
+    const filtro = window.appSettings.filtriCatalogo.find((f, idx) => f.id === filtroCatalogoInModificaId || String(idx) === String(filtroCatalogoInModificaId));
+    if (!filtro) {
+        showToast("Filtro non trovato", "error");
+        chiudiModalModificaFiltroCatalogo();
+        return;
+    }
+
+    const checkboxes = document.querySelectorAll('.categoria-filtro-checkbox:checked');
+    const categorieSelezionate = Array.from(checkboxes).map(cb => cb.value.trim());
+
+    // Assegna le categorie associate configurate dall'admin
+    filtro.categorie_associate = categorieSelezionate;
+
+    chiudiModalModificaFiltroCatalogo();
+
+    // Salva attraverso il sistema esistente salvaFiltriCatalogo() -> POST /api/settings
+    await salvaFiltriCatalogo();
+    renderFiltriCatalogoTabella();
+    showToast(`✅ Configurazione del filtro "${filtro.nome}" salvata con successo.`, "success");
+}
+
 async function salvaFiltriCatalogo() {
     if (!window.appSettings) window.appSettings = {};
     assicuratiFiltriDinamici();
@@ -13189,6 +14827,10 @@ window.apriModalNuovoFiltroCatalogo = apriModalNuovoFiltroCatalogo;
 window.chiudiModalNuovoFiltroCatalogo = chiudiModalNuovoFiltroCatalogo;
 window.salvaNuovoFiltroCatalogo = salvaNuovoFiltroCatalogo;
 window.eliminaFiltroCatalogo = eliminaFiltroCatalogo;
+window.apriModalModificaFiltroCatalogo = apriModalModificaFiltroCatalogo;
+window.chiudiModalModificaFiltroCatalogo = chiudiModalModificaFiltroCatalogo;
+window.toggleSelezionaTutteCategorieFiltro = toggleSelezionaTutteCategorieFiltro;
+window.salvaModificaFiltroCatalogo = salvaModificaFiltroCatalogo;
 window.salvaFiltriCatalogo = salvaFiltriCatalogo;
 window.setFiltroAnteprima = setFiltroAnteprima;
 window.aggiornaStatoFiltroVisivo = aggiornaStatoFiltroVisivo;

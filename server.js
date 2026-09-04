@@ -150,34 +150,110 @@ const DATABASE_NAZIONALI = [
 function traduciTestoProdotto(text) {
   if (!text || typeof text !== 'string') return text || '';
   
-  // Lista di coppie [Regex, Sostituto] in ordine di specificità
+  // Lista ordinata per specificità decrescente
   const regole = [
-    // Frasi composte
+    // Frasi composte e versioni
     [/\bPlayer Version\b/gi, "Versione Player"],
-    [/\bFan Version\b/gi, "Versione Fan"],
+    [/\bPlayer Edition\b/gi, "Versione Player"],
+    [/\bFans? Version\b/gi, "Versione Fan"],
+    [/\bFans? Edition\b/gi, "Versione Fan"],
     [/\bTraining Kit\b/gi, "Kit Allenamento"],
+    [/\bTraining Tracksuit\b/gi, "Tuta Allenamento"],
+    [/\bTraining Suit\b/gi, "Tuta Allenamento"],
     [/\bSpecial Edition\b/gi, "Edizione Speciale"],
     [/\bLimited Edition\b/gi, "Edizione Limitata"],
+    [/\bHalf[- ]Pull\b/gi, "Mezza Zip"],
+    [/\bHalf[- ]Zip\b/gi, "Mezza Zip"],
+    [/\bLong[- ]Pull\b/gi, "Tuta Zip Intera"],
+    [/\bFull[- ]Zip\b/gi, "Zip Intera"],
+    [/\bJackets? Sets?\b/gi, "Tuta"],
+    [/\bTracksuit\b/gi, "Tuta"],
+    [/\bWindbreaker\b/gi, "Antivento"],
+    [/\bGoalkeeper Shirt\b/gi, "Maglia Portiere"],
+    [/\bGoalkeeper Kit\b/gi, "Kit Portiere"],
+    [/\bGK Shirt\b/gi, "Maglia Portiere"],
+    [/\bGK Kit\b/gi, "Kit Portiere"],
+    [/\bGoalkeeper\b/gi, "Portiere"],
+    [/\bKeeper\b/gi, "Portiere"],
+    [/\bGK\b/g, "Portiere"],
+    [/\bgk\b/g, "Portiere"],
     [/\bLong Sleeve\b/gi, "Maniche Lunghe"],
     [/\bShort Sleeve\b/gi, "Maniche Corte"],
-    [/\bGoalkeeper\b/gi, "Portiere"],
-    [/\bTracksuit\b/gi, "Tuta"],
+    [/\bTwo Stars?\b/gi, "Due Stelle"],
+    [/\b2 Stars?\b/gi, "Due Stelle"],
+    [/\bThree Stars?\b/gi, "Tre Stelle"],
+    [/\b3 Stars?\b/gi, "Tre Stelle"],
+    [/\bSecond Away\b/gi, "Seconda Trasferta"],
+    [/\bSecond Trasferta\b/gi, "Seconda Trasferta"],
     [/\bAnniversary\b/gi, "Anniversario"],
-    
-    // Parole singole
+    [/\bPre[- ]Match\b/gi, "Pre-Partita"],
+    [/\bWarm[- ]Up\b/gi, "Riscaldamento"],
+    [/\bKids? Kits?\b/gi, "Kit Bambino"],
+    [/\bAdults? Kits?\b/gi, "Kit Adulto"],
+
+    // Combinazioni Colori
+    [/\bBlack\s*(?:\/|&|\band\b)\s*Gold\b/gi, "Nero e Oro"],
+    [/\bWhite\s*(?:\/|&|\band\b)\s*Black\b/gi, "Bianco/Nero"],
+    [/\bBlack\s*(?:\/|&|\band\b)\s*White\b/gi, "Nero/Bianco"],
+    [/\bPurple\s*(?:\/|&|\band\b)\s*White\b/gi, "Viola/Bianco"],
+    [/\bGreen\s*(?:\/|&|\band\b)\s*White\b/gi, "Verde/Bianco"],
+    [/\bBlue\s*(?:\/|&|\band\b)\s*Red\b/gi, "Blu/Rosso"],
+    [/\bRed\s*(?:\/|&|\band\b)\s*White\b/gi, "Rosso/Bianco"],
+    [/\bYellow\s*(?:\/|&|\band\b)\s*Blue\b/gi, "Giallo/Blu"],
+
+    // Colori Singoli (Multi-parola prima)
+    [/\bNavy Blue\b/gi, "Blu Navy"],
+    [/\bSky Blue\b/gi, "Celeste"],
+    [/\bLight Blue\b/gi, "Celeste"],
+    [/\bRoyal Blue\b/gi, "Blu Royal"],
+    [/\bBlack\b/gi, "Nero"],
+    [/\bWhite\b/gi, "Bianco"],
+    [/\bRed\b/gi, "Rosso"],
+    [/\bBlue\b/gi, "Blu"],
+    [/\bGreen\b/gi, "Verde"],
+    [/\bYellow\b/gi, "Giallo"],
+    [/\bPurple\b/gi, "Viola"],
+    [/\bPink\b/gi, "Rosa"],
+    [/\bOrange\b/gi, "Arancione"],
+    [/\bNavy\b/gi, "Blu Navy"],
+    [/\bGrey\b/gi, "Grigio"],
+    [/\bGray\b/gi, "Grigio"],
+    [/\bGold\b/gi, "Oro"],
+    [/\bSilver\b/gi, "Argento"],
+    [/\bMaroon\b/gi, "Bordeaux"],
+    [/\bBurgundy\b/gi, "Bordeaux"],
+    [/\bTeal\b/gi, "Turchese"],
+    [/\bMint\b/gi, "Menta"],
+    [/\bBeige\b/gi, "Beige"],
+    [/\bBrown\b/gi, "Marrone"],
+    [/\bLilac\b/gi, "Lilla"],
+    [/\bViolet\b/gi, "Viola"],
+
+    // Varianti e Capi Singoli
     [/\bHome\b/gi, "Casa"],
     [/\bAway\b/gi, "Trasferta"],
     [/\bThird\b/gi, "Terza"],
     [/\bFourth\b/gi, "Quarta"],
+    [/\b3rd\b/gi, "Terza"],
+    [/\b4th\b/gi, "Quarta"],
     [/\bTraining\b/gi, "Allenamento"],
-    [/\bKids\b/gi, "Bambino"],
-    [/\bAdults\b/gi, "Adulto"],
+    [/\bKids?\b/gi, "Bambino"],
+    [/\bYouth\b/gi, "Bambino"],
+    [/\bChildren\b/gi, "Bambino"],
+    [/\bAdults?\b/gi, "Adulto"],
     [/\bJersey\b/gi, "Maglia"],
-    [/\bRetro\b/gi, "Retro"],
+    [/\bShirt\b/gi, "Maglia"],
+    [/\bShorts\b/gi, "Pantaloncini"],
+    [/\bPants\b/gi, "Pantaloni"],
+    [/\bTrousers\b/gi, "Pantaloni"],
+    [/\bSocks\b/gi, "Calzettoni"],
+    [/\bSleeveless\b/gi, "Smanicato"],
+    [/\bVest\b/gi, "Smanicato"],
+    [/\bRetro\b/gi, "Retrò"],
+    [/\bVintage\b/gi, "Retrò"],
+    [/\bClassic\b/gi, "Retrò"],
     [/\bWomen's\b/gi, "Donna"],
-    [/\bWomen\b/gi, "Donna"],
-    [/\bGK\b/g, "Portiere"],
-    [/\bgk\b/g, "Portiere"]
+    [/\bWomen\b/gi, "Donna"]
   ];
 
   let tradotto = text;
@@ -186,7 +262,6 @@ function traduciTestoProdotto(text) {
   }
 
   // Risolviamo anche l'ordine del nome se ci sono combinazioni particolari:
-  // Ad esempio, "Maniche Lunghe Casa" -> "Casa Maniche Lunghe"
   const swaps = [
     [/\bManiche Lunghe Casa\b/gi, "Casa Maniche Lunghe"],
     [/\bManiche Lunghe Trasferta\b/gi, "Trasferta Maniche Lunghe"],
@@ -2445,7 +2520,8 @@ const DEFAULT_SETTINGS = {
     { id: 'cat_polo', nome: 'Polo', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 7, stato: 'attivo' },
     { id: 'cat_smanicati', nome: 'Smanicati', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
     { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
-    { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' }
+    { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' },
+    { id: 'cat_portiere', nome: 'Portiere', ordine: 11, stato: 'attivo' }
   ],
   filtriCatalogo: [
     { id: 'fil_tutti', nome: 'Tutti', ordine: 1, stato: 'attivo' },
@@ -2458,7 +2534,8 @@ const DEFAULT_SETTINGS = {
     { id: 'fil_polo', nome: 'Polo', ordine: 8, stato: 'attivo' },
     { id: 'fil_smanicati', nome: 'Smanicati', ordine: 9, stato: 'attivo' },
     { id: 'fil_maniche_lunghe', nome: 'Maniche Lunghe', ordine: 10, stato: 'attivo' },
-    { id: 'fil_bambino', nome: 'Kit Bambino', ordine: 11, stato: 'attivo' }
+    { id: 'fil_bambino', nome: 'Kit Bambino', ordine: 11, stato: 'attivo' },
+    { id: 'fil_portiere', nome: 'Portiere', ordine: 12, stato: 'attivo' }
   ],
   regoleImportazioneJson: [
     { id: 'rule_1', valore_json: 'Full Kit', categoria: 'Kit' },
@@ -2473,7 +2550,11 @@ const DEFAULT_SETTINGS = {
     { id: 'rule_10', valore_json: 'Retro', categoria: 'Retro' },
     { id: 'rule_11', valore_json: 'Vintage', categoria: 'Retro' },
     { id: 'rule_12', valore_json: 'Tracksuit', categoria: 'Tuta' },
-    { id: 'rule_13', valore_json: 'Kit Bambino', categoria: 'Kit Bambino' }
+    { id: 'rule_13', valore_json: 'Kit Bambino', categoria: 'Kit Bambino' },
+    { id: 'rule_14', valore_json: 'Goalkeeper', categoria: 'Portiere' },
+    { id: 'rule_15', valore_json: 'GK', categoria: 'Portiere' },
+    { id: 'rule_16', valore_json: 'Keeper', categoria: 'Portiere' },
+    { id: 'rule_17', valore_json: 'Portiere', categoria: 'Portiere' }
   ]
 };
 
@@ -3869,11 +3950,12 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
             countDuplicati++;
           } else {
             const payload = {
-              squadra: traduciTestoProdotto(squadraNorm),
+              squadra: (squadraNorm || 'Sconosciuta').trim(),
               categoria: p.categoria || 'Kit',
+              filtro_catalogo: (p.categoria === 'Portiere' || p.filtro_catalogo === 'Portiere') ? 'Portiere' : (p.filtro_catalogo || ''),
               target: pTarget,
               stagione: p.stagione || '2024/2025',
-              versione: traduciTestoProdotto(p.versione || p.nome_finale || 'Home'),
+              versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
               prezzo: parseFloat(p.prezzo) || 23.99,
               prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
               immagine: p.immagine || ''
@@ -3958,11 +4040,12 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
         countDuplicati++;
       } else {
         const payload = {
-          squadra: traduciTestoProdotto(squadraNorm),
+          squadra: (squadraNorm || 'Sconosciuta').trim(),
           categoria: p.categoria || 'Kit',
+          filtro_catalogo: (p.categoria === 'Portiere' || p.filtro_catalogo === 'Portiere') ? 'Portiere' : (p.filtro_catalogo || ''),
           target: pTarget,
           stagione: p.stagione || '2024/2025',
-          versione: traduciTestoProdotto(p.versione || p.nome_finale || 'Home'),
+          versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
           prezzo: parseFloat(p.prezzo) || 23.99,
           prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
           immagine: p.immagine || ''
@@ -4152,6 +4235,7 @@ app.post('/api/products', async (req, res) => {
       legacy_id: newLegacyId,
       squadra: traduciTestoProdotto(squadra),
       categoria: normalizzaCategoria(categoria),
+      filtro_catalogo: (normalizzaCategoria(categoria) === 'Portiere') ? 'Portiere' : undefined,
       target: target || "Adulto",
       versione: traduciTestoProdotto(finalVersione),
       stagione,
@@ -4208,6 +4292,9 @@ app.put('/api/products/:id', async (req, res) => {
       immagine: finalImmagine !== undefined ? finalImmagine : original.immagine,
       prezzo_fornitore: prezzo_fornitore !== undefined ? (prezzo_fornitore !== null && prezzo_fornitore !== '' ? Number(prezzo_fornitore) : null) : original.prezzo_fornitore
     };
+    if (payload.categoria === 'Portiere') {
+      payload.filtro_catalogo = 'Portiere';
+    }
 
     const { data, error } = await supabase
       .from('products')
@@ -4281,35 +4368,97 @@ app.post('/api/products/batch-update', async (req, res) => {
       const strIds = ids.map(id => String(id));
       const allIds = Array.from(new Set([...numIds, ...strIds]));
 
-      let { data, error } = await supabase
-        .from('products')
-        .update(payload)
-        .in('id', allIds)
-        .select();
+      const CHUNK_SIZE = 50;
+      let totalUpdated = 0;
+      let lastError = null;
 
-      if (error) {
-        console.warn("⚠️ Avviso aggiornamento batch Supabase (fallback campi core):", error.message);
-        const corePayload = { ...payload };
-        delete corePayload.tipo;
-        delete corePayload.disponibilita;
-        delete corePayload.filtro_catalogo;
-        delete corePayload.tag;
+      for (let i = 0; i < allIds.length; i += CHUNK_SIZE) {
+        const chunkIds = allIds.slice(i, i + CHUNK_SIZE);
+        let chunkSuccess = false;
+        let retries = 0;
 
-        if (Object.keys(corePayload).length > 0) {
-          const resRetry = await supabase
-            .from('products')
-            .update(corePayload)
-            .in('id', allIds)
-            .select();
-          if (!resRetry.error) {
-            data = resRetry.data;
-            error = null;
+        while (!chunkSuccess && retries < 3) {
+          try {
+            let { data, error } = await supabase
+              .from('products')
+              .update(payload)
+              .in('id', chunkIds)
+              .select('id');
+
+            if (error) {
+              const errMsg = String(error.message || '');
+              const isRateLimit = errMsg.includes('Rate exceeded') || errMsg.includes('rate limit') || error.code === '429';
+              if (isRateLimit && retries < 2) {
+                retries++;
+                console.warn(`⏳ [Rate Limit] Rate exceeded su Supabase (tentativo ${retries}/3), attendo prima di riprovare...`);
+                await new Promise(r => setTimeout(r, 1200 * retries));
+                continue;
+              }
+
+              console.warn("⚠️ Avviso aggiornamento batch Supabase (fallback campi core):", errMsg);
+              const corePayload = { ...payload };
+              delete corePayload.tipo;
+              delete corePayload.disponibilita;
+              delete corePayload.filtro_catalogo;
+              delete corePayload.tag;
+
+              if (Object.keys(corePayload).length > 0) {
+                const resRetry = await supabase
+                  .from('products')
+                  .update(corePayload)
+                  .in('id', chunkIds)
+                  .select('id');
+                if (!resRetry.error) {
+                  data = resRetry.data;
+                  error = null;
+                } else {
+                  error = resRetry.error;
+                }
+              }
+            }
+
+            if (error) {
+              const errMsg = String(error.message || '');
+              const isRateLimit = errMsg.includes('Rate exceeded') || errMsg.includes('rate limit');
+              if (isRateLimit && retries < 2) {
+                retries++;
+                console.warn(`⏳ [Rate Limit] Rate exceeded su Supabase (tentativo ${retries}/3), attendo...`);
+                await new Promise(r => setTimeout(r, 1500 * retries));
+                continue;
+              }
+              lastError = error;
+              break;
+            }
+
+            totalUpdated += (data ? data.length : chunkIds.length);
+            chunkSuccess = true;
+          } catch (chunkErr) {
+            const errStr = String(chunkErr && (chunkErr.message || chunkErr) || '');
+            const isRateLimit = errStr.includes('Rate exceeded') || errStr.includes('rate limit') || errStr.includes("Unexpected token 'R'");
+            if (isRateLimit && retries < 2) {
+              retries++;
+              console.warn(`⏳ [Rate Limit Exception] Rate exceeded (tentativo ${retries}/3), attendo...`);
+              await new Promise(r => setTimeout(r, 1500 * retries));
+              continue;
+            }
+            lastError = chunkErr;
+            break;
           }
+        }
+
+        // Breve pausa tra i chunk per evitare picchi verso Supabase
+        if (i + CHUNK_SIZE < allIds.length) {
+          await new Promise(r => setTimeout(r, 60));
         }
       }
 
-      if (error) throw error;
-      updatedProducts = data || [];
+      if (lastError && totalUpdated === 0) {
+        const lastMsg = String(lastError.message || lastError);
+        if (lastMsg.includes('Rate exceeded') || lastMsg.includes("Unexpected token 'R'")) {
+          throw new Error("Limite di frequenza richieste Supabase superato (Rate exceeded). Riprova tra qualche istante.");
+        }
+        throw lastError;
+      }
     }
 
     if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
@@ -4332,12 +4481,15 @@ app.post('/api/products/batch-update', async (req, res) => {
       success: true,
       source,
       count: ids.length,
-      payload,
-      updatedProducts
+      payload
     });
   } catch (err) {
-    console.error("🔴 Errore in POST /api/products/batch-update:", err.message);
-    return res.status(500).json({ success: false, error: err.message });
+    const msg = String(err && (err.message || err) || '');
+    console.error("🔴 Errore in POST /api/products/batch-update:", msg);
+    if (msg.includes('Rate exceeded') || msg.includes("Unexpected token 'R'")) {
+      return res.status(429).json({ success: false, error: "Limite di frequenza richieste superato (Rate exceeded). Riprova tra qualche istante." });
+    }
+    return res.status(500).json({ success: false, error: msg });
   }
 });
 
@@ -4353,23 +4505,47 @@ app.post('/api/products/batch-custom-update', async (req, res) => {
     let updatedCount = 0;
 
     if (supabase) {
-      const chunkSize = 50;
+      const chunkSize = 20;
       for (let i = 0; i < items.length; i += chunkSize) {
         const chunk = items.slice(i, i + chunkSize);
         await Promise.all(chunk.map(async (item) => {
           if (!item.id || !item.updates || typeof item.updates !== 'object') return;
           const targetId = isNaN(Number(item.id)) ? item.id : Number(item.id);
-          const { error } = await supabase
-            .from('products')
-            .update(item.updates)
-            .eq('id', targetId);
-          
-          if (!error) {
-            updatedCount++;
-          } else {
-            console.warn(`⚠️ Errore update per ID ${item.id}:`, error.message);
+          let retries = 0;
+          while (retries < 3) {
+            try {
+              const { error } = await supabase
+                .from('products')
+                .update(item.updates)
+                .eq('id', targetId);
+              
+              if (!error) {
+                updatedCount++;
+                break;
+              } else {
+                const errMsg = String(error.message || '');
+                if ((errMsg.includes('Rate exceeded') || errMsg.includes('rate limit') || error.code === '429') && retries < 2) {
+                  retries++;
+                  await new Promise(r => setTimeout(r, 1000 * retries));
+                  continue;
+                }
+                console.warn(`⚠️ Errore update per ID ${item.id}:`, errMsg);
+                break;
+              }
+            } catch (errEq) {
+              const errStr = String(errEq && (errEq.message || errEq) || '');
+              if ((errStr.includes('Rate exceeded') || errStr.includes('rate limit')) && retries < 2) {
+                retries++;
+                await new Promise(r => setTimeout(r, 1000 * retries));
+                continue;
+              }
+              break;
+            }
           }
         }));
+        if (i + chunkSize < items.length) {
+          await new Promise(r => setTimeout(r, 50));
+        }
       }
     }
 

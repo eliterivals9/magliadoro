@@ -861,16 +861,19 @@ function closeAccessoryModal() {
 
 // Live preview immagine nel form
 function updateModalImagePreview() {
-    const inputUrl = document.getElementById('modal-acc-immagine').value;
+    const inputEl = document.getElementById('modal-acc-immagine');
+    const inputUrl = inputEl ? inputEl.value : '';
     const previewImg = document.getElementById('modal-acc-preview-img');
     const placeholder = document.getElementById('modal-acc-preview-placeholder');
 
     if (inputUrl && inputUrl.trim()) {
-        previewImg.src = inputUrl.trim();
-        previewImg.classList.remove('hidden');
+        if (previewImg) {
+            previewImg.src = inputUrl.trim();
+            previewImg.classList.remove('hidden');
+        }
         if (placeholder) placeholder.classList.add('hidden');
     } else {
-        previewImg.classList.add('hidden');
+        if (previewImg) previewImg.classList.add('hidden');
         if (placeholder) placeholder.classList.remove('hidden');
     }
 }

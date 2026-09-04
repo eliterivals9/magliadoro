@@ -7520,6 +7520,14 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         </div>
     </div>
 
+    <!-- MODAL LIGHTBOX / ZOOM IMMAGINE -->
+    <div class="custom-lightbox" id="modal-zoom-img" onclick="if(event.target === this) chiudiZoomImmagine()">
+        <button class="lightbox-close" id="btn-close-zoom-img" onclick="chiudiZoomImmagine()" title="Chiudi (Esc)">✕</button>
+        <div class="lightbox-content-wrapper">
+            <img id="zoom-img" src="" alt="Dettaglio Maglia">
+        </div>
+    </div>
+
     <!-- OVERLAY BACKDROP CARRELLO -->
     <div class="overlay-carrello" id="overlay-carrello" onclick="toggleCarrello()"></div>
 
@@ -7648,24 +7656,57 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
         }
 
 function apriZoomImmagine(src){
-
+    if (!src) return;
     livelloZoom = 1;
 
-    const modal=document.getElementById("modal-zoom-img");
-    const img=document.getElementById("zoom-img");
+    let modal = document.getElementById("modal-zoom-img");
+    let img = document.getElementById("zoom-img");
 
-    img.src=src;
-    img.style.transform="scale(1)";
+    if (!modal || !img) {
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'modal-zoom-img';
+            modal.className = 'custom-lightbox';
+            modal.onclick = function(e) { if (e.target === modal) chiudiZoomImmagine(); };
+            modal.innerHTML = `
+                <button class="lightbox-close" id="btn-close-zoom-img" onclick="chiudiZoomImmagine()" title="Chiudi (Esc)">✕</button>
+                <div class="lightbox-content-wrapper">
+                    <img id="zoom-img" src="" alt="Dettaglio Immagine">
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        img = document.getElementById("zoom-img");
+    }
 
-    modal.style.display="flex";
+    if (img) {
+        img.src = src;
+        img.style.transform = "scale(1)";
+    }
 
+    if (modal) {
+        modal.style.display = "flex";
+    }
 }
 
 function chiudiZoomImmagine(){
-
-    document.getElementById("modal-zoom-img").style.display="none";
-
+    const modal = document.getElementById("modal-zoom-img");
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
+window.apriZoomImmagine = apriZoomImmagine;
+window.chiudiZoomImmagine = chiudiZoomImmagine;
+
+// Chiusura con tasto Esc
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        const modal = document.getElementById("modal-zoom-img");
+        if (modal && modal.style.display === "flex") {
+            chiudiZoomImmagine();
+        }
+    }
+});
         let carrello = [];
         try {
             const carrelloSalvato = localStorage.getItem('elite_carrello');
@@ -8133,6 +8174,9 @@ function chiudiZoomImmagine(){
             }
             if (lower === 'kit' || lower === 'completo' || (lower.includes('kit') && !lower.includes('bambino')) || lower.includes('completo')) {
                 return 'Kit';
+            }
+            if (lower === 'portiere' || lower.includes('portiere') || lower.includes('goalkeeper') || lower === 'gk' || lower.includes('keeper')) {
+                return 'Portiere';
             }
             
             return raw;
@@ -8906,15 +8950,17 @@ for (const cat in hierarchy) {
             let cardsHTML = "";
             baseSet.forEach((p, idx) => {
                 let tag = "";
-                const catLower = (p.categoria || '').toLowerCase();
-                if (catLower === "kit bambino") tag = `Kit Bambino ${p.stagione}`;
-                else if (catLower === "kit") tag = `Kit Completo ${p.stagione}`;
-                else if (catLower === "fan") tag = `Versione Fan ${p.stagione}`;
-                else if (catLower === "player") tag = `Versione Player ${p.stagione}`;
-                else if (catLower === "retro") tag = `Maglia Retro ${p.stagione}`;
-                else if (catLower === "tuta" || catLower === "tute") tag = `Tuta ${p.stagione}`;
-                else if (catLower === "kit allenamento" || catLower === "kit training" || catLower === "allenamento") tag = `Kit Allenamento ${p.stagione}`;
-                else tag = `${p.categoria} ${p.stagione}`;
+                const classif = ottieniClassificazioneProdotto(p);
+                if (classif === "Kit Bambino") tag = `Kit Bambino ${p.stagione || ''}`.trim();
+                else if (classif === "Kit Club") tag = `Kit Club ${p.stagione || ''}`.trim();
+                else if (classif === "Kit Nazionale") tag = `Kit Nazionale ${p.stagione || ''}`.trim();
+                else if (classif === "Fan Version") tag = `Versione Fan ${p.stagione || ''}`.trim();
+                else if (classif === "Player Version") tag = `Versione Player ${p.stagione || ''}`.trim();
+                else if (classif === "Maglie Retro") tag = `Maglia Retro ${p.stagione || ''}`.trim();
+                else if (classif === "Tuta") tag = `Tuta ${p.stagione || ''}`.trim();
+                else if (classif === "Kit Allenamento") tag = `Kit Allenamento ${p.stagione || ''}`.trim();
+                else if (classif === "Portiere") tag = `Portiere ${p.stagione || ''}`.trim();
+                else tag = `${classif || p.categoria} ${p.stagione || ''}`.trim();
 
                 cardsHTML += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
             });
@@ -9645,7 +9691,7 @@ for (const cat in hierarchy) {
                 filtrati = filtrati.filter(p => isProdottoAutorizzatoTorneo(p, window.fornituraTorneoAttiva));
             }
 
-            if (filtroCategoriaCorrente && filtroCategoriaCorrente !== 'tutti') {
+            if (filtroCategoriaCorrente) {
                 filtrati = filtrati.filter(p => verificaProdottoCorrispondeCategoria(p, filtroCategoriaCorrente));
             }
 
@@ -9740,15 +9786,17 @@ for (const cat in hierarchy) {
             } else {
                 pageProducts.forEach((p, idx) => {
                     let tag = "";
-                    const catLower = (p.categoria || '').toLowerCase();
-                    if (catLower === "kit bambino") tag = `Kit Bambino ${p.stagione}`;
-                    else if (catLower === "kit") tag = `Kit Completo ${p.stagione}`;
-                    else if (catLower === "fan") tag = `Versione Fan ${p.stagione}`;
-                    else if (catLower === "player") tag = `Versione Player ${p.stagione}`;
-                    else if (catLower === "retro") tag = `Maglia Retro ${p.stagione}`;
-                    else if (catLower === "tuta" || catLower === "tute") tag = `Tuta ${p.stagione}`;
-                    else if (catLower === "kit allenamento" || catLower === "kit training" || catLower === "allenamento") tag = `Kit Allenamento ${p.stagione}`;
-                    else tag = `${p.categoria} ${p.stagione}`;
+                    const classif = ottieniClassificazioneProdotto(p);
+                    if (classif === "Kit Bambino") tag = `Kit Bambino ${p.stagione || ''}`.trim();
+                    else if (classif === "Kit Club") tag = `Kit Club ${p.stagione || ''}`.trim();
+                    else if (classif === "Kit Nazionale") tag = `Kit Nazionale ${p.stagione || ''}`.trim();
+                    else if (classif === "Fan Version") tag = `Versione Fan ${p.stagione || ''}`.trim();
+                    else if (classif === "Player Version") tag = `Versione Player ${p.stagione || ''}`.trim();
+                    else if (classif === "Maglie Retro") tag = `Maglia Retro ${p.stagione || ''}`.trim();
+                    else if (classif === "Tuta") tag = `Tuta ${p.stagione || ''}`.trim();
+                    else if (classif === "Kit Allenamento") tag = `Kit Allenamento ${p.stagione || ''}`.trim();
+                    else if (classif === "Portiere") tag = `Portiere ${p.stagione || ''}`.trim();
+                    else tag = `${classif || p.categoria} ${p.stagione || ''}`.trim();
 
                     contenitore.innerHTML += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
                 });
@@ -9956,38 +10004,67 @@ for (const cat in hierarchy) {
             return 22.99;
         }
 
-        function ottieniBadgeCategoria(categoria, nome = '', tag = '') {
-            const rawCat = (categoria || '').toString().trim();
-            if (rawCat) {
-                const catNorm = normalizzaCategoria(rawCat);
-                const lowerNorm = catNorm.toLowerCase();
+        function ottieniClassificazioneProdotto(pOrCat, targetInput, squadraInput, nomeInput) {
+            let categoria = '';
+            let target = '';
+            let squadra = '';
+            let nome = '';
 
-                if (lowerNorm === 'tuta') return '🧥 Tuta Completa';
-                if (lowerNorm === 'kit') {
-                    const testStr = (nome + ' ' + tag).toLowerCase();
-                    if (testStr.includes('bambino') || testStr.includes('kids') || testStr.includes('kid')) {
-                        return '👶 Kit Bambino';
-                    }
-                    return '🩳 Kit Completo';
-                }
-                if (lowerNorm === 'kit allenamento') return '🩳 Kit Allenamento';
-                if (lowerNorm === 'fan') return 'Fan';
-                if (lowerNorm === 'player') return 'Player';
-                if (lowerNorm === 'retro') return 'Retro';
-
-                // Per categorie personalizzate (es. "Polo", "Felpa", "Smanicati", ecc.) usa direttamente il nome della Categoria
-                return rawCat;
+            if (pOrCat && typeof pOrCat === 'object') {
+                categoria = pOrCat.categoria || '';
+                target = pOrCat.target || '';
+                squadra = pOrCat.squadra || '';
+                nome = pOrCat.versione || pOrCat.nome || '';
+            } else {
+                categoria = pOrCat || '';
+                target = targetInput || '';
+                squadra = squadraInput || '';
+                nome = nomeInput || '';
             }
-            
-            // Fallback se la categoria non è presente sul prodotto
-            const testStr = (nome + ' ' + tag).toLowerCase();
-            if (testStr.includes('bambino') || testStr.includes('kids') || testStr.includes('kid')) return '👶 Kit Bambino';
-            if (testStr.includes('tuta') || testStr.includes('tracksuit')) return '🧥 Tuta Completa';
-            if (testStr.includes('allenamento') || testStr.includes('training') || testStr.includes('kit training') || testStr.includes('kit allenamento')) return '🩳 Kit Allenamento';
-            if (testStr.includes('polo')) return 'Polo';
-            if (testStr.includes('felpa')) return 'Felpa';
-            if (testStr.includes('kit')) return '🩳 Kit Completo';
-            return 'Solo Maglia';
+
+            const catNorm = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(categoria) : categoria;
+            const catLower = (catNorm || '').toLowerCase().trim();
+            const tgtLower = (target || '').toLowerCase().trim();
+            const nomeLower = (nome || '').toLowerCase();
+            const isBambino = tgtLower === 'bambino' || catLower === 'kit bambino' || nomeLower.includes('bambino') || nomeLower.includes('kids') || nomeLower.includes('kid');
+
+            // 1. Verificare il target: Se target = Bambino e il prodotto è un Kit → "Kit Bambino"
+            if (catLower === 'kit' || catLower === 'kit completi' || catLower === 'kit completo') {
+                if (isBambino) {
+                    return 'Kit Bambino';
+                }
+                if (squadra && typeof isClub === 'function' && !isClub(squadra)) {
+                    return 'Kit Nazionale';
+                }
+                return 'Kit Club';
+            }
+
+            // 2. Se target = Adulto (o Bambino) su altre categorie specifiche, mantenere la classificazione esistente
+            if (catLower === 'player') return 'Player Version';
+            if (catLower === 'fan') return 'Fan Version';
+            if (catLower === 'retro') return 'Maglie Retro';
+            if (catLower === 'kit allenamento' || catLower === 'kit training' || catLower === 'allenamento') return 'Kit Allenamento';
+            if (catLower === 'tuta' || catLower === 'tute') return 'Tuta';
+            if (catLower === 'portiere') return 'Portiere';
+            if (catLower === 'polo') return 'Polo';
+            if (catLower === 'smanicati' || catLower === 'smanicato') return 'Smanicati';
+            if (catLower === 'maniche lunghe' || catLower === 'manica lunga') return 'Maniche Lunghe';
+
+            return catNorm || 'Kit Club';
+        }
+        window.ottieniClassificazioneProdotto = ottieniClassificazioneProdotto;
+
+        function ottieniBadgeCategoria(categoria, nome = '', tag = '', target = '', squadra = '') {
+            const classif = ottieniClassificazioneProdotto(categoria, target, squadra, nome);
+            if (classif === 'Kit Bambino') return '👶 Kit Bambino';
+            if (classif === 'Tuta') return '🧥 Tuta Completa';
+            if (classif === 'Kit Allenamento') return '🩳 Kit Allenamento';
+            if (classif === 'Player' || classif === 'Player Version') return 'Player';
+            if (classif === 'Fan' || classif === 'Fan Version') return 'Fan';
+            if (classif === 'Retro' || classif === 'Maglie Retro') return 'Retro';
+            if (classif === 'Portiere') return 'Portiere';
+            if (classif === 'Kit Club' || classif === 'Kit Nazionale') return '🩳 ' + classif;
+            return classif;
         }
 
         function ottieniIndiceCategoriaTutto(categoria) {
@@ -10043,10 +10120,130 @@ for (const cat in hierarchy) {
             return v1 - v2;
         }
 
+        function trovaConfigurazioneFiltroCatalogo(catFiltro) {
+            if (!catFiltro || !window.appSettings || !Array.isArray(window.appSettings.filtriCatalogo)) return null;
+            const target = catFiltro.toLowerCase().trim();
+            const targetNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(target) : target;
+
+            return window.appSettings.filtriCatalogo.find(f => {
+                if (!f) return false;
+                const fId = (f.id || '').toLowerCase().trim();
+                const fNome = (f.nome || '').toLowerCase().trim();
+                const fNorm = (typeof ottieniChiaveCanonicoFiltro === 'function') ? ottieniChiaveCanonicoFiltro(fNome) : fNome;
+
+                return fId === target || fNome === target || fNorm === targetNorm || fNorm === target;
+            }) || null;
+        }
+
+        function getCategorieAssociateFiltroPubblico(configFiltro) {
+            if (!configFiltro) return null;
+            if (Array.isArray(configFiltro.categorie_associate) && configFiltro.categorie_associate.length > 0) {
+                return configFiltro.categorie_associate;
+            }
+            // Inizializzazione coerente di default
+            const nomeF = (configFiltro.nome || '').toLowerCase().trim();
+            const idF = (configFiltro.id || '').toLowerCase().trim();
+            const catSettings = Array.isArray(window.appSettings?.categorie) ? window.appSettings.categorie.map(c => c.nome).filter(Boolean) : [];
+
+            if (nomeF === 'tutti' || nomeF === 'tutto' || idF === 'fil_tutti') {
+                return catSettings.length > 0 ? catSettings : ['Kit', 'Player', 'Fan', 'Retro', 'Kit Allenamento', 'Tuta', 'Polo', 'Maniche Lunghe', 'Smanicato', 'Portiere'];
+            }
+            if (nomeF.includes('bambino') || idF.includes('bambino')) {
+                return ['Kit'];
+            }
+            if (nomeF === 'kit' || nomeF === 'kit club' || idF === 'fil_kit') {
+                return ['Kit'];
+            }
+            if (nomeF.includes('player') || idF.includes('player')) {
+                return ['Player'];
+            }
+            if (nomeF.includes('fan') || idF.includes('fan')) {
+                return ['Fan'];
+            }
+            if (nomeF.includes('retro') || nomeF.includes('retrò') || idF.includes('retro')) {
+                return ['Retro'];
+            }
+            if (nomeF.includes('allenamento') || nomeF.includes('training') || idF.includes('allenamento')) {
+                return ['Kit Allenamento'];
+            }
+            if (nomeF.includes('tuta') || nomeF.includes('tute') || idF.includes('tuta')) {
+                return ['Tuta'];
+            }
+            if (nomeF.includes('polo') || idF.includes('polo')) {
+                return ['Polo'];
+            }
+            if (nomeF.includes('smanicato') || nomeF.includes('smanicati') || idF.includes('smanicato')) {
+                return ['Smanicato'];
+            }
+            if (nomeF.includes('maniche lunghe') || nomeF === 'manica lunga' || idF.includes('maniche_lunghe')) {
+                return ['Maniche Lunghe'];
+            }
+            if (nomeF.includes('portiere') || idF.includes('portiere')) {
+                return ['Portiere'];
+            }
+            const match = catSettings.find(c => c.toLowerCase().trim() === nomeF);
+            if (match) return [match];
+            return [configFiltro.nome || 'Kit'];
+        }
+
+        function prodottoAppartieneACategoria(p, nomeCat) {
+            if (!p || !nomeCat) return false;
+            const nc = nomeCat.toLowerCase().trim();
+            const catP = (p.categoria || "").toLowerCase().trim();
+            const fCatP = (p.filtro_catalogo || "").toLowerCase().trim();
+            const catNorm = (typeof normalizzaCategoria === "function" ? normalizzaCategoria(p.categoria) : (p.categoria || "")).toLowerCase().trim();
+
+            if (nc === "kit" || nc === "kit club" || nc === "kit completi") {
+                return catP === "kit" || fCatP === "kit" || catNorm === "kit";
+            }
+            if (nc === "player" || nc === "player version") {
+                return catP === "player" || fCatP === "player" || catNorm === "player";
+            }
+            if (nc === "fan" || nc === "fan version") {
+                return catP === "fan" || fCatP === "fan" || catNorm === "fan";
+            }
+            if (nc === "retro" || nc === "maglie retro" || nc === "retrò") {
+                return catP === "retro" || fCatP === "retro" || catNorm === "retro";
+            }
+            if (nc === "kit allenamento" || nc === "allenamento" || nc === "kit training" || nc === "training") {
+                return catP === "kit allenamento" || catP === "allenamento" || catP === "kit training" ||
+                       fCatP === "kit allenamento" || fCatP === "allenamento" || fCatP === "kit training" ||
+                       catNorm === "kit allenamento";
+            }
+            if (nc === "tuta" || nc === "tute") {
+                return catP === "tuta" || catP === "tute" || fCatP === "tuta" || fCatP === "tute" || catNorm === "tuta";
+            }
+            if (nc === "polo") {
+                return catP === "polo" || fCatP === "polo" || catNorm === "polo";
+            }
+            if (nc === "smanicati" || nc === "smanicato") {
+                return catP === "smanicati" || catP === "smanicato" || fCatP === "smanicati" || fCatP === "smanicato" || catNorm === "smanicati" || catNorm === "smanicato";
+            }
+            if (nc === "maniche lunghe" || nc === "manica lunga") {
+                return catP === "maniche lunghe" || catP === "manica lunga" || fCatP === "maniche lunghe" || fCatP === "manica lunga" || catNorm === "maniche lunghe";
+            }
+            if (nc === "portiere" || nc === "goalkeeper" || nc === "gk") {
+                return catP === "portiere" || fCatP === "portiere" || catNorm === "portiere";
+            }
+            if (nc === "kit bambino" || nc === "bambino") {
+                return (p.target && p.target.toLowerCase() === "bambino") || catP === "kit bambino" || fCatP === "kit bambino";
+            }
+
+            return catP === nc || fCatP === nc || catNorm === nc;
+        }
+
+        function prodottoAppartieneACategorieAssociate(p, categorieAssociate) {
+            if (!Array.isArray(categorieAssociate) || categorieAssociate.length === 0) return false;
+            return categorieAssociate.some(cat => prodottoAppartieneACategoria(p, cat));
+        }
+
         function verificaProdottoCorrispondeCategoria(p, catFiltro) {
-            if (!catFiltro || catFiltro === "tutti") return true;
-            const cf = catFiltro.toLowerCase().trim();
-            const isFiltroBambino = cf === "kit bambino" || cf === "bambino";
+            if (!p) return false;
+            const cf = (catFiltro || "tutti").toLowerCase().trim();
+            const cfNorm = (typeof ottieniChiaveCanonicoFiltro === "function") ? ottieniChiaveCanonicoFiltro(cf) : cf;
+            
+            const isFiltroTutti = cf === "tutti" || cf === "tutto" || cfNorm === "tutti";
+            const isFiltroBambino = cf === "kit bambino" || cf === "bambino" || cfNorm === "bambino";
             
             const catProdotto = (p.categoria || "").toLowerCase().trim();
             const filtroCatProdotto = (p.filtro_catalogo || "").toLowerCase().trim();
@@ -10057,55 +10254,81 @@ for (const cat in hierarchy) {
                                   (p.versione || "").toLowerCase().includes("bambino") || 
                                   (p.versione || "").toLowerCase().includes("kids") || 
                                   (p.versione || "").toLowerCase().includes("kid");
-            
-            if (isFiltroBambino) {
-                return isProdBambino;
+
+            // 1. Lettura configurazione esplicita del filtro (Source of Truth salvata da Admin)
+            const configFiltro = trovaConfigurazioneFiltroCatalogo(catFiltro);
+            const categorieAssociate = configFiltro ? getCategorieAssociateFiltroPubblico(configFiltro) : null;
+
+            if (categorieAssociate && Array.isArray(categorieAssociate)) {
+                // Se la configurazione del filtro ha categorie associate
+                const appartiene = prodottoAppartieneACategorieAssociate(p, categorieAssociate);
+                if (!appartiene) return false;
+
+                // Regola Filtro "Tutti":
+                // Mostra REALMENTE tutti i prodotti appartenenti alle categorie selezionate!
+                if (isFiltroTutti) {
+                    return true;
+                }
+
+                // Regola Filtro "Kit Bambino":
+                // Categoria associata (Kit) + condizione specifica target Bambino
+                if (isFiltroBambino) {
+                    return isProdBambino;
+                }
+
+                // Regola Filtro "Portiere":
+                if (cf === "portiere" || cfNorm === "portiere") {
+                    return true;
+                }
+
+                // Per tutti gli altri filtri standard per adulti (Kit Club, Player, Fan, Retro, Tuta, Polo, Maniche Lunghe, Smanicato, Kit Allenamento):
+                // Se il prodotto è bambino, non deve comparire nei filtri per adulti
+                if (isProdBambino) {
+                    return false;
+                }
+
+                return true;
             }
-            
-            if (isProdBambino) {
-                return false;
-            }
-            
+
+            // 2. Fallback di sicurezza su logica esistente se configFiltro non disponibile
+            if (isFiltroTutti) return true;
+            if (isFiltroBambino) return isProdBambino;
+            if (isProdBambino && cf !== "portiere") return false;
+
             if (cf === "special") {
-                const standardCats = ["kit", "fan", "player", "allenamento", "tuta", "tute", "retro", "kit bambino", "kit training", "kit allenamento", "polo", "smanicati", "maniche lunghe"];
+                const standardCats = ["kit", "fan", "player", "allenamento", "tuta", "tute", "retro", "kit bambino", "kit training", "kit allenamento", "polo", "smanicati", "maniche lunghe", "portiere"];
                 return !standardCats.includes(catProdotto) && !standardCats.includes(filtroCatProdotto);
             }
-            
             if (cf === "kit allenamento" || cf === "allenamento" || cf === "kit training") {
                 return catProdotto === "kit allenamento" || catProdotto === "allenamento" || catProdotto === "kit training" ||
                        filtroCatProdotto === "kit allenamento" || filtroCatProdotto === "allenamento" || filtroCatProdotto === "kit training";
             }
-
             if (cf === "tuta" || cf === "tute") {
                 return catProdotto === "tuta" || catProdotto === "tute" || filtroCatProdotto === "tuta" || filtroCatProdotto === "tute";
             }
-
             if (cf === "kit" || cf === "kit club" || cf === "kit completi") {
                 return catProdotto === "kit" || filtroCatProdotto === "kit" || catNormProdotto === "kit";
             }
-
             if (cf === "player" || cf === "player version") {
                 return catProdotto === "player" || filtroCatProdotto === "player" || catNormProdotto === "player";
             }
-
             if (cf === "fan" || cf === "fan version") {
                 return catProdotto === "fan" || filtroCatProdotto === "fan" || catNormProdotto === "fan";
             }
-
             if (cf === "retro" || cf === "maglie retro" || cf === "retrò") {
                 return catProdotto === "retro" || filtroCatProdotto === "retro" || catNormProdotto === "retro";
             }
-
             if (cf === "polo") {
                 return catProdotto === "polo" || filtroCatProdotto === "polo" || catNormProdotto === "polo";
             }
-
             if (cf === "smanicati" || cf === "smanicato") {
                 return catProdotto === "smanicati" || catProdotto === "smanicato" || filtroCatProdotto === "smanicati" || filtroCatProdotto === "smanicato";
             }
-
             if (cf === "maniche lunghe" || cf === "manica lunga") {
                 return catProdotto === "maniche lunghe" || catProdotto === "manica lunga" || filtroCatProdotto === "maniche lunghe" || filtroCatProdotto === "manica lunga";
+            }
+            if (cf === "portiere" || cf === "goalkeeper" || cf === "gk" || cf === "keeper") {
+                return catProdotto === "portiere" || filtroCatProdotto === "portiere" || catNormProdotto === "portiere";
             }
 
             return catProdotto === cf || filtroCatProdotto === cf || catNormProdotto === cf;
@@ -10458,7 +10681,7 @@ function renderizzaProdottiSquadraConFiltri() {
             }
             
             // Apply category / catalog filter
-            if (filtroCategoriaCorrente !== 'tutti') {
+            if (filtroCategoriaCorrente) {
                 prodotti = prodotti.filter(p => verificaProdottoCorrispondeCategoria(p, filtroCategoriaCorrente));
             }
 
@@ -10550,15 +10773,17 @@ function renderizzaProdottiSquadraConFiltri() {
             } else {
                 pageProducts.forEach((p, idx) => {
                     let tag = "";
-                    const catLower = (p.categoria || '').toLowerCase();
-                    if (catLower === "kit bambino") tag = `Kit Bambino ${p.stagione}`;
-                    else if (catLower === "kit") tag = `Kit Completo ${p.stagione}`;
-                    else if (catLower === "fan") tag = `Versione Fan ${p.stagione}`;
-                    else if (catLower === "player") tag = `Versione Player ${p.stagione}`;
-                    else if (catLower === "retro") tag = `Maglia Retro ${p.stagione}`;
-                    else if (catLower === "tuta" || catLower === "tute") tag = `Tuta ${p.stagione}`;
-                    else if (catLower === "kit allenamento" || catLower === "kit training" || catLower === "allenamento") tag = `Kit Allenamento ${p.stagione}`;
-                    else tag = `${p.categoria} ${p.stagione}`;
+                    const classif = ottieniClassificazioneProdotto(p);
+                    if (classif === "Kit Bambino") tag = `Kit Bambino ${p.stagione || ''}`.trim();
+                    else if (classif === "Kit Club") tag = `Kit Club ${p.stagione || ''}`.trim();
+                    else if (classif === "Kit Nazionale") tag = `Kit Nazionale ${p.stagione || ''}`.trim();
+                    else if (classif === "Fan Version") tag = `Versione Fan ${p.stagione || ''}`.trim();
+                    else if (classif === "Player Version") tag = `Versione Player ${p.stagione || ''}`.trim();
+                    else if (classif === "Maglie Retro") tag = `Maglia Retro ${p.stagione || ''}`.trim();
+                    else if (classif === "Tuta") tag = `Tuta ${p.stagione || ''}`.trim();
+                    else if (classif === "Kit Allenamento") tag = `Kit Allenamento ${p.stagione || ''}`.trim();
+                    else if (classif === "Portiere") tag = `Portiere ${p.stagione || ''}`.trim();
+                    else tag = `${classif || p.categoria} ${p.stagione || ''}`.trim();
 
                     contenitore.innerHTML += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
                 });
@@ -10575,7 +10800,8 @@ function renderizzaProdottiSquadraConFiltri() {
             document.querySelectorAll('.btn-filtro-categoria').forEach(btn => {
                 const dataCat = (btn.getAttribute('data-categoria') || '').toLowerCase().trim();
                 const curCat = (filtroCategoriaCorrente || 'tutti').toLowerCase().trim();
-                if (dataCat === curCat) {
+                const isBambinoMatch = (dataCat === 'bambino' || dataCat === 'kit bambino') && (curCat === 'bambino' || curCat === 'kit bambino');
+                if (dataCat === curCat || isBambinoMatch) {
                     btn.classList.add('attivo');
                 } else {
                     btn.classList.remove('attivo');
@@ -10629,13 +10855,21 @@ function renderizzaProdottiSquadraConFiltri() {
             if (lower === 'polo') return 'polo';
             if (lower === 'smanicati' || lower === 'smanicato') return 'smanicati';
             if (lower === 'maniche lunghe' || lower === 'manica lunga') return 'maniche lunghe';
-            if (lower === 'kit bambino' || lower === 'bambino' || lower === 'kids' || lower === 'kid') return 'kit bambino';
+            if (lower === 'kit bambino' || lower === 'bambino' || lower === 'kids' || lower === 'kid') return 'bambino';
+            if (lower === 'portiere' || lower === 'goalkeeper' || lower === 'gk' || lower === 'keeper') return 'portiere';
             return lower;
         }
 
         function renderizzaFiltriCatalogoPubblici() {
             if (!window.appSettings) window.appSettings = {};
             
+            let filtriCatalogo = [];
+            if (Array.isArray(window.appSettings.filtriCatalogo) && window.appSettings.filtriCatalogo.length > 0) {
+                filtriCatalogo = window.appSettings.filtriCatalogo
+                    .filter(f => f.stato === 'attivo' || f.attivo !== false)
+                    .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
+            }
+
             let categorieConfigurate = [];
             if (Array.isArray(window.appSettings.categorie) && window.appSettings.categorie.length > 0) {
                 categorieConfigurate = window.appSettings.categorie
@@ -10643,18 +10877,37 @@ function renderizzaProdottiSquadraConFiltri() {
                     .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
             }
 
-            let filtriCatalogoExtra = [];
-            if (Array.isArray(window.appSettings.filtriCatalogo) && window.appSettings.filtriCatalogo.length > 0) {
-                filtriCatalogoExtra = window.appSettings.filtriCatalogo
-                    .filter(f => f.stato === 'attivo' || f.attivo !== false)
-                    .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
-            }
+            const listaFiltri = [];
+            const keysAggiunte = new Set();
 
-            const listaFiltri = [{ nome: 'Tutto', key: 'tutti' }];
-            const keysAggiunte = new Set(['tutti']);
+            // 1. Fonte primaria: filtriCatalogo (configurati dall'Admin Source of Truth)
+            if (filtriCatalogo.length > 0) {
+                filtriCatalogo.forEach(filtro => {
+                    const nome = (filtro.nome || '').trim();
+                    const key = ottieniChiaveCanonicoFiltro(nome);
+                    if (nome && !keysAggiunte.has(key)) {
+                        keysAggiunte.add(key);
+                        listaFiltri.push({ nome, key, ordine: Number(filtro.ordine) || 99 });
+                    }
+                });
 
-            // 1. Categorie attive dalle Impostazioni (Admin Source of Truth)
-            if (categorieConfigurate.length > 0) {
+                // Preserva categorie attive non ancora presenti nei filtriCatalogo (es. Antivento/Avvento)
+                if (categorieConfigurate.length > 0) {
+                    categorieConfigurate.forEach(cat => {
+                        const nome = (cat.nome || '').trim();
+                        const key = ottieniChiaveCanonicoFiltro(nome);
+                        if (nome && !keysAggiunte.has(key)) {
+                            keysAggiunte.add(key);
+                            listaFiltri.push({ nome, key, ordine: Number(cat.ordine) || 99 });
+                        }
+                    });
+                }
+            } else if (categorieConfigurate.length > 0) {
+                // Fallback su categorie se filtriCatalogo non è presente o vuoto
+                if (!keysAggiunte.has('tutti')) {
+                    keysAggiunte.add('tutti');
+                    listaFiltri.push({ nome: 'Tutto', key: 'tutti', ordine: 0 });
+                }
                 categorieConfigurate.forEach(cat => {
                     const nome = (cat.nome || '').trim();
                     const key = ottieniChiaveCanonicoFiltro(nome);
@@ -10663,19 +10916,10 @@ function renderizzaProdottiSquadraConFiltri() {
                         listaFiltri.push({ nome, key, ordine: Number(cat.ordine) || 99 });
                     }
                 });
-            } else if (filtriCatalogoExtra.length > 0) {
-                // 2. Filtri catalogo dalle Impostazioni se categorie non presenti
-                filtriCatalogoExtra.forEach(filtro => {
-                    const nome = (filtro.nome || '').trim();
-                    const key = ottieniChiaveCanonicoFiltro(nome);
-                    if (nome && key !== 'tutti' && !keysAggiunte.has(key)) {
-                        keysAggiunte.add(key);
-                        listaFiltri.push({ nome, key, ordine: Number(filtro.ordine) || 99 });
-                    }
-                });
             } else {
                 // Fallback di sola emergenza in caso di API non raggiungibile al primo render
                 const defaultEmergenza = [
+                    { nome: 'Tutto', key: 'tutti', ordine: 0 },
                     { nome: 'Kit Club', key: 'kit', ordine: 1 },
                     { nome: 'Player Version', key: 'player', ordine: 2 },
                     { nome: 'Fan Version', key: 'fan', ordine: 3 },
@@ -10685,7 +10929,8 @@ function renderizzaProdottiSquadraConFiltri() {
                     { nome: 'Polo', key: 'polo', ordine: 7 },
                     { nome: 'Smanicati', key: 'smanicati', ordine: 8 },
                     { nome: 'Maniche Lunghe', key: 'maniche lunghe', ordine: 9 },
-                    { nome: 'Kit Bambino', key: 'kit bambino', ordine: 10 }
+                    { nome: 'Portiere', key: 'portiere', ordine: 10 },
+                    { nome: 'Kit Bambino', key: 'bambino', ordine: 11 }
                 ];
                 defaultEmergenza.forEach(def => {
                     if (!keysAggiunte.has(def.key)) {
@@ -10702,7 +10947,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     const rawName = item.nome;
                     const valAttr = item.key;
                     const curCatNorm = ottieniChiaveCanonicoFiltro(filtroCategoriaCorrente || 'tutti');
-                    const isSelected = curCatNorm === valAttr;
+                    const isSelected = curCatNorm === valAttr || ((valAttr === 'bambino' || valAttr === 'kit bambino') && (curCatNorm === 'bambino' || curCatNorm === 'kit bambino'));
                     const activeClass = isSelected ? 'attivo' : '';
                     
                     let label = rawName;
@@ -10717,7 +10962,8 @@ function renderizzaProdottiSquadraConFiltri() {
                     else if (lower === 'polo') label = 'Polo';
                     else if (lower === 'smanicati') label = 'Smanicati';
                     else if (lower === 'maniche lunghe') label = 'Maniche Lunghe';
-                    else if (lower === 'kit bambino') label = 'Kit Bambino';
+                    else if (lower === 'bambino' || lower === 'kit bambino') label = 'Kit Bambino';
+                    else if (lower === 'portiere') label = 'Portiere';
                     
                     htmlBtns += `<button class="btn-filtro-categoria ${activeClass}" data-categoria="${valAttr}" onclick="impostaFiltroCategoria('${valAttr}')">${label}</button>`;
                 });
@@ -10933,7 +11179,8 @@ function renderizzaProdottiSquadraConFiltri() {
             const mappaTitoli = {
                 'kit': '👕 Kit Completi',
                 'kit allenamento': '🏃‍♂️ Kit Allenamento',
-                'kit bambino': '👶 Kit Bambini'
+                'kit bambino': '👶 Kit Bambini',
+                'bambino': '👶 Prodotti Bambino'
             };
             const titElement = document.getElementById('titolo-dinamico-club');
             if (titElement) {
@@ -11060,22 +11307,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
         function proxyImmagine(url) {
             if (!url || typeof url !== 'string') return "";
-            const trimmed = url.trim();
-            if (trimmed.startsWith("data:") || trimmed.startsWith("blob:") || trimmed.startsWith("/")) {
-                return trimmed;
-            }
-            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-                if (trimmed.includes("/api/proxy-image") || trimmed.includes("placehold.co") || trimmed.includes("images.unsplash.com")) {
-                    return trimmed;
-                }
-                try {
-                    const b64 = btoa(unescape(encodeURIComponent(trimmed)));
-                    return `/api/proxy-image?url=${encodeURIComponent(b64)}`;
-                } catch (e) {
-                    return `/api/proxy-image?url=${encodeURIComponent(trimmed)}`;
-                }
-            }
-            return trimmed;
+            return url.trim();
         }
 
         function renderizzaCardHTML(nome, img, tag, prezzoInput = 23.99, mostraScontoInput = false, testoBadgeInput = "", categoria = "", idProdotto = "", legacyIdProdotto = "", targetProdotto = "", lazyLoad = true) {
@@ -11100,7 +11332,7 @@ function renderizzaProdottiSquadraConFiltri() {
             let htmlBadge = testoBadge ? `<div class="badge-card sconto">${testoBadge}</div>` : '';
             
             // Nuova etichetta prodotto automatica basata sulla categoria nella parte superiore destra
-            const badgeTipoTesto = ottieniBadgeCategoria(categoria, nome, tag);
+            const badgeTipoTesto = ottieniBadgeCategoria(categoria, nome, tag, targetProdotto);
             let htmlBadgeTipo = `<div class="badge-card-tipo">${badgeTipoTesto}</div>`;
 
             let htmlPrezzo = mostraSconto ? 
@@ -11132,7 +11364,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     ${htmlBadgeTipo}
                     ${heartButtonHtml}
                     <div class="contenitore-foto" onclick="apriLightbox(event, '${immagineDaUsare.replace(/'/g, "\\'")}', '${nome.replace(/'/g, "\\'")}')" style="cursor: pointer; overflow: hidden; position: relative;">
-                        <img src="${proxyImmagine(immagineDaUsare)}" alt="${nome}" class="foto-maglia" loading="${lazyLoad ? 'lazy' : 'eager'}" ${lazyLoad ? '' : 'fetchpriority="high"'} style="transform:translate3d(${transform.x}%,${transform.y}%,0) scale(${transform.zoom}); width:100%; height:100%; object-fit:cover;" onerror="this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Kit+Calcio'">
+                        <img src="${immagineDaUsare}" alt="${nome}" class="foto-maglia" loading="${lazyLoad ? 'lazy' : 'eager'}" ${lazyLoad ? '' : 'fetchpriority="high"'} style="transform:translate3d(${transform.x}%,${transform.y}%,0) scale(${transform.zoom}); width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null;this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Kit+Calcio'">
                     </div>
                     <div class="info-maglia">
                         <div>
@@ -11148,9 +11380,20 @@ function renderizzaProdottiSquadraConFiltri() {
         }
         window.renderizzaCardHTML = renderizzaCardHTML;
 
-        function apriLightbox(event, src, title) {
-            if (event) event.stopPropagation();
-            if (typeof apriZoomImmagine === 'function') {
+        function apriLightbox(eventOrSrc, srcOrTitle, maybeTitle) {
+            let src = '';
+            let title = '';
+            if (eventOrSrc && typeof eventOrSrc === 'object' && typeof eventOrSrc.stopPropagation === 'function') {
+                eventOrSrc.stopPropagation();
+                src = srcOrTitle;
+                title = maybeTitle || '';
+            } else if (typeof eventOrSrc === 'string') {
+                src = eventOrSrc;
+                title = srcOrTitle || '';
+            } else {
+                src = srcOrTitle || '';
+            }
+            if (src && typeof apriZoomImmagine === 'function') {
                 apriZoomImmagine(src);
             }
         }
@@ -11307,7 +11550,7 @@ function renderizzaProdottiSquadraConFiltri() {
                             <img src="${img}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.src='placeholder-maglia.jpg'">
                         </div>
                         <div class="card-info" style="padding: 15px;">
-                            <span class="card-categoria">${escapeHtml(cat)}</span>
+                            <span class="card-categoria">${escapeHtml(ottieniClassificazioneProdotto(p))}</span>
                             <h3 class="card-titolo">${escapeHtml(title)}</h3>
                             <div class="card-prezzo-box" style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
                                 <span class="card-prezzo">€${price}</span>

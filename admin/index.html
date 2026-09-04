@@ -813,7 +813,7 @@
                                         <th class="px-4 py-3 text-center w-20">Ordine</th>
                                         <th class="px-4 py-3">Nome Filtro</th>
                                         <th class="px-4 py-3 text-center w-32">Stato</th>
-                                        <th class="px-4 py-3 text-center w-20">Azioni</th>
+                                        <th class="px-4 py-3 text-center w-28">Azioni</th>
                                     </tr>
                                 </thead>
                                 <tbody id="filtri-catalogo-tbody" class="divide-y divide-slate-100 text-sm">
@@ -2851,6 +2851,9 @@
                 <!-- Avviso Categorie Non Riconosciute -->
                 <div id="import-unrecognized-categories-alert" class="hidden flex-shrink-0"></div>
 
+                <!-- Avviso Squadre Non Presenti -->
+                <div id="import-missing-teams-alert" class="hidden flex-shrink-0"></div>
+
                 <!-- Controlli Filtri, Ricerca ed Eliminazione Multipla -->
                 <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 flex-shrink-0 bg-slate-50 p-4 rounded-2xl border border-slate-100/80">
                     <!-- Left: Advanced Filters -->
@@ -4049,6 +4052,99 @@
                     </button>
                     <button type="submit" class="px-5 py-2 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all shadow-sm">
                         Crea Filtro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL MODIFICA FILTRO (ASSOCIAZIONE CATEGORIE) -->
+    <div id="modal-modifica-filtro-catalogo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div id="modal-modifica-filtro-container" class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl transform transition-all scale-95 opacity-0 border border-slate-100 space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                        <span>✏️</span> MODIFICA FILTRO
+                    </h3>
+                    <p id="modifica-filtro-nome-display" class="text-sm font-black text-brand-gold mt-0.5">Tutti</p>
+                </div>
+                <button onclick="chiudiModalModificaFiltroCatalogo()" type="button" class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1">✕</button>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex items-center justify-between px-1">
+                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Categorie da includere in questo filtro:</span>
+                    <button type="button" onclick="toggleSelezionaTutteCategorieFiltro()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-all">
+                        Seleziona / Deseleziona Tutte
+                    </button>
+                </div>
+                
+                <div class="max-h-72 overflow-y-auto border border-slate-200/80 rounded-2xl">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider sticky top-0 z-10">
+                                <th class="px-4 py-3 text-center w-20">MOSTRA</th>
+                                <th class="px-4 py-3">CATEGORIA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modifica-filtro-categorie-tbody" class="divide-y divide-slate-100 text-xs font-semibold text-slate-800 bg-white">
+                            <!-- Popolato dinamicamente con le categorie di appSettings.categorie -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button onclick="chiudiModalModificaFiltroCatalogo()" type="button" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                    ANNULLA
+                </button>
+                <button onclick="salvaModificaFiltroCatalogo()" type="button" class="px-6 py-2.5 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all shadow-sm">
+                    SALVA
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI SQUADRA CATALOGO -->
+    <div id="modal-aggiungi-squadra-catalogo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 hidden">
+        <div id="modal-aggiungi-squadra-container" class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl transform transition-all scale-95 opacity-0 border border-slate-100 space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <span>🛡️</span> Nuova Squadra Catalogo
+                </h3>
+                <button type="button" onclick="chiudiModalAggiungiSquadra()" class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1">✕</button>
+            </div>
+            <form onsubmit="event.preventDefault(); salvaSquadraDaModal();" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome Squadra *</label>
+                    <input type="text" id="modal-squadra-nome" required placeholder="Es. Sergio FC, Chelsea, ecc." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-brand-gold transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Categoria *</label>
+                    <select id="modal-squadra-categoria" onchange="onCambioCategoriaModalSquadra()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-brand-gold transition-all">
+                        <!-- Popolato dinamicamente -->
+                    </select>
+                </div>
+                <div id="modal-custom-categoria-container" class="hidden">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nuova Categoria Personalizzata *</label>
+                    <input type="text" id="modal-squadra-categoria-custom" placeholder="Es. Club Speciali" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-brand-gold transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Sezione / Campionato *</label>
+                    <select id="modal-squadra-sezione" onchange="onCambioSezioneModalSquadra()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-brand-gold transition-all">
+                        <!-- Popolato dinamicamente -->
+                    </select>
+                </div>
+                <div id="modal-custom-sezione-container" class="hidden">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nuova Sezione Personalizzata *</label>
+                    <input type="text" id="modal-squadra-sezione-custom" placeholder="Es. Serie C, Scottish Premiership, ecc." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-brand-gold transition-all">
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button onclick="chiudiModalAggiungiSquadra()" type="button" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" id="modal-squadra-submit-btn" class="px-5 py-2 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer">
+                        Salva Squadra
                     </button>
                 </div>
             </form>
