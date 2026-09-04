@@ -1463,6 +1463,12 @@ function detectImageFormat(buffer) {
   if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
     return 'gif';
   }
+  // WEBP magic bytes: RIFF (52 49 46 46) ... WEBP (57 45 42 50)
+  if (buffer.length >= 12 &&
+      buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
+    return 'webp';
+  }
   return null;
 }
 
@@ -1638,29 +1644,42 @@ async function downloadImageAsBuffer(rawUrl) {
 
   if (!url.startsWith('http')) return null;
 
-  try {
-    // Rimuove eventuale frammento hash es. #zoom=...
-    const fetchUrl = url.split('#')[0];
-    const res = await fetch(fetchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15',
-        'Accept': 'image/png,image/jpeg,image/gif;q=0.9,*/*;q=0.1'
-      },
-      signal: AbortSignal.timeout(6000)
-    });
-    if (res.ok) {
-      const cType = (res.headers.get('content-type') || '').toLowerCase();
-      if (cType.includes('text/html') || cType.includes('application/json')) {
-        return null;
+  let attempts = 0;
+  const maxAttempts = 2;
+  while (attempts < maxAttempts) {
+    attempts++;
+    try {
+      // Rimuove eventuale frammento hash es. #zoom=...
+      const fetchUrl = url.split('#')[0];
+      const res = await fetch(fetchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15',
+          'Accept': 'image/png,image/jpeg,image/gif,image/webp;q=0.9,*/*;q=0.8'
+        },
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const cType = (res.headers.get('content-type') || '').toLowerCase();
+        if (cType.includes('text/html') || cType.includes('application/json')) {
+          return null;
+        }
+        const arrayBuffer = await res.arrayBuffer();
+        const buf = Buffer.from(arrayBuffer);
+        if (buf.length >= 50 && buf[0] !== 0x3C) { // Non è un file HTML
+          return buf;
+        }
+      } else if (res.status === 429) {
+        // Se è 429, aspetta un po' di più prima di riprovare
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-      const arrayBuffer = await res.arrayBuffer();
-      const buf = Buffer.from(arrayBuffer);
-      if (buf.length >= 50 && buf[0] !== 0x3C) { // Non è un file HTML
-        return buf;
+    } catch (err) {
+      if (attempts >= maxAttempts) {
+        console.warn(`[DOWNLOAD] Fallito download per ${url}: ${err.message}`);
+      } else {
+        // Aspetta un po' prima del retry
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
     }
-  } catch (err) {
-    // Timeout o errore di rete
   }
   return null;
 }
@@ -1800,7 +1819,7 @@ async function generaExcelLotto(lottoId, orders) {
 
       const q = Math.max(1, parseInt(item.quantita) || 1);
 
-      // MATCHING RIGIDO
+      // MATCHING RIGIDO E ROBUSTO (Gestione differenze innocue come maiuscole, spazi multipli, spazi iniziali/finali)
       let matchedProd = null;
       if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
         matchedProd = prodByIdMap.get(String(item.id).trim());
@@ -1808,17 +1827,21 @@ async function generaExcelLotto(lottoId, orders) {
       if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
         const cand = prodByLegacyIdMap.get(String(item.legacy_id).trim());
         if (cand) {
-          const itemSq = String(item.squadra || item.versione || "").trim().toLowerCase();
-          const candVer = String(cand.versione || "").trim().toLowerCase();
-          const candSq = String(cand.squadra || "").trim().toLowerCase();
-          if (itemSq === candVer || itemSq === candSq || candVer.includes(itemSq) || itemSq.includes(candVer) || candSq.includes(itemSq)) {
+          const itemSqNorm = normalizzaStringaMatching(item.squadra || item.versione || "");
+          const candVerNorm = normalizzaStringaMatching(cand.versione || "");
+          const candSqNorm = normalizzaStringaMatching(cand.squadra || "");
+          if (itemSqNorm === candVerNorm || itemSqNorm === candSqNorm || candVerNorm.includes(itemSqNorm) || itemSqNorm.includes(candVerNorm) || candSqNorm.includes(itemSqNorm)) {
             matchedProd = cand;
           }
         }
       }
       if (!matchedProd && item.squadra) {
-        const sqKey = String(item.squadra).trim().toLowerCase();
-        matchedProd = prodByExactVersioneMap.get(sqKey);
+        const sqKeyNorm = normalizzaStringaMatching(item.squadra);
+        matchedProd = allDbProducts.find(p => {
+          const pVerNorm = normalizzaStringaMatching(p.versione);
+          const pSqNorm = normalizzaStringaMatching(p.squadra);
+          return pVerNorm === sqKeyNorm || pSqNorm === sqKeyNorm;
+        });
       }
 
       // PREZZO FORNITORE BASE IN USD
@@ -1845,7 +1868,19 @@ async function generaExcelLotto(lottoId, orders) {
       const squadra = matchedProd ? matchedProd.squadra.trim() : (item.squadra || "").trim();
       const categoria = matchedProd ? String(matchedProd.categoria || "").trim() : String(item.categoria || "").trim();
       const season = matchedProd ? String(matchedProd.stagione || "25/26").trim() : (item.stagione || "25/26");
-      let rawImg = (matchedProd && matchedProd.immagine) ? matchedProd.immagine : (item.imgUrl || item.immagine || order.foto || "");
+      
+      // PRIORITÀ ASSOLUTA IMMAGINE: snapshot storico > database corrente > fallback ordine
+      let rawImg = "";
+      if (item.imgUrl && typeof item.imgUrl === 'string' && item.imgUrl.trim() !== "" && item.imgUrl.trim() !== "undefined") {
+        rawImg = item.imgUrl;
+      } else if (item.immagine && typeof item.immagine === 'string' && item.immagine.trim() !== "" && item.immagine.trim() !== "undefined") {
+        rawImg = item.immagine;
+      } else if (matchedProd && matchedProd.immagine && typeof matchedProd.immagine === 'string' && matchedProd.immagine.trim() !== "" && matchedProd.immagine.trim() !== "undefined") {
+        rawImg = matchedProd.immagine;
+      } else if (order.foto && typeof order.foto === 'string' && order.foto.trim() !== "" && order.foto.trim() !== "undefined") {
+        rawImg = order.foto;
+      }
+      
       const imageUrl = (typeof rawImg === 'string') ? rawImg.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim() : "";
       const styleEng = getExcelProductStyle(item, matchedProd);
 
@@ -1891,7 +1926,7 @@ async function generaExcelLotto(lottoId, orders) {
 
   const imageCache = new Map();
   const urlList = Array.from(uniqueUrls);
-  const concurrencyLimit = 10;
+  const concurrencyLimit = 5;
   for (let i = 0; i < urlList.length; i += concurrencyLimit) {
     const chunk = urlList.slice(i, i + concurrencyLimit);
     await Promise.all(chunk.map(async (url) => {
@@ -1899,6 +1934,9 @@ async function generaExcelLotto(lottoId, orders) {
       if (buf) imageCache.set(url, buf);
     }));
   }
+
+  // Forziamo la larghezza della colonna immagine (colonna A/1) a 16 per contenere l'immagine ridotta del 20%
+  worksheet.getColumn(1).width = 16;
 
   let currentRowNum = 4;
   for (let idx = 0; idx < normalizedItems.length; idx++) {
@@ -1908,8 +1946,8 @@ async function generaExcelLotto(lottoId, orders) {
     const { titleEng, titleCh, styleEng } = compileProductFieldsForExcel(item);
     const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
 
-    // Col A (1): Immagine incorporata realmente nel workbook
-    row.height = 42;
+    // Col A (1): Immagine incorporata realmente nel workbook (104x104px)
+    row.height = 88;
     const imgUrl = item.imageUrl;
     row.getCell(1).value = "";
     if (imgUrl) {
@@ -1919,14 +1957,15 @@ async function generaExcelLotto(lottoId, orders) {
         const detectedExt = detectImageFormat(imgBuffer);
         if (detectedExt) {
           try {
+            const excelExt = detectedExt === 'webp' ? 'png' : detectedExt;
             const imageId = workbook.addImage({
               buffer: imgBuffer,
-              extension: detectedExt,
+              extension: excelExt,
             });
             
             worksheet.addImage(imageId, {
               tl: { col: 0.1, row: currentRowNum - 1 + 0.05 },
-              ext: { width: 42, height: 42 },
+              ext: { width: 104, height: 104 },
               editAs: 'oneCell'
             });
           } catch (imgErr) {
@@ -4193,6 +4232,36 @@ app.post('/api/settings/products/import', async (req, res) => {
   }
 });
 
+function estraiImmagineFornitore(p, existingImg = '') {
+  let img = '';
+  // Selezioniamo in base alla priorità: p.image -> p.product_image -> p.immagine (senza usare product_link)
+  if (p.image !== undefined && p.image !== null && String(p.image).trim() !== '' && String(p.image).trim() !== 'undefined' && String(p.image).trim() !== 'null') {
+    img = String(p.image).trim();
+  } else if (p.product_image !== undefined && p.product_image !== null && String(p.product_image).trim() !== '' && String(p.product_image).trim() !== 'undefined' && String(p.product_image).trim() !== 'null') {
+    img = String(p.product_image).trim();
+  } else if (p.immagine !== undefined && p.immagine !== null && String(p.immagine).trim() !== '' && String(p.immagine).trim() !== 'undefined' && String(p.immagine).trim() !== 'null') {
+    if (Array.isArray(p.immagine)) {
+      img = p.immagine.length > 0 ? String(p.immagine[0]).trim() : '';
+    } else {
+      img = String(p.immagine).trim();
+    }
+  }
+
+  // Protezione contro sovrascrittura di immagine vuota se esiste già una valida nel DB/locale
+  if ((!img || img === '') && existingImg) {
+    return existingImg;
+  }
+  return img;
+}
+
+function normalizzaStringaMatching(str) {
+  if (!str) return "";
+  return String(str)
+    .toLowerCase()
+    .replace(/\s+/g, ' ') // sostituisce spazi multipli con uno singolo
+    .trim();
+}
+
 // POST /api/settings/products/import_batch - Batch import or update products con validazione
 app.post('/api/settings/products/import_batch', async (req, res) => {
   try {
@@ -4345,25 +4414,11 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
           }
 
           const pTarget = p.target || 'Adulto';
-          let pImgUrl = '';
-          if (Array.isArray(p.immagine)) {
-            pImgUrl = p.immagine.length > 0 ? String(p.immagine[0]) : '';
-          } else if (p.immagine !== undefined && p.immagine !== null) {
-            pImgUrl = String(p.immagine);
-          } else if (p.image !== undefined && p.image !== null) {
-            pImgUrl = String(p.image);
-          }
+          let pImgUrl = estraiImmagineFornitore(p);
           pImgUrl = pImgUrl.split('#')[0].trim().toLowerCase();
 
           const existingIdx = pImgUrl ? localProds.findIndex(item => {
-            let itemImg = '';
-            if (Array.isArray(item.immagine)) {
-              itemImg = item.immagine.length > 0 ? String(item.immagine[0]) : '';
-            } else if (item.immagine !== undefined && item.immagine !== null) {
-              itemImg = String(item.immagine);
-            } else if (item.image !== undefined && item.image !== null) {
-              itemImg = String(item.image);
-            }
+            let itemImg = estraiImmagineFornitore(item);
             return itemImg.split('#')[0].trim().toLowerCase() === pImgUrl;
           }) : -1;
 
@@ -4391,7 +4446,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
               versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
               prezzo: parseFloat(p.prezzo) || 23.99,
               prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
-              immagine: p.immagine || ''
+              immagine: estraiImmagineFornitore(p)
             };
 
             const nextLegacyId =
@@ -4438,25 +4493,11 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
       }
 
       const pTarget = p.target || 'Adulto';
-      let pImgUrl = '';
-      if (Array.isArray(p.immagine)) {
-        pImgUrl = p.immagine.length > 0 ? String(p.immagine[0]) : '';
-      } else if (p.immagine !== undefined && p.immagine !== null) {
-        pImgUrl = String(p.immagine);
-      } else if (p.image !== undefined && p.image !== null) {
-        pImgUrl = String(p.image);
-      }
+      let pImgUrl = estraiImmagineFornitore(p);
       pImgUrl = pImgUrl.split('#')[0].trim().toLowerCase();
 
       const existing = pImgUrl ? dbProducts.find(item => {
-        let itemImg = '';
-        if (Array.isArray(item.immagine)) {
-          itemImg = item.immagine.length > 0 ? String(item.immagine[0]) : '';
-        } else if (item.immagine !== undefined && item.immagine !== null) {
-          itemImg = String(item.immagine);
-        } else if (item.image !== undefined && item.image !== null) {
-          itemImg = String(item.image);
-        }
+        let itemImg = estraiImmagineFornitore(item);
         return itemImg.split('#')[0].trim().toLowerCase() === pImgUrl;
       }) : null;
 
@@ -4481,7 +4522,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
           versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
           prezzo: parseFloat(p.prezzo) || 23.99,
           prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
-          immagine: p.immagine || ''
+          immagine: estraiImmagineFornitore(p)
         };
 
         const nextLegacyId = dbProducts.length > countImportati ? Math.max(...dbProducts.map(item => parseInt(item.legacy_id || 0))) + 1 + countImportati : 1 + countImportati;
@@ -8983,18 +9024,13 @@ async function getTornei() {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data)) {
-        // Fondi con i dati locali per preservare eventuali record non ancora sincronizzati
-        const merged = [...data];
-        localList.forEach(localItem => {
-          if (!merged.some(m => String(m.id) === String(localItem.id))) {
-            merged.push(localItem);
-          }
-        });
-        saveLocalTornei(merged);
-        return merged;
+        // Se la query ha successo, restituiamo ESCLUSIVAMENTE i dati di Supabase (anche se vuoto)
+        return data;
+      } else if (error) {
+        console.warn(`[TORNEI DEBUG] Errore query Supabase, fallback locale: ${error.message || error}`);
       }
     } catch (err) {
-      console.warn(`[TORNEI DEBUG] Supabase SELECT fallback to local: ${err.message}`);
+      console.warn(`[TORNEI DEBUG] Eccezione Supabase SELECT, fallback locale: ${err.message}`);
     }
   }
 
@@ -9278,17 +9314,13 @@ async function getAllTorneoSquadre() {
         .order('created_at', { ascending: true });
 
       if (!error && Array.isArray(data)) {
-        const merged = [...data];
-        localList.forEach(localItem => {
-          if (!merged.some(m => String(m.id) === String(localItem.id))) {
-            merged.push(localItem);
-          }
-        });
-        saveLocalTorneoSquadre(merged);
-        return merged;
+        // Se la query ha successo, restituiamo ESCLUSIVAMENTE le squadre di Supabase (anche se vuoto)
+        return data;
+      } else if (error) {
+        console.warn(`[TORNEO SQUADRE DEBUG] Errore query Supabase, fallback locale: ${error.message || error}`);
       }
     } catch (err) {
-      console.warn(`[TORNEO SQUADRE DEBUG] Supabase SELECT ALL fallback to local: ${err.message}`);
+      console.warn(`[TORNEO SQUADRE DEBUG] Eccezione Supabase SELECT ALL, fallback locale: ${err.message}`);
     }
   }
   return localList;
@@ -9665,7 +9697,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
       }
 
       if (matchedTeamName) {
-        // Risoluzione prodotto nel catalogo
+        // Risoluzione prodotto nel catalogo (CON MATCHING ROBUSTO E CASE-INSENSITIVE)
         let matchedProd = null;
         if (item.id && prodByIdMap.has(String(item.id).trim())) {
           matchedProd = prodByIdMap.get(String(item.id).trim());
@@ -9674,11 +9706,13 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
           matchedProd = prodByLegacyIdMap.get(String(item.legacy_id).trim());
         }
         if (!matchedProd && itemName) {
-          const cleanName = itemName.replace(/^\[?\d+x\s*\]?\s*/i, '').replace(/^\[|\]$/g, '').trim().toLowerCase();
-          matchedProd = prodByVersioneMap.get(cleanName);
+          const cleanNameNorm = normalizzaStringaMatching(itemName.replace(/^\[?\d+x\s*\]?\s*/i, '').replace(/^\[|\]$/g, ''));
+          matchedProd = prodByVersioneMap.get(cleanNameNorm);
           if (!matchedProd) {
             for (const [verKey, p] of prodByVersioneMap.entries()) {
-              if (verKey.includes(cleanName) || cleanName.includes(verKey)) {
+              const verKeyNorm = normalizzaStringaMatching(verKey);
+              const pSqNorm = normalizzaStringaMatching(p.squadra);
+              if (verKeyNorm === cleanNameNorm || pSqNorm === cleanNameNorm || verKeyNorm.includes(cleanNameNorm) || cleanNameNorm.includes(verKeyNorm)) {
                 matchedProd = p;
                 break;
               }
@@ -9693,7 +9727,18 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
         let taglia = String(item.taglia || 'M').replace(/^1x\s*\[|\]$/g, '').replace(/^\[|\]$/g, '').replace(/^Taglia\s*/i, '').trim();
         if (!taglia || taglia === '-') taglia = 'M';
 
-        let rawImgUrl = (matchedProd && matchedProd.immagine) ? matchedProd.immagine : (item.imgUrl || item.immagine || order.foto || '');
+        // PRIORITÀ ASSOLUTA IMMAGINE: snapshot storico > database corrente > fallback ordine
+        let rawImgUrl = "";
+        if (item.imgUrl && typeof item.imgUrl === 'string' && item.imgUrl.trim() !== "" && item.imgUrl.trim() !== "undefined") {
+          rawImgUrl = item.imgUrl;
+        } else if (item.immagine && typeof item.immagine === 'string' && item.immagine.trim() !== "" && item.immagine.trim() !== "undefined") {
+          rawImgUrl = item.immagine;
+        } else if (matchedProd && matchedProd.immagine && typeof matchedProd.immagine === 'string' && matchedProd.immagine.trim() !== "" && matchedProd.immagine.trim() !== "undefined") {
+          rawImgUrl = matchedProd.immagine;
+        } else if (order.foto && typeof order.foto === 'string' && order.foto.trim() !== "" && order.foto.trim() !== "undefined") {
+          rawImgUrl = order.foto;
+        }
+
         if (typeof rawImgUrl === 'string') {
           rawImgUrl = rawImgUrl.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
         }
@@ -9757,8 +9802,9 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
   });
   const imageCache = new Map();
   const urlList = Array.from(uniqueUrls);
-  for (let i = 0; i < urlList.length; i += 10) {
-    const chunk = urlList.slice(i, i + 10);
+  const concurrencyLimit = 5;
+  for (let i = 0; i < urlList.length; i += concurrencyLimit) {
+    const chunk = urlList.slice(i, i + concurrencyLimit);
     await Promise.all(chunk.map(async (u) => {
       const buf = await downloadImageAsBuffer(u);
       if (buf) imageCache.set(u, buf);
@@ -9777,7 +9823,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
 
   worksheet.columns = [
     { header: '', key: 'squadra', width: 24 },
-    { header: '', key: 'immagine', width: 14 },
+    { header: '', key: 'immagine', width: 16 },
     { header: '', key: 'nomeCompletino', width: 34 },
     { header: '', key: 'categoria', width: 18 },
     { header: '', key: 'taglia', width: 12 },
@@ -9841,7 +9887,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
     for (let i = 0; i < finalItems.length; i++) {
       const it = finalItems[i];
       const row = worksheet.getRow(currentRowNum);
-      row.height = 42;
+      row.height = 88;
 
       const isEven = i % 2 === 0;
       const bgArgb = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
@@ -9852,7 +9898,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
       cell1.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
       cell1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-      // Col 2: IMMAGINE
+      // Col 2: IMMAGINE (104x104px)
       const cell2 = row.getCell(2);
       cell2.alignment = { vertical: 'middle', horizontal: 'center' };
       cell2.value = "";
@@ -9863,10 +9909,11 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
           const ext = detectImageFormat(buf);
           if (ext) {
             try {
-              const imgId = workbook.addImage({ buffer: buf, extension: ext });
+              const excelExt = ext === 'webp' ? 'png' : ext;
+              const imgId = workbook.addImage({ buffer: buf, extension: excelExt });
               worksheet.addImage(imgId, {
                 tl: { col: 1.1, row: currentRowNum - 1 + 0.05 },
-                ext: { width: 42, height: 42 },
+                ext: { width: 104, height: 104 },
                 editAs: 'oneCell'
               });
             } catch (imgErr) {
