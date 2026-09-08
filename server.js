@@ -97,6 +97,27 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 app.use(express.json({ limit: '20mb' }));
 
 // CORS middleware to support iframe preview, admin panel, and cross-origin tools
+const ADMIN_EMAILS = ["sergiottocatania@gmail.com"];
+
+async function adminAuthMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ success: false, error: 'Unauthorized: No token provided' });
+  const token = authHeader.split(' ')[1];
+  
+  const client = getSupabaseAdminClient();
+  if (!client) return res.status(500).json({ success: false, error: 'Auth service unavailable' });
+
+  const { data: { user }, error } = await client.auth.getUser(token);
+  if (error || !user) return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token' });
+  
+  if (!ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+      return res.status(403).json({ success: false, error: 'Forbidden: Admin access required' });
+  }
+  
+  req.user = user;
+  next();
+}
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -172,10 +193,10 @@ function traduciTestoProdotto(text) {
   // Lista ordinata per specificità decrescente
   const regole = [
     // Frasi composte e versioni
-    [/\bPlayer Version\b/gi, "Versione Player"],
-    [/\bPlayer Edition\b/gi, "Versione Player"],
-    [/\bFans? Version\b/gi, "Versione Fan"],
-    [/\bFans? Edition\b/gi, "Versione Fan"],
+    [/\bPlayer Version\b/gi, "Player"],
+    [/\bPlayer Edition\b/gi, "Player"],
+    [/\bFans? Version\b/gi, "Fan"],
+    [/\bFans? Edition\b/gi, "Fan"],
     [/\bTraining Kit\b/gi, "Kit Allenamento"],
     [/\bTraining Tracksuit\b/gi, "Tuta Allenamento"],
     [/\bTraining Suit\b/gi, "Tuta Allenamento"],
@@ -268,9 +289,9 @@ function traduciTestoProdotto(text) {
     [/\bSocks\b/gi, "Calzettoni"],
     [/\bSleeveless\b/gi, "Smanicato"],
     [/\bVest\b/gi, "Smanicato"],
-    [/\bRetro\b/gi, "Retrò"],
-    [/\bVintage\b/gi, "Retrò"],
-    [/\bClassic\b/gi, "Retrò"],
+    [/\bRetro\b/gi, "Retro"],
+    [/\bVintage\b/gi, "Retro"],
+    [/\bClassic\b/gi, "Retro"],
     [/\bWomen's\b/gi, "Donna"],
     [/\bWomen\b/gi, "Donna"]
   ];
@@ -302,13 +323,61 @@ function traduciTestoProdotto(text) {
   return tradotto;
 }
 
+function normalizzaSpaziEFormato(str) {
+  if (!str) return '';
+  return str.toString()
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function normalizzaSeason(season) {
+  if (!season) return '';
+  let cleaned = normalizzaSpaziEFormato(season);
+  cleaned = cleaned.replace(/\s*\/\s*/g, '/');
+  return cleaned;
+}
+
+function trovaValoreCanonicoGenerico(nuovoValore, listaEsistente) {
+  const normNuovo = normalizzaSpaziEFormato(nuovoValore).toLowerCase();
+  for (const esis of listaEsistente) {
+    if (esis && normalizzaSpaziEFormato(esis).toLowerCase() === normNuovo) {
+      return esis;
+    }
+  }
+  return normalizzaSpaziEFormato(nuovoValore);
+}
+
 function normalizzaCategoria(categoria, customSettings = null) {
   if (!categoria) return 'Kit';
-  const rawStr = categoria.toString().trim();
-  const lower = rawStr.toLowerCase();
+  const cleaned = normalizzaSpaziEFormato(categoria);
+  const lower = cleaned.toLowerCase();
   
-  if (lower === '__coupon__' || rawStr === '__coupon__' || lower.startsWith('__')) {
+  if (lower === '__coupon__' || cleaned === '__coupon__' || lower.startsWith('__')) {
     return '__coupon__';
+  }
+
+  const CANONICAL_CATEGORIES = {
+    "kit": "Kit",
+    "player": "Player",
+    "versione player": "Player",
+    "fan": "Fan",
+    "versione fan": "Fan",
+    "retro": "Retro",
+    "retrò": "Retro",
+    "kit allenamento": "Kit Allenamento",
+    "tuta": "Tuta",
+    "polo": "Polo",
+    "smanicato": "Smanicato",
+    "smanicati": "Smanicato",
+    "maniche lunghe": "Maniche Lunghe",
+    "manica lunga": "Maniche Lunghe",
+    "kit bambino": "Kit Bambino",
+    "bambino": "Kit Bambino",
+    "portiere": "Portiere"
+  };
+
+  if (CANONICAL_CATEGORIES[lower]) {
+    return CANONICAL_CATEGORIES[lower];
   }
 
   const s = customSettings || getSettings();
@@ -344,8 +413,14 @@ function normalizzaCategoria(categoria, customSettings = null) {
       return matchPartial.nome;
     }
   }
+
+  // Se non corrisponde a nulla ma corrisponde a un'altra categoria esistente (case-insensitive)
+  if (s && Array.isArray(s.categorie)) {
+    const fallbackMatch = s.categorie.find(c => (c.nome || '').toString().trim().toLowerCase() === lower);
+    if (fallbackMatch) return fallbackMatch.nome;
+  }
   
-  return rawStr || 'Kit';
+  return cleaned || 'Kit';
 }
 
 async function ottieniListeValidazione(supabase) {
@@ -649,29 +724,29 @@ function formattaNomenclaturaVersione(squadra, categoria, versione, stagione) {
   
   if (cat === 'Fan') {
     if (versioneLower.includes('casa') || versioneLower.includes('home')) {
-      return `Versione Fan Casa ${squadra}`;
+      return `Fan Casa ${squadra}`;
     } else if (versioneLower.includes('fuori casa') || versioneLower.includes('away') || versioneLower.includes('esterno')) {
-      return `Versione Fan Fuori Casa ${squadra}`;
+      return `Fan Fuori Casa ${squadra}`;
     } else if (versioneLower.includes('terza') || versioneLower.includes('third')) {
-      return `Versione Fan Terza Maglia ${squadra}`;
+      return `Fan Terza Maglia ${squadra}`;
     } else if (versioneLower.includes('quarta') || versioneLower.includes('fourth')) {
-      return `Versione Fan Quarta Maglia ${squadra}`;
+      return `Fan Quarta Maglia ${squadra}`;
     } else {
-      return `Versione Fan Casa ${squadra}`;
+      return `Fan Casa ${squadra}`;
     }
   }
   
   if (cat === 'Player') {
     if (versioneLower.includes('casa') || versioneLower.includes('home')) {
-      return `Versione Player Casa ${squadra}`;
+      return `Player Casa ${squadra}`;
     } else if (versioneLower.includes('fuori casa') || versioneLower.includes('away') || versioneLower.includes('esterno')) {
-      return `Versione Player Fuori Casa ${squadra}`;
+      return `Player Fuori Casa ${squadra}`;
     } else if (versioneLower.includes('terza') || versioneLower.includes('third')) {
-      return `Versione Player Terza Maglia ${squadra}`;
+      return `Player Terza Maglia ${squadra}`;
     } else if (versioneLower.includes('quarta') || versioneLower.includes('fourth')) {
-      return `Versione Player Quarta Maglia ${squadra}`;
+      return `Player Quarta Maglia ${squadra}`;
     } else {
-      return `Versione Player Casa ${squadra}`;
+      return `Player Casa ${squadra}`;
     }
   }
   
@@ -733,10 +808,10 @@ function generaDefaultProdottiSquadra(nomeSquadra) {
   return [
     { squadra: nomeSquadra, categoria: "Kit", versione: `Kit Casa ${nomeSquadra}`, stagione: "25/26", prezzo: 34.99, immagine: imgCasa },
     { squadra: nomeSquadra, categoria: "Kit", versione: `Kit Fuori Casa ${nomeSquadra}`, stagione: "26/27", prezzo: 34.99, immagine: imgAway },
-    { squadra: nomeSquadra, categoria: "Fan", versione: `Versione Fan Casa ${nomeSquadra}`, stagione: "25/26", prezzo: 23.99, immagine: imgCasa },
-    { squadra: nomeSquadra, categoria: "Fan", versione: `Versione Fan Fuori Casa ${nomeSquadra}`, stagione: "26/27", prezzo: 23.99, immagine: imgAway },
-    { squadra: nomeSquadra, categoria: "Player", versione: `Versione Player Casa ${nomeSquadra}`, stagione: "25/26", prezzo: 39.99, immagine: imgCasa },
-    { squadra: nomeSquadra, categoria: "Player", versione: `Versione Player Fuori Casa ${nomeSquadra}`, stagione: "26/27", prezzo: 39.99, immagine: imgAway },
+    { squadra: nomeSquadra, categoria: "Fan", versione: `Fan Casa ${nomeSquadra}`, stagione: "25/26", prezzo: 23.99, immagine: imgCasa },
+    { squadra: nomeSquadra, categoria: "Fan", versione: `Fan Fuori Casa ${nomeSquadra}`, stagione: "26/27", prezzo: 23.99, immagine: imgAway },
+    { squadra: nomeSquadra, categoria: "Player", versione: `Player Casa ${nomeSquadra}`, stagione: "25/26", prezzo: 39.99, immagine: imgCasa },
+    { squadra: nomeSquadra, categoria: "Player", versione: `Player Fuori Casa ${nomeSquadra}`, stagione: "26/27", prezzo: 39.99, immagine: imgAway },
     { squadra: nomeSquadra, categoria: "Retro", versione: `Maglia Retro ${nomeSquadra} 1998`, stagione: "25/26", prezzo: 29.99, immagine: imgCasa },
     { squadra: nomeSquadra, categoria: "Retro", versione: `Maglia Retro ${nomeSquadra} Classica`, stagione: "26/27", prezzo: 29.99, immagine: imgAway },
     { squadra: nomeSquadra, categoria: "Kit", versione: `Kit Bambino Casa ${nomeSquadra}`, stagione: "25/26", prezzo: 19.99, immagine: imgCasa, target: "Bambino" },
@@ -2213,11 +2288,14 @@ function getSupabaseAdminClient() {
 }
 
 // ==========================================
-// IN-MEMORY CACHE PER /api/products (Fase 25)
+// IN-MEMORY CACHE PER /api/products & /api/teams (Fase 25)
 // ==========================================
 const PRODUCTS_CACHE_TTL_MS = 5 * 60 * 1000; // TTL: 5 minuti (300.000 ms)
 let productsCacheData = null;       // Oggetto { responseJson, timestamp }
 let productsFetchPromise = null;    // Promise attiva per dedup richieste contemporanee
+
+const TEAM_COUNTS_CACHE_TTL_MS = 5 * 60 * 1000;
+let teamProductCountsCache = null;   // Oggetto { counts, totalClub, timestamp }
 
 function invalidateProductsCache() {
   if (productsCacheData) {
@@ -2225,6 +2303,7 @@ function invalidateProductsCache() {
   }
   productsCacheData = null;
   productsFetchPromise = null;
+  teamProductCountsCache = null;
 }
 
 // ==========================================
@@ -2794,7 +2873,7 @@ const DEFAULT_SETTINGS = {
     "Kit Allenamento": 25.99,
     "Tuta": 44.99,
     "Polo": 26.99,
-    "Smanicati": 26.99,
+    "Smanicato": 26.99,
     "Maniche Lunghe": 25.99,
     "Kit Bambino": 19.99
   },
@@ -2813,8 +2892,8 @@ const DEFAULT_SETTINGS = {
     "Tuta_Bambino": 40.00,
     "Polo_Adulto": 26.99,
     "Polo_Bambino": 21.99,
-    "Smanicati_Adulto": 26.99,
-    "Smanicati_Bambino": 21.99,
+    "Smanicato_Adulto": 26.99,
+    "Smanicato_Bambino": 21.99,
     "Maniche Lunghe_Adulto": 25.99,
     "Maniche Lunghe_Bambino": 21.99,
     "Kit Bambino_Adulto": 19.99,
@@ -2875,7 +2954,7 @@ const DEFAULT_SETTINGS = {
     { id: 'cat_allenamento', nome: 'Kit Allenamento', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 5, stato: 'attivo' },
     { id: 'cat_tuta', nome: 'Tuta', prezzo_adulto: 44.99, prezzo_bambino: 40.00, ordine: 6, stato: 'attivo' },
     { id: 'cat_polo', nome: 'Polo', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 7, stato: 'attivo' },
-    { id: 'cat_smanicati', nome: 'Smanicati', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
+    { id: 'cat_smanicati', nome: 'Smanicato', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
     { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
     { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' },
     { id: 'cat_portiere', nome: 'Portiere', ordine: 11, stato: 'attivo' }
@@ -2889,7 +2968,7 @@ const DEFAULT_SETTINGS = {
     { id: 'fil_allenamento', nome: 'Kit Allenamento', ordine: 6, stato: 'attivo' },
     { id: 'fil_tuta', nome: 'Tuta', ordine: 7, stato: 'attivo' },
     { id: 'fil_polo', nome: 'Polo', ordine: 8, stato: 'attivo' },
-    { id: 'fil_smanicati', nome: 'Smanicati', ordine: 9, stato: 'attivo' },
+    { id: 'fil_smanicati', nome: 'Smanicato', ordine: 9, stato: 'attivo' },
     { id: 'fil_maniche_lunghe', nome: 'Maniche Lunghe', ordine: 10, stato: 'attivo' },
     { id: 'fil_bambino', nome: 'Kit Bambino', ordine: 11, stato: 'attivo' },
     { id: 'fil_portiere', nome: 'Portiere', ordine: 12, stato: 'attivo' }
@@ -4437,12 +4516,14 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
             // Duplicato segnalato: NON viene aggiornato e NON viene modificato il prodotto esistente
             countDuplicati++;
           } else {
+            const finalCat = normalizzaCategoria(p.categoria || 'Kit');
+            const finalStagione = normalizzaSeason(p.stagione || '2024/2025');
             const payload = {
               squadra: (squadraNorm || 'Sconosciuta').trim(),
-              categoria: p.categoria || 'Kit',
-              filtro_catalogo: (p.categoria === 'Portiere' || p.filtro_catalogo === 'Portiere') ? 'Portiere' : (p.filtro_catalogo || ''),
+              categoria: finalCat,
+              filtro_catalogo: (finalCat === 'Portiere' || p.filtro_catalogo === 'Portiere') ? 'Portiere' : (p.filtro_catalogo || ''),
               target: pTarget,
-              stagione: p.stagione || '2024/2025',
+              stagione: finalStagione,
               versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
               prezzo: parseFloat(p.prezzo) || 23.99,
               prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
@@ -4513,12 +4594,14 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
         // Duplicato segnalato: NON viene aggiornato e NON viene modificato il prodotto esistente
         countDuplicati++;
       } else {
+        const finalCat = normalizzaCategoria(p.categoria || 'Kit');
+        const finalStagione = normalizzaSeason(p.stagione || '2024/2025');
         const payload = {
           squadra: (squadraNorm || 'Sconosciuta').trim(),
-          categoria: p.categoria || 'Kit',
-          filtro_catalogo: (p.categoria === 'Portiere' || p.filtro_catalogo === 'Portiere') ? 'Portiere' : (p.filtro_catalogo || ''),
+          categoria: finalCat,
+          filtro_catalogo: (finalCat === 'Portiere' || p.filtro_catalogo === 'Portiere') ? 'Portiere' : (p.filtro_catalogo || ''),
           target: pTarget,
-          stagione: p.stagione || '2024/2025',
+          stagione: finalStagione,
           versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
           prezzo: parseFloat(p.prezzo) || 23.99,
           prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
@@ -4727,6 +4810,17 @@ app.post('/api/products', async (req, res) => {
       throw new Error("Supabase client is not configured.");
     }
 
+    // 1. Normalizzazioni e canonizzazioni per garantire l'assenza di duplicati
+    const { data: dbTeams } = await supabase.from('teams').select('name');
+    const existingTeamNames = dbTeams ? dbTeams.map(t => t.name) : [];
+    const normalizedSquadra = trovaValoreCanonicoGenerico(squadra, existingTeamNames);
+
+    const { data: dbProds } = await supabase.from('products').select('stagione');
+    const existingSeasons = dbProds ? [...new Set(dbProds.map(p => p.stagione).filter(Boolean))] : [];
+    const normalizedStagione = trovaValoreCanonicoGenerico(normalizzaSeason(stagione), existingSeasons);
+
+    const normalizedCategoria = normalizzaCategoria(categoria);
+
     // Recupera l'ultimo legacy_id incrementale ordinando per legacy_id decrescente con limite 1
     const { data: maxProd, error: fetchError } = await supabase
       .from('products')
@@ -4738,16 +4832,16 @@ app.post('/api/products', async (req, res) => {
     const maxLegacyId = maxProd && maxProd.length > 0 ? Number(maxProd[0].legacy_id) || 0 : 0;
     const newLegacyId = maxLegacyId + 1;
     const finalImmagine = immagine || image_url || "";
-    const finalVersione = formattaNomenclaturaVersione(squadra, categoria, versione, stagione);
+    const finalVersione = formattaNomenclaturaVersione(normalizedSquadra, normalizedCategoria, versione, normalizedStagione);
 
     const payload = {
       legacy_id: newLegacyId,
-      squadra: traduciTestoProdotto(squadra),
-      categoria: normalizzaCategoria(categoria),
-      filtro_catalogo: (normalizzaCategoria(categoria) === 'Portiere') ? 'Portiere' : undefined,
+      squadra: traduciTestoProdotto(normalizedSquadra),
+      categoria: normalizedCategoria,
+      filtro_catalogo: (normalizedCategoria === 'Portiere') ? 'Portiere' : undefined,
       target: target || "Adulto",
       versione: traduciTestoProdotto(finalVersione),
-      stagione,
+      stagione: normalizedStagione,
       prezzo: Number(prezzo) || 23.99,
       prezzo_fornitore: prezzo_fornitore !== undefined && prezzo_fornitore !== null && prezzo_fornitore !== '' ? Number(prezzo_fornitore) : null,
       immagine: finalImmagine
@@ -4785,19 +4879,33 @@ app.put('/api/products/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: "Prodotto non trovato su Supabase: " + fetchError.message });
     }
 
+    // 1. Normalizzazioni e canonizzazioni per garantire l'assenza di duplicati
+    let normalizedSquadra = original.squadra;
+    if (squadra !== undefined) {
+      const { data: dbTeams } = await supabase.from('teams').select('name');
+      const existingTeamNames = dbTeams ? dbTeams.map(t => t.name) : [];
+      normalizedSquadra = trovaValoreCanonicoGenerico(squadra, existingTeamNames);
+    }
+
+    let normalizedStagione = original.stagione;
+    if (stagione !== undefined) {
+      const { data: dbProds } = await supabase.from('products').select('stagione');
+      const existingSeasons = dbProds ? [...new Set(dbProds.map(p => p.stagione).filter(Boolean))] : [];
+      normalizedStagione = trovaValoreCanonicoGenerico(normalizzaSeason(stagione), existingSeasons);
+    }
+
+    const normalizedCategoria = categoria !== undefined ? normalizzaCategoria(categoria) : original.categoria;
+
     const finalImmagine = immagine !== undefined ? immagine : (image_url !== undefined ? image_url : undefined);
-    const finalSquadra = squadra !== undefined ? squadra : original.squadra;
-    const finalCategoria = categoria !== undefined ? categoria : original.categoria;
     const finalTarget = target !== undefined ? target : original.target;
-    const finalStagione = stagione !== undefined ? stagione : original.stagione;
-    const finalVersione = versione !== undefined ? formattaNomenclaturaVersione(finalSquadra, finalCategoria, versione, finalStagione) : original.versione;
+    const finalVersione = versione !== undefined ? formattaNomenclaturaVersione(normalizedSquadra, normalizedCategoria, versione, normalizedStagione) : original.versione;
 
     const payload = {
-      squadra: traduciTestoProdotto(finalSquadra),
-      categoria: normalizzaCategoria(finalCategoria),
+      squadra: traduciTestoProdotto(normalizedSquadra),
+      categoria: normalizedCategoria,
       target: finalTarget || "Adulto",
       versione: traduciTestoProdotto(finalVersione),
-      stagione: finalStagione,
+      stagione: normalizedStagione,
       prezzo: prezzo !== undefined ? Number(prezzo) : original.prezzo,
       immagine: finalImmagine !== undefined ? finalImmagine : original.immagine,
       prezzo_fornitore: prezzo_fornitore !== undefined ? (prezzo_fornitore !== null && prezzo_fornitore !== '' ? Number(prezzo_fornitore) : null) : original.prezzo_fornitore
@@ -7353,8 +7461,11 @@ const DEFAULT_TEAMS = [
   { name: "Inter Miami", categoria: "Club", sezione: "USA MLS" },
   { name: "LA Galaxy", categoria: "Club", sezione: "USA MLS" },
   // Club - Saudi League
-  { name: "Al-Nassr", categoria: "Club", sezione: "Saudi League" },
-  { name: "Al-Hilal", categoria: "Club", sezione: "Saudi League" },
+  { name: "Al Nassr", categoria: "Club", sezione: "Saudi League" },
+  { name: "Al Hilal", categoria: "Club", sezione: "Saudi League" },
+  { name: "Al Ittihad", categoria: "Club", sezione: "Saudi League" },
+  { name: "Al Ahli Saudi", categoria: "Club", sezione: "Saudi League" },
+  { name: "Al Ettifaq", categoria: "Club", sezione: "Saudi League" },
   // Club - Altri Club
   { name: "Benfica", categoria: "Club", sezione: "Altri Club" },
   { name: "Boca Juniors", categoria: "Club", sezione: "Altri Club" },
@@ -7423,7 +7534,88 @@ function saveLocalTeams(teams) {
   }
 }
 
-// GET /api/teams - Ottieni tutte le squadre (Club, Nazionali, NBA, ecc.)
+function normalizzaNomeSquadraServer(str) {
+  if (!str) return '';
+  return str.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\.\-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function getTeamProductCountsServer(supabase) {
+  const now = Date.now();
+  if (teamProductCountsCache && (now - teamProductCountsCache.timestamp < TEAM_COUNTS_CACHE_TTL_MS)) {
+    return teamProductCountsCache;
+  }
+
+  let products = [];
+  // 1. Se abbiamo la cache completa dei prodotti già in RAM, usiamo quella istantaneamente
+  if (productsCacheData && productsCacheData.responseJson && Array.isArray(productsCacheData.responseJson.products)) {
+    products = productsCacheData.responseJson.products;
+  } else if (supabase) {
+    // 2. Altrimenti recuperiamo da Supabase solo le colonne essenziali leggere (squadra, categoria) a blocchi
+    try {
+      let allRaw = [];
+      let rangeStart = 0;
+      const chunkSize = 1000;
+      let hasMore = true;
+      while (hasMore) {
+        const rangeEnd = rangeStart + chunkSize - 1;
+        const { data: chunk, error } = await supabase
+          .from("products")
+          .select("squadra, categoria")
+          .range(rangeStart, rangeEnd);
+        if (error) throw error;
+        if (chunk && chunk.length > 0) {
+          allRaw = allRaw.concat(chunk);
+          if (chunk.length < chunkSize) hasMore = false;
+          else rangeStart += chunkSize;
+        } else {
+          hasMore = false;
+        }
+      }
+      products = allRaw;
+    } catch (e) {
+      console.warn("⚠️ Fallita query leggera conteggi prodotti Supabase, uso fallback:", e.message);
+      if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+        try {
+          products = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        } catch (ign) {}
+      }
+    }
+  } else if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+    try {
+      products = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+    } catch (ign) {}
+  }
+
+  const counts = {};
+  let totalClub = 0;
+  let totalNazionali = 0;
+  products.forEach(p => {
+    if (p.squadra) {
+      let sq = p.squadra.trim();
+      if (sq.toUpperCase() === 'PSG') sq = 'Paris Saint-Germain';
+      if (sq === 'Al-Nassr' || sq.toLowerCase() === 'al-nassr') sq = 'Al Nassr';
+      if (sq === 'Al-Hilal' || sq.toLowerCase() === 'al-hilal') sq = 'Al Hilal';
+      const key = normalizzaNomeSquadraServer(sq);
+      counts[key] = (counts[key] || 0) + 1;
+
+      const cat = (p.categoria || '').toLowerCase();
+      if (cat === 'nazionale' || cat === 'nazionali' || cat === 'mondiali') {
+        totalNazionali++;
+      } else if (!cat.includes('accessori')) {
+        totalClub++;
+      }
+    }
+  });
+
+  teamProductCountsCache = { counts, totalClub, totalNazionali, timestamp: now };
+  return teamProductCountsCache;
+}
+
+// GET /api/teams - Ottieni tutte le squadre (Club, Nazionali, NBA, ecc.) con conteggio prodotti O(1)
 app.get('/api/teams', async (req, res) => {
   try {
     const supabase = getSupabaseClient();
@@ -7455,7 +7647,49 @@ app.get('/api/teams', async (req, res) => {
         teams = freshData;
       }
     }
-    return res.json({ success: true, teams });
+    // Unifica PSG -> Paris Saint-Germain ed esclude record duplicati legacy
+    teams = teams.filter(t => {
+      const n = (t.name || '').trim();
+      return n.toUpperCase() !== 'PSG' && n !== 'Al-Nassr' && n !== 'Al-Hilal';
+    });
+
+    // Recupera conteggi preaggregati leggeri dal server
+    let totalClubProducts = 0;
+    let totalNazionaliProducts = 0;
+    let productCounts = {};
+    try {
+      const countRes = await getTeamProductCountsServer(supabase);
+      if (countRes) {
+        productCounts = countRes.counts || {};
+      }
+    } catch (countErr) {
+      console.warn("⚠️ Errore calcolo conteggio prodotti team:", countErr.message);
+    }
+
+    // Arricchisce ogni team con product_count e has_products in O(1) e calcola i totali
+    teams = teams.map(t => {
+      const norm = normalizzaNomeSquadraServer(t.name);
+      const count = (typeof productCounts[norm] === 'number') ? productCounts[norm] : 0;
+      const cat = (t.categoria || 'Club').trim();
+      if (cat.toLowerCase() === 'nazionali') {
+        totalNazionaliProducts += count;
+      } else if (cat.toLowerCase() === 'club') {
+        totalClubProducts += count;
+      }
+      return {
+        ...t,
+        product_count: count,
+        has_products: count > 0
+      };
+    });
+
+    return res.json({
+      success: true,
+      teams,
+      total_club_products: totalClubProducts,
+      total_nazionali_products: totalNazionaliProducts,
+      product_counts: productCounts
+    });
   } catch (err) {
     console.error("⚠️ Errore GET /api/teams:", err.message);
     return res.status(500).json({ success: false, error: err.message, teams: [] });
@@ -7475,21 +7709,40 @@ app.post('/api/teams', async (req, res) => {
       throw new Error("Supabase non è configurato.");
     }
 
+    const nameNorm = normalizzaSpaziEFormato(name);
+    const sezioneNorm = normalizzaSpaziEFormato(sezione);
+    const categoriaNorm = normalizzaSpaziEFormato(categoria);
+
+    // 1. Controllo duplicati case-insensitive su tutte le squadre esistenti
+    const { data: allTeams, error: fetchError } = await supabase.from('teams').select('*');
+    if (fetchError) {
+      throw fetchError;
+    }
+
+    const giaPresente = allTeams.some(t => normalizzaSpaziEFormato(t.name).toLowerCase() === nameNorm.toLowerCase());
+    if (giaPresente) {
+      return res.status(400).json({ success: false, error: `La squadra "${nameNorm}" esiste già (anche se registrata con diversa capitalizzazione o spazi).` });
+    }
+
+    // 2. Canonizza anche la Sezione (Lega) se esiste già una versione simile
+    const existingLeagues = [...new Set(allTeams.map(t => t.sezione).filter(Boolean))];
+    const finalSezione = trovaValoreCanonicoGenerico(sezioneNorm, existingLeagues);
+
     const { data, error } = await supabase
       .from('teams')
-      .insert({ name, categoria, sezione })
+      .insert({ name: nameNorm, categoria: categoriaNorm, sezione: finalSezione })
       .select();
 
     if (error) {
       if (error.code === '23505') {
-        return res.status(400).json({ success: false, error: `La squadra "${name}" esiste già.` });
+        return res.status(400).json({ success: false, error: `La squadra "${nameNorm}" esiste già.` });
       }
       console.error("⚠️ Errore inserimento Supabase:", error.message);
       throw error;
     }
 
     const createdTeam = data ? data[0] : null;
-    return res.json({ success: true, team: createdTeam || { name, categoria, sezione } });
+    return res.json({ success: true, team: createdTeam || { name: nameNorm, categoria: categoriaNorm, sezione: finalSezione } });
   } catch (err) {
     console.error("⚠️ Errore POST /api/teams:", err.message);
     return res.status(500).json({ success: false, error: err.message });
@@ -9014,7 +9267,7 @@ function saveLocalTornei(torneiList) {
 
 async function getTornei() {
   const localList = getLocalTornei();
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   if (supabase) {
     try {
       console.log(`[TORNEI DEBUG] Operazione: SELECT FROM public.tornei`);
@@ -9024,6 +9277,7 @@ async function getTornei() {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data)) {
+        console.log(`[TORNEI DEBUG] Supabase SELECT completata, trovati ${data.length} tornei`);
         // Se la query ha successo, restituiamo ESCLUSIVAMENTE i dati di Supabase (anche se vuoto)
         return data;
       } else if (error) {
@@ -9038,7 +9292,7 @@ async function getTornei() {
 }
 
 async function saveTorneo(torneoData) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   let savedRecord = null;
 
   const payload = {
@@ -9071,10 +9325,13 @@ async function saveTorneo(torneoData) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error(`[TORNEI ERROR] Supabase UPDATE fallito: ${error.message}`);
+          throw new Error(`Errore aggiornamento Supabase: ${error.message}`);
+        }
+        if (data) {
           savedRecord = data;
-        } else {
-          console.warn(`[TORNEI DEBUG] Supabase UPDATE fallito (${error ? error.message : 'no data'}), uso fallback locale`);
+          console.log(`[TORNEI DEBUG] Supabase UPDATE riuscito con ID: ${data.id}`);
         }
       } else {
         console.log(`[TORNEI DEBUG] CREATE nuovo torneo: ${payload.nome}`);
@@ -9086,14 +9343,18 @@ async function saveTorneo(torneoData) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error(`[TORNEI ERROR] Supabase INSERT fallito: ${error.message}`);
+          throw new Error(`Errore inserimento Supabase: ${error.message}`);
+        }
+        if (data) {
           savedRecord = data;
-        } else {
-          console.warn(`[TORNEI DEBUG] Supabase INSERT fallito (${error ? error.message : 'no data'}), uso fallback locale`);
+          console.log(`[TORNEI DEBUG] Supabase INSERT riuscito con ID: ${data.id}`);
         }
       }
     } catch (sbErr) {
-      console.warn(`[TORNEI DEBUG] Eccezione Supabase: ${sbErr.message}, uso fallback locale`);
+      console.error(`[TORNEI ERROR] Eccezione Supabase saveTorneo: ${sbErr.message}`);
+      throw sbErr;
     }
   }
 
@@ -9132,7 +9393,7 @@ async function saveTorneo(torneoData) {
 }
 
 async function toggleTorneo(id) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   let updatedRecord = null;
 
   if (supabase) {
@@ -9143,7 +9404,11 @@ async function toggleTorneo(id) {
         .eq('id', id)
         .single();
 
-      if (!getErr && curr) {
+      if (getErr) {
+        throw new Error(`Errore recupero torneo: ${getErr.message}`);
+      }
+
+      if (curr) {
         const newStatus = !curr.is_active;
         const { data, error } = await supabase
           .from('tornei')
@@ -9152,12 +9417,16 @@ async function toggleTorneo(id) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          throw new Error(`Errore modifica stato torneo: ${error.message}`);
+        }
+        if (data) {
           updatedRecord = data;
         }
       }
     } catch (err) {
-      console.warn(`[TORNEI DEBUG] Supabase toggle fallback: ${err.message}`);
+      console.error(`[TORNEI ERROR] Supabase toggle: ${err.message}`);
+      throw err;
     }
   }
 
@@ -9180,16 +9449,27 @@ async function toggleTorneo(id) {
 }
 
 async function deleteTorneo(id) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   if (supabase) {
     try {
       console.log(`[TORNEI DEBUG] DELETE torneo ID: ${id}`);
+      // Elimina prima eventuali squadre figlie per evitare violazioni FK
       await supabase
+        .from('torneo_squadre')
+        .delete()
+        .eq('torneo_id', id);
+
+      const { error } = await supabase
         .from('tornei')
         .delete()
         .eq('id', id);
+
+      if (error) {
+        throw new Error(`Errore eliminazione Supabase: ${error.message}`);
+      }
     } catch (err) {
-      console.warn(`[TORNEI DEBUG] Supabase DELETE exception: ${err.message}`);
+      console.error(`[TORNEI ERROR] Supabase DELETE exception: ${err.message}`);
+      throw err;
     }
   }
 
@@ -9305,7 +9585,7 @@ function saveLocalTorneoSquadre(squadreList) {
 
 async function getAllTorneoSquadre() {
   const localList = getLocalTorneoSquadre();
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -9411,7 +9691,7 @@ async function saveTorneoSquadra(torneoId, squadraData) {
   };
 
   const isUpdate = Boolean(id);
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   let savedRecord = null;
 
   if (supabase) {
@@ -9425,10 +9705,12 @@ async function saveTorneoSquadra(torneoId, squadraData) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error(`[TORNEO SQUADRA ERROR] Supabase UPDATE fallito: ${error.message}`);
+          throw new Error(`Errore aggiornamento squadra: ${error.message}`);
+        }
+        if (data) {
           savedRecord = data;
-        } else {
-          console.warn(`[TORNEO SQUADRA DEBUG] Supabase UPDATE fallito (${error ? error.message : 'no data'}), uso fallback locale`);
         }
       } else {
         console.log(`[TORNEO SQUADRA DEBUG] CREATE nuova squadra: ${nomeNormalized} (${codiceNormalized})`);
@@ -9440,14 +9722,17 @@ async function saveTorneoSquadra(torneoId, squadraData) {
           .select('*')
           .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error(`[TORNEO SQUADRA ERROR] Supabase INSERT fallito: ${error.message}`);
+          throw new Error(`Errore inserimento squadra: ${error.message}`);
+        }
+        if (data) {
           savedRecord = data;
-        } else {
-          console.warn(`[TORNEO SQUADRA DEBUG] Supabase INSERT fallito (${error ? error.message : 'no data'}), uso fallback locale`);
         }
       }
     } catch (sbErr) {
-      console.warn(`[TORNEO SQUADRA DEBUG] Eccezione Supabase: ${sbErr.message}, uso fallback locale`);
+      console.error(`[TORNEO SQUADRA ERROR] Eccezione Supabase: ${sbErr.message}`);
+      throw sbErr;
     }
   }
 
@@ -9494,7 +9779,7 @@ async function deleteTorneoSquadra(torneoId, squadraId) {
   }
 
   // 2. Controllo ordini associati per non lasciare ordini orfani
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   if (supabase) {
     try {
       const { data: ords } = await supabase
@@ -9517,12 +9802,17 @@ async function deleteTorneoSquadra(torneoId, squadraId) {
   if (supabase) {
     try {
       console.log(`[TORNEO SQUADRA DEBUG] DELETE squadra ID: ${squadraId}`);
-      await supabase
+      const { error } = await supabase
         .from('torneo_squadre')
         .delete()
         .eq('id', squadraId);
+
+      if (error) {
+        throw new Error(`Errore eliminazione squadra: ${error.message}`);
+      }
     } catch (err) {
-      console.warn(`[TORNEO SQUADRA DEBUG] Supabase DELETE exception: ${err.message}`);
+      console.error(`[TORNEO SQUADRA ERROR] Supabase DELETE exception: ${err.message}`);
+      throw err;
     }
   }
 
@@ -13708,13 +13998,14 @@ app.get('/api/admin/registered-accounts', async (req, res) => {
 
     const { data: profilesData, error: profErr } = await supabase
       .from('profiles')
-      .select('id, email, nome, cognome, telefono, updated_at');
+      .select('id, email, nome, cognome, telefono, updated_at')
+      .order('nome', { ascending: true });
 
     if (profErr) {
       console.error("⚠️ Errore query Supabase profiles in /api/admin/registered-accounts:", profErr.message);
       return res.status(500).json({
         success: false,
-        error: `Impossibile recuperare gli account registrati da Supabase: ${profErr.message}`
+        error: `Impossibile recuperare gli account registrati da Supabase profiles: ${profErr.message}`
       });
     }
 
@@ -13723,11 +14014,11 @@ app.get('/api/admin/registered-accounts', async (req, res) => {
     }
 
     const accountsList = profilesData.map(p => {
-      const pNome = p.nome || '';
-      const pCognome = p.cognome || '';
-      const pEmail = p.email || '';
-      const pTel = p.telefono || '';
-      const pFullName = (pNome || pCognome) ? `${pNome} ${pCognome}`.trim() : pEmail;
+      const pNome = (p.nome || '').trim();
+      const pCognome = (p.cognome || '').trim();
+      const pEmail = (p.email || '').trim().toLowerCase();
+      const pTel = (p.telefono || '').trim();
+      const pFullName = (pNome || pCognome) ? `${pNome} ${pCognome}`.trim() : (pEmail || 'Cliente Registrato');
 
       return {
         id: String(p.id),
@@ -13740,6 +14031,7 @@ app.get('/api/admin/registered-accounts', async (req, res) => {
       };
     });
 
+    console.log(`👤 [API registered-accounts] Recuperati con successo ${accountsList.length} account registrati da Supabase profiles.`);
     return res.json({ success: true, accounts: accountsList });
   } catch (err) {
     console.error("⚠️ Errore in /api/admin/registered-accounts:", err.message);
@@ -13771,7 +14063,7 @@ app.post('/api/admin/orders/assign-account', async (req, res) => {
       console.warn("⚠️ Errore aggiornamento orders_local.json user_id:", e.message);
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
     if (supabase) {
       // 2. Aggiorna la tabella 'orders' in Supabase
       try {
@@ -13802,8 +14094,7 @@ app.post('/api/admin/orders/assign-account', async (req, res) => {
           let totalVal = targetOrd.totale ? parseFloat(String(targetOrd.totale).replace('€', '').replace(/\s+/g, '').replace(',', '.')) || 0 : 0;
           let payStat = (targetOrd.payment_status === 'Pagato' || targetOrd.payment_status === 'paid') ? 'paid' : 'pending';
 
-          const nodeCrypto = require('crypto');
-          const newCustOrdId = nodeCrypto.randomUUID();
+          const newCustOrdId = crypto.randomUUID();
           const newCustOrd = {
             id: newCustOrdId,
             user_id: targetUserId,
@@ -14920,16 +15211,33 @@ app.post('/api/chat/send-message', async (req, res) => {
 });
 
 // 3. POST /api/chat/mark-read - Marks admin messages as read for customer
-app.post('/api/chat/mark-read', async (req, res) => {
+app.post('/api/admin/chat/mark-read', adminAuthMiddleware, async (req, res) => {
   try {
-    const { conversation_id, sender } = req.body;
-    if (!conversation_id || !sender) {
-      return res.status(400).json({ success: false, error: "conversation_id o sender mancante." });
+    const { conversation_id } = req.body;
+    if (!conversation_id) {
+      return res.status(400).json({ success: false, error: "conversation_id mancante." });
     }
-    await dbMarkMessagesAsRead(conversation_id, sender);
+    const supabase = getSupabaseClient();
+    const validConvId = stringToUuid(conversation_id);
+    
+    if (supabase) {
+      await supabase
+        .from('chat_conversations')
+        .update({ admin_last_read_at: new Date().toISOString() })
+        .eq('id', validConvId);
+    }
+    
+    // Update local storage fallback
+    const local = getLocalChat();
+    const conv = local.conversations.find(c => c.id === validConvId || c.id === conversation_id);
+    if (conv) {
+      conv.admin_last_read_at = new Date().toISOString();
+      saveLocalChat(local);
+    }
+    
     return res.json({ success: true });
   } catch (err) {
-    console.error("⚠️ Errore POST /api/chat/mark-read:", err.message);
+    console.error("⚠️ Errore POST /api/admin/chat/mark-read:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -14940,7 +15248,15 @@ app.get('/api/admin/chats', async (req, res) => {
     const conversations = await dbGetAllConversations();
     const allMergedOrders = await getDbOrdersMerged();
 
-    const enrichedConversations = await Promise.all(conversations.map(async (conv) => {
+    const filteredConversations = [];
+    for (const conv of conversations) {
+      const msgs = await dbGetMessages(conv.id);
+      if (msgs && msgs.length > 0) {
+        filteredConversations.push(conv);
+      }
+    }
+
+    const enrichedConversations = await Promise.all(filteredConversations.map(async (conv) => {
       // Trova ordini associati a questo utente per user_id o email
       const convEmail = conv.email ? String(conv.email).toLowerCase().trim() : '';
       const userOrders = allMergedOrders.filter(o => {
@@ -14965,7 +15281,9 @@ app.get('/api/admin/chats', async (req, res) => {
 
       // Recupera messaggi per vedere se ci sono messaggi non letti
       const msgs = await dbGetMessages(conv.id);
-      const unreadCount = msgs.filter(m => m.sender === 'client' && !m.is_read).length;
+      // Conteggio messaggi del cliente inviati DOPO l'ultima lettura admin
+      const adminLastRead = conv.admin_last_read_at ? new Date(conv.admin_last_read_at) : new Date(0);
+      const unreadCount = msgs.filter(m => m.sender === 'client' && new Date(m.created_at) > adminLastRead).length;
 
       return {
         ...conv,
@@ -14978,7 +15296,8 @@ app.get('/api/admin/chats', async (req, res) => {
           status: lastOrder.status || lastOrder.shipping_status || 'In attesa'
         } : null,
         lottoId,
-        unreadCount
+        unreadCount,
+        admin_last_read_at: conv.admin_last_read_at
       };
     }));
 
@@ -15567,7 +15886,7 @@ app.get('/api/catalog/no-filter-audit', async (req, res) => {
       if (cat === "kit allenamento" || full.includes("allenamento") || full.includes("training")) return "Kit Allenamento";
       if (cat === "tuta" || full.includes("tuta") || full.includes("tracksuit") || full.includes("jackets sets")) return "Tuta";
       if (cat === "maniche lunghe" || full.includes("maniche lunghe") || full.includes("manica lunga") || full.includes("long sleeve")) return "Maniche Lunghe";
-      if (cat === "smanicato" || cat === "smanicati" || full.includes("smanicato") || full.includes("smanicati") || full.includes("vest")) return "Smanicati";
+      if (cat === "smanicato" || cat === "smanicati" || full.includes("smanicato") || full.includes("smanicati") || full.includes("vest")) return "Smanicato";
       if (cat === "polo" || full.includes("polo")) return "Polo";
       if (cat === "kit" || cat === "kit bambino" || full.includes("kit") || target === "bambino") return "Kit";
 
@@ -15646,12 +15965,32 @@ app.all('/api/*', (req, res) => {
 });
 
 // Rotte esplicite per il Pannello Admin Accessori e Admin Principale
-app.get(['/admin/accessori', '/admin/accessori/*'], (req, res) => {
+app.get(['/admin/accessori', '/admin/accessori/*'], adminAuthMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
 });
 
-app.get(['/admin', '/admin/*'], (req, res) => {
+app.get(['/admin', '/admin/*'], adminAuthMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'index.html'));
+});
+
+// Protezione per tutte le API Admin
+app.use('/api/admin/*', adminAuthMiddleware);
+app.use('/api/settings', (req, res, next) => {
+  if (req.method === 'POST') return adminAuthMiddleware(req, res, next);
+  next();
+});
+app.use('/api/catalog/*', adminAuthMiddleware);
+app.use('/api/coupons/*', adminAuthMiddleware);
+app.use('/api/profit-splits/*', adminAuthMiddleware);
+app.use('/api/reclassification/*', adminAuthMiddleware);
+// Protezione parziale per endpoint misti (solo per metodi di modifica)
+app.use('/api/products', (req, res, next) => {
+  if (['POST', 'PUT', 'DELETE'].includes(req.method)) return adminAuthMiddleware(req, res, next);
+  next();
+});
+app.use('/api/teams', (req, res, next) => {
+  if (['POST', 'PUT', 'DELETE'].includes(req.method)) return adminAuthMiddleware(req, res, next);
+  next();
 });
 
 // Fallback all routes to index.html

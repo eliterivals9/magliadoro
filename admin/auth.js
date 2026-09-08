@@ -134,11 +134,14 @@ async function checkAuth() {
             return session.user;
         }
         
+        document.body.style.display = 'block';
         return session.user;
     } catch (err) {
         console.error("Errore di verifica autenticazione:", err);
         if (!isLoginPage) {
             window.location.replace('/admin-login');
+        } else {
+            document.body.style.display = 'block';
         }
         return null;
     }

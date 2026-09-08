@@ -137,8 +137,8 @@
       "prezzo_bambino": 21.99
     },
     {
-      "id": "cat_smanicati",
-      "nome": "Smanicati",
+      "id": "cat_smanicato",
+      "nome": "Smanicato",
       "stato": "attivo",
       "ordine": 8,
       "prezzo_adulto": 26.99,
@@ -260,27 +260,10 @@
         "Kit Allenamento",
         "Tuta",
         "Polo",
-        "Smanicati",
+        "Smanicato",
         "Maniche Lunghe",
         "Kit Bambino",
         "Portiere"
-      ]
-    },
-    {
-      "id": "fil_1788554198610",
-      "nome": "KIt",
-      "stato": "attivo",
-      "ordine": 2,
-      "categorieTarget": [
-        {
-          "target": [
-            "Adulto"
-          ],
-          "categoria": "Kit"
-        }
-      ],
-      "categorie_associate": [
-        "Kit"
       ]
     },
     {
@@ -348,73 +331,22 @@
       ]
     },
     {
-      "id": "fil_1788554303416",
-      "nome": "Retrò",
-      "stato": "attivo",
-      "ordine": 8,
-      "categorieTarget": [
-        {
-          "target": [
-            "Adulto"
-          ],
-          "categoria": "Retro"
-        }
-      ],
-      "categorie_associate": [
-        "Retro"
-      ]
-    },
-    {
-      "id": "fil_1788554320040",
-      "nome": "Versione Fan",
-      "stato": "attivo",
-      "ordine": 9,
-      "categorieTarget": [
-        {
-          "target": [
-            "Adulto"
-          ],
-          "categoria": "Fan"
-        }
-      ],
-      "categorie_associate": [
-        "Fan"
-      ]
-    },
-    {
-      "id": "fil_1788554327256",
-      "nome": "Versione Player",
-      "stato": "attivo",
-      "ordine": 10,
-      "categorieTarget": [
-        {
-          "target": [
-            "Adulto"
-          ],
-          "categoria": "Player"
-        }
-      ],
-      "categorie_associate": [
-        "Player"
-      ]
-    },
-    {
       "id": "fil_1788554340634",
       "nome": "Polo",
       "stato": "attivo",
-      "ordine": 11
+      "ordine": 8
     },
     {
       "id": "fil_1788554345240",
       "nome": "Antivento",
       "stato": "attivo",
-      "ordine": 12
+      "ordine": 9
     },
     {
       "id": "fil_1788554365362",
       "nome": "Tutto bambino",
       "stato": "attivo",
-      "ordine": 13,
+      "ordine": 10,
       "categorieTarget": [
         {
           "target": [
@@ -462,7 +394,7 @@
           "target": [
             "Bambino"
           ],
-          "categoria": "Smanicati"
+          "categoria": "Smanicato"
         },
         {
           "target": [
@@ -491,7 +423,7 @@
         "Kit Allenamento",
         "Tuta",
         "Polo",
-        "Smanicati",
+        "Smanicato",
         "Maniche Lunghe",
         "Kit Bambino",
         "Portiere"

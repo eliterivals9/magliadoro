@@ -1,281 +1,2144 @@
 [
   {
-    "torneo_id": "ea378156-a006-4af9-91a7-409fa275617e",
-    "nome_squadra": "FC SERGIO",
-    "codice_univoco": "ETNA123",
-    "codice_alias": [
-      "ETNAGOLD-SERGIO"
-    ],
-    "quantita_assegnata": 15,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Versione Player",
-      "Fan"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-04T15:20:00.000Z",
-    "created_at": "2026-09-02T13:04:37.719Z",
-    "id": "ea8f88c6-3d5c-49ee-8434-f9f79ff64ebd"
+    "id": 1,
+    "name": "Manchester United",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.614482+00:00"
   },
   {
-    "torneo_id": "ea378156-a006-4af9-91a7-409fa275617e",
-    "nome_squadra": "FC Big",
-    "codice_univoco": "ETNA456",
-    "codice_alias": [
-      "ETNAGOLD-BIG"
-    ],
-    "quantita_assegnata": 120,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Versione Player",
-      "Fan"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-04T15:20:00.000Z",
-    "created_at": "2026-09-02T13:05:02.519Z",
-    "id": "3fbc5038-6e0f-4b0a-b402-bec5df9e130d"
+    "id": 2,
+    "name": "Manchester City",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.666338+00:00"
   },
   {
-    "torneo_id": "a4cd558c-3c9b-4953-9d01-e5709cf49ac2",
-    "nome_squadra": "FC Sergio Updated",
-    "codice_univoco": "CHAMP8030-SQ1",
-    "quantita_assegnata": 20,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:08:35.082Z",
-    "created_at": "2026-09-02T13:05:18.421Z",
-    "id": "83651177-c13a-4967-a929-c70d3d658142"
+    "id": 3,
+    "name": "Arsenal F.C.",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.71336+00:00"
   },
   {
-    "torneo_id": "a4cd558c-3c9b-4953-9d01-e5709cf49ac2",
-    "nome_squadra": "Fc palmitas",
-    "codice_univoco": "CHAMPION-FCPALMITAS",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:08:00.432Z",
-    "created_at": "2026-09-02T13:08:00.433Z",
-    "id": "1a79b85f-2071-407d-a853-8f32d3cf24b7"
+    "id": 4,
+    "name": "Liverpool F.C.",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.7571+00:00"
   },
   {
-    "torneo_id": "91f0cc2e-94af-4ddc-92de-b06b8bb401fd",
-    "nome_squadra": "FC SERGIO FASE4",
-    "codice_univoco": "FCSERGIO4",
-    "quantita_assegnata": 15,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:29:15.255Z",
-    "created_at": "2026-09-02T13:29:15.255Z",
-    "id": "f5988772-4466-4998-86c5-91ef5e914b51"
+    "id": 5,
+    "name": "Chelsea F.C.",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.795487+00:00"
   },
   {
-    "torneo_id": "91f0cc2e-94af-4ddc-92de-b06b8bb401fd",
-    "nome_squadra": "TEAM NO NOME",
-    "codice_univoco": "NONOME4",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": false,
-      "permetti_numero": true,
-      "permetti_patch": true
-    },
-    "categorie_autorizzate": [],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:29:15.396Z",
-    "created_at": "2026-09-02T13:29:15.396Z",
-    "id": "158b2ec7-fe46-4c90-a1a8-20395cc4310e"
+    "id": 6,
+    "name": "Tottenham Hotspur",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.837274+00:00"
   },
   {
-    "torneo_id": "262e6114-36c7-46ac-af4b-09805fd44c26",
-    "nome_squadra": "TEAM NO NUMERO",
-    "codice_univoco": "NONUM4",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": false,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T14:18:49.882Z",
-    "created_at": "2026-09-02T13:29:31.940Z",
-    "id": "4f9b29a7-c3df-44ab-9571-1ff6aa67d4c0"
+    "id": 7,
+    "name": "Aston Villa",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.873865+00:00"
   },
   {
-    "torneo_id": "ae16d7cb-5159-49e2-8d08-8b2ee67e7663",
-    "nome_squadra": "Virtus Catania",
-    "codice_univoco": "ETNA-TEAM-8449",
-    "quantita_assegnata": 15,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Calcio",
-      "Serie A"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:46:52.081Z",
-    "created_at": "2026-09-02T13:46:52.081Z",
-    "id": "82ce5972-82f1-4f2f-9e39-d4787d639377"
+    "id": 8,
+    "name": "Newcastle United",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T14:02:17.922415+00:00"
   },
   {
-    "torneo_id": "4ae7d4f6-06bb-47cb-8c38-729b0f68a37e",
-    "nome_squadra": "Aquile Nere",
-    "codice_univoco": "CAMPIONI-TEAM-7569",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Calcio"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:48:02.467Z",
-    "created_at": "2026-09-02T13:48:02.467Z",
-    "id": "33f8a69a-3e74-4b36-b967-e1daa9d73b0c"
+    "id": 9,
+    "name": "Juventus",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.187193+00:00"
   },
   {
-    "torneo_id": "d050d66a-b185-4001-af58-67950e4cab8e",
-    "nome_squadra": "Aquile Nere",
-    "codice_univoco": "CAMPIONI-TEAM-1152",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Calcio"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T13:49:36.700Z",
-    "created_at": "2026-09-02T13:49:36.700Z",
-    "id": "ad2ea79e-4473-441a-a8e4-50727cbcc5b8"
+    "id": 11,
+    "name": "AC Milan",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.344881+00:00"
   },
   {
-    "torneo_id": "a9b37727-5262-4ce6-98b3-b44e9434136c",
-    "nome_squadra": "FC Test Fase 9",
-    "codice_univoco": "FASE9-TEAM-58452",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Versione Player",
-      "Fan"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T21:04:55.092Z",
-    "created_at": "2026-09-02T21:04:55.092Z",
-    "id": "feee0862-7ae6-4c0a-8cf0-55bcda4004e6"
+    "id": 12,
+    "name": "AS Roma",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.388094+00:00"
   },
   {
-    "torneo_id": "a9b37727-5262-4ce6-98b3-b44e9434136c",
-    "nome_squadra": "FC Test Squadra 2",
-    "codice_univoco": "FASE9-TEAM2-71075",
-    "quantita_assegnata": 5,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Versione Player",
-      "Fan"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T21:05:04.888Z",
-    "created_at": "2026-09-02T21:05:04.888Z",
-    "id": "f26c9fc1-ed26-49de-ab95-c41048ed1c3e"
+    "id": 13,
+    "name": "SS Lazio",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.465068+00:00"
   },
   {
-    "torneo_id": "11b1d557-a5f8-46a9-aac7-a43b7213d46c",
-    "nome_squadra": "FC Test Fase 9",
-    "codice_univoco": "FASE9-TEAM-96870",
-    "quantita_assegnata": 10,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Versione Player",
-      "Fan"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T21:05:30.332Z",
-    "created_at": "2026-09-02T21:05:30.332Z",
-    "id": "48f14d1f-3bfc-4a92-9ac7-f18612f584ef"
+    "id": 14,
+    "name": "SSC Napoli",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.503819+00:00"
   },
   {
-    "torneo_id": "11b1d557-a5f8-46a9-aac7-a43b7213d46c",
-    "nome_squadra": "FC Test Squadra 2",
-    "codice_univoco": "FASE9-TEAM2-53668",
-    "quantita_assegnata": 5,
-    "configurazione_personalizzazione": {
-      "permetti_nome": true,
-      "permetti_numero": true,
-      "permetti_patch": false
-    },
-    "categorie_autorizzate": [
-      "Kit",
-      "Versione Player",
-      "Fan"
-    ],
-    "prodotti_autorizzati": [],
-    "note": null,
-    "updated_at": "2026-09-02T21:05:42.881Z",
-    "created_at": "2026-09-02T21:05:42.881Z",
-    "id": "f43b8b4b-6e4f-484c-a248-b59bd0bf215e"
+    "id": 15,
+    "name": "Fiorentina",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.54157+00:00"
+  },
+  {
+    "id": 16,
+    "name": "Atalanta",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.582178+00:00"
+  },
+  {
+    "id": 17,
+    "name": "Bologna",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T14:02:18.621177+00:00"
+  },
+  {
+    "id": 18,
+    "name": "Real Madrid",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T14:02:18.660127+00:00"
+  },
+  {
+    "id": 19,
+    "name": "Barcellona",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T14:02:18.702349+00:00"
+  },
+  {
+    "id": 20,
+    "name": "Atletico Madrid",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T14:02:18.740296+00:00"
+  },
+  {
+    "id": 21,
+    "name": "Girona F.C.",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T14:02:18.77663+00:00"
+  },
+  {
+    "id": 22,
+    "name": "Siviglia",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T14:02:18.817822+00:00"
+  },
+  {
+    "id": 23,
+    "name": "Real Sociedad",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T14:02:18.855016+00:00"
+  },
+  {
+    "id": 24,
+    "name": "Bayern Monaco",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T14:02:18.895436+00:00"
+  },
+  {
+    "id": 25,
+    "name": "Borussia Dortmund",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T14:02:18.934123+00:00"
+  },
+  {
+    "id": 26,
+    "name": "Bayer Leverkusen",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T14:02:18.981383+00:00"
+  },
+  {
+    "id": 27,
+    "name": "Lipsia",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T14:02:19.030456+00:00"
+  },
+  {
+    "id": 29,
+    "name": "Eintracht Francoforte",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T14:02:19.123503+00:00"
+  },
+  {
+    "id": 30,
+    "name": "Paris Saint-Germain",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T14:02:19.162026+00:00"
+  },
+  {
+    "id": 31,
+    "name": "Olympique Marsiglia",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T14:02:19.200416+00:00"
+  },
+  {
+    "id": 32,
+    "name": "AS Monaco",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T14:02:19.242809+00:00"
+  },
+  {
+    "id": 33,
+    "name": "Inter Miami",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T14:02:19.28618+00:00"
+  },
+  {
+    "id": 34,
+    "name": "LA Galaxy",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T14:02:19.324466+00:00"
+  },
+  {
+    "id": 37,
+    "name": "Benfica",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T14:02:19.44613+00:00"
+  },
+  {
+    "id": 38,
+    "name": "Boca Juniors",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T14:02:19.483814+00:00"
+  },
+  {
+    "id": 39,
+    "name": "Ajax",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T14:02:19.519382+00:00"
+  },
+  {
+    "id": 40,
+    "name": "Italia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.558584+00:00"
+  },
+  {
+    "id": 41,
+    "name": "Francia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.595431+00:00"
+  },
+  {
+    "id": 42,
+    "name": "Germania",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.634605+00:00"
+  },
+  {
+    "id": 43,
+    "name": "Spagna",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.668996+00:00"
+  },
+  {
+    "id": 44,
+    "name": "Svizzera",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.709289+00:00"
+  },
+  {
+    "id": 45,
+    "name": "Austria",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.744012+00:00"
+  },
+  {
+    "id": 46,
+    "name": "Inghilterra",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.785702+00:00"
+  },
+  {
+    "id": 47,
+    "name": "Portogallo",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.825735+00:00"
+  },
+  {
+    "id": 48,
+    "name": "Olanda",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.869634+00:00"
+  },
+  {
+    "id": 49,
+    "name": "Croazia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T14:02:19.908937+00:00"
+  },
+  {
+    "id": 50,
+    "name": "Brasile",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T14:02:19.958749+00:00"
+  },
+  {
+    "id": 51,
+    "name": "Argentina",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T14:02:19.999147+00:00"
+  },
+  {
+    "id": 52,
+    "name": "Uruguay",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T14:02:20.067548+00:00"
+  },
+  {
+    "id": 53,
+    "name": "Colombia",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T14:02:20.108667+00:00"
+  },
+  {
+    "id": 54,
+    "name": "Stati Uniti",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T14:02:20.175807+00:00"
+  },
+  {
+    "id": 55,
+    "name": "Messico",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T14:02:20.215222+00:00"
+  },
+  {
+    "id": 56,
+    "name": "Giappone",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T14:02:20.255564+00:00"
+  },
+  {
+    "id": 57,
+    "name": "Corea del Sud",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T14:02:20.30307+00:00"
+  },
+  {
+    "id": 58,
+    "name": "Nuova Zelanda",
+    "categoria": "Nazionali",
+    "sezione": "Oceania",
+    "created_at": "2026-07-13T14:02:20.345086+00:00"
+  },
+  {
+    "id": 59,
+    "name": "Nigeria",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T14:02:20.382288+00:00"
+  },
+  {
+    "id": 60,
+    "name": "Marocco",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T14:02:20.424453+00:00"
+  },
+  {
+    "id": 61,
+    "name": "Senegal",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T14:02:20.466509+00:00"
+  },
+  {
+    "id": 62,
+    "name": "Boston Celtics",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference",
+    "created_at": "2026-07-13T14:02:20.509814+00:00"
+  },
+  {
+    "id": 63,
+    "name": "Milwaukee Bucks",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference",
+    "created_at": "2026-07-13T14:02:20.547301+00:00"
+  },
+  {
+    "id": 64,
+    "name": "Philadelphia 76ers",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference",
+    "created_at": "2026-07-13T14:02:20.589249+00:00"
+  },
+  {
+    "id": 65,
+    "name": "Miami Heat",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference",
+    "created_at": "2026-07-13T14:02:20.629614+00:00"
+  },
+  {
+    "id": 66,
+    "name": "New York Knicks",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference",
+    "created_at": "2026-07-13T14:02:20.6713+00:00"
+  },
+  {
+    "id": 67,
+    "name": "Cleveland Cavaliers",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference",
+    "created_at": "2026-07-13T14:02:20.708699+00:00"
+  },
+  {
+    "id": 68,
+    "name": "Los Angeles Lakers",
+    "categoria": "NBA",
+    "sezione": "Western Conference",
+    "created_at": "2026-07-13T14:02:20.749266+00:00"
+  },
+  {
+    "id": 69,
+    "name": "Golden State Warriors",
+    "categoria": "NBA",
+    "sezione": "Western Conference",
+    "created_at": "2026-07-13T14:02:20.784926+00:00"
+  },
+  {
+    "id": 70,
+    "name": "Phoenix Suns",
+    "categoria": "NBA",
+    "sezione": "Western Conference",
+    "created_at": "2026-07-13T14:02:20.822517+00:00"
+  },
+  {
+    "id": 71,
+    "name": "Denver Nuggets",
+    "categoria": "NBA",
+    "sezione": "Western Conference",
+    "created_at": "2026-07-13T14:02:20.859781+00:00"
+  },
+  {
+    "id": 72,
+    "name": "Dallas Mavericks",
+    "categoria": "NBA",
+    "sezione": "Western Conference",
+    "created_at": "2026-07-13T14:02:20.899338+00:00"
+  },
+  {
+    "id": 73,
+    "name": "Los Angeles Clippers",
+    "categoria": "NBA",
+    "sezione": "Western Conference",
+    "created_at": "2026-07-13T14:02:20.936875+00:00"
+  },
+  {
+    "id": 74,
+    "name": "AFC Bournemouth",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:43:52.99686+00:00"
+  },
+  {
+    "id": 75,
+    "name": "Brentford",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:43:56.321391+00:00"
+  },
+  {
+    "id": 77,
+    "name": "Coventry City",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:03.614019+00:00"
+  },
+  {
+    "id": 78,
+    "name": "Crystal Palace",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:06.229197+00:00"
+  },
+  {
+    "id": 79,
+    "name": "Everton",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:09.229019+00:00"
+  },
+  {
+    "id": 80,
+    "name": "Fulham",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:11.749745+00:00"
+  },
+  {
+    "id": 81,
+    "name": "Hull City",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:16.479156+00:00"
+  },
+  {
+    "id": 82,
+    "name": "Ipswich Town",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:19.658637+00:00"
+  },
+  {
+    "id": 83,
+    "name": "Leeds United",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:24.102586+00:00"
+  },
+  {
+    "id": 84,
+    "name": "Nottingham Forest",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:26.94657+00:00"
+  },
+  {
+    "id": 85,
+    "name": "Sunderland",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:44:30.04599+00:00"
+  },
+  {
+    "id": 86,
+    "name": "FC St. Pauli",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:47:02.602312+00:00"
+  },
+  {
+    "id": 87,
+    "name": "VfB Stuttgart",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:47:09.751392+00:00"
+  },
+  {
+    "id": 88,
+    "name": "Mainz 05",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:47:14.802122+00:00"
+  },
+  {
+    "id": 89,
+    "name": "Hamburger SV",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:47:19.271002+00:00"
+  },
+  {
+    "id": 90,
+    "name": "Union Berlino",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:47:23.861798+00:00"
+  },
+  {
+    "id": 91,
+    "name": "Borussia Mönchengladbach",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:47:48.471137+00:00"
+  },
+  {
+    "id": 95,
+    "name": "Schalke 04",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:48:11.384763+00:00"
+  },
+  {
+    "id": 97,
+    "name": "VfL Wolfsburg",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:48:23.810613+00:00"
+  },
+  {
+    "id": 98,
+    "name": "RB Leipzig",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-13T17:48:27.791762+00:00"
+  },
+  {
+    "id": 101,
+    "name": "Cagliari",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:48:59.522451+00:00"
+  },
+  {
+    "id": 102,
+    "name": "Como",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:49:06.437022+00:00"
+  },
+  {
+    "id": 103,
+    "name": "Cremonese",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:49:11.34858+00:00"
+  },
+  {
+    "id": 105,
+    "name": "Genoa",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:49:18.615951+00:00"
+  },
+  {
+    "id": 76,
+    "name": "Brighton",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-13T17:43:59.354865+00:00"
+  },
+  {
+    "id": 106,
+    "name": "Hellas Verona",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:49:25.168371+00:00"
+  },
+  {
+    "id": 109,
+    "name": "Lazio",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:49:38.814179+00:00"
+  },
+  {
+    "id": 110,
+    "name": "Lecce",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:49:43.098078+00:00"
+  },
+  {
+    "id": 112,
+    "name": "Parma",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:50:55.553647+00:00"
+  },
+  {
+    "id": 113,
+    "name": "Pisa",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:51:02.896503+00:00"
+  },
+  {
+    "id": 114,
+    "name": "Roma",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:51:07.316811+00:00"
+  },
+  {
+    "id": 115,
+    "name": "Sassuolo",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:51:10.79533+00:00"
+  },
+  {
+    "id": 116,
+    "name": "Torino",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:51:14.543775+00:00"
+  },
+  {
+    "id": 117,
+    "name": "Udinese",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T17:51:18.085282+00:00"
+  },
+  {
+    "id": 118,
+    "name": "Athletic Club",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:13.935274+00:00"
+  },
+  {
+    "id": 120,
+    "name": "Alavés",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:21.602154+00:00"
+  },
+  {
+    "id": 122,
+    "name": "Celta Vigo",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:30.787275+00:00"
+  },
+  {
+    "id": 123,
+    "name": "Deportivo La Coruña",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:35.332577+00:00"
+  },
+  {
+    "id": 124,
+    "name": "Elche",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:41.493429+00:00"
+  },
+  {
+    "id": 125,
+    "name": "Espanyol",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:45.580066+00:00"
+  },
+  {
+    "id": 126,
+    "name": "Getafe",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:49.964832+00:00"
+  },
+  {
+    "id": 127,
+    "name": "Levante",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:54.612932+00:00"
+  },
+  {
+    "id": 128,
+    "name": "Málaga",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T17:59:58.448155+00:00"
+  },
+  {
+    "id": 129,
+    "name": "Osasuna",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T18:00:01.990572+00:00"
+  },
+  {
+    "id": 130,
+    "name": "Racing Santander",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T18:00:05.574412+00:00"
+  },
+  {
+    "id": 131,
+    "name": "Rayo Vallecano",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T18:00:09.92886+00:00"
+  },
+  {
+    "id": 132,
+    "name": "Real Betis",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T18:00:13.724301+00:00"
+  },
+  {
+    "id": 136,
+    "name": "Valencia",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T18:00:29.445185+00:00"
+  },
+  {
+    "id": 137,
+    "name": "Villarreal",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-13T18:00:33.36712+00:00"
+  },
+  {
+    "id": 138,
+    "name": "Toulouse",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:02:54.101893+00:00"
+  },
+  {
+    "id": 139,
+    "name": "Stade Rennais",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:02:58.335909+00:00"
+  },
+  {
+    "id": 140,
+    "name": "FC Nantes",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:02.212847+00:00"
+  },
+  {
+    "id": 141,
+    "name": "OGC Nice",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:06.582539+00:00"
+  },
+  {
+    "id": 142,
+    "name": "Racing Club de Strasbourg",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:10.833087+00:00"
+  },
+  {
+    "id": 143,
+    "name": "Lens",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:16.096616+00:00"
+  },
+  {
+    "id": 144,
+    "name": "Olympique Lione (Lyon)",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:29.183399+00:00"
+  },
+  {
+    "id": 147,
+    "name": "Monaco",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:53.180069+00:00"
+  },
+  {
+    "id": 148,
+    "name": "Lille OSC",
+    "categoria": "Club",
+    "sezione": "Ligue 1",
+    "created_at": "2026-07-13T18:03:57.338488+00:00"
+  },
+  {
+    "id": 149,
+    "name": "Atlanta United",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:04:47.380866+00:00"
+  },
+  {
+    "id": 150,
+    "name": "Austin FC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:04:51.544954+00:00"
+  },
+  {
+    "id": 151,
+    "name": "Charlotte FC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:04:55.508693+00:00"
+  },
+  {
+    "id": 152,
+    "name": "Chicago Fire",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:04:58.93156+00:00"
+  },
+  {
+    "id": 153,
+    "name": "FC Cincinnati",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:04.194639+00:00"
+  },
+  {
+    "id": 154,
+    "name": "Colorado Rapids",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:08.065737+00:00"
+  },
+  {
+    "id": 155,
+    "name": "Columbus Crew",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:11.630007+00:00"
+  },
+  {
+    "id": 156,
+    "name": "D.C. United",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:18.164289+00:00"
+  },
+  {
+    "id": 157,
+    "name": "FC Dallas",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:22.279823+00:00"
+  },
+  {
+    "id": 158,
+    "name": "Houston Dynamo",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:25.86025+00:00"
+  },
+  {
+    "id": 161,
+    "name": "Los Angeles FC (LAFC)",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:37.758908+00:00"
+  },
+  {
+    "id": 162,
+    "name": "Minnesota United",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:41.691048+00:00"
+  },
+  {
+    "id": 163,
+    "name": "CF Montréal",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:45.247669+00:00"
+  },
+  {
+    "id": 164,
+    "name": "Nashville SC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:49.839782+00:00"
+  },
+  {
+    "id": 165,
+    "name": "New England Revolution",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:54.854541+00:00"
+  },
+  {
+    "id": 166,
+    "name": "New York City FC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:05:58.715098+00:00"
+  },
+  {
+    "id": 167,
+    "name": "New York Red Bulls",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:02.498916+00:00"
+  },
+  {
+    "id": 168,
+    "name": "Orlando City",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:06.111109+00:00"
+  },
+  {
+    "id": 169,
+    "name": "Philadelphia Union",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:09.585537+00:00"
+  },
+  {
+    "id": 170,
+    "name": "Portland Timbers",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:13.504419+00:00"
+  },
+  {
+    "id": 171,
+    "name": "Real Salt Lake",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:16.883668+00:00"
+  },
+  {
+    "id": 172,
+    "name": "San Diego FC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:20.284783+00:00"
+  },
+  {
+    "id": 173,
+    "name": "San Jose Earthquakes",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:23.4501+00:00"
+  },
+  {
+    "id": 174,
+    "name": "Seattle Sounders",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:27.558658+00:00"
+  },
+  {
+    "id": 175,
+    "name": "Sporting Kansas City",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:31.834814+00:00"
+  },
+  {
+    "id": 176,
+    "name": "St. Louis City SC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:35.892876+00:00"
+  },
+  {
+    "id": 177,
+    "name": "Toronto FC",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:40.385617+00:00"
+  },
+  {
+    "id": 178,
+    "name": "Vancouver Whitecaps",
+    "categoria": "Club",
+    "sezione": "USA MLS",
+    "created_at": "2026-07-13T18:06:52.294294+00:00"
+  },
+  {
+    "id": 179,
+    "name": "Jeddah United",
+    "categoria": "Club",
+    "sezione": "Saudi League",
+    "created_at": "2026-07-13T18:07:35.912833+00:00"
+  },
+  {
+    "id": 180,
+    "name": "Al Ahli Saudi",
+    "categoria": "Club",
+    "sezione": "Saudi League",
+    "created_at": "2026-07-13T18:07:40.3112+00:00"
+  },
+  {
+    "id": 181,
+    "name": "Al Ittihad",
+    "categoria": "Club",
+    "sezione": "Saudi League",
+    "created_at": "2026-07-13T18:07:45.446985+00:00"
+  },
+  {
+    "id": 182,
+    "name": "Al Hilal",
+    "categoria": "Club",
+    "sezione": "Saudi League",
+    "created_at": "2026-07-13T18:07:49.576763+00:00"
+  },
+  {
+    "id": 183,
+    "name": "Al Nassr",
+    "categoria": "Club",
+    "sezione": "Saudi League",
+    "created_at": "2026-07-13T18:07:53.367292+00:00"
+  },
+  {
+    "id": 184,
+    "name": "Club León",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:08:59.729487+00:00"
+  },
+  {
+    "id": 186,
+    "name": "C.F. Monterrey",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:25:49.364224+00:00"
+  },
+  {
+    "id": 187,
+    "name": "Atlas de Guadalajara",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:25:53.553005+00:00"
+  },
+  {
+    "id": 188,
+    "name": "Chapecoense",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:25:57.70255+00:00"
+  },
+  {
+    "id": 189,
+    "name": "Club de Cuervos",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:01.553061+00:00"
+  },
+  {
+    "id": 190,
+    "name": "Chivas de Guadalajara",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:05.445155+00:00"
+  },
+  {
+    "id": 191,
+    "name": "Club América",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:09.729602+00:00"
+  },
+  {
+    "id": 192,
+    "name": "Club Tijuana",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:13.611189+00:00"
+  },
+  {
+    "id": 193,
+    "name": "CF Pachuca",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:17.859935+00:00"
+  },
+  {
+    "id": 194,
+    "name": "Cruz Azul",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:21.740977+00:00"
+  },
+  {
+    "id": 195,
+    "name": "Deportivo Toluca",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:25.714805+00:00"
+  },
+  {
+    "id": 196,
+    "name": "Monarcas Morelia",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:30.821413+00:00"
+  },
+  {
+    "id": 197,
+    "name": "Monterrey",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:35.018999+00:00"
+  },
+  {
+    "id": 198,
+    "name": "Necaxa",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:38.455498+00:00"
+  },
+  {
+    "id": 199,
+    "name": "Juárez",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:42.873459+00:00"
+  },
+  {
+    "id": 200,
+    "name": "Santos Laguna",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:47.201686+00:00"
+  },
+  {
+    "id": 201,
+    "name": "Club Puebla",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:51.108378+00:00"
+  },
+  {
+    "id": 202,
+    "name": "Tigres UANL",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:26:55.102418+00:00"
+  },
+  {
+    "id": 203,
+    "name": "Querétaro",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:27:00.308439+00:00"
+  },
+  {
+    "id": 204,
+    "name": "Pumas de la UNAM",
+    "categoria": "Club",
+    "sezione": "Liga Mx",
+    "created_at": "2026-07-13T18:27:03.537631+00:00"
+  },
+  {
+    "id": 205,
+    "name": "Paysandu",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:32:59.369982+00:00"
+  },
+  {
+    "id": 206,
+    "name": "Vitória",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:04.647106+00:00"
+  },
+  {
+    "id": 207,
+    "name": "Athletico Paranaense",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:08.275019+00:00"
+  },
+  {
+    "id": 208,
+    "name": "Flamengo",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:11.705496+00:00"
+  },
+  {
+    "id": 209,
+    "name": "Fluminense",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:14.988285+00:00"
+  },
+  {
+    "id": 210,
+    "name": "Corinthians",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:17.914747+00:00"
+  },
+  {
+    "id": 211,
+    "name": "Internacional",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:21.698023+00:00"
+  },
+  {
+    "id": 212,
+    "name": "Palmeiras",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:24.969423+00:00"
+  },
+  {
+    "id": 213,
+    "name": "Fortaleza",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:27.91043+00:00"
+  },
+  {
+    "id": 214,
+    "name": "Bahia",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:30.562732+00:00"
+  },
+  {
+    "id": 216,
+    "name": "Atlético Mineiro",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:38.067465+00:00"
+  },
+  {
+    "id": 217,
+    "name": "Cruzeiro",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:41.009812+00:00"
+  },
+  {
+    "id": 218,
+    "name": "Santos",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:44.070029+00:00"
+  },
+  {
+    "id": 219,
+    "name": "Vasco da Gama",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:50.074591+00:00"
+  },
+  {
+    "id": 220,
+    "name": "Botafogo",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:53.170336+00:00"
+  },
+  {
+    "id": 221,
+    "name": "Sport Recife",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:33:56.358042+00:00"
+  },
+  {
+    "id": 222,
+    "name": "São Paulo",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-13T18:34:00.44739+00:00"
+  },
+  {
+    "id": 223,
+    "name": "Japan Series",
+    "categoria": "Club",
+    "sezione": "Japan Series",
+    "created_at": "2026-07-13T18:34:23.669689+00:00"
+  },
+  {
+    "id": 224,
+    "name": "Selangor FC",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:07.978951+00:00"
+  },
+  {
+    "id": 225,
+    "name": "Air Robot",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:13.769466+00:00"
+  },
+  {
+    "id": 226,
+    "name": "Universidad Católica",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:18.233721+00:00"
+  },
+  {
+    "id": 227,
+    "name": "Universidad de Chile",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:20.695423+00:00"
+  },
+  {
+    "id": 228,
+    "name": "Club Brugge",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:23.382721+00:00"
+  },
+  {
+    "id": 229,
+    "name": "PSV Eindhoven",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:25.994084+00:00"
+  },
+  {
+    "id": 230,
+    "name": "Aberdeen",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:28.578546+00:00"
+  },
+  {
+    "id": 231,
+    "name": "Red Star Belgrade",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:31.509574+00:00"
+  },
+  {
+    "id": 232,
+    "name": "Yokohama F. Marinos",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:35.153814+00:00"
+  },
+  {
+    "id": 233,
+    "name": "Rangers",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:37.797008+00:00"
+  },
+  {
+    "id": 234,
+    "name": "Colo-Colo",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:40.249778+00:00"
+  },
+  {
+    "id": 235,
+    "name": "River Plate",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:43.654768+00:00"
+  },
+  {
+    "id": 236,
+    "name": "Feyenoord",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:46.259104+00:00"
+  },
+  {
+    "id": 237,
+    "name": "Sporting Lisbona (Sporting CP)",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:48.763185+00:00"
+  },
+  {
+    "id": 239,
+    "name": "Argentinos Juniors",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:36:56.330329+00:00"
+  },
+  {
+    "id": 242,
+    "name": "Celtic",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:37:06.578134+00:00"
+  },
+  {
+    "id": 243,
+    "name": "FC Porto",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-13T18:37:09.567643+00:00"
+  },
+  {
+    "id": 244,
+    "name": "Albania",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:39:16.295564+00:00"
+  },
+  {
+    "id": 245,
+    "name": "Armenia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:39:22.612879+00:00"
+  },
+  {
+    "id": 248,
+    "name": "Repubblica Ceca",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:39:41.341006+00:00"
+  },
+  {
+    "id": 249,
+    "name": "Finlandia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:39:46.611988+00:00"
+  },
+  {
+    "id": 251,
+    "name": "Georgia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:39:55.480176+00:00"
+  },
+  {
+    "id": 253,
+    "name": "Ungheria",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:06.358788+00:00"
+  },
+  {
+    "id": 254,
+    "name": "Islanda",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:12.273102+00:00"
+  },
+  {
+    "id": 255,
+    "name": "Paesi Bassi",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:20.182682+00:00"
+  },
+  {
+    "id": 256,
+    "name": "Irlanda del Nord",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:25.293309+00:00"
+  },
+  {
+    "id": 257,
+    "name": "Norvegia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:29.427681+00:00"
+  },
+  {
+    "id": 258,
+    "name": "Polonia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:34.695132+00:00"
+  },
+  {
+    "id": 260,
+    "name": "Romania",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:40:42.426049+00:00"
+  },
+  {
+    "id": 261,
+    "name": "Scozia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:00.456459+00:00"
+  },
+  {
+    "id": 262,
+    "name": "Serbia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:05.341365+00:00"
+  },
+  {
+    "id": 264,
+    "name": "Svezia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:14.304898+00:00"
+  },
+  {
+    "id": 265,
+    "name": "Turchia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:19.866469+00:00"
+  },
+  {
+    "id": 266,
+    "name": "Ucraina",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:24.680284+00:00"
+  },
+  {
+    "id": 267,
+    "name": "Unione Sovietica",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:30.044653+00:00"
+  },
+  {
+    "id": 268,
+    "name": "Galles",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-13T18:41:37.236128+00:00"
+  },
+  {
+    "id": 270,
+    "name": "Bolivia",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T18:41:54.655262+00:00"
+  },
+  {
+    "id": 272,
+    "name": "Cile",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T18:42:04.481608+00:00"
+  },
+  {
+    "id": 274,
+    "name": "Ecuador",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T18:42:15.723362+00:00"
+  },
+  {
+    "id": 275,
+    "name": "Paraguay",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T18:42:21.215198+00:00"
+  },
+  {
+    "id": 276,
+    "name": "Perù",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T18:42:27.197665+00:00"
+  },
+  {
+    "id": 278,
+    "name": "Venezuela",
+    "categoria": "Nazionali",
+    "sezione": "Sud America",
+    "created_at": "2026-07-13T18:42:34.974063+00:00"
+  },
+  {
+    "id": 279,
+    "name": "Canada",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:42:42.687543+00:00"
+  },
+  {
+    "id": 280,
+    "name": "Costa Rica",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:42:48.795917+00:00"
+  },
+  {
+    "id": 282,
+    "name": "Cuba",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:01.713154+00:00"
+  },
+  {
+    "id": 283,
+    "name": "El Salvador",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:08.456143+00:00"
+  },
+  {
+    "id": 284,
+    "name": "Guatemala",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:15.179384+00:00"
+  },
+  {
+    "id": 285,
+    "name": "Haiti",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:20.689219+00:00"
+  },
+  {
+    "id": 286,
+    "name": "Giamaica",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:25.289466+00:00"
+  },
+  {
+    "id": 287,
+    "name": "Honduras",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:31.684621+00:00"
+  },
+  {
+    "id": 290,
+    "name": "Panama",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:43:55.866934+00:00"
+  },
+  {
+    "id": 291,
+    "name": "Stati Uniti (USA)",
+    "categoria": "Nazionali",
+    "sezione": "Nord America",
+    "created_at": "2026-07-13T18:44:00.197918+00:00"
+  },
+  {
+    "id": 292,
+    "name": "Australia",
+    "categoria": "Nazionali",
+    "sezione": "Oceania",
+    "created_at": "2026-07-13T18:44:51.605158+00:00"
+  },
+  {
+    "id": 294,
+    "name": "Indonesia",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:08.072136+00:00"
+  },
+  {
+    "id": 295,
+    "name": "Iran",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:14.117758+00:00"
+  },
+  {
+    "id": 296,
+    "name": "Iraq",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:18.304945+00:00"
+  },
+  {
+    "id": 297,
+    "name": "Israele",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:22.769609+00:00"
+  },
+  {
+    "id": 299,
+    "name": "Giordania",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:31.083444+00:00"
+  },
+  {
+    "id": 300,
+    "name": "Malaysia",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:37.811349+00:00"
+  },
+  {
+    "id": 301,
+    "name": "Corea del Nord",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:51.551864+00:00"
+  },
+  {
+    "id": 302,
+    "name": "Palestina",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:45:57.07874+00:00"
+  },
+  {
+    "id": 303,
+    "name": "Qatar",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:46:04.481739+00:00"
+  },
+  {
+    "id": 304,
+    "name": "Arabia Saudita",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:46:10.39927+00:00"
+  },
+  {
+    "id": 306,
+    "name": "Uzbekistan",
+    "categoria": "Nazionali",
+    "sezione": "Asia",
+    "created_at": "2026-07-13T18:46:20.900266+00:00"
+  },
+  {
+    "id": 307,
+    "name": "Algeria",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:28.969155+00:00"
+  },
+  {
+    "id": 308,
+    "name": "Benin",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:33.043086+00:00"
+  },
+  {
+    "id": 309,
+    "name": "Burkina Faso",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:37.334317+00:00"
+  },
+  {
+    "id": 310,
+    "name": "Camerun",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:40.868711+00:00"
+  },
+  {
+    "id": 312,
+    "name": "Costa d'Avorio",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:50.12055+00:00"
+  },
+  {
+    "id": 313,
+    "name": "Congo",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:53.549609+00:00"
+  },
+  {
+    "id": 314,
+    "name": "Egitto",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:46:56.759593+00:00"
+  },
+  {
+    "id": 315,
+    "name": "Gambia",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:47:01.997674+00:00"
+  },
+  {
+    "id": 316,
+    "name": "Ghana",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:47:05.291701+00:00"
+  },
+  {
+    "id": 317,
+    "name": "Guinea",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:47:08.390093+00:00"
+  },
+  {
+    "id": 318,
+    "name": "Mali",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:47:11.947344+00:00"
+  },
+  {
+    "id": 322,
+    "name": "Sudafrica",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:47:27.207234+00:00"
+  },
+  {
+    "id": 323,
+    "name": "Tunisia",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-13T18:47:30.934295+00:00"
+  },
+  {
+    "id": 324,
+    "name": "Inter",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-13T20:59:09.848405+00:00"
+  },
+  {
+    "id": 326,
+    "name": "Real Zaragoza",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-14T21:24:33.454378+00:00"
+  },
+  {
+    "id": 327,
+    "name": "Iron Maiden",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-07-14T21:24:53.092275+00:00"
+  },
+  {
+    "id": 328,
+    "name": "Sampdoria",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 329,
+    "name": "West Ham United",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 330,
+    "name": "Almeria",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 331,
+    "name": "Birmingham City",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 332,
+    "name": "Real Oviedo",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 333,
+    "name": "Werder Brema",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 334,
+    "name": "Norwich City",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 335,
+    "name": "Southampton",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 336,
+    "name": "Leicester City",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 337,
+    "name": "Blackburn Rovers",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 338,
+    "name": "Middlesbrough",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 339,
+    "name": "Tenerife",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 340,
+    "name": "Amburgo",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 341,
+    "name": "Sheffield",
+    "categoria": "Club",
+    "sezione": "Premier League",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 342,
+    "name": "Colonia",
+    "categoria": "Club",
+    "sezione": "Bundesliga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 343,
+    "name": "Venezia",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 344,
+    "name": "Galatasaray",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 345,
+    "name": "Dinamo Zagabria",
+    "categoria": "Club",
+    "sezione": "Serie A",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 346,
+    "name": "Racing De Santander",
+    "categoria": "Club",
+    "sezione": "La Liga",
+    "created_at": "2026-07-14T22:01:23.916502+00:00"
+  },
+  {
+    "id": 348,
+    "name": "gremio",
+    "categoria": "Club",
+    "sezione": "Brasileiro Serie A",
+    "created_at": "2026-07-15T06:23:55.829559+00:00"
+  },
+  {
+    "id": 350,
+    "name": "cape verde",
+    "categoria": "Nazionali",
+    "sezione": "Africa",
+    "created_at": "2026-07-16T11:56:14.777337+00:00"
+  },
+  {
+    "id": 351,
+    "name": "Grecia",
+    "categoria": "Nazionali",
+    "sezione": "Altre Nazioni",
+    "created_at": "2026-07-16T12:00:30.232799+00:00"
+  },
+  {
+    "id": 352,
+    "name": "Bosnia",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-16T12:04:39.401684+00:00"
+  },
+  {
+    "id": 353,
+    "name": "Irlanda",
+    "categoria": "Nazionali",
+    "sezione": "Europa",
+    "created_at": "2026-07-16T12:05:42.434483+00:00"
+  },
+  {
+    "id": 354,
+    "name": "Curacao",
+    "categoria": "Nazionali",
+    "sezione": "Altre Nazioni",
+    "created_at": "2026-07-16T12:08:32.912906+00:00"
+  },
+  {
+    "id": 355,
+    "name": "Belgio",
+    "categoria": "Nazionali",
+    "sezione": "Nazionali",
+    "created_at": "2026-07-16T12:18:26.084701+00:00"
+  },
+  {
+    "id": 356,
+    "name": "Eindhoven",
+    "categoria": "Club",
+    "sezione": "Altri Club",
+    "created_at": "2026-08-04T09:25:23.664745+00:00"
+  },
+  {
+    "id": 359,
+    "name": "Al Ettifaq",
+    "categoria": "Club",
+    "sezione": "Saudi League",
+    "created_at": "2026-09-07T13:45:40.155215+00:00"
   }
 ]

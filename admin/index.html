@@ -29,7 +29,7 @@
     </script>
     <link rel="stylesheet" href="/admin/admin.css">
 </head>
-<body class="bg-brand-bgLight text-white font-sans min-h-screen flex flex-col md:flex-row">
+<body class="bg-brand-bgLight text-white font-sans min-h-screen flex flex-col md:flex-row" style="display:none;">
 
     <!-- Sidebar Laterale (Sleek Dark Theme per creare contrasto) -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-brand-dark text-slate-300 flex flex-col border-r border-slate-800/60 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
@@ -1253,6 +1253,9 @@
 
                     <!-- Sub-Nav Buttons -->
                     <div class="flex flex-wrap gap-2">
+                        <button onclick="switchSubTab('impostazioni')" id="subnav-impostazioni" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>⚙️</span> Impostazioni
+                        </button>
                         <button onclick="switchSubTab('recensioni')" id="subnav-recensioni" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
                             <span>⭐</span> Recensioni
                             <span id="subnav-recensioni-badge" class="hidden px-1.5 py-0.5 bg-red-600 text-white font-extrabold text-[9px] rounded-full min-w-[18px] text-center leading-none animate-pulse">0</span>
@@ -4164,8 +4167,8 @@
                             <span class="font-semibold text-slate-700">Polo</span>
                         </label>
                         <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
-                            <input type="checkbox" value="Smanicati" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
-                            <span class="font-semibold text-slate-700">Smanicati</span>
+                            <input type="checkbox" value="Smanicato" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Smanicato</span>
                         </label>
                         <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
                             <input type="checkbox" value="Maniche Lunghe" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">

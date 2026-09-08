@@ -814,40 +814,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         if (typeof window.checkAuth === 'function') {
             const user = await window.checkAuth();
-            if (!user) {
-                // Non autenticato: checkAuth() avvia il redirect a /admin-login
-                return;
-            }
+            if (!user) return; // Non autenticato: checkAuth() gestisce il redirect
             const emailEl = document.getElementById('user-email-display');
-            if (emailEl) {
-                emailEl.innerText = user.email;
-            }
+            if (emailEl) emailEl.innerText = user.email;
         }
     } catch (error) {
-        console.error("Errore durante la verifica dell'autenticazione:", error);
+        console.error("Errore verifica autenticazione:", error);
         return;
     }
 
-    // 2. Inizializza gli event listeners per i filtri e la ricerca
+    // 2. Inizializza gli event listeners
     inizializzaFiltri();
-
-    // 3. Inizializza l'handler del form di aggiunta/modifica prodotto
     inizializzaFormProdotto();
-
-    // 4. Inizializza l'azione del lotto
     inizializzaLottoAction();
 
-    // 5. Carica i prodotti e le statistiche
-    await caricaDati();
+    // 3. Caricamento essenziale per mostrare subito qualcosa (Dashboard)
+    try {
+        await Promise.all([
+            typeof caricaSquadre === 'function' ? caricaSquadre() : Promise.resolve(),
+            typeof caricaSettings === 'function' ? caricaSettings() : Promise.resolve()
+        ]);
+        
+        // Carica dati dashboard prima di tutto
+        await aggiornaStatisticheDashboard();
+        
+        // Imposta la tab iniziale rapidamente
+        switchTab('dashboard');
+    } catch (e) {
+        console.error("Errore caricamento essenziale:", e);
+    }
 
-    // 6. Imposta la tab iniziale
-    switchTab('dashboard');
+    // 4. Caricamento completo in background o lazy
+    setTimeout(async () => {
+        try {
+            await caricaDati();
+        } catch (e) {
+            console.error("Errore caricamento dati completi:", e);
+        }
+    }, 100);
 });
 
 /**
  * Gestisce l'inizializzazione degli event listeners per i filtri e la ricerca
  */
+let isFiltersInitialized = false;
 function inizializzaFiltri() {
+    if (isFiltersInitialized) return;
+    isFiltersInitialized = true;
     const filterSquadra = document.getElementById('filter-squadra');
     const filterCategoria = document.getElementById('filter-categoria');
     const filterStagione = document.getElementById('filter-stagione');
@@ -870,7 +883,10 @@ function inizializzaFiltri() {
 /**
  * Gestisce l'inizializzazione del form di salvataggio prodotto
  */
+let isFormInitialized = false;
 function inizializzaFormProdotto() {
+    if (isFormInitialized) return;
+    isFormInitialized = true;
     const form = document.getElementById('add-product-form');
     if (form) {
         form.addEventListener('submit', async (e) => {
@@ -2415,7 +2431,10 @@ function calcolaIncassoEffettivo(incassoBase, profitDataOrSummary = profitSplitD
 }
 window.calcolaIncassoEffettivo = calcolaIncassoEffettivo;
 
-function aggiornaStatisticheDashboard() {
+let lastDashboardUpdate = 0;
+function aggiornaStatisticheDashboard(force = false) {
+    if (!force && (Date.now() - lastDashboardUpdate < 5000)) return;
+    lastDashboardUpdate = Date.now();
     // Totale prodotti
     const totProdottiEl = document.getElementById('stats-totale-prodotti');
     if (totProdottiEl) {
@@ -2667,14 +2686,37 @@ function generaOpzioniFiltri() {
         ? [...new Set(squadreCatalogo.map(t => t.name).filter(Boolean))].sort()
         : [...new Set(prodotti.map(p => p.squadra).filter(Boolean))].sort();
     const stagioni = [...new Set(prodotti.map(p => p.stagione).filter(Boolean))].sort().reverse();
-    const prodCategorie = [...new Set(prodotti.map(p => p.categoria).filter(Boolean))];
+    
+    const prodCategorie = prodotti.map(p => p.categoria).filter(Boolean);
     const filtriConfigurati = (window.appSettings?.filtriCatalogo || [])
         .filter(f => f.stato === 'attivo' || f.attivo !== false)
         .map(f => f.nome.trim())
         .filter(Boolean);
 
-    const categorie = [...new Set([...filtriConfigurati, ...prodCategorie])]
-        .filter(c => c.toLowerCase() !== 'tutti' && c.toLowerCase() !== 'tutto')
+    const categoryMapping = {
+        'versione fan': 'Fan',
+        'fan': 'Fan',
+        'kit': 'Kit',
+        'kit allenamento': 'Kit Allenamento',
+        'smanicati': 'Smanicato',
+        'smanicato': 'Smanicato',
+        'retro': 'Retro',
+        'versione player': 'Player',
+        'player': 'Player'
+    };
+
+    function toCanonical(cat) {
+        const normKey = normalizeTextForSearch(cat);
+        return categoryMapping[normKey] || cat.trim();
+    }
+
+    const canonicalSet = new Set();
+    [...filtriConfigurati, ...prodCategorie].forEach(cat => {
+        canonicalSet.add(toCanonical(cat));
+    });
+
+    const categorie = [...canonicalSet]
+        .filter(c => normalizeTextForSearch(c) !== 'tutti' && normalizeTextForSearch(c) !== 'tutto')
         .sort();
 
     // Aggiorna select squadra
@@ -4614,7 +4656,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
 
     // Aggiorna classi della sotto-navigazione dell'Area Secondaria
     if (activeMainTab === 'strumenti' && activeSecondarySubTab) {
-        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'marketing', 'gestione-catalogo'];
+        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'marketing', 'gestione-catalogo', 'impostazioni'];
         subnavIds.forEach(sub => {
             const subnavEl = document.getElementById(`subnav-${sub}`);
             if (subnavEl) {
@@ -4643,6 +4685,9 @@ function switchTab(tabId, preserveSelectionMode = false) {
         }
     } else if (tabId === 'gestione-ordini') {
         caricaGestioneOrdini();
+        if (typeof caricaRegisteredAccounts === 'function') {
+            caricaRegisteredAccounts();
+        }
     } else if (tabId === 'marketing') {
         loadMarketingPromo();
     } else if (tabId === 'recensioni' || (tabId === 'strumenti' && activeSecondarySubTab === 'recensioni')) {
@@ -4792,29 +4837,29 @@ function formattaNomenclaturaVersione(squadra, categoria, versione, stagione) {
     
     if (cat === 'Fan') {
         if (versioneLower.includes('casa') || versioneLower.includes('home')) {
-            return `Versione Fan Casa ${squadra}`;
+            return `Fan Casa ${squadra}`;
         } else if (versioneLower.includes('fuori casa') || versioneLower.includes('away') || versioneLower.includes('esterno')) {
-            return `Versione Fan Fuori Casa ${squadra}`;
+            return `Fan Fuori Casa ${squadra}`;
         } else if (versioneLower.includes('terza') || versioneLower.includes('third')) {
-            return `Versione Fan Terza Maglia ${squadra}`;
+            return `Fan Terza Maglia ${squadra}`;
         } else if (versioneLower.includes('quarta') || versioneLower.includes('fourth')) {
-            return `Versione Fan Quarta Maglia ${squadra}`;
+            return `Fan Quarta Maglia ${squadra}`;
         } else {
-            return `Versione Fan Casa ${squadra}`;
+            return `Fan Casa ${squadra}`;
         }
     }
     
     if (cat === 'Player') {
         if (versioneLower.includes('casa') || versioneLower.includes('home')) {
-            return `Versione Player Casa ${squadra}`;
+            return `Player Casa ${squadra}`;
         } else if (versioneLower.includes('fuori casa') || versioneLower.includes('away') || versioneLower.includes('esterno')) {
-            return `Versione Player Fuori Casa ${squadra}`;
+            return `Player Fuori Casa ${squadra}`;
         } else if (versioneLower.includes('terza') || versioneLower.includes('third')) {
-            return `Versione Player Terza Maglia ${squadra}`;
+            return `Player Terza Maglia ${squadra}`;
         } else if (versioneLower.includes('quarta') || versioneLower.includes('fourth')) {
-            return `Versione Player Quarta Maglia ${squadra}`;
+            return `Player Quarta Maglia ${squadra}`;
         } else {
-            return `Versione Player Casa ${squadra}`;
+            return `Player Casa ${squadra}`;
         }
     }
     
@@ -6327,7 +6372,7 @@ function assicuratiCategorieDinamiche() {
             { id: 'cat_allenamento', nome: 'Kit Allenamento', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 5, stato: 'attivo' },
             { id: 'cat_tuta', nome: 'Tuta', prezzo_adulto: 44.99, prezzo_bambino: 40.00, ordine: 6, stato: 'attivo' },
             { id: 'cat_polo', nome: 'Polo', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 7, stato: 'attivo' },
-            { id: 'cat_smanicati', nome: 'Smanicati', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
+            { id: 'cat_smanicati', nome: 'Smanicato', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
             { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
             { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' },
             { id: 'cat_portiere', nome: 'Portiere', ordine: 11, stato: 'attivo' }
@@ -6570,7 +6615,21 @@ function aggiornaMenuCategorieForm() {
         });
     }
 
-    // 3. Product List Filter Header (#filter-categoria)
+    // Override fetch per aggiungere automaticamente l'Authorization header
+const originalFetch = window.fetch;
+window.fetch = async (url, options = {}) => {
+    options.headers = options.headers || {};
+    try {
+        const client = await window.getSupabaseClient();
+        const { data: { session } } = await client.auth.getSession();
+        if (session && session.access_token) {
+            options.headers['Authorization'] = `Bearer ${session.access_token}`;
+        }
+    } catch (err) {
+        console.error("Errore durante l'aggiunta dell'Authorization header:", err);
+    }
+    return originalFetch(url, options);
+};
     const selectFilter = document.getElementById('filter-categoria');
     if (selectFilter) {
         const currentVal = selectFilter.value;
@@ -10250,10 +10309,10 @@ function traduciTestoProdotto(text) {
     // Lista ordinata per specificità decrescente
     const regole = [
         // Frasi composte e versioni
-        [/\bPlayer Version\b/gi, "Versione Player"],
-        [/\bPlayer Edition\b/gi, "Versione Player"],
-        [/\bFans? Version\b/gi, "Versione Fan"],
-        [/\bFans? Edition\b/gi, "Versione Fan"],
+        [/\bPlayer Version\b/gi, "Player"],
+        [/\bPlayer Edition\b/gi, "Player"],
+        [/\bFans? Version\b/gi, "Fan"],
+        [/\bFans? Edition\b/gi, "Fan"],
         [/\bTraining Kit\b/gi, "Kit Allenamento"],
         [/\bTraining Tracksuit\b/gi, "Tuta Allenamento"],
         [/\bTraining Suit\b/gi, "Tuta Allenamento"],
@@ -10356,9 +10415,9 @@ function traduciTestoProdotto(text) {
         [/\bSocks\b/gi, "Calzettoni"],
         [/\bSleeveless\b/gi, "Smanicato"],
         [/\bVest\b/gi, "Smanicato"],
-        [/\bRetro\b/gi, "Retrò"],
-        [/\bVintage\b/gi, "Retrò"],
-        [/\bClassic\b/gi, "Retrò"],
+        [/\bRetro\b/gi, "Retro"],
+        [/\bVintage\b/gi, "Retro"],
+        [/\bClassic\b/gi, "Retro"],
         [/\bWomen's\b/gi, "Donna"],
         [/\bWomen\b/gi, "Donna"]
     ];
@@ -10496,10 +10555,10 @@ function generaNomeTradottoAutomatico(p, squadraRiconosciuta, categoriaRiconosci
         if (target === 'Bambino') {
             prefisso = 'Kit Bambino Portiere';
         } else if (isPlayer) {
-            prefisso = 'Versione Player Portiere';
+            prefisso = 'Player Portiere';
             isFemminile = true;
         } else if (isFan) {
-            prefisso = 'Versione Fan Portiere';
+            prefisso = 'Fan Portiere';
             isFemminile = true;
         } else if (isMaglia) {
             prefisso = 'Maglia Portiere';
@@ -10508,13 +10567,13 @@ function generaNomeTradottoAutomatico(p, squadraRiconosciuta, categoriaRiconosci
             prefisso = 'Kit Portiere';
         }
     } else if (isPlayer) {
-        prefisso = 'Versione Player';
+        prefisso = 'Player';
         isFemminile = true;
     } else if (isFan) {
-        prefisso = 'Versione Fan';
+        prefisso = 'Fan';
         isFemminile = true;
     } else if (isRetro) {
-        prefisso = 'Maglia Retrò';
+        prefisso = 'Maglia Retro';
         isFemminile = true;
     } else if (isPolo) {
         prefisso = isTraining ? 'Polo Allenamento' : 'Polo';
@@ -13985,8 +14044,8 @@ async function caricaConversazioniAdmin(silente = false) {
                 renderConversazioniLista();
             }
             
-            // Calcola il badge delle chat con messaggi non letti dal cliente o in attesa di risposta
-            const chatDaLeggere = conversazioniAdminList.filter(c => (c.unreadCount && c.unreadCount > 0) || c.stato === 'in_attesa' || c.stato === 'In attesa' || c.stato === 'Nuova').length;
+            // Calcola il badge delle chat con messaggi non letti dal cliente
+            const chatDaLeggere = conversazioniAdminList.filter(c => (c.unreadCount && c.unreadCount > 0)).length;
             const badgeEl = document.getElementById('admin-chat-badge');
             if (badgeEl) {
                 if (chatDaLeggere > 0) {
@@ -14145,11 +14204,20 @@ async function selezionaConversazioneAdmin(id) {
 
     // Segna i messaggi del cliente come letti
     try {
-        await fetch('/api/chat/mark-read', {
+        const res = await fetch('/api/admin/chat/mark-read', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ conversation_id: id, sender: 'client' })
+            body: JSON.stringify({ conversation_id: id })
         });
+        const data = await res.json();
+        if (data.success) {
+            const convIdx = conversazioniAdminList.findIndex(c => c.id === id);
+            if (convIdx !== -1) {
+                conversazioniAdminList[convIdx].admin_last_read_at = new Date().toISOString();
+                conversazioniAdminList[convIdx].unreadCount = 0; // Reset local count
+                renderConversazioniLista(); // Re-render to update badge immediately
+            }
+        }
     } catch (err) {
         console.error("Errore mark-read:", err);
     }
@@ -17826,7 +17894,7 @@ function popolaFiltriDropdownSenzaFiltro(data) {
     // Categorie univoche
     if (selCat) {
         const currentVal = selCat.value;
-        const cats = [...new Set(items.map(p => p.categoria).filter(Boolean))].sort();
+        const cats = Array.from(new Set(items.map(p => p.categoria ? p.categoria.toString().trim().replace(/\s+/g, ' ') : '').filter(Boolean))).sort();
         selCat.innerHTML = '<option value="">Tutte le categorie (' + cats.length + ')</option>' +
             cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
         if (currentVal) selCat.value = currentVal;
@@ -17835,7 +17903,7 @@ function popolaFiltriDropdownSenzaFiltro(data) {
     // Stagioni univoche
     if (selStag) {
         const currentVal = selStag.value;
-        const stagioni = [...new Set(items.map(p => p.stagione).filter(Boolean))].sort().reverse();
+        const stagioni = Array.from(new Set(items.map(p => p.stagione ? p.stagione.toString().trim().replace(/\s+/g, ' ') : '').filter(Boolean))).sort().reverse();
         selStag.innerHTML = '<option value="">Tutte le stagioni (' + stagioni.length + ')</option>' +
             stagioni.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
         if (currentVal) selStag.value = currentVal;
@@ -17844,7 +17912,10 @@ function popolaFiltriDropdownSenzaFiltro(data) {
     // Target / Versione univoche
     if (selTgt) {
         const currentVal = selTgt.value;
-        const targets = [...new Set(items.map(p => p.target || p.versione).filter(Boolean))].sort();
+        const targets = Array.from(new Set(items.map(p => {
+            const val = p.target || p.versione;
+            return val ? val.toString().trim().replace(/\s+/g, ' ') : '';
+        }).filter(Boolean))).sort();
         selTgt.innerHTML = '<option value="">Tutti i target</option>' +
             targets.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
         if (currentVal) selTgt.value = currentVal;
@@ -19036,11 +19107,14 @@ async function caricaTorneiAdmin() {
     `;
 
     try {
+        console.log("[ADMIN TORNEI DEBUG] Inizio fetch('/api/tornei')...");
         const res = await fetch('/api/tornei');
         const data = await res.json();
+        console.log("[ADMIN TORNEI DEBUG] Risposta fetch('/api/tornei'):", data);
 
         if (data.success && Array.isArray(data.tornei)) {
             torneiList = data.tornei;
+            console.log(`[ADMIN TORNEI DEBUG] Caricati ${torneiList.length} tornei nell'elenco.`);
 
             // Aggiorna contatori header overview
             const totaliEl = document.getElementById('tornei-stat-totali');
@@ -19247,26 +19321,40 @@ async function salvaTorneo() {
     }
 
     try {
+        console.log("[ADMIN TORNEI DEBUG] Inizio salvaTorneo, payload inviato a POST /api/tornei:", payload);
         const res = await fetch('/api/tornei', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         const data = await res.json();
+        console.log("[ADMIN TORNEI DEBUG] Risposta da POST /api/tornei:", data);
 
         if (data.success) {
+            console.log("[ADMIN TORNEI DEBUG] Torneo salvato con successo dal backend:", data.torneo);
             showToast(id ? "Torneo modificato con successo!" : "Torneo creato con successo!", "success");
             chiudiModalTorneo();
+
+            // Se stiamo creando un nuovo torneo, ci assicuriamo che sia visibile la tabella/elenco
+            const vistaDettaglio = document.getElementById('tornei-view-dettaglio');
+            const vistaLista = document.getElementById('tornei-view-lista');
+            if (!id && vistaDettaglio && !vistaDettaglio.classList.contains('hidden')) {
+                vistaDettaglio.classList.add('hidden');
+                if (vistaLista) vistaLista.classList.remove('hidden');
+            }
+
+            console.log("[ADMIN TORNEI DEBUG] Ricaricamento elenco tornei tramite caricaTorneiAdmin()...");
             await caricaTorneiAdmin();
             if (torneoCorrenteDettaglio && String(torneoCorrenteDettaglio.id) === String(data.torneo.id)) {
                 torneoCorrenteDettaglio = data.torneo;
                 caricaSquadreTorneo(torneoCorrenteDettaglio.id);
             }
         } else {
+            console.error("[ADMIN TORNEI DEBUG] Errore restituto dal backend:", data.error);
             showToast(data.error || "Errore durante il salvataggio del torneo.", "error");
         }
     } catch (err) {
-        console.error("Errore salvaTorneo:", err);
+        console.error("[ADMIN TORNEI DEBUG] Eccezione fetch salvaTorneo:", err);
         showToast("Errore di connessione con il server.", "error");
     } finally {
         if (submitBtn) {
@@ -19760,7 +19848,7 @@ function impostaCategorieSquadraQuick(mode) {
     } else if (mode === 'nessuna') {
         cbs.forEach(cb => { cb.checked = false; });
     } else if (mode === 'standard') {
-        const std = ['Kit', 'Versione Player', 'Fan'];
+        const std = ['Kit', 'Player', 'Fan'];
         cbs.forEach(cb => {
             cb.checked = std.includes(cb.value);
         });
@@ -19788,7 +19876,7 @@ function apriModalNuovaSquadra() {
     document.getElementById('squadra-form-perso-numero').checked = parentCfg.permetti_numero !== false;
     document.getElementById('squadra-form-perso-patch').checked = Boolean(parentCfg.permetti_patch);
 
-    // Categorie autorizzate default (Standard: Kit, Versione Player, Fan)
+    // Categorie autorizzate default (Standard: Kit, Player, Fan)
     impostaCategorieSquadraQuick('standard');
 
     document.getElementById('squadra-form-note').value = "";
@@ -20066,11 +20154,40 @@ async function caricaRegisteredAccounts() {
             const data = await res.json();
             if (data && data.success && Array.isArray(data.accounts)) {
                 window.registeredAccountsList = data.accounts;
+                return window.registeredAccountsList;
             }
         }
     } catch (err) {
-        console.warn("⚠️ Impossibile caricare gli account registrati:", err);
+        console.warn("⚠️ Impossibile caricare gli account registrati tramite API:", err);
     }
+
+    // Client-side fallback se Supabase client è inizializzato nell'admin
+    if (typeof window.getSupabaseClient === 'function') {
+        try {
+            const supabase = await window.getSupabaseClient();
+            if (supabase) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('id, email, nome, cognome, telefono, updated_at')
+                    .order('nome', { ascending: true });
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    window.registeredAccountsList = data.map(p => ({
+                        id: String(p.id),
+                        email: (p.email || '').trim().toLowerCase(),
+                        nome: (p.nome || '').trim(),
+                        cognome: (p.cognome || '').trim(),
+                        nome_completo: ((p.nome || '') + ' ' + (p.cognome || '')).trim() || p.email || 'Cliente Registrato',
+                        telefono: (p.telefono || '').trim(),
+                        updated_at: p.updated_at
+                    }));
+                    return window.registeredAccountsList;
+                }
+            }
+        } catch (sbErr) {
+            console.warn("⚠️ Fallback query Supabase profiles non riuscita:", sbErr);
+        }
+    }
+    return window.registeredAccountsList || [];
 }
 
 function aggiornaBoxAccountAssegnato(ord) {
@@ -20132,12 +20249,22 @@ window.apriModalAssegnaAccount = async function() {
 
     modal.classList.remove('hidden');
 
-    await caricaRegisteredAccounts();
-
     const modalTitle = document.getElementById('modal-assegna-account-title');
     const modalSub = document.getElementById('modal-assegna-account-sub');
     if (modalTitle) modalTitle.innerText = ord?.user_id ? "CAMBIA ACCOUNT ASSEGNATO" : "ASSEGNA ORDINE AD ACCOUNT";
     if (modalSub) modalSub.innerText = `Ordine #${window.currentGestioneOrderId} - Seleziona l'account a cui associare l'ordine.`;
+
+    const container = document.getElementById('modal-account-list-container');
+    if (container && (!window.registeredAccountsList || window.registeredAccountsList.length === 0)) {
+        container.innerHTML = `
+            <div class="text-center py-8 space-y-2">
+                <div class="inline-block animate-spin w-5 h-5 border-2 border-brand-gold border-t-transparent rounded-full mb-1"></div>
+                <div class="text-xs text-slate-400 font-medium">Caricamento account da Supabase profiles...</div>
+            </div>
+        `;
+    }
+
+    await caricaRegisteredAccounts();
 
     renderModalAccountList('');
 };
@@ -20178,9 +20305,10 @@ function renderModalAccountList(term = '') {
 
     if (list.length === 0) {
         container.innerHTML = `
-            <div class="text-center py-8 space-y-1">
+            <div class="text-center py-8 space-y-2">
                 <div class="text-slate-400 font-bold text-xs">Nessun account cliente trovato</div>
-                <div class="text-[11px] text-slate-500">Prova a cercare con un altro nome, cognome o email.</div>
+                <div class="text-[11px] text-slate-500">${term ? 'Nessun risultato per "' + escapeHtml(term) + '". Prova con un altro nome o email.' : 'Nessun account registrato trovato nella tabella profiles.'}</div>
+                <button type="button" onclick="caricaRegisteredAccounts().then(() => renderModalAccountList())" class="mt-2 inline-flex items-center gap-1 text-[11px] text-brand-gold hover:underline">🔄 Ricarica account</button>
             </div>
         `;
         return;
@@ -20188,7 +20316,7 @@ function renderModalAccountList(term = '') {
 
     container.innerHTML = list.map(acc => {
         const isSelected = String(acc.id) === String(window.selectedAccountIdForAssignment);
-        const nameDisp = acc.nome_completo || `${acc.nome || ''} ${acc.cognome || ''}`.trim() || acc.email;
+        const nameDisp = acc.nome_completo || `${acc.nome || ''} ${acc.cognome || ''}`.trim() || acc.email || 'Cliente Registrato';
         
         return `
             <label onclick="selezionaAccountModal('${acc.id}')" class="flex items-center justify-between p-3.5 bg-[#181818] border rounded-xl hover:border-brand-gold/60 cursor-pointer transition-all ${isSelected ? 'border-brand-gold bg-brand-gold/10' : 'border-[rgba(255,255,255,0.08)]'}">
@@ -20197,7 +20325,7 @@ function renderModalAccountList(term = '') {
                     <div>
                         <div class="font-extrabold text-white text-xs">${isSelected ? '✓ ' : ''}${escapeHtml(nameDisp)}</div>
                         <div class="text-[11px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
-                            <span>📧 ${escapeHtml(acc.email)}</span>
+                            ${acc.email ? `<span>📧 ${escapeHtml(acc.email)}</span>` : '<span class="text-slate-500 italic">Nessuna email</span>'}
                             ${acc.telefono ? `<span>📞 ${escapeHtml(acc.telefono)}</span>` : ''}
                         </div>
                         <div class="text-[9px] text-slate-500 font-mono mt-0.5">UUID: ${escapeHtml(acc.id)}</div>
