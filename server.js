@@ -2297,6 +2297,10 @@ let productsFetchPromise = null;    // Promise attiva per dedup richieste contem
 const TEAM_COUNTS_CACHE_TTL_MS = 5 * 60 * 1000;
 let teamProductCountsCache = null;   // Oggetto { counts, totalClub, timestamp }
 
+// Cache conteggio prodotti per Dashboard Admin
+const PRODUCTS_COUNT_CACHE_TTL_MS = 60 * 1000; // 60 secondi
+let productsCountCache = null;
+
 function invalidateProductsCache() {
   if (productsCacheData) {
     console.log('[CACHE /api/products] Cache in memoria invalidata per aggiornamento dati.');
@@ -2304,6 +2308,50 @@ function invalidateProductsCache() {
   productsCacheData = null;
   productsFetchPromise = null;
   teamProductCountsCache = null;
+  productsCountCache = null;
+}
+
+async function getProductsCatalogCounts() {
+  const now = Date.now();
+  if (productsCountCache && (now - productsCountCache.timestamp < PRODUCTS_COUNT_CACHE_TTL_MS)) {
+    return productsCountCache.data;
+  }
+
+  let totaleProdotti = 0;
+  let prodottiSenzaFornitore = 0;
+
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const [resTot, resSenza] = await Promise.all([
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('products').select('*', { count: 'exact', head: true }).or('prezzo_fornitore.is.null,prezzo_fornitore.eq.0')
+      ]);
+      if (!resTot.error && typeof resTot.count === 'number') {
+        totaleProdotti = resTot.count;
+      }
+      if (!resSenza.error && typeof resSenza.count === 'number') {
+        prodottiSenzaFornitore = resSenza.count;
+      }
+    } catch (errSupabase) {
+      console.warn("⚠️ Fallback conteggio prodotti Supabase:", errSupabase.message);
+    }
+  }
+
+  // Fallback resiliente da file locale se Supabase è vuoto o fallisce
+  if (totaleProdotti === 0 && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+    try {
+      const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      if (Array.isArray(localProds)) {
+        totaleProdotti = localProds.length;
+        prodottiSenzaFornitore = localProds.filter(p => p.prezzo_fornitore === null || p.prezzo_fornitore === undefined || p.prezzo_fornitore === "" || p.prezzo_fornitore === 0).length;
+      }
+    } catch (e) {}
+  }
+
+  const result = { totaleProdotti, senzaFornitore: prodottiSenzaFornitore };
+  productsCountCache = { data: result, timestamp: now };
+  return result;
 }
 
 // ==========================================
@@ -2477,7 +2525,7 @@ async function getDbOrders() {
     if (Array.isArray(o.carrello) && o.carrello.length > 0) {
       for (const it of o.carrello) {
         if (!it) continue;
-        if (it.fornitura || it.ha_prezzo_concordato || it.torneo_id || it.codice_univoco) {
+        if (it.fornitura || it.torneo_id || it.codice_univoco) {
           isConv = true;
           totCompletini += (Number(it.quantita) || 1);
           const f = it.fornitura || {};
@@ -4148,6 +4196,236 @@ app.post('/api/settings/teams/delete', async (req, res) => {
   }
 });
 
+/**
+ * GESTIONE AUTOMATICA GENERALE DELLE SQUADRE MANCANTI DURANTE L'IMPORTAZIONE
+ * Requisiti generali:
+ * 1. Riconosce se la squadra associata ai prodotti esiste già nella tabella teams.
+ * 2. Verifica identità squadra: nome completo, categoria, lega/sezione.
+ * 3. Protezione duplicati: NON usare includes() o matching parziali ("Inter" != "Inter Miami", "Roma" != "Roma City").
+ *    Usa le regole di normalizzazione ed alias ufficiali di progetto.
+ * 4. Crea automaticamente la nuova squadra nella tabella teams se assente.
+ * 5. Assegna correttamente: nome squadra, categoria ('Club', 'Nazionali', 'NBA'), lega/sezione ('Altri Club', ecc.).
+ * 6. Collega correttamente i prodotti importati alla nuova squadra (o esistente).
+ * 7. Invalida immediatamente tutte le cache (invalidateProductsCache()).
+ */
+function trovaSquadraCorrispondenteServer(nomeInput, teamsList) {
+  if (!nomeInput || typeof nomeInput !== 'string') return null;
+  const cleanInput = nomeInput.trim();
+  if (!cleanInput || cleanInput === 'Sconosciuta' || cleanInput === 'SQUADRA NON RICONOSCIUTA') return null;
+
+  // 1. Confronto esatto case-insensitive
+  const lowerInput = cleanInput.toLowerCase();
+  for (const t of teamsList) {
+    if (t && t.name && t.name.trim().toLowerCase() === lowerInput) {
+      return t;
+    }
+  }
+
+  // 2. Normalizzazione rigorosa con alias ufficiali di progetto
+  const normInput = normalizzaNomeSquadraServer(cleanInput);
+  if (!normInput) return null;
+
+  for (const t of teamsList) {
+    if (t && t.name) {
+      const normT = normalizzaNomeSquadraServer(t.name);
+      if (normT === normInput) {
+        return t;
+      }
+    }
+  }
+
+  return null;
+}
+
+function determinaCategoriaESezioneSquadraServer(squadName, sampleProduct) {
+  const p = sampleProduct || {};
+  const allHints = `${p.categoria || ''} ${p.campionato || ''} ${p.lega || ''} ${p.sezione || ''} ${p.confederazione || ''}`.toLowerCase();
+
+  // 1. Categoria
+  let categoria = 'Club';
+  if (
+    allHints.includes('nazionali') ||
+    allHints.includes('nazionale') ||
+    allHints.includes('mondiali') ||
+    allHints.includes('world cup') ||
+    allHints.includes('europei') ||
+    allHints.includes('copa america') ||
+    allHints.includes('altre nazioni') ||
+    (typeof DATABASE_NAZIONALI !== 'undefined' && Array.isArray(DATABASE_NAZIONALI) &&
+      DATABASE_NAZIONALI.some(n => n.nome && normalizzaNomeSquadraServer(n.nome.split(" - ")[0]) === normalizzaNomeSquadraServer(squadName)))
+  ) {
+    categoria = 'Nazionali';
+  } else if (allHints.includes('nba') || allHints.includes('basketball')) {
+    categoria = 'NBA';
+  }
+
+  // 2. Sezione / Lega
+  let sezione = '';
+  const rawLega = (p.campionato || p.lega || p.sezione || '').trim();
+  const rawLegaLower = rawLega.toLowerCase();
+
+  const mappaLeghe = {
+    'serie a': 'Serie A',
+    'premier league': 'Premier League',
+    'premier': 'Premier League',
+    'epl': 'Premier League',
+    'la liga': 'La Liga',
+    'laliga': 'La Liga',
+    'bundesliga': 'Bundesliga',
+    'ligue 1': 'Ligue 1',
+    'ligue1': 'Ligue 1',
+    'usa mls': 'USA MLS',
+    'mls': 'USA MLS',
+    'saudi league': 'Saudi League',
+    'saudi': 'Saudi League',
+    'saudi pro league': 'Saudi League',
+    'brasileiro serie a': 'Brasileiro Serie A',
+    'brasileirão série a': 'Brasileiro Serie A',
+    'brasileirao': 'Brasileiro Serie A',
+    'brasileirão': 'Brasileiro Serie A',
+    'liga mx': 'Liga Mx',
+    'japan series': 'Japan Series',
+    'j-league': 'Japan Series',
+    'j league': 'Japan Series',
+    'altri club': 'Altri Club',
+    'europa': 'Europa',
+    'sud america': 'Sud America',
+    'nord america': 'Nord America',
+    'asia': 'Asia',
+    'africa': 'Africa',
+    'oceania': 'Oceania',
+    'altre nazioni': 'Altre Nazioni',
+    'nazionali': 'Nazionali',
+    'eastern conference': 'Eastern Conference',
+    'western conference': 'Western Conference'
+  };
+
+  if (rawLegaLower && mappaLeghe[rawLegaLower]) {
+    sezione = mappaLeghe[rawLegaLower];
+  } else if (rawLega && rawLega.length >= 3 && rawLega.toLowerCase() !== 'squadra non riconosciuta') {
+    sezione = rawLega;
+  }
+
+  if (!sezione) {
+    if (categoria === 'Nazionali') {
+      if (allHints.includes('sud america') || allHints.includes('conmebol')) sezione = 'Sud America';
+      else if (allHints.includes('nord america') || allHints.includes('concacaf')) sezione = 'Nord America';
+      else if (allHints.includes('africa') || allHints.includes('caf')) sezione = 'Africa';
+      else if (allHints.includes('asia') || allHints.includes('afc')) sezione = 'Asia';
+      else if (allHints.includes('oceania') || allHints.includes('ofc')) sezione = 'Oceania';
+      else sezione = 'Europa';
+    } else if (categoria === 'NBA') {
+      sezione = 'Eastern Conference';
+    } else {
+      sezione = 'Altri Club';
+    }
+  }
+
+  return { categoria, sezione };
+}
+
+async function assicuraEsistenzaSquadreServer(products, supabase) {
+  if (!Array.isArray(products) || products.length === 0) {
+    return { create: 0, collegate: 0 };
+  }
+
+  let existingTeamsList = [];
+  if (supabase) {
+    try {
+      const { data: dbTeams, error: teamsError } = await supabase.from('teams').select('id, name, categoria, sezione');
+      if (!teamsError && dbTeams) {
+        existingTeamsList = dbTeams;
+      }
+    } catch (e) {
+      console.warn("⚠️ Errore lettura teams su Supabase in assicuraEsistenzaSquadreServer:", e.message);
+    }
+  }
+  
+  if (existingTeamsList.length === 0) {
+    existingTeamsList = getLocalTeams();
+  }
+
+  const squadreDaCreareMap = new Map();
+  let collegate = 0;
+
+  for (const p of products) {
+    if (!p.squadra || typeof p.squadra !== 'string') continue;
+    const squadTrim = p.squadra.trim();
+    if (!squadTrim || squadTrim === 'Sconosciuta' || squadTrim === 'SQUADRA NON RICONOSCIUTA') continue;
+
+    const matchedTeam = trovaSquadraCorrispondenteServer(squadTrim, existingTeamsList);
+    if (matchedTeam) {
+      p.squadra = matchedTeam.name;
+      collegate++;
+    } else {
+      const normKey = normalizzaNomeSquadraServer(squadTrim);
+      if (!squadreDaCreareMap.has(normKey)) {
+        const { categoria, sezione } = determinaCategoriaESezioneSquadraServer(squadTrim, p);
+        squadreDaCreareMap.set(normKey, {
+          name: squadTrim,
+          categoria,
+          sezione,
+          created_at: new Date().toISOString()
+        });
+      }
+    }
+  }
+
+  const nuoveSquadre = Array.from(squadreDaCreareMap.values());
+  let create = 0;
+
+  if (nuoveSquadre.length > 0) {
+    console.log(`[TEAMS_AUTO_REG] Rilevate ${nuoveSquadre.length} nuove squadre da inserire:`, nuoveSquadre.map(t => `${t.name} (${t.categoria} - ${t.sezione})`));
+    
+    if (supabase) {
+      try {
+        const { data: insertedData, error: insertError } = await supabase
+          .from('teams')
+          .insert(nuoveSquadre)
+          .select();
+
+        if (insertError) {
+          console.error("⚠️ Errore inserimento Supabase nuove squadre:", insertError.message);
+          const local = getLocalTeams();
+          saveLocalTeams([...local, ...nuoveSquadre]);
+          nuoveSquadre.forEach(t => existingTeamsList.push(t));
+          create = nuoveSquadre.length;
+        } else if (insertedData) {
+          create = insertedData.length;
+          insertedData.forEach(t => existingTeamsList.push(t));
+        }
+      } catch (e) {
+        console.error("⚠️ Eccezione inserimento Supabase nuove squadre:", e.message);
+        const local = getLocalTeams();
+        saveLocalTeams([...local, ...nuoveSquadre]);
+        nuoveSquadre.forEach(t => existingTeamsList.push(t));
+        create = nuoveSquadre.length;
+      }
+    } else {
+      const local = getLocalTeams();
+      saveLocalTeams([...local, ...nuoveSquadre]);
+      nuoveSquadre.forEach(t => existingTeamsList.push(t));
+      create = nuoveSquadre.length;
+    }
+
+    // Invalida immediatamente le cache
+    invalidateProductsCache();
+
+    // Ricollega i prodotti
+    for (const p of products) {
+      if (!p.squadra || typeof p.squadra !== 'string') continue;
+      const squadTrim = p.squadra.trim();
+      const matchedTeam = trovaSquadraCorrispondenteServer(squadTrim, existingTeamsList);
+      if (matchedTeam) {
+        p.squadra = matchedTeam.name;
+        collegate++;
+      }
+    }
+  }
+
+  return { create, collegate };
+}
+
 // POST /api/settings/products/import - Importa array di prodotti direttamente con validazione
 app.post('/api/settings/products/import', async (req, res) => {
   try {
@@ -4157,6 +4435,10 @@ app.post('/api/settings/products/import', async (req, res) => {
     }
 
     const supabase = getSupabaseClient();
+
+    // Assicura l'esistenza automatica delle squadre mancanti prima della validazione
+    await assicuraEsistenzaSquadreServer(products, supabase);
+
     const { squadreValide, campionatiValidi } = await ottieniListeValidazione(supabase);
 
     // Recupera la lista di tutte le squadre già presenti nel database per la normalizzazione
@@ -4351,72 +4633,8 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
 
     const supabase = getSupabaseClient();
 
-    // -- AUTO-REGISTRATION OF UNKNOWN TEAMS TO DB --
-    // Before validating products, check if there are any squads in the batch that are not yet in the teams database.
-    // If we find them, automatically add them to the teams table (and local file) with their championship and category.
-    // This reduces manual user work and ensures product validation always succeeds!
-    try {
-      let existingTeamNames = [];
-      let existingTeamsList = [];
-      if (supabase) {
-        const { data: dbTeams, error: teamsError } = await supabase.from('teams').select('name, categoria, sezione');
-        if (!teamsError && dbTeams) {
-          existingTeamsList = dbTeams;
-          existingTeamNames = dbTeams.map(t => t.name.toLowerCase().trim());
-        }
-      } else {
-        existingTeamsList = getLocalTeams();
-        existingTeamNames = existingTeamsList.map(t => t.name.toLowerCase().trim());
-      }
-
-      const teamsToCreate = [];
-      const createdTeamNames = new Set(existingTeamNames);
-
-      for (const p of products) {
-        if (!p.squadra || p.squadra === 'Sconosciuta' || p.squadra.trim() === '') continue;
-        const squadTrim = p.squadra.trim();
-        const squadLower = squadTrim.toLowerCase();
-        
-        if (!createdTeamNames.has(squadLower)) {
-          // Determine category based on league or category field
-          let teamCat = 'Club';
-          const campVal = (p.campionato || '').toLowerCase().trim();
-          const catVal = (p.categoria || '').toLowerCase().trim();
-          
-          if (campVal === 'nazionali' || campVal === 'mondiali' || catVal === 'nazionali') {
-            teamCat = 'Nazionali';
-          } else if (campVal === 'nba' || catVal === 'nba') {
-            teamCat = 'NBA';
-          }
-          
-          const newTeam = {
-            name: squadTrim,
-            categoria: teamCat,
-            sezione: p.campionato || 'Serie A'
-          };
-          
-          teamsToCreate.push(newTeam);
-          createdTeamNames.add(squadLower);
-        }
-      }
-
-      if (teamsToCreate.length > 0) {
-        if (supabase) {
-          const { error: insertTeamsError } = await supabase.from('teams').insert(teamsToCreate);
-          if (insertTeamsError) {
-            console.error("⚠️ Errore inserimento squadre mancanti in import_batch:", insertTeamsError.message);
-          } else {
-            console.log(`[IMPORT_BATCH] Auto-created ${teamsToCreate.length} missing teams in Supabase teams table.`);
-          }
-        } else {
-          const localTeams = getLocalTeams();
-          saveLocalTeams([...localTeams, ...teamsToCreate]);
-          console.log(`[IMPORT_BATCH] Auto-created ${teamsToCreate.length} missing teams in local JSON.`);
-        }
-      }
-    } catch (teamRegErr) {
-      console.error("⚠️ Errore durante l'auto-registrazione delle squadre:", teamRegErr.message);
-    }
+    // -- GESTIONE AUTOMATICA DELLE SQUADRE MANCANTI DURANTE L'IMPORTAZIONE --
+    await assicuraEsistenzaSquadreServer(products, supabase);
 
     const { squadreValide, campionatiValidi } = await ottieniListeValidazione(supabase);
 
@@ -4624,6 +4842,8 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
         }
       }
     }
+
+    invalidateProductsCache();
 
     return res.json({
       success: true,
@@ -7021,11 +7241,11 @@ function invalidateLottoCache() {
 
 async function recalculateCurrentLotto(force = false) {
   const now = Date.now();
-  if (!force && cachedLottoResult && (now - lastLottoRecalcTime < 3000)) {
+  if (!force && cachedLottoResult && (now - lastLottoRecalcTime < 15000)) {
     return cachedLottoResult;
   }
   return runWithLottoLock(async () => {
-    if (!force && cachedLottoResult && (Date.now() - lastLottoRecalcTime < 3000)) {
+    if (!force && cachedLottoResult && (Date.now() - lastLottoRecalcTime < 15000)) {
       return cachedLottoResult;
     }
     cachedLottoResult = await recalculateCurrentLottoInternal();
@@ -7742,6 +7962,7 @@ app.post('/api/teams', async (req, res) => {
     }
 
     const createdTeam = data ? data[0] : null;
+    invalidateProductsCache();
     return res.json({ success: true, team: createdTeam || { name: nameNorm, categoria: categoriaNorm, sezione: finalSezione } });
   } catch (err) {
     console.error("⚠️ Errore POST /api/teams:", err.message);
@@ -7788,6 +8009,7 @@ app.put('/api/teams', async (req, res) => {
       updatedCount = updatedProds.length;
     }
 
+    invalidateProductsCache();
     return res.json({ success: true, count: updatedCount });
   } catch (err) {
     console.error("⚠️ Errore PUT /api/teams:", err.message);
@@ -7818,6 +8040,7 @@ app.delete('/api/teams', async (req, res) => {
       throw error;
     }
 
+    invalidateProductsCache();
     return res.json({ success: true });
   } catch (err) {
     console.error("⚠️ Errore DELETE /api/teams:", err.message);
@@ -10907,7 +11130,7 @@ app.post('/api/coupons/validate', async (req, res) => {
         } catch (e) {}
       }
       supplier_cost_eur = calcolaCostoFornitoreEur(carrello, exchangeRate, allDbProducts);
-      discount = 0;
+      discount = Math.max(0, Number((subtotal_eur - supplier_cost_eur).toFixed(2)));
     }
     
     return res.json({
@@ -12440,6 +12663,7 @@ app.post('/api/orders', async (req, res) => {
             const exRate = await getLiveOrSettingsExchangeRate(settings);
             supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts);
             isSupplierCoupon = true;
+            discount_eur = Math.max(0, Number((subtotal_eur - supplierCostEur).toFixed(2)));
           }
           
           await incrementCouponUsage(c.code);
@@ -12448,8 +12672,7 @@ app.post('/api/orders', async (req, res) => {
     }
 
     if (isSupplierCoupon) {
-      totale_pagato_cliente = supplierCostEur;
-      discount_eur = 0;
+      totale_pagato_cliente = Math.max(0, totale_pagato_cliente - discount_eur);
     } else if (discount_eur > 0) {
       totale_pagato_cliente = Math.max(0, totale_pagato_cliente - discount_eur);
     }
@@ -12600,8 +12823,8 @@ app.post('/api/orders', async (req, res) => {
             }
           }
 
-          // Se l'ordine complessivo riporta una fornitura ed è un articolo convenzione (o contrassegnato con prezzo concordato)
-          if (!squadraRef && !codiceRef && (item.ha_prezzo_concordato || (req.body && (req.body.codice_fornitura || req.body.torneo_squadra_id) && item.fornitura))) {
+          // Se l'ordine complessivo riporta una fornitura ed è un articolo convenzione
+          if (!squadraRef && !codiceRef && ((req.body && (req.body.codice_fornitura || req.body.torneo_squadra_id) && item.fornitura))) {
             squadraRef = req.body.squadra_id || req.body.torneo_squadra_id || null;
             codiceRef = req.body.codice_fornitura || req.body.fornitura_codice || null;
           }
@@ -12934,7 +13157,7 @@ console.log("=================================");
         let shipping = 0;
         carrello.forEach(item => {
           const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-          const isFornitura = Boolean(item.fornitura || item.ha_prezzo_concordato);
+          const isFornitura = Boolean(item.fornitura);
           // Per la convenzione torneo, l'importo al cliente al checkout è €0 (Incluso nella convenzione)
           const itemPrezzo = isFornitura ? 0 : ((Number(item.prezzo) || 0) * (Number(item.quantita) || 1));
           if (isSpedizione) {
@@ -12951,13 +13174,13 @@ console.log("=================================");
           admin_order_id: insertedAdminOrder.id,
           subtotal: subtotal,
           shipping: shipping,
-          total: isSupplierCoupon ? supplierCostEur : total - discount_eur, // Apply the actual coupon discount or supplier cost
+          total: isSupplierCoupon ? Number((supplierCostEur + shipping).toFixed(2)) : total - discount_eur, // Apply the actual coupon discount or supplier cost + shipping
           payment_status: 'pending',
           status: 'Ordine Ricevuto',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           coupon_code: coupon_code || null,
-          coupon_discount: isSupplierCoupon ? 0 : discount_eur,
+          coupon_discount: discount_eur,
           coupon_type: coupon_type || null,
           coupon_value: coupon_value !== undefined ? Number(coupon_value) : null
         };
@@ -13010,7 +13233,7 @@ console.log("=================================");
               stagione: matchedProd ? matchedProd.stagione : '2026/2027',
               taglia: item.taglia || '-',
               personalizzazione: item.infoPerso || 'No',
-              prezzo: (item.fornitura || item.ha_prezzo_concordato) ? 0 : (Number(item.prezzo) || 0),
+              prezzo: item.fornitura ? 0 : (Number(item.prezzo) || 0),
               quantita: Number(item.quantita) || 1
             });
           }
@@ -14684,7 +14907,10 @@ app.post('/api/admin/clienti/notes', async (req, res) => {
 // 7. GET /api/admin/statistiche
 app.get('/api/admin/statistiche', async (req, res) => {
   try {
-    const orders = await getDbOrdersMerged();
+    const [orders, catalogoCounts] = await Promise.all([
+      getDbOrdersMerged(),
+      getProductsCatalogCounts()
+    ]);
     
     const ora = new Date();
     const oggiStr = ora.toLocaleDateString('it-IT');
@@ -14780,7 +15006,13 @@ app.get('/api/admin/statistiche', async (req, res) => {
         clientiAbituali,
         topProdotti,
         topCategorie,
-        andamentoSerie
+        andamentoSerie,
+        totaleProdotti: catalogoCounts.totaleProdotti,
+        prodottiSenzaFornitore: catalogoCounts.senzaFornitore
+      },
+      catalogo: {
+        totaleProdotti: catalogoCounts.totaleProdotti,
+        senzaFornitore: catalogoCounts.senzaFornitore
       }
     });
   } catch (err) {

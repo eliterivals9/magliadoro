@@ -828,30 +828,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     inizializzaFormProdotto();
     inizializzaLottoAction();
 
-    // 3. Caricamento essenziale per mostrare subito qualcosa (Dashboard)
+    // 3. Caricamento essenziale per mostrare immediatamente la Dashboard (FASE 1 - IMMEDIATA)
     try {
         await Promise.all([
             typeof caricaSquadre === 'function' ? caricaSquadre() : Promise.resolve(),
-            typeof caricaSettings === 'function' ? caricaSettings() : Promise.resolve()
+            typeof caricaSettings === 'function' ? caricaSettings() : Promise.resolve(),
+            typeof caricaStatisticheDashboard === 'function' ? caricaStatisticheDashboard() : Promise.resolve(),
+            typeof caricaLotto === 'function' ? caricaLotto() : Promise.resolve(),
+            typeof caricaOrdini === 'function' ? caricaOrdini(3, { skipRender: true }) : Promise.resolve(),
+            typeof caricaSuddivisioneConti === 'function' ? caricaSuddivisioneConti() : Promise.resolve()
         ]);
         
-        // Carica dati dashboard prima di tutto
-        await aggiornaStatisticheDashboard();
+        // Calcola e popola immediatamente tutti i 13 KPI della Dashboard
+        aggiornaStatisticheDashboard(true);
+        aggiornaStatisticheLottoCorrente();
         
         // Imposta la tab iniziale rapidamente
         switchTab('dashboard');
     } catch (e) {
-        console.error("Errore caricamento essenziale:", e);
+        console.error("Errore caricamento essenziale Dashboard:", e);
     }
-
-    // 4. Caricamento completo in background o lazy
-    setTimeout(async () => {
-        try {
-            await caricaDati();
-        } catch (e) {
-            console.error("Errore caricamento dati completi:", e);
-        }
-    }, 100);
 });
 
 /**
@@ -1329,18 +1325,29 @@ function inizializzaLottoAction() {
     }
 }
 
-async function caricaSquadre() {
-    try {
-        const res = await fetch('/api/teams');
-        if (res.ok) {
-            const data = await res.json();
-            if (data && data.success) {
-                squadreCatalogo = data.teams || [];
-            }
-        }
-    } catch (e) {
-        console.error("Errore durante il caricamento delle squadre centrali:", e);
+let teamsFetchPromise = null;
+async function caricaSquadre(force = false) {
+    if (!force && Array.isArray(squadreCatalogo) && squadreCatalogo.length > 0) {
+        return squadreCatalogo;
     }
+    if (teamsFetchPromise) return teamsFetchPromise;
+    teamsFetchPromise = (async () => {
+        try {
+            const res = await fetch('/api/teams');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success) {
+                    squadreCatalogo = data.teams || [];
+                }
+            }
+        } catch (e) {
+            console.error("Errore durante il caricamento delle squadre centrali:", e);
+        } finally {
+            teamsFetchPromise = null;
+        }
+        return squadreCatalogo;
+    })();
+    return teamsFetchPromise;
 }
 
 function aggiornaCategorieSelezionabili() {
@@ -1492,19 +1499,41 @@ async function creaSquadraDaForm() {
 }
 window.creaSquadraDaForm = creaSquadraDaForm;
 
+let isProdottiLoaded = false;
+let isProdottiLoading = false;
+
 /**
- * Carica tutti i prodotti da Supabase e aggiorna l'UI
+ * Carica tutti i prodotti da Supabase su richiesta (Lazy Loading per la tab Prodotti)
  */
-async function caricaDati() {
-    await caricaSquadre();
-    if (typeof aggiornaCategorieSelezionabili === 'function') {
-        aggiornaCategorieSelezionabili();
+async function caricaProdotti(force = false) {
+    if (isProdottiLoaded && !force && Array.isArray(prodotti) && prodotti.length > 0) {
+        return prodotti;
     }
-    // Carica impostazioni all'avvio per valorizzare i default e le opzioni
-    if (typeof caricaSettings === 'function') {
-        await caricaSettings();
+    if (isProdottiLoading) {
+        while (isProdottiLoading) {
+            await new Promise(r => setTimeout(r, 50));
+        }
+        return prodotti;
     }
+    isProdottiLoading = true;
     try {
+        const tableBody = document.getElementById('products-table-body');
+        if (tableBody && (!Array.isArray(prodotti) || prodotti.length === 0)) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="px-6 py-12 text-center text-slate-400 font-medium">
+                        <div class="inline-flex items-center gap-3">
+                            <svg class="animate-spin h-5 w-5 text-brand-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Caricamento catalogo prodotti in corso...
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
         const startTime = Date.now();
         const supabase = await window.getSupabaseClient();
         
@@ -1545,7 +1574,6 @@ async function caricaDati() {
         const elapsed = Date.now() - startTime;
         console.log(`Caricamento completato con successo in ${elapsed}ms`);
         console.log("Totale prodotti caricati da Supabase:", allProductsRaw.length);
-        console.log(allProductsRaw);
         
         prodotti = allProductsRaw.map(p => ({
             id: p.id,
@@ -1563,7 +1591,18 @@ async function caricaDati() {
             tag: p.tag || '',
             tipo: p.tipo || ''
         }));
-        console.log("Prodotti salvati nell'array locale:", prodotti.length);
+        isProdottiLoaded = true;
+
+        // Popola le opzioni dinamiche per i select dei filtri
+        if (typeof generaOpzioniFiltri === 'function') {
+            generaOpzioniFiltri();
+        }
+
+        // Aggiorna le statistiche della dashboard
+        aggiornaStatisticheDashboard(true);
+
+        // Renderizza i prodotti in tabella
+        renderProdotti();
     } catch (err) {
         console.error("Chiamata a Supabase fallita o interrotta:", err);
         if (err && err.code) {
@@ -1572,30 +1611,34 @@ async function caricaDati() {
             console.log("SUPABASE ERROR DETAILS:", err.details);
             console.log("SUPABASE ERROR HINT:", err.hint);
         }
-        prodotti = [];
+    } finally {
+        isProdottiLoading = false;
+    }
+    return prodotti;
+}
+
+/**
+ * Ricarica i dati del catalogo e sincronizza lo stato (compatibilità con azioni Admin)
+ */
+async function caricaDati() {
+    if (!Array.isArray(squadreCatalogo) || squadreCatalogo.length === 0) {
+        await caricaSquadre();
+    }
+    if (typeof aggiornaCategorieSelezionabili === 'function') {
+        aggiornaCategorieSelezionabili();
+    }
+    if (!window.appSettings || Object.keys(window.appSettings).length === 0) {
+        if (typeof caricaSettings === 'function') {
+            await caricaSettings();
+        }
     }
 
-    // Popola le opzioni dinamiche per i select dei filtri
-    generaOpzioniFiltri();
-
-    // Aggiorna le statistiche della dashboard
-    aggiornaStatisticheDashboard();
-
-    // Renderizza i prodotti in tabella
-    renderProdotti();
-
-    // Carica le info del lotto corrente
+    await caricaProdotti(true);
     await caricaLotto();
-
-    // Carica tutti gli ordini registrati
     await caricaOrdini();
-
-    // Carica la suddivisione profitto e allinea i flussi finanziari
     if (typeof caricaSuddivisioneConti === 'function') {
         await caricaSuddivisioneConti();
     }
-
-    // Carica la cronologia dei lotti archiviati
     await caricaCronologiaLotti();
 }
 
@@ -1712,6 +1755,12 @@ async function caricaCronologiaLotti() {
 function renderCronologiaLotti() {
     const tbody = document.getElementById('lotti-archive-table-body');
     if (!tbody) return;
+
+    // Se la sezione lotti è nascosta, evita calcoli pesanti e rendering DOM superfluo
+    const sectionLotto = document.getElementById('section-lotto');
+    if (sectionLotto && sectionLotto.classList.contains('hidden')) {
+        return;
+    }
 
     if (cronologiaLotti.length === 0) {
         tbody.innerHTML = `
@@ -2431,6 +2480,26 @@ function calcolaIncassoEffettivo(incassoBase, profitDataOrSummary = profitSplitD
 }
 window.calcolaIncassoEffettivo = calcolaIncassoEffettivo;
 
+let windowDashboardStats = null;
+
+async function caricaStatisticheDashboard() {
+    try {
+        const res = await fetch('/api/admin/statistiche');
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.success) {
+                windowDashboardStats = {
+                    ...(data.stats || {}),
+                    totaleProdotti: (data.catalogo && data.catalogo.totaleProdotti !== undefined) ? data.catalogo.totaleProdotti : (data.stats && data.stats.totaleProdotti !== undefined ? data.stats.totaleProdotti : 0),
+                    prodottiSenzaFornitore: (data.catalogo && data.catalogo.senzaFornitore !== undefined) ? data.catalogo.senzaFornitore : (data.stats && data.stats.prodottiSenzaFornitore !== undefined ? data.stats.prodottiSenzaFornitore : 0)
+                };
+            }
+        }
+    } catch (e) {
+        console.warn("⚠️ Impossibile caricare /api/admin/statistiche:", e.message || e);
+    }
+}
+
 let lastDashboardUpdate = 0;
 function aggiornaStatisticheDashboard(force = false) {
     if (!force && (Date.now() - lastDashboardUpdate < 5000)) return;
@@ -2438,14 +2507,24 @@ function aggiornaStatisticheDashboard(force = false) {
     // Totale prodotti
     const totProdottiEl = document.getElementById('stats-totale-prodotti');
     if (totProdottiEl) {
-        totProdottiEl.innerText = prodotti.length;
+        if (Array.isArray(prodotti) && prodotti.length > 0) {
+            totProdottiEl.innerText = prodotti.length;
+        } else if (windowDashboardStats && typeof windowDashboardStats.totaleProdotti === 'number') {
+            totProdottiEl.innerText = windowDashboardStats.totaleProdotti;
+        }
     }
 
     // Senza prezzo fornitore
     const senzaFornitoreEl = document.getElementById('stats-senza-fornitore');
     if (senzaFornitoreEl) {
-        const countSenzaFornitore = prodotti.filter(p => p.prezzo_fornitore === null || p.prezzo_fornitore === undefined || p.prezzo_fornitore === "" || p.prezzo_fornitore === 0).length;
-        senzaFornitoreEl.innerText = countSenzaFornitore;
+        if (Array.isArray(prodotti) && prodotti.length > 0) {
+            const countSenzaFornitore = prodotti.filter(p => p.prezzo_fornitore === null || p.prezzo_fornitore === undefined || p.prezzo_fornitore === "" || p.prezzo_fornitore === 0).length;
+            senzaFornitoreEl.innerText = countSenzaFornitore;
+        } else if (windowDashboardStats && typeof windowDashboardStats.prodottiSenzaFornitore === 'number') {
+            senzaFornitoreEl.innerText = windowDashboardStats.prodottiSenzaFornitore;
+        } else if (windowDashboardStats && typeof windowDashboardStats.senzaFornitore === 'number') {
+            senzaFornitoreEl.innerText = windowDashboardStats.senzaFornitore;
+        }
     }
 
     // Ordini Attivi (Lotto Corrente)
@@ -3214,6 +3293,12 @@ window.renderRigaProdotto = renderRigaProdotto;
 function renderProdotti() {
     const tableBody = document.getElementById('products-table-body');
     if (!tableBody) return;
+
+    // Se la sezione prodotti è nascosta, evita calcoli pesanti e rendering DOM superfluo
+    const sectionProdotti = document.getElementById('section-prodotti');
+    if (sectionProdotti && sectionProdotti.classList.contains('hidden')) {
+        return;
+    }
 
     // Assicura l'inizializzazione dell'event delegation sul tbody stabile
     inizializzaDelegazioneEventiTabellaProdotti();
@@ -4676,7 +4761,22 @@ function switchTab(tabId, preserveSelectionMode = false) {
     }
 
     // Caricamento dati contestuale alla tab attiva
-    if (tabId === 'impostazioni' || tabId === 'gestione-catalogo') {
+    if (tabId === 'dashboard') {
+        aggiornaStatisticheDashboard();
+        aggiornaStatisticheLottoCorrente();
+    } else if (tabId === 'prodotti') {
+        if (!isProdottiLoaded) {
+            caricaProdotti();
+        } else {
+            renderProdotti();
+        }
+    } else if (tabId === 'ordini') {
+        if (!ordini || ordini.length === 0) {
+            caricaOrdini();
+        } else {
+            renderOrdini();
+        }
+    } else if (tabId === 'impostazioni' || tabId === 'gestione-catalogo') {
         if (typeof caricaSettings === 'function') {
             caricaSettings();
         }
@@ -5461,6 +5561,12 @@ function renderOrdini() {
     const subtabsEl = document.getElementById('ordini-subtabs-container');
     if (!cardsContainer) return;
 
+    // Se la sezione ordini è nascosta, evita calcoli pesanti e rendering DOM superfluo
+    const sectionOrdini = document.getElementById('section-ordini');
+    if (sectionOrdini && sectionOrdini.classList.contains('hidden')) {
+        return;
+    }
+
     const isSelectionMode = orderSelectionMode === 'profitSplit';
 
     // Gestione visuale del banner e sotto-tab
@@ -5581,7 +5687,7 @@ function renderOrdini() {
         const torneoNome = order.torneo_nome || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.torneo_nome)?.fornitura?.torneo_nome) || (order.torneo_id ? `Torneo ${order.torneo_id}` : null);
         const nomeSquadraConv = order.nome_squadra || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || null;
         const codiceConv = order.codice_univoco || order.codice_fornitura || (Array.isArray(order.carrello) && order.carrello.find(it => it && it.fornitura && it.fornitura.codice_univoco)?.fornitura?.codice_univoco) || null;
-        const isConvenzioneTorneo = Boolean(order.is_convenzione || codiceConv || capitanoNome || (Array.isArray(order.carrello) && order.carrello.some(it => it && (it.fornitura || it.ha_prezzo_concordato || it.torneo_id))));
+        const isConvenzioneTorneo = Boolean(order.is_convenzione || codiceConv || (Array.isArray(order.carrello) && order.carrello.some(it => it && (it.fornitura || it.torneo_id))));
 
         // Gestione stili e badge per modalità standard vs selezione
         let statusBadgeHTML = '';
@@ -5691,8 +5797,8 @@ function renderOrdini() {
                                 </div>
                                 ${codiceConv ? `<span class="text-[10px] font-mono font-bold px-2 py-0.5 bg-amber-900/40 text-amber-300 border border-amber-500/30 rounded">Cod: ${codiceConv}</span>` : ''}
                             </div>
-                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Torneo:</span> <strong class="text-white">${torneoNome || 'Etna Gold'}</strong></div>
-                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Squadra:</span> <strong class="text-white">${nomeSquadraConv || 'FC Sergio'}</strong></div>
+                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Torneo:</span> <strong class="text-white">${torneoNome || 'Non specificato'}</strong></div>
+                            <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Squadra:</span> <strong class="text-white">${nomeSquadraConv || 'Non specificato'}</strong></div>
                             <div class="text-xs text-white pt-1 border-t border-amber-500/20"><span class="font-bold text-amber-400">👑 CAPITANO:</span> <strong class="text-white">${capitanoNome || nomeCliente}</strong></div>
                             <div class="text-xs text-white"><span class="font-bold text-amber-400">📞 TEL. CAPITANO:</span> <span class="font-mono text-white">${capitanoTel || telefonoCliente}</span></div>
                             <div class="text-xs text-white"><span class="font-bold text-[rgba(255,255,255,0.7)]">Prodotti totali:</span> <strong class="text-emerald-400 font-mono">${numArticoli} completini</strong></div>
@@ -5860,21 +5966,32 @@ function renderOrdini() {
 /**
  * Carica le impostazioni dal server e popola l'UI
  */
-async function caricaSettings() {
-    try {
-        const res = await fetch('/api/settings');
-        if (res.ok) {
-            const ct = res.headers.get('content-type') || '';
-            if (!ct.includes('application/json')) return;
-            const data = await res.json();
-            if (data.success && data.settings) {
-                window.appSettings = data.settings;
-                popolaSettingsUI();
-            }
-        }
-    } catch (e) {
-        console.warn("Errore nel caricamento delle impostazioni:", e.message || e);
+let settingsFetchPromise = null;
+async function caricaSettings(force = false) {
+    if (!force && window.appSettings && Object.keys(window.appSettings).length > 0) {
+        return window.appSettings;
     }
+    if (settingsFetchPromise) return settingsFetchPromise;
+    settingsFetchPromise = (async () => {
+        try {
+            const res = await fetch('/api/settings');
+            if (res.ok) {
+                const ct = res.headers.get('content-type') || '';
+                if (!ct.includes('application/json')) return window.appSettings;
+                const data = await res.json();
+                if (data.success && data.settings) {
+                    window.appSettings = data.settings;
+                    popolaSettingsUI();
+                }
+            }
+        } catch (e) {
+            console.warn("Errore nel caricamento delle impostazioni:", e.message || e);
+        } finally {
+            settingsFetchPromise = null;
+        }
+        return window.appSettings;
+    })();
+    return settingsFetchPromise;
 }
 
 /**
@@ -9272,8 +9389,13 @@ function validaProdotto(p) {
         pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
     )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
 
-    if (!p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA' || !isTeamInDb || p.squadra_non_presente) {
-        errori.push("Squadra non presente nel database");
+    p.squadra_nuova_auto = false;
+
+    if (!p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA') {
+        errori.push("Squadra mancante o non riconosciuta");
+    } else if (!isTeamInDb) {
+        // La squadra verrà creata e collegata automaticamente durante l'importazione
+        p.squadra_nuova_auto = true;
     }
     const catsPrezzi = getListaCategorieRegolePrezzi();
     const rulesImport = typeof getRegoleImportazioneJson === 'function' ? getRegoleImportazioneJson() : [];
@@ -9295,11 +9417,18 @@ function validaProdotto(p) {
         ...sezioniDb
     ]));
     if (!p.campionato || p.campionato.trim() === '' || p.campionato === 'SQUADRA NON RICONOSCIUTA') {
-        errori.push("Campionato non riconosciuto");
+        if (p.categoria && p.categoria.toLowerCase().includes('nazion')) {
+            p.campionato = 'Europa';
+        } else {
+            p.campionato = 'Altri Club';
+        }
     } else {
         const foundCamp = campionatiValidi.some(l => l.toLowerCase() === p.campionato.trim().toLowerCase());
         if (!foundCamp) {
-            errori.push("Campionato non supportato");
+            // Se non è in lista fissa ma è una stringa valida, la consideriamo valida per le nuove squadre
+            if (!p.campionato.trim()) {
+                errori.push("Campionato non supportato");
+            }
         }
     }
 
@@ -9613,7 +9742,9 @@ function renderAnteprimaTabella() {
             pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
         )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
 
-        const teamErr = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA' || !isTeamInDb || p.squadra_non_presente;
+        const teamEmpty = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA';
+        const isNewTeamAuto = !teamEmpty && !isTeamInDb;
+        const teamErr = teamEmpty;
         const campErr = !p.campionato || p.campionato.trim() === '' || !listCampionati.some(l => l.toLowerCase() === p.campionato.trim().toLowerCase());
         const idErr = !p.legacy_id || p.legacy_id === '';
 
@@ -9657,15 +9788,22 @@ function renderAnteprimaTabella() {
                     <div class="space-y-1.5 min-w-[210px]">
                         <input type="text" list="datalist-squadre" value="${escapeHtml(p.squadra || '')}" 
                             onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'squadra', this.value)"
-                            class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2 border ${teamErr ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. Real Madrid">
-                        ${teamErr ? `
-                            <div class="flex items-center justify-between gap-1.5 p-1.5 bg-rose-50 border border-rose-200 rounded-lg">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 whitespace-nowrap">⚠️ SQUADRA NON PRESENTE</span>
-                                <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(p.squadra || p.squadra_candidata || '')}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all shadow-xs whitespace-nowrap cursor-pointer flex items-center gap-1">
-                                    <span>➕</span> AGGIUNGI SQUADRA
+                            class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2 border ${teamErr ? borderError : (isNewTeamAuto ? 'border-emerald-300 bg-emerald-50/30' : borderNormal)} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. Real Madrid">
+                        ${isNewTeamAuto ? `
+                            <div class="flex items-center justify-between gap-1.5 p-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <span class="text-[10px] font-bold text-emerald-800 whitespace-nowrap">✨ Nuova (auto-creazione)</span>
+                                <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(p.squadra || p.squadra_candidata || '')}')" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] rounded-md transition-all shadow-xs whitespace-nowrap cursor-pointer">
+                                    Modifica
                                 </button>
                             </div>
-                        ` : ''}
+                        ` : (teamErr ? `
+                            <div class="flex items-center justify-between gap-1.5 p-1.5 bg-rose-50 border border-rose-200 rounded-lg">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 whitespace-nowrap">⚠️ SQUADRA MANCANTE</span>
+                                <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(p.squadra || p.squadra_candidata || '')}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all shadow-xs whitespace-nowrap cursor-pointer flex items-center gap-1">
+                                    <span>➕</span> AGGIUNGI
+                                </button>
+                            </div>
+                        ` : '')}
                     </div>
                 </td>
 
@@ -10253,6 +10391,9 @@ async function eseguiImportazioneSottoConferma() {
                 if (typeof caricaDati === 'function') {
                     await caricaDati();
                 }
+                if (typeof caricaSquadre === 'function') {
+                    await caricaSquadre();
+                }
             } else {
                 // In caso di errore o prodotti non salvati, NON chiudiamo automaticamente la finestra
                 const countImportati = result.importati || 0;
@@ -10830,28 +10971,28 @@ function aggiornaAvvisoSquadreMancanti() {
 
     const totalProdottiMancanti = mancanti.reduce((acc, m) => acc + m.count, 0);
     alertBox.innerHTML = `
-        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
             <div class="flex items-start justify-between gap-3">
                 <div class="flex items-start gap-3">
-                    <span class="text-2xl">⚠️</span>
+                    <span class="text-2xl">✨</span>
                     <div>
-                        <h4 class="text-xs font-black text-rose-900 uppercase tracking-wider">
-                            Squadre Non Presenti nel Catalogo (${mancanti.length} ${mancanti.length === 1 ? 'squadra' : 'squadre'}, ${totalProdottiMancanti} ${totalProdottiMancanti === 1 ? 'prodotto' : 'prodotti'})
+                        <h4 class="text-xs font-black text-emerald-900 uppercase tracking-wider">
+                            Nuove Squadre Rilevate (${mancanti.length} ${mancanti.length === 1 ? 'squadra' : 'squadre'}, ${totalProdottiMancanti} ${totalProdottiMancanti === 1 ? 'prodotto' : 'prodotti'})
                         </h4>
-                        <p class="text-xs text-rose-800 mt-0.5">
-                            Le seguenti squadre sono state rilevate nel file importato ma non esistono ancora nel catalogo del sito.
-                            Puoi aggiungerle cliccando su <strong>Aggiungi</strong> per riconoscerle automaticamente in tutte le righe.
+                        <p class="text-xs text-emerald-800 mt-0.5">
+                            Queste squadre non sono ancora presenti nel catalogo ma <strong>verranno create e collegate automaticamente</strong> durante l'importazione.
+                            Se desideri personalizzare la lega o la categoria di una squadra prima di importare, clicca su <strong>Modifica</strong>.
                         </p>
                     </div>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
                 ${mancanti.map(m => `
-                    <div class="inline-flex items-center gap-2 bg-white border border-rose-200 rounded-xl px-3 py-1.5 shadow-2xs">
+                    <div class="inline-flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-3 py-1.5 shadow-2xs">
                         <span class="text-xs font-bold text-slate-800">${escapeHtml(m.nome)}</span>
-                        <span class="px-1.5 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md">${m.count} ${m.count === 1 ? 'art' : 'art'}</span>
-                        <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(m.nome)}')" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all cursor-pointer">
-                            ➕ Aggiungi
+                        <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-md">${m.count} ${m.count === 1 ? 'art' : 'art'}</span>
+                        <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(m.nome)}')" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] rounded-md transition-all cursor-pointer">
+                            ✏️ Modifica
                         </button>
                     </div>
                 `).join('')}
@@ -11931,7 +12072,7 @@ function renderGestioneOrdini() {
         const nomeSquadraConv = ord.nome_squadra || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || null;
         const codiceConv = ord.codice_univoco || ord.codice_fornitura || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.codice_univoco)?.fornitura?.codice_univoco) || null;
 
-        const hasConvenzione = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || capitanoNome || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.ha_prezzo_concordato || it.torneo_id))));
+        const hasConvenzione = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.torneo_id))));
         const totCompletini = estraiNumeroArticoli(ord);
 
         // Calcolo sicuro del totale dovuto ("Totale che mi deve")
@@ -11969,8 +12110,8 @@ function renderGestioneOrdini() {
                                 <div class="flex items-center gap-1 text-[9px] font-black text-amber-900 uppercase tracking-wider">
                                     <span>🏆</span> CONVENZIONE TORNEO
                                 </div>
-                                <div class="text-[10px] text-slate-700 font-semibold"><span class="text-slate-400">Torneo:</span> ${torneoNome || 'Etna Gold'}</div>
-                                <div class="text-[10px] text-slate-700 font-semibold"><span class="text-slate-400">Squadra:</span> ${nomeSquadraConv || 'FC Sergio'}</div>
+                                <div class="text-[10px] text-slate-700 font-semibold"><span class="text-slate-400">Torneo:</span> ${torneoNome || 'Non specificato'}</div>
+                                <div class="text-[10px] text-slate-700 font-semibold"><span class="text-slate-400">Squadra:</span> ${nomeSquadraConv || 'Non specificato'}</div>
                                 ${codiceConv ? `<div class="text-[10px] text-amber-800 font-mono font-bold"><span class="text-slate-400 font-sans">Codice:</span> ${codiceConv}</div>` : ''}
                                 <div class="text-[10px] text-emerald-700 font-mono font-bold"><span class="text-slate-400 font-sans">Totale:</span> ${totCompletini} completini</div>
                             </div>
@@ -12228,17 +12369,17 @@ async function apriGestioneOrdineModal(id) {
 
     const capitanoNome = ord.capitano_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || null;
     const capitanoTel = ord.capitano_telefono || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || null;
-    const torneoNome = ord.torneo_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.torneo_nome)?.fornitura?.torneo_nome) || (ord.torneo_id ? `Torneo ${ord.torneo_id}` : 'Etna Gold');
-    const nomeSquadraConv = ord.nome_squadra || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || 'FC Sergio';
+    const torneoNome = ord.torneo_nome || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.torneo_nome)?.fornitura?.torneo_nome) || (ord.torneo_id ? `Torneo ${ord.torneo_id}` : null);
+    const nomeSquadraConv = ord.nome_squadra || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.nome_squadra)?.fornitura?.nome_squadra) || null;
     const codiceConv = ord.codice_univoco || ord.codice_fornitura || (Array.isArray(ord.carrello) && ord.carrello.find(it => it && it.fornitura && it.fornitura.codice_univoco)?.fornitura?.codice_univoco) || null;
-    const isConv = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || capitanoNome || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.ha_prezzo_concordato || it.torneo_id))));
+    const isConv = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.torneo_id))));
     const totCompletini = estraiNumeroArticoli(ord);
 
     if (convBox) {
         if (isConv) {
             if (convCodiceEl) convCodiceEl.innerText = codiceConv || 'N/D';
-            if (convTorneoEl) convTorneoEl.innerText = torneoNome || 'Etna Gold';
-            if (convSquadraEl) convSquadraEl.innerText = nomeSquadraConv || 'FC Sergio';
+            if (convTorneoEl) convTorneoEl.innerText = torneoNome || 'Non specificato';
+            if (convSquadraEl) convSquadraEl.innerText = nomeSquadraConv || 'Non specificato';
             if (convTotCompletiniEl) convTotCompletiniEl.innerText = `${totCompletini} completini`;
             if (convCapNomeEl) convCapNomeEl.innerText = capitanoNome || 'Non specificato';
             if (convCapTelEl) convCapTelEl.innerText = capitanoTel || 'N/D';
@@ -12348,7 +12489,7 @@ function renderProdottiModificabili() {
         const prezzoForn = parseFloat(item.prezzo_fornitore) || 14.50;
 
         const fObj = item.fornitura && typeof item.fornitura === 'object' ? item.fornitura : {};
-        const isFornitura = Boolean(item.fornitura || item.ha_prezzo_concordato || item.torneo_id || fObj.torneo_id);
+        const isFornitura = Boolean(item.fornitura || item.torneo_id || fObj.torneo_id);
         const torneoNome = fObj.torneo_nome || item.torneo_nome || 'Torneo';
         const squadraNome = fObj.nome_squadra || item.nome_squadra || squadra;
         const codiceUnivoco = fObj.codice_univoco || item.codice_univoco || item.codice_fornitura || '';
