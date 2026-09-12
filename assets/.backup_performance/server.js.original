@@ -132,37 +132,7 @@ app.use((req, res, next) => {
 // Serve custom uploaded files
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Rotte dirette e middleware per le aree amministrative (No-Cache aggressivo + Auto-Versioning automatico)
-app.use('/admin', (req, res, next) => {
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  next();
-});
-
-app.get(['/admin', '/admin/', '/admin/index.html'], (req, res) => {
-  try {
-    const adminHtmlPath = path.join(__dirname, 'admin', 'index.html');
-    const adminJsPath = path.join(__dirname, 'admin', 'admin.js');
-    let htmlContent = fs.readFileSync(adminHtmlPath, 'utf8');
-    
-    let adminJsVersion = '1.0.0';
-    if (fs.existsSync(adminJsPath)) {
-      adminJsVersion = String(Math.floor(fs.statSync(adminJsPath).mtimeMs));
-    }
-    
-    htmlContent = htmlContent.replace(/src="\/admin\/admin\.js(\?v=[^"]*)?"/g, `src="/admin/admin.js?v=${adminJsVersion}"`);
-    
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    return res.send(htmlContent);
-  } catch (err) {
-    return res.sendFile(path.join(__dirname, 'admin', 'index.html'));
-  }
-});
-
+// Rotte dirette per le aree amministrative (supporta accesso con o senza slash finale)
 app.get(['/admin/accessori', '/admin/accessori/'], (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
 });
@@ -2962,8 +2932,7 @@ const DEFAULT_SETTINGS = {
     "Polo": 26.99,
     "Smanicato": 26.99,
     "Maniche Lunghe": 25.99,
-    "Kit Bambino": 19.99,
-    "Portiere": 26.99
+    "Kit Bambino": 19.99
   },
   regolePrezzi: {
     "Kit_Adulto": 26.99,
@@ -2985,9 +2954,7 @@ const DEFAULT_SETTINGS = {
     "Maniche Lunghe_Adulto": 25.99,
     "Maniche Lunghe_Bambino": 21.99,
     "Kit Bambino_Adulto": 19.99,
-    "Kit Bambino_Bambino": 19.99,
-    "Portiere_Adulto": 26.99,
-    "Portiere_Bambino": 21.99
+    "Kit Bambino_Bambino": 19.99
   },
   spedizioneLotto: {
     "range1_min": 1,
@@ -3047,7 +3014,7 @@ const DEFAULT_SETTINGS = {
     { id: 'cat_smanicati', nome: 'Smanicato', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 8, stato: 'attivo' },
     { id: 'cat_maniche_lunghe', nome: 'Maniche Lunghe', prezzo_adulto: 25.99, prezzo_bambino: 21.99, ordine: 9, stato: 'attivo' },
     { id: 'cat_bambino', nome: 'Kit Bambino', prezzo_adulto: 19.99, prezzo_bambino: 19.99, ordine: 10, stato: 'attivo' },
-    { id: 'cat_portiere', nome: 'Portiere', prezzo_adulto: 26.99, prezzo_bambino: 21.99, ordine: 11, stato: 'attivo' }
+    { id: 'cat_portiere', nome: 'Portiere', ordine: 11, stato: 'attivo' }
   ],
   filtriCatalogo: [
     { id: 'fil_tutti', nome: 'Tutti', ordine: 1, stato: 'attivo' },
@@ -3096,37 +3063,11 @@ function assicuraMigrazioneCategorie(settings) {
       return {
         id: cat.id || `cat_${Date.now()}_${idx}`,
         nome: cat.nome,
-        prezzo_adulto: (regole[keyAdulto] !== undefined && Number(regole[keyAdulto]) > 0) ? parseFloat(regole[keyAdulto]) : cat.prezzo_adulto,
-        prezzo_bambino: (regole[keyBambino] !== undefined && Number(regole[keyBambino]) > 0) ? parseFloat(regole[keyBambino]) : cat.prezzo_bambino,
+        prezzo_adulto: regole[keyAdulto] !== undefined ? parseFloat(regole[keyAdulto]) : cat.prezzo_adulto,
+        prezzo_bambino: regole[keyBambino] !== undefined ? parseFloat(regole[keyBambino]) : cat.prezzo_bambino,
         ordine: idx + 1,
         stato: 'attivo'
       };
-    });
-  } else {
-    // Assicura che ogni categoria abbia tutti i campi obbligatori (id, nome, ordine, stato, prezzo_adulto, prezzo_bambino)
-    const regole = settings.regolePrezzi || {};
-    settings.categorie.forEach((cat, idx) => {
-      if (!cat.id) cat.id = `cat_${Date.now()}_${idx}`;
-      if (cat.ordine === undefined) cat.ordine = idx + 1;
-      if (!cat.stato) cat.stato = 'attivo';
-      const defCat = DEFAULT_SETTINGS.categorie.find(c => c.nome && c.nome.toLowerCase() === (cat.nome || '').toLowerCase());
-      const keyAdulto = `${cat.nome}_Adulto`;
-      const keyBambino = `${cat.nome}_Bambino`;
-
-      if (cat.prezzo_adulto === undefined || cat.prezzo_adulto === null || isNaN(Number(cat.prezzo_adulto)) || (Number(cat.prezzo_adulto) === 0 && (!regole[keyAdulto] || Number(regole[keyAdulto]) === 0))) {
-        if (regole[keyAdulto] !== undefined && Number(regole[keyAdulto]) > 0) {
-          cat.prezzo_adulto = parseFloat(regole[keyAdulto]);
-        } else if (defCat && defCat.prezzo_adulto !== undefined) {
-          cat.prezzo_adulto = defCat.prezzo_adulto;
-        }
-      }
-      if (cat.prezzo_bambino === undefined || cat.prezzo_bambino === null || isNaN(Number(cat.prezzo_bambino)) || (Number(cat.prezzo_bambino) === 0 && (!regole[keyBambino] || Number(regole[keyBambino]) === 0))) {
-        if (regole[keyBambino] !== undefined && Number(regole[keyBambino]) > 0) {
-          cat.prezzo_bambino = parseFloat(regole[keyBambino]);
-        } else if (defCat && defCat.prezzo_bambino !== undefined) {
-          cat.prezzo_bambino = defCat.prezzo_bambino;
-        }
-      }
     });
   }
   return settings;
@@ -3724,15 +3665,8 @@ app.post('/api/settings', async (req, res) => {
       if (Array.isArray(settingsCopy.categorie)) {
         settingsCopy.categorie.forEach(cat => {
           if (cat.nome) {
-            const pAdulto = (cat.prezzo_adulto !== undefined && cat.prezzo_adulto !== null && !isNaN(Number(cat.prezzo_adulto)) && Number(cat.prezzo_adulto) > 0)
-              ? parseFloat(cat.prezzo_adulto)
-              : (settingsCopy.regolePrezzi && settingsCopy.regolePrezzi[`${cat.nome}_Adulto`] ? parseFloat(settingsCopy.regolePrezzi[`${cat.nome}_Adulto`]) : 0);
-            const pBambino = (cat.prezzo_bambino !== undefined && cat.prezzo_bambino !== null && !isNaN(Number(cat.prezzo_bambino)) && Number(cat.prezzo_bambino) > 0)
-              ? parseFloat(cat.prezzo_bambino)
-              : (settingsCopy.regolePrezzi && settingsCopy.regolePrezzi[`${cat.nome}_Bambino`] ? parseFloat(settingsCopy.regolePrezzi[`${cat.nome}_Bambino`]) : 0);
-
-            if (pAdulto > 0) rulesToUpsert.push({ categoria: cat.nome, target: 'Adulto', prezzo: pAdulto });
-            if (pBambino > 0) rulesToUpsert.push({ categoria: cat.nome, target: 'Bambino', prezzo: pBambino });
+            rulesToUpsert.push({ categoria: cat.nome, target: 'Adulto', prezzo: parseFloat(cat.prezzo_adulto) || 23.99 });
+            rulesToUpsert.push({ categoria: cat.nome, target: 'Bambino', prezzo: parseFloat(cat.prezzo_bambino) || 19.99 });
           }
         });
       }
@@ -3741,10 +3675,10 @@ app.post('/api/settings', async (req, res) => {
       if (settingsCopy.regolePrezzi) {
         for (const [key, val] of Object.entries(settingsCopy.regolePrezzi)) {
           const parts = key.split('_');
-          if (parts.length === 2 && val !== undefined && val !== null && !isNaN(Number(val)) && Number(val) > 0) {
+          if (parts.length === 2) {
             const exists = rulesToUpsert.some(r => r.categoria === parts[0] && r.target === parts[1]);
             if (!exists) {
-              rulesToUpsert.push({ categoria: parts[0], target: parts[1], prezzo: parseFloat(val) });
+              rulesToUpsert.push({ categoria: parts[0], target: parts[1], prezzo: parseFloat(val) || 23.99 });
             }
           }
         }
@@ -3947,9 +3881,7 @@ app.post('/api/settings', async (req, res) => {
     console.log("<<< USCITA POST /api/settings con successo");
     // Ricalcola il lotto e tutti gli ordini attivi con le nuove impostazioni (cambio valuta o fasce spedizione)
     try {
-      if (!cachedLottoResult) {
-        await recalculateCurrentLotto();
-      }
+      await recalculateCurrentLotto();
     } catch (lottoErr) {
       console.warn("⚠️ Errore ricalcolo lotto dopo aggiornamento settings:", lottoErr.message);
     }
@@ -4599,7 +4531,7 @@ app.post('/api/settings/products/import', async (req, res) => {
         target: tgt,
         stagione: p.stagione || '2024/2025',
         versione: p.versione || 'Home',
-        prezzo: parseFloat(p.prezzo),
+        prezzo: parseFloat(p.prezzo) || 23.99,
         prezzo_fornitore: parseFloat(p.prezzo_fornitore || p.prezzoFornitore || 0),
         immagine: p.immagine || '',
         legacy_id: pId ? Number(pId) : null
@@ -4820,7 +4752,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
               target: pTarget,
               stagione: finalStagione,
               versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
-              prezzo: parseFloat(p.prezzo),
+              prezzo: parseFloat(p.prezzo) || 23.99,
               prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
               immagine: estraiImmagineFornitore(p)
             };
@@ -4898,7 +4830,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
           target: pTarget,
           stagione: finalStagione,
           versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
-          prezzo: parseFloat(p.prezzo),
+          prezzo: parseFloat(p.prezzo) || 23.99,
           prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
           immagine: estraiImmagineFornitore(p)
         };
@@ -8666,9 +8598,7 @@ app.delete('/api/reviews/:id', async (req, res) => {
 app.get('/api/orders', async (req, res) => {
   try {
     try {
-      if (!cachedLottoResult) {
-        await recalculateCurrentLotto();
-      }
+      await recalculateCurrentLotto();
     } catch (lottoErr) {
       console.warn("⚠️ Avviso durante il ricalcolo del lotto in GET /api/orders:", lottoErr.message);
     }
@@ -9067,13 +8997,9 @@ const handleUpdateOrderPricing = async (req, res) => {
       }
     });
 
-    const isConv = Boolean(
-      order.codice_fornitura || 
-      order.torneo_id || 
-      order.torneo_squadra_id || 
-      (order.fornitura && typeof order.fornitura === 'object' && (order.fornitura.torneo_id || order.fornitura.codice_univoco))
-    );
-    const spedizioneCliente = isConv ? 0.00 : (itemsSubtotal >= 50.0 ? 0.00 : 2.00);
+    const squadraStr = String(order.squadra || '').toLowerCase();
+    const haSpedCliente = squadraStr.includes('spedizione');
+    const spedizioneCliente = haSpedCliente ? 2.00 : 0.00;
     const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
     const newOrderTotal = Math.max(0, Number((itemsSubtotal + spedizioneCliente - couponDiscount).toFixed(2)));
 
@@ -9381,7 +9307,7 @@ async function incrementCouponUsage(code) {
   }
 }
 
-function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, includeShipping = false) {
+function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null) {
   let allProducts = dbProducts;
   if (!allProducts || !Array.isArray(allProducts) || allProducts.length === 0) {
     allProducts = getLocalProducts();
@@ -9430,13 +9356,12 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
   const settings = getSettings();
   const spedizione_unitaria = getShippingRateByQuantity(quant_total, settings);
 
-  // Per il calcolo del codice coupon / prezzo fornitore, la spedizione è ESCLUSA dal totale prezzo fornitore.
-  const costo_spedizione_usd = includeShipping ? Number((quant_total * spedizione_unitaria).toFixed(2)) : 0;
-  const costo_totale_usd = Number((costo_completini_usd + costo_personalizzazioni_usd + costo_spedizione_usd).toFixed(2));
+  const costo_spedizione_usd = quant_total * spedizione_unitaria;
+  const costo_totale_usd = costo_completini_usd + costo_personalizzazioni_usd + costo_spedizione_usd;
   const prezzo_finale_eur = Number((costo_totale_usd * exchangeRate).toFixed(2));
 
   console.log("Costo completino USD:", Number(costo_completini_usd.toFixed(2)));
-  console.log("Costo spedizione USD (inclusa:", includeShipping, "):", Number(costo_spedizione_usd.toFixed(2)));
+  console.log("Costo spedizione USD:", Number(costo_spedizione_usd.toFixed(2)));
   console.log("Costo personalizzazioni USD:", Number(costo_personalizzazioni_usd.toFixed(2)));
   console.log("Totale USD:", Number(costo_totale_usd.toFixed(2)));
   console.log("Cambio USD/EUR:", exchangeRate);
@@ -11213,7 +11138,7 @@ app.post('/api/coupons/validate', async (req, res) => {
           if (sp && sp.length > 0) allDbProducts = sp;
         } catch (e) {}
       }
-      supplier_cost_eur = calcolaCostoFornitoreEur(carrello, exchangeRate, allDbProducts, false);
+      supplier_cost_eur = calcolaCostoFornitoreEur(carrello, exchangeRate, allDbProducts);
       discount = Math.max(0, Number((subtotal_eur - supplier_cost_eur).toFixed(2)));
     }
     
@@ -12745,7 +12670,7 @@ app.post('/api/orders', async (req, res) => {
           } else if (c.type === 'fornitore') {
             const settings = getSettings();
             const exRate = await getLiveOrSettingsExchangeRate(settings);
-            supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts, false);
+            supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts);
             isSupplierCoupon = true;
             discount_eur = Math.max(0, Number((subtotal_eur - supplierCostEur).toFixed(2)));
           }
@@ -12757,26 +12682,8 @@ app.post('/api/orders', async (req, res) => {
 
     if (isSupplierCoupon) {
       totale_pagato_cliente = Math.max(0, totale_pagato_cliente - discount_eur);
-    } else {
-      let subtotal_eur = 0;
-      let hasExplicitShippingLine = false;
-      carrello.forEach(item => {
-        const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-        if (isSped) {
-          hasExplicitShippingLine = true;
-        } else {
-          subtotal_eur += (Number(item.prezzo || 0) * (Number(item.quantita) || 1));
-        }
-      });
-      const isConvenzione = Boolean(
-        req.body.codice_fornitura ||
-        req.body.torneo_id ||
-        req.body.torneo_squadra_id ||
-        (req.body.fornitura && typeof req.body.fornitura === 'object') ||
-        carrello.some(it => it && (it.fornitura || it.torneo_id || it.codice_univoco))
-      );
-      const customer_shipping_eur = (isConvenzione || hasExplicitShippingLine || subtotal_eur >= 50.0) ? 0 : 2.00;
-      totale_pagato_cliente = Math.max(0, subtotal_eur - discount_eur + customer_shipping_eur);
+    } else if (discount_eur > 0) {
+      totale_pagato_cliente = Math.max(0, totale_pagato_cliente - discount_eur);
     }
 
     // 1. Recupera tasso di cambio USD/EUR live o manuale da settings
@@ -12815,21 +12722,7 @@ app.post('/api/orders', async (req, res) => {
     const order_shipping_usd = Number((quantita_totale_articoli * spedizione_unitaria).toFixed(2));
     const costo_totale_usd = Number((costo_prodotti_usd + order_shipping_usd).toFixed(2));
     const costo_totale_eur = convertUsdToEur(costo_totale_usd, exchangeRate, 'POST /api/orders');
-
-    // Per ordini con Coupon Fornitore: il Totale Incassato equivale esattamente al Costo Totale Reale (Margine Reale = €0,00)
-    if (isSupplierCoupon) {
-      totale_pagato_cliente = costo_totale_eur;
-      let calculatedSubtotal = 0;
-      carrello.forEach(item => {
-        const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-        if (!isSped) {
-          calculatedSubtotal += (Number(item.prezzo || 0) * (Number(item.quantita) || 1));
-        }
-      });
-      discount_eur = Math.max(0, Number((calculatedSubtotal - totale_pagato_cliente).toFixed(2)));
-    }
-
-    const profitto_eur = isSupplierCoupon ? 0.00 : Number((totale_pagato_cliente - costo_totale_eur).toFixed(2));
+    const profitto_eur = Number((totale_pagato_cliente - costo_totale_eur).toFixed(2));
 
     console.log("=== OVERALL CALCULATIONS & VALUES ===");
     console.log(`- totale_pagato_cliente:`, totale_pagato_cliente);
@@ -15227,173 +15120,6 @@ app.get('/api/admin/performance/status', (req, res) => {
     return res.json({ success: true, state });
   } catch (err) {
     console.error("⚠️ Errore GET /api/admin/performance/status:", err.message);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// POST /api/admin/catalog/check-image-status - Diagnostica controllata stato immagini con verifica SPA-fallback
-app.post('/api/admin/catalog/check-image-status', async (req, res) => {
-  try {
-    const { url, urls } = req.body || {};
-    const urlList = Array.isArray(urls) ? urls : (url ? [url] : []);
-
-    if (urlList.length === 0) {
-      return res.status(400).json({ success: false, error: "Nessun URL fornito per l'analisi." });
-    }
-
-    // Limita a max 50 URL per batch per prevenire sovraccarichi
-    const batch = urlList.slice(0, 50);
-
-    const checkSingleUrl = async (rawUrl) => {
-      if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
-        return {
-          status: 'SENZA_IMMAGINE',
-          motivo: 'Nessun riferimento immagine presente nel record prodotto.'
-        };
-      }
-
-      const cleanUrl = rawUrl.split('#')[0].trim();
-      const lower = cleanUrl.toLowerCase();
-
-      // 1. Identificazione Placeholder
-      if (
-        lower.includes('woocommerce-placeholder') ||
-        lower.includes('placehold.co') ||
-        lower.includes('placeholder-maglia') ||
-        lower.includes('default-image') ||
-        lower.includes('no-image') ||
-        lower.includes('missing-image') ||
-        lower.includes('fallback') ||
-        lower.includes('dummy') ||
-        lower.startsWith('data:image/svg+xml')
-      ) {
-        return {
-          status: 'PLACEHOLDER',
-          motivo: "Il prodotto utilizza l'immagine fallback/placeholder del sistema."
-        };
-      }
-
-      // 2. Controllo percorso locale / SPA Fallback check
-      if (cleanUrl.startsWith('/') || cleanUrl.startsWith('./') || cleanUrl.includes('localhost')) {
-        let relativePath = cleanUrl;
-        try {
-          if (cleanUrl.includes('localhost')) {
-            relativePath = new URL(cleanUrl).pathname;
-          }
-        } catch (e) {}
-
-        const cleanRel = relativePath.replace(/^\/+/, '');
-        const localFsPath = path.join(__dirname, cleanRel);
-        if (!fs.existsSync(localFsPath)) {
-          return {
-            status: 'NON_CARICABILE',
-            motivo: 'URL restituisce HTML (fallback SPA) invece di un\'immagine. File locale inesistente.'
-          };
-        }
-        return {
-          status: 'OK',
-          motivo: 'File immagine locale presente e accessibile sul server.'
-        };
-      }
-
-      // 3. Validazione sintattica URL
-      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-        return {
-          status: 'NON_CARICABILE',
-          motivo: 'URL non valido o protocollo non supportato.'
-        };
-      }
-
-      // 4. Probe remoto con verifica Content-Type e codice HTTP
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        let resp = null;
-        try {
-          resp = await fetch(cleanUrl, {
-            method: 'HEAD',
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            },
-            signal: controller.signal
-          });
-        } catch (headErr) {
-          // Fallback con GET range 0-1024
-          resp = await fetch(cleanUrl, {
-            method: 'GET',
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-              'Range': 'bytes=0-1024'
-            },
-            signal: controller.signal
-          });
-        }
-        clearTimeout(timeoutId);
-
-        if (!resp) {
-          return {
-            status: 'DA_VERIFICARE',
-            motivo: 'Nessuna risposta dal server remoto.'
-          };
-        }
-
-        const ct = (resp.headers.get('content-type') || '').toLowerCase();
-        if (resp.status === 404) {
-          return {
-            status: 'NON_CARICABILE',
-            motivo: 'URL immagine restituisce HTTP 404 (non trovato).'
-          };
-        }
-        if (resp.status === 403) {
-          return {
-            status: 'NON_CARICABILE',
-            motivo: 'Accesso negato dal server remoto (HTTP 403).'
-          };
-        }
-        if (ct.includes('text/html')) {
-          return {
-            status: 'NON_CARICABILE',
-            motivo: 'URL restituisce HTML invece di un\'immagine.'
-          };
-        }
-        if (!resp.ok && resp.status !== 202) {
-          return {
-            status: 'NON_CARICABILE',
-            motivo: `Server remoto ha risposto con codice HTTP ${resp.status}.`
-          };
-        }
-
-        return {
-          status: 'OK',
-          motivo: `Immagine valida (HTTP ${resp.status}, ${ct || 'image'}).`
-        };
-      } catch (fetchErr) {
-        if (fetchErr.name === 'AbortError') {
-          return {
-            status: 'DA_VERIFICARE',
-            motivo: 'Timeout durante la connessione al server remoto (> 5s).'
-          };
-        }
-        return {
-          status: 'DA_VERIFICARE',
-          motivo: `Anomalia durante il test di rete: ${fetchErr.message}`
-        };
-      }
-    };
-
-    const results = {};
-    for (const u of batch) {
-      results[u] = await checkSingleUrl(u);
-    }
-
-    if (!Array.isArray(urls) && url) {
-      const single = results[url] || { status: 'DA_VERIFICARE', motivo: 'Verifica non completata' };
-      return res.json({ success: true, ...single });
-    }
-
-    return res.json({ success: true, results });
-  } catch (err) {
-    console.error("⚠️ Errore POST /api/admin/catalog/check-image-status:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });

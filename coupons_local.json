@@ -60,7 +60,7 @@
     "value": 0,
     "is_active": true,
     "usage_limit": null,
-    "used_count": 34,
+    "used_count": 36,
     "single_use_per_customer": false,
     "only_first_order": false,
     "only_logged_users": false,
@@ -75,7 +75,7 @@
     "priority": 0,
     "notes": null,
     "created_at": "2026-08-09T09:08:05.194+00:00",
-    "updated_at": "2026-09-09T15:42:26.443+00:00"
+    "updated_at": "2026-09-12T09:34:35.536+00:00"
   },
   {
     "id": 32,

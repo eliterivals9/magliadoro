@@ -1,0 +1,1146 @@
+{
+  "isOptimized": false,
+  "optimizedAt": null,
+  "backupExists": true,
+  "beforeOptimizationScan": null,
+  "lastScan": {
+    "success": true,
+    "scanTimeMs": 1400,
+    "timestamp": "2026-09-11T22:26:41.431Z",
+    "score": 47,
+    "scoreLabel": "🟠 LENTA",
+    "scoreColor": "#f97316",
+    "scoreBadgeClass": "bg-orange-100 text-orange-800 border-orange-300",
+    "isOptimized": false,
+    "hasLongTermCache": true,
+    "totalHomePayloadMB": 24.43,
+    "totalHomePayloadBytes": 25620796,
+    "totalRequests": 33,
+    "timings": {
+      "desktop": {
+        "fcp": 142,
+        "lcp": 628,
+        "firstImageTime": 775,
+        "dcl": 214,
+        "loadComplete": 888,
+        "homeLoadTime": 888
+      },
+      "tablet": {
+        "fcp": 319,
+        "lcp": 1570,
+        "firstImageTime": 1056,
+        "dcl": 468,
+        "loadComplete": 3480,
+        "homeLoadTime": 3480
+      },
+      "mobile": {
+        "fcp": 673,
+        "lcp": 3530,
+        "firstImageTime": 1617,
+        "dcl": 973,
+        "loadComplete": 8083,
+        "homeLoadTime": 8083
+      }
+    },
+    "metrics": {
+      "fcpDesktop": "0.14s",
+      "lcpDesktop": "0.63s",
+      "fcpMobile": "0.67s",
+      "lcpMobile": "3.53s",
+      "firstImageDesktop": "775 ms",
+      "firstImageMobile": "1.62 s",
+      "dclDesktop": "214 ms",
+      "loadCompleteDesktop": "0.89 s",
+      "homeLoadDesktop": "0.89 s",
+      "homeLoadMobile": "8.08 s",
+      "imagesLoadTime": "6.06 s",
+      "productsLoadTime": "0.45 s",
+      "logosLoadTime": "0.12 s",
+      "apiAvgTime": "29 ms"
+    },
+    "sections": [
+      {
+        "id": "HOME",
+        "name": "Home Page",
+        "loadTime": "0.89s",
+        "loadTimeMobile": "8.08s",
+        "requests": 29,
+        "dataWeight": "24.43 MB",
+        "images": 17,
+        "errors": 0,
+        "status": "🔴 CRITICA",
+        "badgeColor": "red"
+      },
+      {
+        "id": "CLUB",
+        "name": "Club & Leghe",
+        "loadTime": "0.38s",
+        "loadTimeMobile": "0.85s",
+        "requests": 35,
+        "dataWeight": "1.11 MB",
+        "images": 272,
+        "errors": 0,
+        "status": "🟢 OTTIMA",
+        "badgeColor": "emerald"
+      },
+      {
+        "id": "NAZIONALI",
+        "name": "Nazionali",
+        "loadTime": "0.32s",
+        "loadTimeMobile": "0.78s",
+        "requests": 28,
+        "dataWeight": "0.68 MB",
+        "images": 97,
+        "errors": 0,
+        "status": "🟢 OTTIMA",
+        "badgeColor": "emerald"
+      },
+      {
+        "id": "ACCESSORI",
+        "name": "Accessori",
+        "loadTime": "0.29s",
+        "loadTimeMobile": "0.65s",
+        "requests": 18,
+        "dataWeight": "0.62 MB",
+        "images": 7,
+        "errors": 0,
+        "status": "🟢 OTTIMA",
+        "badgeColor": "emerald"
+      },
+      {
+        "id": "RECENSIONI",
+        "name": "Recensioni",
+        "loadTime": "0.24s",
+        "loadTimeMobile": "0.52s",
+        "requests": 12,
+        "dataWeight": "0.38 MB",
+        "images": 6,
+        "errors": 0,
+        "status": "🟢 OTTIMA",
+        "badgeColor": "emerald"
+      },
+      {
+        "id": "CATALOGO",
+        "name": "Catalogo Prodotti",
+        "loadTime": "0.45s",
+        "loadTimeMobile": "1.15s",
+        "requests": 52,
+        "dataWeight": "2.85 MB",
+        "images": 50,
+        "errors": 0,
+        "status": "🟢 BUONA",
+        "badgeColor": "emerald"
+      },
+      {
+        "id": "CARRELLO",
+        "name": "Carrello",
+        "loadTime": "0.08s",
+        "loadTimeMobile": "0.15s",
+        "requests": 3,
+        "dataWeight": "0.05 MB",
+        "images": "Dinamiche",
+        "errors": 0,
+        "status": "🟢 OTTIMA",
+        "badgeColor": "emerald"
+      },
+      {
+        "id": "CHECKOUT",
+        "name": "Checkout",
+        "loadTime": "0.06s",
+        "loadTimeMobile": "0.12s",
+        "requests": 2,
+        "dataWeight": "0.03 MB",
+        "images": 0,
+        "errors": 0,
+        "status": "🟢 OTTIMA",
+        "badgeColor": "emerald"
+      }
+    ],
+    "imagesBreakdown": [
+      {
+        "category": "HOME",
+        "count": 17,
+        "totalWeight": "22.67 MB",
+        "avgWeight": "1365.3 KB",
+        "heaviestImage": "jersey.png - Modificata.png (3.55 MB)",
+        "formats": "PNG non compresso",
+        "dimensions": "da 760x2070 a 1942x809 px",
+        "lazyLoading": "No (Sfondi CSS inline)",
+        "eagerImages": 17,
+        "externalImages": 1,
+        "duplicates": 0,
+        "missing": 0,
+        "status404": "0",
+        "cache": "7 giorni"
+      },
+      {
+        "category": "PRODOTTI",
+        "count": 4268,
+        "totalWeight": "~240 MB (totale CDN)",
+        "avgWeight": "55 KB",
+        "heaviestImage": "148 KB",
+        "formats": "WebP / JPEG / PNG",
+        "dimensions": "300x300 px",
+        "lazyLoading": "Sì (dal 5° prodotto in poi)",
+        "eagerImages": 4,
+        "externalImages": 4268,
+        "duplicates": 0,
+        "missing": 0,
+        "status404": "0",
+        "cache": "1 anno (CDN max-age=31536000)"
+      },
+      {
+        "category": "CLUB",
+        "count": 272,
+        "totalWeight": "779.9 KB",
+        "avgWeight": "2.87 KB",
+        "heaviestImage": "8.82 KB (girona)",
+        "formats": "PNG trasparente",
+        "dimensions": "64x64 px",
+        "lazyLoading": "Sì (loading=\"lazy\")",
+        "eagerImages": 8,
+        "externalImages": 0,
+        "duplicates": 37,
+        "missing": 0,
+        "status404": "0",
+        "cache": "7 giorni"
+      },
+      {
+        "category": "NAZIONALI",
+        "count": 97,
+        "totalWeight": "414.2 KB",
+        "avgWeight": "4.27 KB",
+        "heaviestImage": "9.81 KB (senegal)",
+        "formats": "PNG trasparente",
+        "dimensions": "64x64 px",
+        "lazyLoading": "Sì (loading=\"lazy\")",
+        "eagerImages": 6,
+        "externalImages": 0,
+        "duplicates": 2,
+        "missing": 0,
+        "status404": "0",
+        "cache": "7 giorni"
+      },
+      {
+        "category": "ACCESSORI",
+        "count": 7,
+        "totalWeight": "620 KB",
+        "avgWeight": "68 KB",
+        "heaviestImage": "115 KB",
+        "formats": "JPEG / WebP",
+        "dimensions": "400x400 px",
+        "lazyLoading": "Sì",
+        "eagerImages": 2,
+        "externalImages": 7,
+        "duplicates": 0,
+        "missing": 0,
+        "status404": "0",
+        "cache": "1 anno"
+      },
+      {
+        "category": "RECENSIONI",
+        "count": 6,
+        "totalWeight": "380 KB",
+        "avgWeight": "45 KB",
+        "heaviestImage": "85 KB",
+        "formats": "JPEG",
+        "dimensions": "200x200 px",
+        "lazyLoading": "Sì",
+        "eagerImages": 0,
+        "externalImages": 6,
+        "duplicates": 0,
+        "missing": 0,
+        "status404": "0",
+        "cache": "1 anno"
+      }
+    ],
+    "issues": [
+      {
+        "severity": "critica",
+        "icon": "🔴",
+        "title": "15 Immagini Home pesanti (> 500 KB)",
+        "target": "jersey.png - Modificata.png (3635.3 KB), hero-background.webp.png (1823.9 KB), ChatGPT Image 22 lug 2026, 15_44_23.png (1272.1 KB), Premier league.png (1635.8 KB), Bundersliga.png (1529.6 KB), Serie A.png (1510.4 KB), La liga.png (1422.2 KB), Ligue 1.png (1389.3 KB), kit completi 3.png (1254.5 KB), Kit allenamenti 2.png (1354.8 KB), Kit bambini.png (1261.9 KB), retro.png (1177.3 KB), Tute.png (1209.6 KB), SpedizioneGratuita.png (862.6 KB), nazionali-banner.webp.png (1847.5 KB)",
+        "weight": "22.6 MB totali",
+        "time": "+8.1s",
+        "impact": "Gravissimo. Saturazione della banda mobile al primo caricamento e memoria GPU occupata.",
+        "solution": "Convertire in WebP compresso (qualità 85%) e ridimensionare alla visualizzazione effettiva."
+      },
+      {
+        "severity": "media",
+        "icon": "🟠",
+        "title": "15 Formati PNG non ottimizzati in Home",
+        "target": "assets/homepage/*.png",
+        "weight": "~22.7 MB",
+        "time": "+800ms latenza decodifica",
+        "impact": "Medio. I PNG a 24-bit occupano fino all'85% di spazio in più rispetto al formato WebP.",
+        "solution": "Migrare a WebP lossless/lossy mantenendo la massima fedeltà visiva."
+      },
+      {
+        "severity": "media",
+        "icon": "🟠",
+        "title": "Cumulative Layout Shift (CLS) sul Logo Header",
+        "target": "https://i.postimg.cc/fy73GrmK/logo-jpeg.jpg",
+        "weight": "144 KB",
+        "time": "~550ms TTFB",
+        "impact": "Medio. Mancanza di attributi width/height espliciti provoca uno scatto del testo di testata.",
+        "solution": "Impostare width=\"48\" height=\"48\" e aspect-ratio 1/1 sul tag <img>."
+      },
+      {
+        "severity": "media",
+        "icon": "🟠",
+        "title": "Risoluzione eccessiva su card campionati",
+        "target": "jersey.png - Modificata.png (1536x1024), hero-background.webp.png (1659x948), ChatGPT Image 22 lug 2026, 15_44_23.png (768x2046), Premier league.png (759x2071), Bundersliga.png (758x2073), Serie A.png (760x2069), La liga.png (760x2070), Ligue 1.png (760x2070), kit completi 3.png (1717x916), Kit allenamenti 2.png (1942x809), Kit bambini.png (1734x907), retro.png (1733x908), Tute.png (1731x908), SpedizioneGratuita.png (1526x413), nazionali-banner.webp.png (1706x922)",
+        "weight": "Immagini 2x-3x rispetto al display",
+        "time": "+250ms decodifica GPU",
+        "impact": "Basso-Medio. Immagini con altezza superiore a 2000px renderizzate in card alte 350px.",
+        "solution": "Ridimensionare ad una risoluzione adeguata per display Retina (max 480x1300)."
+      }
+    ],
+    "watchdog": {
+      "status": "ATTIVO",
+      "heavyAssetsDetected": [
+        {
+          "name": "Bundersliga.png",
+          "file": "Bundersliga.png",
+          "sizeMB": "1.49",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+          "file": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+          "sizeMB": "1.24",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Kit allenamenti 2.png",
+          "file": "Kit allenamenti 2.png",
+          "sizeMB": "1.32",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Kit bambini.png",
+          "file": "Kit bambini.png",
+          "sizeMB": "1.23",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Kit completi.png",
+          "file": "Kit completi.png",
+          "sizeMB": "1.03",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "La liga.png",
+          "file": "La liga.png",
+          "sizeMB": "1.39",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Ligue 1.png",
+          "file": "Ligue 1.png",
+          "sizeMB": "1.36",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Premier league.png",
+          "file": "Premier league.png",
+          "sizeMB": "1.60",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Serie A.png",
+          "file": "Serie A.png",
+          "sizeMB": "1.48",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Tute.png",
+          "file": "Tute.png",
+          "sizeMB": "1.18",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Tutti i  club.png",
+          "file": "Tutti i  club.png",
+          "sizeMB": "1.92",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "hero-background.webp.png",
+          "file": "hero-background.webp.png",
+          "sizeMB": "1.78",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "jersey.png - Modificata.png",
+          "file": "jersey.png - Modificata.png",
+          "sizeMB": "3.55",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "jersey.png.png",
+          "file": "jersey.png.png",
+          "sizeMB": "2.86",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "kit completi 3.png",
+          "file": "kit completi 3.png",
+          "sizeMB": "1.23",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "nazionali-banner.webp.png",
+          "file": "nazionali-banner.webp.png",
+          "sizeMB": "1.80",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "nba-banner.webp.png",
+          "file": "nba-banner.webp.png",
+          "sizeMB": "2.11",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "retro.png",
+          "file": "retro.png",
+          "sizeMB": "1.15",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "tute-banner.webp.png",
+          "file": "tute-banner.webp.png",
+          "sizeMB": "2.07",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        }
+      ],
+      "heavyFiles": [
+        {
+          "name": "Bundersliga.png",
+          "file": "Bundersliga.png",
+          "sizeMB": "1.49",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+          "file": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+          "sizeMB": "1.24",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Kit allenamenti 2.png",
+          "file": "Kit allenamenti 2.png",
+          "sizeMB": "1.32",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Kit bambini.png",
+          "file": "Kit bambini.png",
+          "sizeMB": "1.23",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Kit completi.png",
+          "file": "Kit completi.png",
+          "sizeMB": "1.03",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "La liga.png",
+          "file": "La liga.png",
+          "sizeMB": "1.39",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Ligue 1.png",
+          "file": "Ligue 1.png",
+          "sizeMB": "1.36",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Premier league.png",
+          "file": "Premier league.png",
+          "sizeMB": "1.60",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Serie A.png",
+          "file": "Serie A.png",
+          "sizeMB": "1.48",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Tute.png",
+          "file": "Tute.png",
+          "sizeMB": "1.18",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "Tutti i  club.png",
+          "file": "Tutti i  club.png",
+          "sizeMB": "1.92",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "hero-background.webp.png",
+          "file": "hero-background.webp.png",
+          "sizeMB": "1.78",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "jersey.png - Modificata.png",
+          "file": "jersey.png - Modificata.png",
+          "sizeMB": "3.55",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "jersey.png.png",
+          "file": "jersey.png.png",
+          "sizeMB": "2.86",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "kit completi 3.png",
+          "file": "kit completi 3.png",
+          "sizeMB": "1.23",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "nazionali-banner.webp.png",
+          "file": "nazionali-banner.webp.png",
+          "sizeMB": "1.80",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "nba-banner.webp.png",
+          "file": "nba-banner.webp.png",
+          "sizeMB": "2.11",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "retro.png",
+          "file": "retro.png",
+          "sizeMB": "1.15",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        },
+        {
+          "name": "tute-banner.webp.png",
+          "file": "tute-banner.webp.png",
+          "sizeMB": "2.07",
+          "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+        }
+      ],
+      "count": 19
+    },
+    "adminPerformance": {
+      "status": "ATTIVO",
+      "score": 94,
+      "scoreLabel": "🟢 OTTIMA",
+      "bundleSizeMB": 1.48,
+      "htmlSizeKB": 519,
+      "jsSizeKB": 1002,
+      "memoryRssMB": 242,
+      "heapUsedMB": 30,
+      "heapTotalMB": 62,
+      "apiAvgMs": 29,
+      "adminLoadEstimatedMs": 83,
+      "requestsCount": 7,
+      "apiEndpoints": [
+        {
+          "name": "/api/admin/statistiche",
+          "latencyMs": 14,
+          "status": "200 OK"
+        },
+        {
+          "name": "/api/admin/gestione-ordini",
+          "latencyMs": 20,
+          "status": "200 OK"
+        },
+        {
+          "name": "/api/admin/fornitura-tornei",
+          "latencyMs": 17,
+          "status": "200 OK"
+        }
+      ]
+    },
+    "beforeScan": {
+      "success": true,
+      "scanTimeMs": 1415,
+      "timestamp": "2026-09-11T22:26:33.542Z",
+      "score": 47,
+      "scoreLabel": "🟠 LENTA",
+      "scoreColor": "#f97316",
+      "scoreBadgeClass": "bg-orange-100 text-orange-800 border-orange-300",
+      "isOptimized": false,
+      "hasLongTermCache": true,
+      "totalHomePayloadMB": 24.43,
+      "totalHomePayloadBytes": 25620796,
+      "totalRequests": 33,
+      "timings": {
+        "desktop": {
+          "fcp": 145,
+          "lcp": 631,
+          "firstImageTime": 778,
+          "dcl": 217,
+          "loadComplete": 891,
+          "homeLoadTime": 891
+        },
+        "tablet": {
+          "fcp": 322,
+          "lcp": 1573,
+          "firstImageTime": 1059,
+          "dcl": 471,
+          "loadComplete": 3483,
+          "homeLoadTime": 3483
+        },
+        "mobile": {
+          "fcp": 676,
+          "lcp": 3533,
+          "firstImageTime": 1620,
+          "dcl": 976,
+          "loadComplete": 8086,
+          "homeLoadTime": 8086
+        }
+      },
+      "metrics": {
+        "fcpDesktop": "0.14s",
+        "lcpDesktop": "0.63s",
+        "fcpMobile": "0.68s",
+        "lcpMobile": "3.53s",
+        "firstImageDesktop": "778 ms",
+        "firstImageMobile": "1.62 s",
+        "dclDesktop": "217 ms",
+        "loadCompleteDesktop": "0.89 s",
+        "homeLoadDesktop": "0.89 s",
+        "homeLoadMobile": "8.09 s",
+        "imagesLoadTime": "6.06 s",
+        "productsLoadTime": "0.45 s",
+        "logosLoadTime": "0.12 s",
+        "apiAvgTime": "38 ms"
+      },
+      "sections": [
+        {
+          "id": "HOME",
+          "name": "Home Page",
+          "loadTime": "0.89s",
+          "loadTimeMobile": "8.09s",
+          "requests": 29,
+          "dataWeight": "24.43 MB",
+          "images": 17,
+          "errors": 0,
+          "status": "🔴 CRITICA",
+          "badgeColor": "red"
+        },
+        {
+          "id": "CLUB",
+          "name": "Club & Leghe",
+          "loadTime": "0.38s",
+          "loadTimeMobile": "0.85s",
+          "requests": 35,
+          "dataWeight": "1.11 MB",
+          "images": 272,
+          "errors": 0,
+          "status": "🟢 OTTIMA",
+          "badgeColor": "emerald"
+        },
+        {
+          "id": "NAZIONALI",
+          "name": "Nazionali",
+          "loadTime": "0.32s",
+          "loadTimeMobile": "0.78s",
+          "requests": 28,
+          "dataWeight": "0.68 MB",
+          "images": 97,
+          "errors": 0,
+          "status": "🟢 OTTIMA",
+          "badgeColor": "emerald"
+        },
+        {
+          "id": "ACCESSORI",
+          "name": "Accessori",
+          "loadTime": "0.29s",
+          "loadTimeMobile": "0.65s",
+          "requests": 18,
+          "dataWeight": "0.62 MB",
+          "images": 7,
+          "errors": 0,
+          "status": "🟢 OTTIMA",
+          "badgeColor": "emerald"
+        },
+        {
+          "id": "RECENSIONI",
+          "name": "Recensioni",
+          "loadTime": "0.24s",
+          "loadTimeMobile": "0.52s",
+          "requests": 12,
+          "dataWeight": "0.38 MB",
+          "images": 6,
+          "errors": 0,
+          "status": "🟢 OTTIMA",
+          "badgeColor": "emerald"
+        },
+        {
+          "id": "CATALOGO",
+          "name": "Catalogo Prodotti",
+          "loadTime": "0.45s",
+          "loadTimeMobile": "1.15s",
+          "requests": 52,
+          "dataWeight": "2.85 MB",
+          "images": 50,
+          "errors": 0,
+          "status": "🟢 BUONA",
+          "badgeColor": "emerald"
+        },
+        {
+          "id": "CARRELLO",
+          "name": "Carrello",
+          "loadTime": "0.08s",
+          "loadTimeMobile": "0.15s",
+          "requests": 3,
+          "dataWeight": "0.05 MB",
+          "images": "Dinamiche",
+          "errors": 0,
+          "status": "🟢 OTTIMA",
+          "badgeColor": "emerald"
+        },
+        {
+          "id": "CHECKOUT",
+          "name": "Checkout",
+          "loadTime": "0.06s",
+          "loadTimeMobile": "0.12s",
+          "requests": 2,
+          "dataWeight": "0.03 MB",
+          "images": 0,
+          "errors": 0,
+          "status": "🟢 OTTIMA",
+          "badgeColor": "emerald"
+        }
+      ],
+      "imagesBreakdown": [
+        {
+          "category": "HOME",
+          "count": 17,
+          "totalWeight": "22.67 MB",
+          "avgWeight": "1365.3 KB",
+          "heaviestImage": "jersey.png - Modificata.png (3.55 MB)",
+          "formats": "PNG non compresso",
+          "dimensions": "da 760x2070 a 1942x809 px",
+          "lazyLoading": "No (Sfondi CSS inline)",
+          "eagerImages": 17,
+          "externalImages": 1,
+          "duplicates": 0,
+          "missing": 0,
+          "status404": "0",
+          "cache": "7 giorni"
+        },
+        {
+          "category": "PRODOTTI",
+          "count": 4268,
+          "totalWeight": "~240 MB (totale CDN)",
+          "avgWeight": "55 KB",
+          "heaviestImage": "148 KB",
+          "formats": "WebP / JPEG / PNG",
+          "dimensions": "300x300 px",
+          "lazyLoading": "Sì (dal 5° prodotto in poi)",
+          "eagerImages": 4,
+          "externalImages": 4268,
+          "duplicates": 0,
+          "missing": 0,
+          "status404": "0",
+          "cache": "1 anno (CDN max-age=31536000)"
+        },
+        {
+          "category": "CLUB",
+          "count": 272,
+          "totalWeight": "779.9 KB",
+          "avgWeight": "2.87 KB",
+          "heaviestImage": "8.82 KB (girona)",
+          "formats": "PNG trasparente",
+          "dimensions": "64x64 px",
+          "lazyLoading": "Sì (loading=\"lazy\")",
+          "eagerImages": 8,
+          "externalImages": 0,
+          "duplicates": 37,
+          "missing": 0,
+          "status404": "0",
+          "cache": "7 giorni"
+        },
+        {
+          "category": "NAZIONALI",
+          "count": 97,
+          "totalWeight": "414.2 KB",
+          "avgWeight": "4.27 KB",
+          "heaviestImage": "9.81 KB (senegal)",
+          "formats": "PNG trasparente",
+          "dimensions": "64x64 px",
+          "lazyLoading": "Sì (loading=\"lazy\")",
+          "eagerImages": 6,
+          "externalImages": 0,
+          "duplicates": 2,
+          "missing": 0,
+          "status404": "0",
+          "cache": "7 giorni"
+        },
+        {
+          "category": "ACCESSORI",
+          "count": 7,
+          "totalWeight": "620 KB",
+          "avgWeight": "68 KB",
+          "heaviestImage": "115 KB",
+          "formats": "JPEG / WebP",
+          "dimensions": "400x400 px",
+          "lazyLoading": "Sì",
+          "eagerImages": 2,
+          "externalImages": 7,
+          "duplicates": 0,
+          "missing": 0,
+          "status404": "0",
+          "cache": "1 anno"
+        },
+        {
+          "category": "RECENSIONI",
+          "count": 6,
+          "totalWeight": "380 KB",
+          "avgWeight": "45 KB",
+          "heaviestImage": "85 KB",
+          "formats": "JPEG",
+          "dimensions": "200x200 px",
+          "lazyLoading": "Sì",
+          "eagerImages": 0,
+          "externalImages": 6,
+          "duplicates": 0,
+          "missing": 0,
+          "status404": "0",
+          "cache": "1 anno"
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critica",
+          "icon": "🔴",
+          "title": "15 Immagini Home pesanti (> 500 KB)",
+          "target": "jersey.png - Modificata.png (3635.3 KB), hero-background.webp.png (1823.9 KB), ChatGPT Image 22 lug 2026, 15_44_23.png (1272.1 KB), Premier league.png (1635.8 KB), Bundersliga.png (1529.6 KB), Serie A.png (1510.4 KB), La liga.png (1422.2 KB), Ligue 1.png (1389.3 KB), kit completi 3.png (1254.5 KB), Kit allenamenti 2.png (1354.8 KB), Kit bambini.png (1261.9 KB), retro.png (1177.3 KB), Tute.png (1209.6 KB), SpedizioneGratuita.png (862.6 KB), nazionali-banner.webp.png (1847.5 KB)",
+          "weight": "22.6 MB totali",
+          "time": "+8.1s",
+          "impact": "Gravissimo. Saturazione della banda mobile al primo caricamento e memoria GPU occupata.",
+          "solution": "Convertire in WebP compresso (qualità 85%) e ridimensionare alla visualizzazione effettiva."
+        },
+        {
+          "severity": "media",
+          "icon": "🟠",
+          "title": "15 Formati PNG non ottimizzati in Home",
+          "target": "assets/homepage/*.png",
+          "weight": "~22.7 MB",
+          "time": "+800ms latenza decodifica",
+          "impact": "Medio. I PNG a 24-bit occupano fino all'85% di spazio in più rispetto al formato WebP.",
+          "solution": "Migrare a WebP lossless/lossy mantenendo la massima fedeltà visiva."
+        },
+        {
+          "severity": "media",
+          "icon": "🟠",
+          "title": "Cumulative Layout Shift (CLS) sul Logo Header",
+          "target": "https://i.postimg.cc/fy73GrmK/logo-jpeg.jpg",
+          "weight": "144 KB",
+          "time": "~550ms TTFB",
+          "impact": "Medio. Mancanza di attributi width/height espliciti provoca uno scatto del testo di testata.",
+          "solution": "Impostare width=\"48\" height=\"48\" e aspect-ratio 1/1 sul tag <img>."
+        },
+        {
+          "severity": "media",
+          "icon": "🟠",
+          "title": "Risoluzione eccessiva su card campionati",
+          "target": "jersey.png - Modificata.png (1536x1024), hero-background.webp.png (1659x948), ChatGPT Image 22 lug 2026, 15_44_23.png (768x2046), Premier league.png (759x2071), Bundersliga.png (758x2073), Serie A.png (760x2069), La liga.png (760x2070), Ligue 1.png (760x2070), kit completi 3.png (1717x916), Kit allenamenti 2.png (1942x809), Kit bambini.png (1734x907), retro.png (1733x908), Tute.png (1731x908), SpedizioneGratuita.png (1526x413), nazionali-banner.webp.png (1706x922)",
+          "weight": "Immagini 2x-3x rispetto al display",
+          "time": "+250ms decodifica GPU",
+          "impact": "Basso-Medio. Immagini con altezza superiore a 2000px renderizzate in card alte 350px.",
+          "solution": "Ridimensionare ad una risoluzione adeguata per display Retina (max 480x1300)."
+        }
+      ],
+      "watchdog": {
+        "status": "ATTIVO",
+        "heavyAssetsDetected": [
+          {
+            "name": "Bundersliga.png",
+            "file": "Bundersliga.png",
+            "sizeMB": "1.49",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+            "file": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+            "sizeMB": "1.24",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Kit allenamenti 2.png",
+            "file": "Kit allenamenti 2.png",
+            "sizeMB": "1.32",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Kit bambini.png",
+            "file": "Kit bambini.png",
+            "sizeMB": "1.23",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Kit completi.png",
+            "file": "Kit completi.png",
+            "sizeMB": "1.03",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "La liga.png",
+            "file": "La liga.png",
+            "sizeMB": "1.39",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Ligue 1.png",
+            "file": "Ligue 1.png",
+            "sizeMB": "1.36",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Premier league.png",
+            "file": "Premier league.png",
+            "sizeMB": "1.60",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Serie A.png",
+            "file": "Serie A.png",
+            "sizeMB": "1.48",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Tute.png",
+            "file": "Tute.png",
+            "sizeMB": "1.18",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Tutti i  club.png",
+            "file": "Tutti i  club.png",
+            "sizeMB": "1.92",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "hero-background.webp.png",
+            "file": "hero-background.webp.png",
+            "sizeMB": "1.78",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "jersey.png - Modificata.png",
+            "file": "jersey.png - Modificata.png",
+            "sizeMB": "3.55",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "jersey.png.png",
+            "file": "jersey.png.png",
+            "sizeMB": "2.86",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "kit completi 3.png",
+            "file": "kit completi 3.png",
+            "sizeMB": "1.23",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "nazionali-banner.webp.png",
+            "file": "nazionali-banner.webp.png",
+            "sizeMB": "1.80",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "nba-banner.webp.png",
+            "file": "nba-banner.webp.png",
+            "sizeMB": "2.11",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "retro.png",
+            "file": "retro.png",
+            "sizeMB": "1.15",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "tute-banner.webp.png",
+            "file": "tute-banner.webp.png",
+            "sizeMB": "2.07",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          }
+        ],
+        "heavyFiles": [
+          {
+            "name": "Bundersliga.png",
+            "file": "Bundersliga.png",
+            "sizeMB": "1.49",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+            "file": "ChatGPT Image 22 lug 2026, 15_44_23.png",
+            "sizeMB": "1.24",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Kit allenamenti 2.png",
+            "file": "Kit allenamenti 2.png",
+            "sizeMB": "1.32",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Kit bambini.png",
+            "file": "Kit bambini.png",
+            "sizeMB": "1.23",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Kit completi.png",
+            "file": "Kit completi.png",
+            "sizeMB": "1.03",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "La liga.png",
+            "file": "La liga.png",
+            "sizeMB": "1.39",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Ligue 1.png",
+            "file": "Ligue 1.png",
+            "sizeMB": "1.36",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Premier league.png",
+            "file": "Premier league.png",
+            "sizeMB": "1.60",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Serie A.png",
+            "file": "Serie A.png",
+            "sizeMB": "1.48",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Tute.png",
+            "file": "Tute.png",
+            "sizeMB": "1.18",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "Tutti i  club.png",
+            "file": "Tutti i  club.png",
+            "sizeMB": "1.92",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "hero-background.webp.png",
+            "file": "hero-background.webp.png",
+            "sizeMB": "1.78",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "jersey.png - Modificata.png",
+            "file": "jersey.png - Modificata.png",
+            "sizeMB": "3.55",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "jersey.png.png",
+            "file": "jersey.png.png",
+            "sizeMB": "2.86",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "kit completi 3.png",
+            "file": "kit completi 3.png",
+            "sizeMB": "1.23",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "nazionali-banner.webp.png",
+            "file": "nazionali-banner.webp.png",
+            "sizeMB": "1.80",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "nba-banner.webp.png",
+            "file": "nba-banner.webp.png",
+            "sizeMB": "2.11",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "retro.png",
+            "file": "retro.png",
+            "sizeMB": "1.15",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          },
+          {
+            "name": "tute-banner.webp.png",
+            "file": "tute-banner.webp.png",
+            "sizeMB": "2.07",
+            "warning": "🔴 ASSET PESANTE RILEVATO DALLA PROTEZIONE PERMANENTE"
+          }
+        ],
+        "count": 19
+      },
+      "adminPerformance": {
+        "status": "ATTIVO",
+        "score": 94,
+        "scoreLabel": "🟢 OTTIMA",
+        "bundleSizeMB": 1.48,
+        "htmlSizeKB": 519,
+        "jsSizeKB": 1002,
+        "memoryRssMB": 195,
+        "heapUsedMB": 29,
+        "heapTotalMB": 48,
+        "apiAvgMs": 38,
+        "adminLoadEstimatedMs": 83,
+        "requestsCount": 7,
+        "apiEndpoints": [
+          {
+            "name": "/api/admin/statistiche",
+            "latencyMs": 14,
+            "status": "200 OK"
+          },
+          {
+            "name": "/api/admin/gestione-ordini",
+            "latencyMs": 20,
+            "status": "200 OK"
+          },
+          {
+            "name": "/api/admin/fornitura-tornei",
+            "latencyMs": 17,
+            "status": "200 OK"
+          }
+        ]
+      },
+      "beforeScan": null,
+      "comparison": null
+    },
+    "comparison": {
+      "pesoPrimaMB": 24.43,
+      "pesoDopoMB": 24.43,
+      "pesoDiffPct": 0,
+      "tempoPrimaS": 0.89,
+      "tempoDopoS": 0.89,
+      "tempoDiffPct": 0,
+      "reqPrima": 33,
+      "reqDopo": 33,
+      "reqDiff": 0,
+      "lcpPrimaS": 0.63,
+      "lcpDopoS": 0.63,
+      "lcpDiffPct": 0,
+      "scorePrima": 47,
+      "scoreDopo": 47
+    }
+  }
+}

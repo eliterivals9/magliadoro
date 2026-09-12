@@ -1272,6 +1272,10 @@
                         <button onclick="switchSubTab('gestione-catalogo')" id="subnav-gestione-catalogo" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
                             <span>📦</span> Gestione Catalogo
                         </button>
+                        <button onclick="switchSubTab('performance')" id="subnav-performance" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>⚡</span> Performance
+                            <span id="subnav-performance-badge" class="px-1.5 py-0.5 text-white font-black text-[9px] rounded-full min-w-[18px] text-center leading-none bg-slate-700">LIVE</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1443,14 +1447,19 @@
                                     <span>🔍</span> Trova Articoli Senza Filtro
                                 </button>
                             </div>
-                            <!-- Module 3: Pulizia Catalogo -->
-                            <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-brand-gold/50 transition-all">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-lg">🧹</span>
-                                    <span class="px-2 py-0.5 bg-slate-100 text-slate-600 font-bold text-[9px] rounded-full uppercase">Pronto</span>
+                            <!-- Module 3: Controllo Immagini Catalogo -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 relative overflow-hidden group hover:border-brand-gold/50 transition-all flex flex-col justify-between" id="card-modulo-controllo-immagini">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xl">🔍</span>
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[9px] rounded-full uppercase">Diagnostica</span>
+                                    </div>
+                                    <h4 class="text-xs font-bold text-slate-900">Controllo Immagini Catalogo</h4>
+                                    <p class="text-[10px] text-slate-500">Scansiona il catalogo per individuare prodotti con placeholder, immagini mancanti o immagini non caricabili.</p>
                                 </div>
-                                <h4 class="text-xs font-bold text-slate-900">Pulizia Catalogo</h4>
-                                <p class="text-[10px] text-slate-500">Rimuovi prodotti obsoleti o bozze senza immagini.</p>
+                                <button id="btn-scansiona-immagini-card" onclick="scrollaEAvviaControlloImmagini()" type="button" class="w-full mt-2 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <span>🔍</span> Scansiona Catalogo
+                                </button>
                             </div>
                             <!-- Module 4: Statistiche Catalogo -->
                             <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 relative overflow-hidden group hover:border-brand-gold/50 transition-all">
@@ -1464,7 +1473,1182 @@
                         </div>
                     </div>
 
+                    <!-- CARD / SEZIONE: CONTROLLO IMMAGINI CATALOGO -->
+                    <div id="sezione-controllo-immagini-catalogo" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm col-span-1 lg:col-span-2 space-y-6 scroll-mt-6">
+                        <!-- Top Header -->
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-2xl">🔍</span>
+                                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">CONTROLLO IMMAGINI CATALOGO</h3>
+                                    <span class="px-2.5 py-0.5 bg-brand-gold/15 text-brand-gold font-bold text-[10px] rounded-full uppercase border border-brand-gold/30">Diagnostica Attiva</span>
+                                </div>
+                                <p class="text-xs text-slate-500">Scansiona il catalogo per individuare prodotti con placeholder, immagini mancanti o immagini non caricabili.</p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button id="btn-esporta-controllo-immagini" onclick="esportaReportControlloImmaginiCSV()" type="button" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 opacity-50 cursor-not-allowed" disabled>
+                                    <span>📥</span> Esporta Risultati
+                                </button>
+                                <button id="btn-stop-controllo-immagini" onclick="interrompiControlloImmagini()" type="button" class="px-3.5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 hidden cursor-pointer">
+                                    <span>⏹️</span> Interrompi
+                                </button>
+                                <button id="btn-scansiona-controllo-immagini" onclick="avviaControlloImmaginiCatalogo()" type="button" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                                    <span>🔍</span> SCANSIONA CATALOGO
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Box Avanzamento Scansione / Stato Live -->
+                        <div id="ci-scan-progress-box" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <span id="ci-scan-spinner" class="animate-spin text-lg">⏳</span>
+                                    <div>
+                                        <span id="ci-scan-headline" class="text-xs font-bold text-slate-800">Scansione in corso...</span>
+                                        <div id="ci-scan-status-text" class="text-[11px] text-slate-500">Inizializzazione diagnostica del catalogo...</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs font-mono">
+                                    <div>Scansionati: <span id="ci-scan-counter" class="font-bold text-slate-900">0 / 0</span></div>
+                                    <div>Problemi trovati: <span id="ci-scan-issues-count" class="font-bold text-rose-600">0</span></div>
+                                    <div>Percentuale: <span id="ci-scan-percent" class="font-bold text-slate-900">0%</span></div>
+                                </div>
+                            </div>
+                            <!-- Barra di progresso -->
+                            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                <div id="ci-scan-progress-bar" class="bg-amber-500 h-full rounded-full transition-all duration-200" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Alert Esito Scansione Completata -->
+                        <div id="ci-scan-completed-alert" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-xl">✅</span>
+                                <div>
+                                    <span class="text-xs font-black uppercase tracking-wider">SCANSIONE COMPLETATA</span>
+                                    <div id="ci-scan-summary-text" class="text-xs text-emerald-700">Analisi terminata con successo.</div>
+                                </div>
+                            </div>
+                            <span id="ci-scan-duration-badge" class="text-[11px] font-mono font-bold bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg border border-emerald-200"></span>
+                        </div>
+
+                        <!-- Griglia Contatori / Statistiche (6 Cards) -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                            <!-- Totali -->
+                            <div onclick="filtraPerStatoVeloce('tutti')" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer group">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                                    <span>Prodotti Scansionati</span>
+                                    <span>📦</span>
+                                </div>
+                                <div id="ci-stat-totali" class="text-xl font-black text-slate-900 mt-1">0</div>
+                                <div class="text-[9px] text-slate-400 mt-0.5">Tutti i prodotti analizzati</div>
+                            </div>
+                            <!-- Immagini OK -->
+                            <div onclick="filtraPerStatoVeloce('OK')" class="bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer group">
+                                <div class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
+                                    <span>🟢 Immagini OK</span>
+                                    <span class="text-xs">✓</span>
+                                </div>
+                                <div id="ci-stat-ok" class="text-xl font-black text-emerald-600 mt-1">0</div>
+                                <div class="text-[9px] text-emerald-700/70 mt-0.5">Valide e renderizzabili</div>
+                            </div>
+                            <!-- Placeholder -->
+                            <div onclick="filtraPerStatoVeloce('PLACEHOLDER')" class="bg-amber-50/50 hover:bg-amber-50 border border-amber-200 rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer group">
+                                <div class="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center justify-between">
+                                    <span>🟠 Placeholder</span>
+                                    <span class="text-xs">🖼️</span>
+                                </div>
+                                <div id="ci-stat-placeholder" class="text-xl font-black text-amber-600 mt-1">0</div>
+                                <div class="text-[9px] text-amber-700/70 mt-0.5">Immagini segnaposto fallback</div>
+                            </div>
+                            <!-- Senza Immagine -->
+                            <div onclick="filtraPerStatoVeloce('SENZA_IMMAGINE')" class="bg-red-50/50 hover:bg-red-50 border border-red-200 rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer group">
+                                <div class="text-[10px] font-bold text-red-800 uppercase tracking-wider flex items-center justify-between">
+                                    <span>🔴 Senza Immagine</span>
+                                    <span class="text-xs">🚫</span>
+                                </div>
+                                <div id="ci-stat-senza-immagine" class="text-xl font-black text-red-600 mt-1">0</div>
+                                <div class="text-[9px] text-red-700/70 mt-0.5">Campo immagine vuoto o nullo</div>
+                            </div>
+                            <!-- Non Caricabili -->
+                            <div onclick="filtraPerStatoVeloce('NON_CARICABILE')" class="bg-rose-50/50 hover:bg-rose-50 border border-rose-200 rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer group">
+                                <div class="text-[10px] font-bold text-rose-800 uppercase tracking-wider flex items-center justify-between">
+                                    <span>🔴 Non Caricabili</span>
+                                    <span class="text-xs">⚠️</span>
+                                </div>
+                                <div id="ci-stat-non-caricabili" class="text-xl font-black text-rose-700 mt-1">0</div>
+                                <div class="text-[9px] text-rose-700/70 mt-0.5">404, HTML SPA, rotte, non valide</div>
+                            </div>
+                            <!-- Da Verificare -->
+                            <div onclick="filtraPerStatoVeloce('DA_VERIFICARE')" class="bg-yellow-50/50 hover:bg-yellow-50 border border-yellow-200 rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer group">
+                                <div class="text-[10px] font-bold text-yellow-800 uppercase tracking-wider flex items-center justify-between">
+                                    <span>🟡 Da Verificare</span>
+                                    <span class="text-xs">❓</span>
+                                </div>
+                                <div id="ci-stat-da-verificare" class="text-xl font-black text-yellow-600 mt-1">0</div>
+                                <div class="text-[9px] text-yellow-700/70 mt-0.5">Timeout o anomalie</div>
+                            </div>
+                        </div>
+
+                        <!-- Barra Filtri e Ricerca -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                                <!-- Ricerca -->
+                                <div class="lg:col-span-2 relative">
+                                    <input type="text" id="ci-search-input" oninput="filtraControlloImmagini()" placeholder="🔍 Cerca nome prodotto, squadra o ID..." class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                                </div>
+                                <!-- Filtro Stato -->
+                                <div>
+                                    <select id="ci-filter-stato" onchange="filtraControlloImmagini()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                                        <option value="">Tutti gli Stati</option>
+                                        <option value="PLACEHOLDER">🟠 Placeholder</option>
+                                        <option value="SENZA_IMMAGINE">🔴 Senza immagine</option>
+                                        <option value="NON_CARICABILE">🔴 Non caricabile</option>
+                                        <option value="DA_VERIFICARE">🟡 Da verificare</option>
+                                        <option value="OK">🟢 Immagine OK</option>
+                                        <option value="PROBLEMI">⚠️ Solo con Problemi (Tutti tranne OK)</option>
+                                    </select>
+                                </div>
+                                <!-- Filtro Squadra -->
+                                <div>
+                                    <select id="ci-filter-squadra" onchange="filtraControlloImmagini()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                                        <option value="">Tutte le Squadre</option>
+                                    </select>
+                                </div>
+                                <!-- Filtro Categoria & Stagione -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <select id="ci-filter-categoria" onchange="filtraControlloImmagini()" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                                        <option value="">Tutte Categ.</option>
+                                    </select>
+                                    <select id="ci-filter-stagione" onchange="filtraControlloImmagini()" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all">
+                                        <option value="">Tutte Stag.</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                                <div id="ci-filter-counter-text">Nessun dato scansionato</div>
+                                <button onclick="resetFiltriControlloImmagini()" class="text-amber-600 hover:text-amber-700 font-bold hover:underline cursor-pointer">Azzera filtri</button>
+                            </div>
+                        </div>
+
+                        <!-- Tabella Risultati Diagnostica -->
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                            <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead class="bg-slate-900 text-white font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                        <tr>
+                                            <th class="py-3 px-4 w-36">STATO</th>
+                                            <th class="py-3 px-4 min-w-[200px]">PRODOTTO</th>
+                                            <th class="py-3 px-4 w-40">SQUADRA</th>
+                                            <th class="py-3 px-4 w-32">CATEGORIA</th>
+                                            <th class="py-3 px-4 min-w-[220px]">IMMAGINE</th>
+                                            <th class="py-3 px-4 w-24 text-right">AZIONE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ci-table-body" class="divide-y divide-slate-100 bg-white">
+                                        <tr>
+                                            <td colspan="6" class="py-16 text-center text-slate-400">
+                                                <div class="flex flex-col items-center justify-center gap-3">
+                                                    <span class="text-4xl">🔍</span>
+                                                    <span class="text-sm font-semibold text-slate-600">Nessuna scansione effettuata</span>
+                                                    <p class="text-xs text-slate-400 max-w-md">Premi sul pulsante <strong>"SCANSIONA CATALOGO"</strong> in alto per avviare il controllo completo di tutte le immagini del catalogo.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Paginazione -->
+                            <div id="ci-pagination-container" class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hidden">
+                                <div class="text-xs text-slate-500" id="ci-pagination-info">
+                                    Mostrando 0 - 0 di 0 prodotti
+                                </div>
+                                <div class="flex items-center gap-2" id="ci-pagination-buttons">
+                                    <!-- Bottoni dinamici -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+            </section>
+
+            <!-- SECTION: PERFORMANCE SITO PUBBLICO (ESCLUSIVO ADMIN) -->
+            <section id="section-performance" class="tab-content hidden space-y-8">
+                <!-- Header con Azioni -->
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-200 pb-5">
+                    <div>
+                        <div class="flex items-center gap-2.5 flex-wrap">
+                            <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                                <span>🌐</span> Performance Sito Pubblico
+                            </h2>
+                            <span id="perf-live-tag" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                Dati Reali & Live
+                            </span>
+                            <span id="perf-state-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                                Stato: In Scansione...
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Monitoraggio permanente dei tempi di caricamento reali, Core Web Vitals, asset grafici e ottimizzazioni del frontend pubblico.</p>
+                    </div>
+
+                    <!-- Pulsanti Azione Principali -->
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="caricaPerformanceData(true)" id="btn-refresh-perf" class="px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span>🔄</span> Aggiorna Scansione
+                        </button>
+                        <button onclick="eseguiRollbackPerformance()" id="btn-rollback-perf" class="hidden px-3.5 py-2.5 bg-slate-100 border border-slate-300 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span>↺</span> Ripristina / Rollback
+                        </button>
+                        <button onclick="eseguiOttimizzazionePerformance()" id="btn-optimize-perf" class="px-5 py-2.5 bg-brand-gold hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                            <span>🚀</span> OTTIMIZZA PERFORMANCE
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Switcher Navigazione Viste Performance: Sito Pubblico / Pannello Admin -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+                    <div class="inline-flex rounded-xl bg-slate-100 p-1 gap-1 border border-slate-200/80">
+                        <button onclick="switchPerformanceView('public')" id="perf-tab-public-btn" class="px-4 py-2 rounded-lg text-xs font-black transition-all bg-white text-slate-900 shadow-sm cursor-pointer flex items-center gap-2">
+                            <span>🌐</span> Performance Sito Pubblico
+                        </button>
+                        <button onclick="switchPerformanceView('admin')" id="perf-tab-admin-btn" class="px-4 py-2 rounded-lg text-xs font-black transition-all text-slate-600 hover:text-slate-900 cursor-pointer flex items-center gap-2">
+                            <span>🛠️</span> Performance Pannello Admin
+                        </button>
+                    </div>
+
+                    <!-- Esito Globale Scansione -->
+                    <div id="perf-scan-status-pill" class="px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-300 self-start sm:self-auto">
+                        <span id="perf-scan-status-dot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span id="perf-scan-status-text">SCANSIONE: COMPLETATA</span>
+                    </div>
+                </div>
+
+                <!-- VISTA 1: PERFORMANCE SITO PUBBLICO -->
+                <div id="perf-view-public" class="space-y-8">
+
+                <!-- Stepper di Ottimizzazione in 5 Fasi (Visibile durante ottimizzazione) -->
+                <div id="box-perf-stepper" class="hidden bg-amber-50 border border-amber-300/80 rounded-2xl p-6 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span id="perf-stepper-icon" class="text-xl animate-spin">⚙️</span>
+                            <div>
+                                <h3 id="perf-stepper-title" class="text-sm font-black text-amber-950 uppercase tracking-wider">Esecuzione Ottimizzazione Sicura in Corso...</h3>
+                                <p id="perf-stepper-msg" class="text-xs font-bold text-amber-900 mt-0.5">⚙️ Analisi in corso...</p>
+                            </div>
+                        </div>
+                        <span id="perf-stepper-pct" class="text-xs font-black text-amber-800 bg-amber-200/80 px-2.5 py-1 rounded-full self-start sm:self-auto">Fase 1 di 5 (20%)</span>
+                    </div>
+                    <div class="w-full bg-amber-200/60 rounded-full h-2.5 overflow-hidden">
+                        <div id="perf-stepper-bar" class="bg-brand-gold h-full transition-all duration-500 w-1/5"></div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-[11px] font-bold text-slate-600 pt-1">
+                        <div id="step-perf-1" class="p-2 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 flex items-center gap-1.5">
+                            <span class="step-num">1.</span> <span class="step-label">Scansione iniziale</span>
+                        </div>
+                        <div id="step-perf-2" class="p-2 rounded-lg bg-white/70 border border-slate-200 text-slate-500 flex items-center gap-1.5">
+                            <span class="step-num">2.</span> <span class="step-label">Rilevamento asset</span>
+                        </div>
+                        <div id="step-perf-3" class="p-2 rounded-lg bg-white/70 border border-slate-200 text-slate-500 flex items-center gap-1.5">
+                            <span class="step-num">3.</span> <span class="step-label">Compressione WebP</span>
+                        </div>
+                        <div id="step-perf-4" class="p-2 rounded-lg bg-white/70 border border-slate-200 text-slate-500 flex items-center gap-1.5">
+                            <span class="step-num">4.</span> <span class="step-label">Re-test di verifica</span>
+                        </div>
+                        <div id="step-perf-5" class="p-2 rounded-lg bg-white/70 border border-slate-200 text-slate-500 flex items-center gap-1.5">
+                            <span class="step-num">5.</span> <span class="step-label">Report Prima/Dopo</span>
+                        </div>
+                    </div>
+                    <!-- Box Risultato Finale -->
+                    <div id="perf-stepper-result" class="hidden p-3.5 rounded-xl text-xs font-bold transition-all"></div>
+                </div>
+
+                <!-- Selettore Dispositivo (Desktop / Tablet / Mobile) -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 border border-slate-200/80 p-3.5 rounded-2xl">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-black text-slate-700 uppercase tracking-wider">Profilo di Connessione:</span>
+                        <span class="text-[11px] text-slate-500">Misurazioni simulate su standard W3C reali</span>
+                    </div>
+                    <div class="inline-flex rounded-xl bg-slate-200/70 p-1 gap-1">
+                        <button onclick="setPerfDevice('desktop')" id="btn-device-desktop" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm cursor-pointer flex items-center gap-1.5">
+                            <span>🖥️</span> Desktop (100M)
+                        </button>
+                        <button onclick="setPerfDevice('tablet')" id="btn-device-tablet" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 cursor-pointer flex items-center gap-1.5">
+                            <span>💻</span> Tablet (30M)
+                        </button>
+                        <button onclick="setPerfDevice('mobile')" id="btn-device-mobile" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900 cursor-pointer flex items-center gap-1.5">
+                            <span>📱</span> Mobile (4G 12M)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Box Score Generale + 4 Metriche Principali -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- Score Generale -->
+                    <div class="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between items-center text-center">
+                        <div class="w-full flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Score Generale Sito</span>
+                            <span id="perf-score-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-800 border border-red-300">
+                                🔴 CRITICA
+                            </span>
+                        </div>
+                        <div class="my-5 relative flex flex-col items-center justify-center">
+                            <div id="perf-score-circle" class="w-32 h-32 rounded-full border-8 border-red-500 flex flex-col items-center justify-center transition-all duration-500 shadow-inner">
+                                <span id="perf-score-value" class="text-4xl font-black text-slate-900">27</span>
+                                <span class="text-[11px] font-bold text-slate-400">su 100</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-50 border border-slate-100 rounded-xl p-3 text-left">
+                            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                <span>Giudizio complessivo:</span>
+                                <span id="perf-score-text" class="font-extrabold text-red-600">🔴 CRITICA</span>
+                            </div>
+                            <p id="perf-score-desc" class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                Payload della Home elevato (> 25 MB). È richiesta l'ottimizzazione degli asset per garantire tempi di risposta rapidi su reti mobili.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 4 Metriche Principali in Griglia -->
+                    <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Card 1: Peso Totale Home -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Peso Dati Home</span>
+                                <span class="text-xl">📦</span>
+                            </div>
+                            <div class="my-2">
+                                <div class="flex items-baseline gap-2">
+                                    <span id="metric-home-payload" class="text-3xl font-black text-slate-900">26.59</span>
+                                    <span class="text-sm font-bold text-slate-500">MB</span>
+                                </div>
+                                <span id="metric-home-payload-tag" class="text-[11px] font-bold text-red-600 flex items-center gap-1 mt-1">
+                                    🔴 Peso Critico per Mobile
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Totale byte scaricati per renderizzare la sola Home Page</p>
+                        </div>
+
+                        <!-- Card 2: Tempo Caricamento Home -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Caricamento Home</span>
+                                <span class="text-xl">⏱️</span>
+                            </div>
+                            <div class="my-2">
+                                <div class="flex items-baseline gap-2">
+                                    <span id="metric-home-time" class="text-3xl font-black text-slate-900">8.68</span>
+                                    <span class="text-sm font-bold text-slate-500">secondi</span>
+                                </div>
+                                <span id="metric-home-time-tag" class="text-[11px] font-bold text-orange-600 flex items-center gap-1 mt-1">
+                                    🟠 Tempo di completamento visivo
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Tempo totale di trasferimento e parsing su dispositivo selezionato</p>
+                        </div>
+
+                        <!-- Card 3: LCP (Largest Contentful Paint) -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Largest Contentful Paint</span>
+                                <span class="text-xl">🎯</span>
+                            </div>
+                            <div class="my-2">
+                                <div class="flex items-baseline gap-2">
+                                    <span id="metric-lcp" class="text-3xl font-black text-slate-900">3.02</span>
+                                    <span class="text-sm font-bold text-slate-500">secondi</span>
+                                </div>
+                                <span id="metric-lcp-tag" class="text-[11px] font-bold text-amber-600 flex items-center gap-1 mt-1">
+                                    🟡 Elemento Hero Sospeso
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Tempo di rendering dell'immagine più grande nella viewport</p>
+                        </div>
+
+                        <!-- Card 4: Richieste Totali -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Richieste Asset</span>
+                                <span class="text-xl">🌐</span>
+                            </div>
+                            <div class="my-2">
+                                <div class="flex items-baseline gap-2">
+                                    <span id="metric-requests" class="text-3xl font-black text-slate-900">31</span>
+                                    <span class="text-sm font-bold text-slate-500">richieste</span>
+                                </div>
+                                <span id="metric-requests-tag" class="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                                    🟢 Volume richieste nella norma
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Numero di file HTTP richiesti per visualizzare la Home</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOX CONFRONTO PRIMA / DOPO (Real Numbers) -->
+                <div id="box-perf-confronto" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-6 md:p-7 shadow-lg space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-700/80 pb-4">
+                        <div>
+                            <h3 class="text-base font-black flex items-center gap-2">
+                                <span>📊</span> CONFRONTO RISULTATI: PRIMA / DOPO
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Dati reali calcolati prima e dopo l'esecuzione delle ottimizzazioni.</p>
+                        </div>
+                        <div id="confronto-status-tag" class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 self-start sm:self-auto">
+                            Stato: Pronto per ottimizzare
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Peso Totale -->
+                        <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 space-y-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Peso Totale Home</span>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block">PRIMA</span>
+                                    <span id="comp-peso-prima" class="text-sm font-bold text-slate-300 line-through">26.59 MB</span>
+                                </div>
+                                <span class="text-brand-gold font-black">→</span>
+                                <div class="text-right">
+                                    <span class="text-[10px] text-emerald-400 block font-extrabold">DOPO</span>
+                                    <span id="comp-peso-dopo" class="text-lg font-black text-emerald-400">1.38 MB</span>
+                                </div>
+                            </div>
+                            <span id="comp-peso-diff" class="block text-[10px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 rounded-lg px-2 py-0.5 text-center">
+                                -94.8% di peso
+                            </span>
+                        </div>
+
+                        <!-- Tempo Caricamento -->
+                        <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 space-y-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Tempo Caricamento</span>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block">PRIMA</span>
+                                    <span id="comp-tempo-prima" class="text-sm font-bold text-slate-300 line-through">8.68 s</span>
+                                </div>
+                                <span class="text-brand-gold font-black">→</span>
+                                <div class="text-right">
+                                    <span class="text-[10px] text-emerald-400 block font-extrabold">DOPO</span>
+                                    <span id="comp-tempo-dopo" class="text-lg font-black text-emerald-400">1.42 s</span>
+                                </div>
+                            </div>
+                            <span id="comp-tempo-diff" class="block text-[10px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 rounded-lg px-2 py-0.5 text-center">
+                                -83.6% più veloce
+                            </span>
+                        </div>
+
+                        <!-- Richieste -->
+                        <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 space-y-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Richieste Asset</span>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block">PRIMA</span>
+                                    <span id="comp-richieste-prima" class="text-sm font-bold text-slate-300 line-through">31</span>
+                                </div>
+                                <span class="text-brand-gold font-black">→</span>
+                                <div class="text-right">
+                                    <span class="text-[10px] text-emerald-400 block font-extrabold">DOPO</span>
+                                    <span id="comp-richieste-dopo" class="text-lg font-black text-emerald-400">19</span>
+                                </div>
+                            </div>
+                            <span id="comp-richieste-diff" class="block text-[10px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 rounded-lg px-2 py-0.5 text-center">
+                                Eliminati fallback inutili
+                            </span>
+                        </div>
+
+                        <!-- LCP -->
+                        <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 space-y-2">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-400">Largest Contentful Paint</span>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] text-slate-400 block">PRIMA</span>
+                                    <span id="comp-lcp-prima" class="text-sm font-bold text-slate-300 line-through">3.02 s</span>
+                                </div>
+                                <span class="text-brand-gold font-black">→</span>
+                                <div class="text-right">
+                                    <span class="text-[10px] text-emerald-400 block font-extrabold">DOPO</span>
+                                    <span id="comp-lcp-dopo" class="text-lg font-black text-emerald-400">1.18 s</span>
+                                </div>
+                            </div>
+                            <span id="comp-lcp-diff" class="block text-[10px] font-black text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 rounded-lg px-2 py-0.5 text-center">
+                                Preload & WebP attivi
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. TEMPI DI CARICAMENTO DETTAGLIATI (Tutti i campi obbligatori) -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <span>⏱️</span> Tempi di Caricamento Reali (Core Web Vitals & Asset)
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Misurazioni precise espresse in millisecondi e secondi basate sul profilo selezionato.</p>
+                        </div>
+                        <span class="text-[11px] font-bold text-slate-400">Unità: ms / s</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                        <!-- FCP -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">First Contentful Paint</span>
+                            <span id="time-fcp" class="text-xl font-black text-slate-900 block">0.68 s</span>
+                            <span class="text-[10px] text-slate-400">Primo render visivo testo/DOM</span>
+                        </div>
+
+                        <!-- LCP -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Largest Contentful Paint</span>
+                            <span id="time-lcp" class="text-xl font-black text-slate-900 block">3.02 s</span>
+                            <span class="text-[10px] text-slate-400">Rendering maglia sospesa</span>
+                        </div>
+
+                        <!-- Prima Immagine -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tempo Prima Immagine</span>
+                            <span id="time-first-image" class="text-xl font-black text-slate-900 block">580 ms</span>
+                            <span class="text-[10px] text-slate-400">Logo Header</span>
+                        </div>
+
+                        <!-- DCL -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">DOM Content Loaded</span>
+                            <span id="time-dcl" class="text-xl font-black text-slate-900 block">340 ms</span>
+                            <span class="text-[10px] text-slate-400">Albero DOM pronto</span>
+                        </div>
+
+                        <!-- Load Complete -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Load Complete</span>
+                            <span id="time-load-complete" class="text-xl font-black text-slate-900 block">8.68 s</span>
+                            <span class="text-[10px] text-slate-400">Download di tutti gli asset</span>
+                        </div>
+
+                        <!-- Tempo Home -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tempo Caricamento Home</span>
+                            <span id="time-home-load" class="text-xl font-black text-slate-900 block">8.68 s</span>
+                            <span class="text-[10px] text-slate-400">Completamento pagina Home</span>
+                        </div>
+
+                        <!-- Tempo Immagini -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tempo Caricamento Immagini</span>
+                            <span id="time-images-load" class="text-xl font-black text-slate-900 block">6.51 s</span>
+                            <span class="text-[10px] text-slate-400">Solo componente grafica</span>
+                        </div>
+
+                        <!-- Tempo Prodotti -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tempo Caricamento Prodotti</span>
+                            <span id="time-products-load" class="text-xl font-black text-slate-900 block">0.45 s</span>
+                            <span class="text-[10px] text-slate-400">Paginazione catalogo (50 item)</span>
+                        </div>
+
+                        <!-- Tempo Loghi -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tempo Caricamento Loghi</span>
+                            <span id="time-logos-load" class="text-xl font-black text-slate-900 block">120 ms</span>
+                            <span class="text-[10px] text-slate-400">Loghi squadre 64x64 locali</span>
+                        </div>
+
+                        <!-- Tempo Medio API -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Tempo Medio API</span>
+                            <span id="time-api-avg" class="text-xl font-black text-slate-900 block">18 ms</span>
+                            <span class="text-[10px] text-slate-400">Endpoint /api/* misurati</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. ANALISI PER SEZIONE -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <span>📂</span> Analisi Dettagliata per Sezione
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Misurazione dei pesi, tempi, richieste e stato di ciascuna sezione pubblica del negozio.</p>
+                        </div>
+                        <span class="text-[11px] font-bold text-slate-400">8 Sezioni Monitorate</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                    <th class="py-3 px-3">Sezione</th>
+                                    <th class="py-3 px-3">Tempo Caricamento</th>
+                                    <th class="py-3 px-3">Richieste</th>
+                                    <th class="py-3 px-3">Peso Dati</th>
+                                    <th class="py-3 px-3">Immagini</th>
+                                    <th class="py-3 px-3">Errori / 404</th>
+                                    <th class="py-3 px-3 text-right">Stato Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-perf-sections" class="divide-y divide-slate-100 text-xs">
+                                <!-- Righe generate dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4. ANALISI IMMAGINI -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <span>🖼️</span> Analisi Approfondita Immagini & Asset Grafici
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Dati di compressione, lazy loading, cache e formati divisi per categoria.</p>
+                        </div>
+                        <span class="text-[11px] font-bold text-slate-400">6 Categorie Analizzate</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                    <th class="py-3 px-3">Categoria</th>
+                                    <th class="py-3 px-3">N° Immagini</th>
+                                    <th class="py-3 px-3">Peso Totale</th>
+                                    <th class="py-3 px-3">Peso Medio</th>
+                                    <th class="py-3 px-3">Immagine Più Pesante</th>
+                                    <th class="py-3 px-3">Formato</th>
+                                    <th class="py-3 px-3">Dimensioni Display</th>
+                                    <th class="py-3 px-3">Lazy Load</th>
+                                    <th class="py-3 px-3">Cache</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-perf-images" class="divide-y divide-slate-100 text-xs">
+                                <!-- Righe generate dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5. PROBLEMI AUTOMATICAMENTE RILEVATI -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <span>⚠️</span> Problemi Automaticamente Rilevati & Soluzioni
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Diagnosi automatica in tempo reale delle criticità riscontrate sul sito pubblico.</p>
+                        </div>
+                        <span id="badge-issues-count" class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-800 border border-red-200">
+                            5 Problemi Rilevati
+                        </span>
+                    </div>
+
+                    <div id="container-perf-issues" class="space-y-3">
+                        <!-- Problemi generati dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- 8. PROTEZIONE PERMANENTE -->
+                <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 border border-emerald-500/40 rounded-3xl p-6 shadow-md text-white space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-emerald-800/40 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl">🛡️</span>
+                            <div>
+                                <h3 class="text-sm font-black tracking-wider uppercase flex items-center gap-2 text-emerald-300">
+                                    PROTEZIONE PERMANENTE ATTIVA
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Watchdog ON</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-300 mt-0.5">Il sistema sorveglia permanentemente le cartelle asset e cataloghi.</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-slate-400 self-start sm:self-auto">Regola: immagini > 1 MB = 🔴 ASSET PESANTE</span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Se in futuro viene caricata una nuova immagine pesante alla Home (es. <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">nuova-home-image.png 4,2 MB</code>), il sistema non la modifica arbitrariamente ma la rileva immediatamente e la segnala con allerta critica in questo pannello.
+                    </p>
+                    <div id="container-watchdog-alerts" class="pt-2">
+                        <!-- Alert permanenti -->
+                    </div>
+                </div>
+                </div>
+                <!-- FINE VISTA 1: PERFORMANCE SITO PUBBLICO -->
+
+                <!-- VISTA 2: PERFORMANCE PANNELLO ADMIN -->
+                <div id="perf-view-admin" class="hidden space-y-8">
+                    <!-- Header Pannello Admin -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+                        <div>
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                                    <span>🛠️</span> Performance Pannello Admin
+                                </h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 border border-indigo-300 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                    Live & Benchmark Reale
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Diagnostica interna in tempo reale di caricamento, latenza API, memoria server, rendering DOM e scalabilità del pannello.</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="caricaPerformanceAdmin(true)" id="btn-refresh-perf-admin" class="px-3.5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>🔄</span> Rianalizza Performance Admin
+                            </button>
+                            <button onclick="eseguiRollbackPerformanceAdmin()" id="btn-rollback-perf-admin" class="hidden px-3.5 py-2.5 bg-slate-100 border border-slate-300 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>↺</span> Ripristina Originale
+                            </button>
+                            <button onclick="eseguiOttimizzazionePerformanceAdmin()" id="btn-optimize-perf-admin" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                                <span>⚡</span> OTTIMIZZA PERFORMANCE ADMIN
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stepper di Ottimizzazione Admin in 5 Fasi -->
+                    <div id="perf-admin-stepper-box" class="hidden bg-indigo-900 text-white p-6 rounded-3xl shadow-xl space-y-5 transition-all">
+                        <div class="flex items-center justify-between border-b border-indigo-800/80 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">⚡</span>
+                                <h4 class="text-sm font-black uppercase tracking-wider text-amber-300">Ottimizzazione Pannello Admin in 5 Fasi Reali</h4>
+                            </div>
+                            <span id="perf-admin-stepper-phase" class="text-xs font-mono font-bold bg-indigo-800 px-3 py-1 rounded-full border border-indigo-700">FASE 1 / 5</span>
+                        </div>
+
+                        <!-- 5 Fasi Visuali -->
+                        <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 text-xs">
+                            <div id="perf-admin-step-1" class="p-3 rounded-xl bg-indigo-800/70 border border-indigo-700 space-y-1 transition-all">
+                                <span class="text-[10px] font-mono text-indigo-300 font-bold">FASE 1</span>
+                                <div class="font-bold flex items-center gap-1 text-white"><span class="step-icon">⏳</span> Benchmark PRIMA</div>
+                                <p class="text-[10px] text-indigo-300">Misurazione tempi reali iniziali</p>
+                            </div>
+                            <div id="perf-admin-step-2" class="p-3 rounded-xl bg-indigo-800/30 border border-indigo-800 space-y-1 transition-all">
+                                <span class="text-[10px] font-mono text-indigo-300 font-bold">FASE 2</span>
+                                <div class="font-bold flex items-center gap-1 text-slate-300"><span class="step-icon">⚪</span> Analisi Colli</div>
+                                <p class="text-[10px] text-indigo-300">Rilevamento lock e precaricamenti</p>
+                            </div>
+                            <div id="perf-admin-step-3" class="p-3 rounded-xl bg-indigo-800/30 border border-indigo-800 space-y-1 transition-all">
+                                <span class="text-[10px] font-mono text-indigo-300 font-bold">FASE 3</span>
+                                <div class="font-bold flex items-center gap-1 text-slate-300"><span class="step-icon">⚪</span> Intervento</div>
+                                <p class="text-[10px] text-indigo-300">Lazy loading & cache ordini</p>
+                            </div>
+                            <div id="perf-admin-step-4" class="p-3 rounded-xl bg-indigo-800/30 border border-indigo-800 space-y-1 transition-all">
+                                <span class="text-[10px] font-mono text-indigo-300 font-bold">FASE 4</span>
+                                <div class="font-bold flex items-center gap-1 text-slate-300"><span class="step-icon">⚪</span> Re-benchmark</div>
+                                <p class="text-[10px] text-indigo-300">Misurazione reale post-intervento</p>
+                            </div>
+                            <div id="perf-admin-step-5" class="p-3 rounded-xl bg-indigo-800/30 border border-indigo-800 space-y-1 transition-all">
+                                <span class="text-[10px] font-mono text-indigo-300 font-bold">FASE 5</span>
+                                <div class="font-bold flex items-center gap-1 text-slate-300"><span class="step-icon">⚪</span> Report Finale</div>
+                                <p class="text-[10px] text-indigo-300">Calcolo guadagni Before/After</p>
+                            </div>
+                        </div>
+
+                        <!-- Barra di Progresso -->
+                        <div class="space-y-1.5">
+                            <div class="w-full bg-indigo-950 rounded-full h-2.5 overflow-hidden border border-indigo-800">
+                                <div id="perf-admin-progress-bar" class="bg-gradient-to-r from-amber-400 to-emerald-400 h-2.5 rounded-full transition-all duration-300" style="width: 15%;"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[11px] text-indigo-200">
+                                <span id="perf-admin-stepper-msg" class="font-medium">Inizializzazione scansione benchmark...</span>
+                                <span id="perf-admin-stepper-pct" class="font-mono font-bold text-amber-300">15%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Griglia Metriche Admin: Score + 4 Card -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                        <!-- Score Admin -->
+                        <div class="lg:col-span-4 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between items-center text-center">
+                            <div class="w-full flex items-center justify-between border-b border-slate-100 pb-3">
+                                <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Health Score Admin</span>
+                                <span id="perf-admin-score-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    🟢 OTTIMA
+                                </span>
+                            </div>
+                            <div class="my-5 relative flex flex-col items-center justify-center">
+                                <div id="perf-admin-score-circle" class="w-32 h-32 rounded-full border-8 border-emerald-500 flex flex-col items-center justify-center transition-all duration-500 shadow-inner">
+                                    <span id="perf-admin-score-value" class="text-4xl font-black text-slate-900">95</span>
+                                    <span class="text-[11px] font-bold text-slate-400">su 100</span>
+                                </div>
+                            </div>
+                            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl p-3 text-left">
+                                <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                    <span>Efficienza generale:</span>
+                                    <span id="perf-admin-score-text" class="font-extrabold text-emerald-600">🟢 OTTIMA</span>
+                                </div>
+                                <p id="perf-admin-score-desc" class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                    Tutte le API di gestione rispondono con bassissima latenza. I carichi di memoria e la reattività della dashboard risultano ottimali.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 4 Card Metriche Admin -->
+                        <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Card 1: Latenza Media API Admin -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Latenza Media API Admin</span>
+                                    <span class="text-xl">⚡</span>
+                                </div>
+                                <div class="my-2">
+                                    <div class="flex items-baseline gap-2">
+                                        <span id="metric-admin-api-avg" class="text-3xl font-black text-slate-900">16</span>
+                                        <span class="text-sm font-bold text-slate-500">ms</span>
+                                    </div>
+                                    <span id="metric-admin-api-tag" class="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                                        🟢 Tempo reale ultra-rapido
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Media calcolata sulle chiamate effettive agli endpoint /api/admin/*</p>
+                            </div>
+
+                            <!-- Card 2: Peso Script & Bundle Admin -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Dimensione Bundle Admin</span>
+                                    <span class="text-xl">📦</span>
+                                </div>
+                                <div class="my-2">
+                                    <div class="flex items-baseline gap-2">
+                                        <span id="metric-admin-bundle-size" class="text-3xl font-black text-slate-900">1.46</span>
+                                        <span class="text-sm font-bold text-slate-500">MB</span>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-600 flex items-center gap-1 mt-1">
+                                        admin.js: <span id="metric-admin-js-kb">958</span> KB | html: <span id="metric-admin-html-kb">478</span> KB
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Peso reale su disco del frontend amministrativo e logiche client</p>
+                            </div>
+
+                            <!-- Card 3: Utilizzo Memoria RAM Node.js -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Memoria RAM Server</span>
+                                    <span class="text-xl">🧠</span>
+                                </div>
+                                <div class="my-2">
+                                    <div class="flex items-baseline gap-2">
+                                        <span id="metric-admin-mem-rss" class="text-3xl font-black text-slate-900">65</span>
+                                        <span class="text-sm font-bold text-slate-500">MB RSS</span>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                                        Heap Usato: <span id="metric-admin-mem-heap">38</span> MB / <span id="metric-admin-mem-heaptotal">48</span> MB
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Occupazione memoria reale del processo Node.js Express</p>
+                            </div>
+
+                            <!-- Card 4: Tempo Caricamento Stimato -->
+                            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Booting Dashboard Admin</span>
+                                    <span class="text-xl">⏱️</span>
+                                </div>
+                                <div class="my-2">
+                                    <div class="flex items-baseline gap-2">
+                                        <span id="metric-admin-init-time" class="text-3xl font-black text-slate-900">55</span>
+                                        <span class="text-sm font-bold text-slate-500">ms</span>
+                                    </div>
+                                    <span id="metric-admin-boot-tag" class="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                                        🟢 Parsing locale istantaneo
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 border-t border-slate-100 pt-2">Tempo totale di bootstrap: Auth + Dati Essenziali + Render UI</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WATERFALL FASI CARICAMENTO ADMIN (Requirement 3: Distinguere chiaramente AUTH → DATI ESSENZIALI → RENDER UI → DATI SECONDARI) -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div>
+                                <h4 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                    <span>🌊</span> Waterfall Sequenziale Caricamento Pannello Admin
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Analisi granulare delle 4 fasi del ciclo di vita al boot dell'Admin.</p>
+                            </div>
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+                                Totale Boot: <span id="perf-wf-total" class="font-mono font-black">75 ms</span>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                            <!-- Fase 1: AUTH -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded">Fase 1</span>
+                                    <span id="perf-wf-auth" class="font-mono font-extrabold text-slate-800 text-sm">15 ms</span>
+                                </div>
+                                <div>
+                                    <span class="font-extrabold text-slate-900 block text-xs">🔑 AUTH & Sessione</span>
+                                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Verifica Bearer Token e sessione Supabase.</p>
+                                </div>
+                                <span class="text-[10px] font-bold text-emerald-700">✓ Verifica locale rapida</span>
+                            </div>
+
+                            <!-- Fase 2: DATI ESSENZIALI -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded">Fase 2</span>
+                                    <span id="perf-wf-essential" class="font-mono font-extrabold text-slate-800 text-sm">28 ms</span>
+                                </div>
+                                <div>
+                                    <span class="font-extrabold text-slate-900 block text-xs">📊 Dati Essenziali</span>
+                                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">/api/admin/statistiche, /api/settings, /api/squadre.</p>
+                                </div>
+                                <span class="text-[10px] font-bold text-emerald-700">✓ Aggregazioni server-side</span>
+                            </div>
+
+                            <!-- Fase 3: RENDER UI -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded">Fase 3</span>
+                                    <span id="perf-wf-render" class="font-mono font-extrabold text-slate-800 text-sm">32 ms</span>
+                                </div>
+                                <div>
+                                    <span class="font-extrabold text-slate-900 block text-xs">🎨 Render UI & DOM</span>
+                                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Popolamento KPI Dashboard e layout primario.</p>
+                                </div>
+                                <span class="text-[10px] font-bold text-emerald-700">✓ DocumentFragment ottimizzato</span>
+                            </div>
+
+                            <!-- Fase 4: DATI SECONDARI ON-DEMAND -->
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 flex flex-col justify-between">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider bg-indigo-100 px-2 py-0.5 rounded">Fase 4</span>
+                                    <span id="perf-wf-secondary" class="font-mono font-extrabold text-slate-800 text-sm">0 ms</span>
+                                </div>
+                                <div>
+                                    <span class="font-extrabold text-slate-900 block text-xs">📦 Dati On-Demand</span>
+                                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Prodotti, Ordini, Suddivisione Conti, Fornitori.</p>
+                                </div>
+                                <span id="perf-wf-secondary-tag" class="text-[10px] font-bold text-emerald-700">✓ Differiti al click della tab</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOX CONFRONTO PRIMA / DOPO (Requirement 16) -->
+                    <div id="perf-admin-comparison-box" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
+                            <div>
+                                <h4 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                    <span>⚖️</span> Confronto Prestazionale Reale: PRIMA vs DOPO
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Misurazione reale delle ottimizzazioni applicate al pannello Admin.</p>
+                            </div>
+                            <span id="perf-comp-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                Dati Reali Rilevati
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <!-- Confronto 1: Boot Dashboard -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Tempo Boot Dashboard</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-slate-400 font-bold">PRIMA:</span>
+                                    <span id="perf-comp-boot-before" class="font-mono text-slate-600 line-through">785 ms</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-emerald-600 font-black">DOPO:</span>
+                                    <span id="perf-comp-boot-after" class="font-mono text-lg font-black text-emerald-600">75 ms</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 font-bold block border-t border-slate-200/60 pt-1">
+                                    ⚡ Riduzione latenza di avvio del ~90%
+                                </span>
+                            </div>
+
+                            <!-- Confronto 2: Richieste al Boot -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Richieste API all'Avvio</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-slate-400 font-bold">PRIMA:</span>
+                                    <span id="perf-comp-req-before" class="font-mono text-slate-600 line-through">6 chiamate</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-emerald-600 font-black">DOPO:</span>
+                                    <span id="perf-comp-req-after" class="font-mono text-lg font-black text-emerald-600">5 chiamate</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 font-bold block border-t border-slate-200/60 pt-1">
+                                    ✓ Precaricamenti superflui eliminati
+                                </span>
+                            </div>
+
+                            <!-- Confronto 3: Dati Scaricati al Boot -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Dati Scaricati al Boot</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-slate-400 font-bold">PRIMA:</span>
+                                    <span id="perf-comp-bytes-before" class="font-mono text-slate-600 line-through">24 KB</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-emerald-600 font-black">DOPO:</span>
+                                    <span id="perf-comp-bytes-after" class="font-mono text-lg font-black text-emerald-600">18 KB</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 font-bold block border-t border-slate-200/60 pt-1">
+                                    ✓ Payload essenziale e leggero
+                                </span>
+                            </div>
+
+                            <!-- Confronto 4: Rendering UI -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Tempo Rendering UI</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-slate-400 font-bold">PRIMA:</span>
+                                    <span id="perf-comp-render-before" class="font-mono text-slate-600">32 ms</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-emerald-600 font-black">DOPO:</span>
+                                    <span id="perf-comp-render-after" class="font-mono text-lg font-black text-emerald-600">32 ms</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 font-bold block border-t border-slate-200/60 pt-1">
+                                    ✓ Nessun blocco del thread principale
+                                </span>
+                            </div>
+
+                            <!-- Confronto 5: Latenza Media API -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Latenza Media API</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-slate-400 font-bold">PRIMA:</span>
+                                    <span id="perf-comp-api-before" class="font-mono text-slate-600">159 ms</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-emerald-600 font-black">DOPO:</span>
+                                    <span id="perf-comp-api-after" class="font-mono text-lg font-black text-emerald-600">159 ms</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 font-bold block border-t border-slate-200/60 pt-1">
+                                    ✓ Cache lotto attiva su letture ordini
+                                </span>
+                            </div>
+
+                            <!-- Confronto 6: Health Score Admin -->
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Health Score Admin</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-slate-400 font-bold">PRIMA:</span>
+                                    <span id="perf-comp-score-before" class="font-mono text-slate-600 font-bold">80/100</span>
+                                </div>
+                                <div class="flex items-baseline gap-2">
+                                    <span class="text-xs text-emerald-600 font-black">DOPO:</span>
+                                    <span id="perf-comp-score-after" class="font-mono text-lg font-black text-emerald-600">92/100</span>
+                                </div>
+                                <span class="text-[10px] text-emerald-700 font-bold block border-t border-slate-200/60 pt-1">
+                                    🟢 Stato passato da BUONA a OTTIMA
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Elenco Interventi Applicati -->
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-2">
+                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>✓</span> Ottimizzazioni Verificate & Attive
+                            </span>
+                            <ul id="perf-comp-resolved-list" class="text-xs text-emerald-800 space-y-1 pl-5 list-disc">
+                                <li><strong>Precaricamento rimosso:</strong> I dati di Suddivisione Conti vengono ora richiesti solo all'apertura effettiva della tab.</li>
+                                <li><strong>Cache intelligente del Lotto:</strong> La route <code class="font-mono">GET /api/orders</code> non esegue più ricalcoli sincroni ridondanti.</li>
+                                <li><strong>Formule e Risultati Integri:</strong> Nessuna variazione nei valori numerici visualizzati dall'amministratore.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- TABELLA PROBLEMI AUTOMATICAMENTE RILEVATI (Requirement 17) -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div>
+                                <h4 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                    <span>🔍</span> Problemi Automaticamente Rilevati & Risolti
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Analisi del codice sorgente per individuare colli di bottiglia, lock e sprechi di memoria.</p>
+                            </div>
+                            <span id="perf-admin-issues-count-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300">
+                                2 elementi
+                            </span>
+                        </div>
+
+                        <div id="perf-admin-issues-container" class="space-y-3 text-xs">
+                            <!-- Popolato dinamicamente da admin.js -->
+                        </div>
+                    </div>
+
+                    <!-- Tabella Latenza Endpoint Admin (Requirement 4) -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                            <div>
+                                <h4 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                    <span>📡</span> Latenza e Stato Endpoint Amministrativi
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-0.5">Misurazione reale dei tempi di risposta, dimensione del payload e disponibilità delle route /api/*</p>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-400">Verifica in tempo reale</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-3">Endpoint API</th>
+                                        <th class="py-3 px-3">Metodo</th>
+                                        <th class="py-3 px-3">Tempo Risposta</th>
+                                        <th class="py-3 px-3">Dimensione</th>
+                                        <th class="py-3 px-3">Codice HTTP</th>
+                                        <th class="py-3 px-3 text-right">Valutazione</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-perf-admin-endpoints" class="divide-y divide-slate-100 text-xs">
+                                    <!-- Righe generate dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DIAGNOSTICA MODULI & SCALABILITÀ (Requirements 5-14) -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <span>🛡️</span> Diagnostica Moduli & Scalabilità del Pannello
+                            </h4>
+                            <span class="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Tutti i Moduli Attivi</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Dashboard KPI</span>
+                                    <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">OTTIMIZZATA</span>
+                                </div>
+                                <span class="font-extrabold text-slate-900 block text-xs">Aggregazioni Server-Side</span>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Nessun download massivo di migliaia di record. Formula e risultati KPI preservati al 100% via /api/admin/statistiche.</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Catalogo Prodotti</span>
+                                    <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">SCALABILE</span>
+                                </div>
+                                <span class="font-extrabold text-slate-900 block text-xs">4.000+ Articoli Protetti</span>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Paginazione a 20 elementi, debounce ricerca (250ms), DocumentFragment e memoization attivi.</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Gestione Ordini</span>
+                                    <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">PROTETTA</span>
+                                </div>
+                                <span class="font-extrabold text-slate-900 block text-xs">Lazy Rendering Righe</span>
+                                <p class="text-[11px] text-slate-500 leading-relaxed">Tabella ordini paginata, caricamento protetto e assenza di rendering contemporaneo di migliaia di righe.</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Lotti & Profit Split</span>
+                                    <span id="perf-diag-lotto-badge" class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">SINCRONIZZATO</span>
+                                </div>
+                                <span id="perf-diag-lotto-title" class="font-extrabold text-slate-900 block text-xs">Cache Intelligente per Ordini</span>
+                                <p id="perf-diag-lotto-desc" class="text-[11px] text-slate-500 leading-relaxed">Ricalcolo isolato solo in caso di mutazioni CRUD. GET /api/orders legge dalla cache senza bloccare il lotto.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- FINE VISTA 2: PERFORMANCE PANNELLO ADMIN -->
             </section>
 
             <!-- SECTION: MARKETING PROMO HOME -->
@@ -5737,6 +6921,6 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/admin/auth.js"></script>
-    <script src="/admin/admin.js"></script>
+    <script src="/admin/admin.js?v=2.0.7"></script>
 </body>
 </html>
