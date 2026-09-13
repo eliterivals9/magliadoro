@@ -23,7 +23,7 @@
     "nome": null,
     "stagione": "2002/2003",
     "prezzo": 21.99,
-    "immagine": "https://jerseys-catalog.com/wp-content/uploads/2026/06/010169cf6531825195f99f6c68abb3e5-300x300.jpg",
+    "immagine": "/uploads/prodotti/img_0c26262a49264efd.webp",
     "created_at": "2026-09-04T10:54:01.709376",
     "versione": "Maglia Retro Casa Manchester United Maniche Lunghe",
     "prezzo_fornitore": 11,
@@ -31,7 +31,8 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": "Maniche Lunghe"
+    "filtro_catalogo": "Maniche Lunghe",
+    "immagine_originale": "https://jerseys-catalog.com/wp-content/uploads/2026/06/010169cf6531825195f99f6c68abb3e5-300x300.jpg"
   },
   {
     "id": "ad52f8a3-ada5-4ef8-affc-656ff42d0752",
@@ -1315,7 +1316,7 @@
     "nome": null,
     "stagione": "2024/2025",
     "prezzo": 25.99,
-    "immagine": "https://jerseys-catalog.com/wp-content/uploads/2026/06/5927d32516330826e68d516a7668717c-300x300.jpg",
+    "immagine": "/uploads/prodotti/img_7b27c28239b4cb56.webp",
     "created_at": "2026-09-04T10:53:02.944709",
     "versione": "Kit Casa AC Milan Maniche Lunghe",
     "prezzo_fornitore": 10,
@@ -1323,7 +1324,8 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": "Maniche Lunghe"
+    "filtro_catalogo": "Maniche Lunghe",
+    "immagine_originale": "https://jerseys-catalog.com/wp-content/uploads/2026/06/5927d32516330826e68d516a7668717c-300x300.jpg"
   },
   {
     "id": "4c4fc2d7-9075-45dd-9138-52d5f621c9f9",
@@ -1451,7 +1453,7 @@
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 44.99,
-    "immagine": "https://jerseys-catalog.com/wp-content/uploads/2026/06/0897d0088f2872412820ce62dc032c11-300x300.png",
+    "immagine": "/uploads/prodotti/img_79cc606db3e4bfb1.webp",
     "created_at": "2026-09-04T13:28:23.516501",
     "versione": "Mezza Zip Italia Celeste",
     "prezzo_fornitore": 22,
@@ -1459,7 +1461,8 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "",
+    "immagine_originale": "https://jerseys-catalog.com/wp-content/uploads/2026/06/0897d0088f2872412820ce62dc032c11-300x300.png"
   },
   {
     "id": "077755db-f6db-49fe-89b5-5ae80cf7147f",
@@ -1583,7 +1586,7 @@
   {
     "id": "fc20e1e6-c7d2-4088-b7a9-a8450dfc3c55",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -1595,12 +1598,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "790559c4-68a4-49bc-aae8-c50f1f3a75f3",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -1612,12 +1615,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "c1693a81-91a0-47e1-907c-2227e9778c7b",
     "squadra": "Colombia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -1629,12 +1632,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "e6055487-9f18-4cfd-ab41-5d3ef901214b",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -1646,12 +1649,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "ee77df33-6056-4ca1-a586-5aba892956b4",
     "squadra": "Italia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -1663,12 +1666,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "f9f125c5-e030-4538-841d-43e541d79576",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -1680,7 +1683,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "3bb964a8-607c-4150-b563-0bbee5f54ca5",
@@ -2416,7 +2419,7 @@
   {
     "id": "f74acd75-e07c-4c8d-ac4f-6f87f0858b01",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -2428,7 +2431,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "6c9bc4e8-93cb-407b-8ffd-256780436cac",
@@ -2450,7 +2453,7 @@
   {
     "id": "c55c1752-c848-4aa9-85ee-519dba33ead1",
     "squadra": "Colombia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -2462,7 +2465,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "2d7fa481-9274-442f-b845-59d1baf1f260",
@@ -2484,7 +2487,7 @@
   {
     "id": "73d72253-646f-48e3-a6b5-11921ce7469c",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -2496,12 +2499,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "f2f9f5d1-d0bb-4d8a-9210-a83f64d610ea",
     "squadra": "Italia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -2513,7 +2516,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "bc7720bf-107a-4ec2-a140-dd6a46452754",
@@ -2535,7 +2538,7 @@
   {
     "id": "d8e6501a-bddf-403e-8fbe-718751a25a7e",
     "squadra": "Arabia Saudita",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -2547,7 +2550,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "c7715391-116f-459b-98f4-69053a9e0a9f",
@@ -2637,7 +2640,7 @@
   {
     "id": "ca2705f5-f1cf-4e19-bc44-dcf77b6f24a0",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Polo",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -2649,7 +2652,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Polo"
   },
   {
     "id": "f3aa0111-7cae-42b5-8c4b-50fce45355c2",
@@ -8434,7 +8437,7 @@
   {
     "id": "86334cb7-7579-4b09-b0e5-05096e5e8138",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -8446,12 +8449,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "18a37936-353b-4a3f-8f6d-962803f8ac9f",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -8463,12 +8466,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "cf9371bf-d8a6-4115-9a7a-19317a116929",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -8480,12 +8483,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "fa5dd31e-6bb1-441f-b48c-f77198d55759",
     "squadra": "Brasile",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -8497,12 +8500,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "47a7381c-f801-4285-ac1d-a21d8e9274df",
     "squadra": "Colombia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -8514,12 +8517,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "a1f81e81-0b4f-479f-a035-d7ccbf9cd70a",
     "squadra": "Inghilterra",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -8531,7 +8534,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "54ec1426-af31-48ce-aeff-3c71a7fada8a",
@@ -9012,7 +9015,7 @@
   {
     "id": "8a4ddd60-cb80-445b-8673-674753cb8be7",
     "squadra": "Algeria",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9024,12 +9027,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "2ab3a792-6691-48f5-8e57-cd25a16ef30f",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9041,12 +9044,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "262db504-e9d3-4b26-948a-fc4ff62c26a2",
     "squadra": "Argentina",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9058,12 +9061,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "075c654d-1834-4b12-a028-1434e3691626",
     "squadra": "Brasile",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9075,12 +9078,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "4e284097-2441-47bf-b1c7-8a1a0efa4530",
     "squadra": "Brasile",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9092,12 +9095,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "2d30d85f-2cfc-4ab5-aa7f-81ad75a10941",
     "squadra": "Colombia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9109,12 +9112,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "207ef819-9ae5-4121-872a-814beae33714",
     "squadra": "Inghilterra",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9126,12 +9129,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "fe15ad6d-9385-4cc4-914b-65a65a6112b3",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9143,12 +9146,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "0eaf619b-6dc0-470c-bcb2-14fe67943157",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9160,12 +9163,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "0666ac91-9c04-423b-aafd-491a38caa174",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9177,12 +9180,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "3375c105-b981-4208-9227-507d333261d6",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9194,12 +9197,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "54a275af-0927-4916-b251-4f29a43dcc70",
     "squadra": "Italia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9211,7 +9214,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "091cc1da-840a-4881-9a37-e2963e13bc39",
@@ -9471,7 +9474,7 @@
   {
     "id": "9eaaafe6-59d4-4a07-9c55-67972a25d2f3",
     "squadra": "Francia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9483,12 +9486,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "b5e6b930-c0f4-46ce-b332-3b655da673d8",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9500,12 +9503,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "2e12ce61-7df8-4607-a52c-4d70597e68b4",
     "squadra": "Germania",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9517,12 +9520,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "447798e4-91fc-4b72-9d73-f5a085bce2e4",
     "squadra": "Italia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9534,7 +9537,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "c2eda0f9-d03a-43aa-b532-e722693abf6e",
@@ -9607,7 +9610,7 @@
   {
     "id": "dbbdaee2-7388-4f5d-9d0d-8d314626242e",
     "squadra": "Giappone",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9619,12 +9622,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "0be8ef89-eeb6-4ab6-b716-126e5267a309",
     "squadra": "Messico",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9636,12 +9639,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "7bdbba50-b559-4f08-9b79-d4a4753888ce",
     "squadra": "Portogallo",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9653,12 +9656,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "d8249805-810e-4121-92f2-349e3a0163dd",
     "squadra": "Portogallo",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9670,12 +9673,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "d5ee37fe-eb46-46b6-a3e9-8a56b978fd6d",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9687,12 +9690,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "cd4e0564-bf17-4b49-bbe5-bfc63ebe2ee3",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9704,12 +9707,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "8d17c185-51aa-41a2-be27-14f18999f4cc",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -9721,7 +9724,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "8ade5aff-793e-42d1-82cc-d3da60626310",
@@ -10066,7 +10069,7 @@
   {
     "id": "1db243df-2500-45c3-ae5b-c5c5aac15f04",
     "squadra": "Italia",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10078,12 +10081,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "da268d31-a9aa-4e9d-b4a6-9d8c8ca99a5c",
     "squadra": "Messico",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10095,12 +10098,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "9fa879e7-b263-48ee-9cec-dda3d8bfed9b",
     "squadra": "Paesi Bassi",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10112,12 +10115,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "a0f2d472-cf0d-4034-a5c3-b94b1c9ae2f7",
     "squadra": "Portogallo",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10129,12 +10132,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "ce5fad5b-11fc-43d5-a8fd-70c2d287f5ff",
     "squadra": "Arabia Saudita",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10146,12 +10149,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "363b9e63-0223-4dc6-b643-69d940919986",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10163,12 +10166,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "671b4aaf-334a-4af2-8c93-496cc0885e1c",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10180,12 +10183,12 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "51097301-8a1f-4b79-a736-e7970c01efef",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2026/2027",
     "prezzo": 25.99,
@@ -10197,7 +10200,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "1c0075ee-fd70-4812-87bf-751cdb81f283",
@@ -30959,7 +30962,7 @@
   {
     "id": "913c995b-06f2-4a97-87a3-2ae9e0c02194",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2025/2026",
     "prezzo": 25.99,
@@ -30971,7 +30974,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "629efe2b-6df7-47db-a065-6015ca357a9c",
@@ -31231,7 +31234,7 @@
   {
     "id": "2a4a2149-0bae-4006-9b51-d0af27468662",
     "squadra": "Spagna",
-    "categoria": "Kit Allenamento",
+    "categoria": "Smanicato",
     "nome": null,
     "stagione": "2025/2026",
     "prezzo": 25.99,
@@ -31243,7 +31246,7 @@
     "target": "Adulto",
     "tipo": null,
     "filtri_aggiuntivi": [],
-    "filtro_catalogo": ""
+    "filtro_catalogo": "Smanicati"
   },
   {
     "id": "0d46481e-4a58-46da-852f-90e937e658cf",

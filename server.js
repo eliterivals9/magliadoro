@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import exceljs from 'exceljs';
 import crypto from 'crypto';
+import sharp from 'sharp';
 import { scanPerformance, scanAdminPerformance, optimizePerformance, rollbackPerformance, optimizeAdminPerformance, rollbackAdminPerformance, getPerformanceState } from './performance_engine.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -89,9 +90,13 @@ const PORT = 3000;
 const LOCAL_PRODUCTS_FILE = path.join(__dirname, 'products_local.json');
 const LOCAL_ACCESSORIES_FILE = path.join(__dirname, 'accessories_local.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const PRODOTTI_UPLOADS_DIR = path.join(UPLOADS_DIR, 'prodotti');
 
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+if (!fs.existsSync(PRODOTTI_UPLOADS_DIR)) {
+  fs.mkdirSync(PRODOTTI_UPLOADS_DIR, { recursive: true });
 }
 
 // Enable JSON body parsing for API requests
@@ -15227,6 +15232,114 @@ app.get('/api/admin/performance/status', (req, res) => {
     return res.json({ success: true, state });
   } catch (err) {
     console.error("⚠️ Errore GET /api/admin/performance/status:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/store-image - Salva l'immagine convertita in WebP ed aggiorna il riferimento nel DB
+app.post('/api/admin/store-image', async (req, res) => {
+  try {
+    const { productId, originalUrl, imageBase64 } = req.body || {};
+
+    if (!productId) {
+      return res.status(400).json({ success: false, error: "productId mancante." });
+    }
+
+    let webpBuffer = null;
+
+    if (imageBase64 && typeof imageBase64 === 'string' && imageBase64.trim()) {
+      const base64Clean = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const rawBuffer = Buffer.from(base64Clean, 'base64');
+      webpBuffer = await sharp(rawBuffer)
+        .resize(300, 300, { fit: 'cover' })
+        .webp({ quality: 80 })
+        .toBuffer();
+    } else if (originalUrl && typeof originalUrl === 'string' && originalUrl.startsWith('http')) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      try {
+        const resp = await fetch(originalUrl, {
+          headers: {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+            'accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'referer': 'https://jerseys-catalog.com/'
+          },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!resp.ok) {
+          throw new Error(`Download fornitore fallito (HTTP ${resp.status})`);
+        }
+        const arrayBuf = await resp.arrayBuffer();
+        const rawBuffer = Buffer.from(arrayBuf);
+        webpBuffer = await sharp(rawBuffer)
+          .resize(300, 300, { fit: 'cover' })
+          .webp({ quality: 80 })
+          .toBuffer();
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        throw new Error(`Download server fallito: ${fetchErr.message}`);
+      }
+    } else {
+      return res.status(400).json({ success: false, error: "Dati immagine non forniti." });
+    }
+
+    const key = (originalUrl && originalUrl.trim()) ? originalUrl.trim() : `prod_${productId}`;
+    const hash = crypto.createHash('sha256').update(key).digest('hex').substring(0, 16);
+    const filename = `img_${hash}.webp`;
+
+    if (!fs.existsSync(PRODOTTI_UPLOADS_DIR)) {
+      fs.mkdirSync(PRODOTTI_UPLOADS_DIR, { recursive: true });
+    }
+
+    const filePath = path.join(PRODOTTI_UPLOADS_DIR, filename);
+    fs.writeFileSync(filePath, webpBuffer);
+
+    const internalUrl = `/uploads/prodotti/${filename}`;
+
+    let updatedInLocal = false;
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      let localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      const idx = localProds.findIndex(p => 
+        String(p.id) === String(productId) || 
+        String(p.legacy_id) === String(productId)
+      );
+      if (idx !== -1) {
+        if (!localProds[idx].immagine_originale && localProds[idx].immagine && !localProds[idx].immagine.startsWith('/uploads/')) {
+          localProds[idx].immagine_originale = localProds[idx].immagine;
+        }
+        localProds[idx].immagine = internalUrl;
+        fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+        updatedInLocal = true;
+      }
+    }
+
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
+    if (supabase) {
+      try {
+        const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+        if (isNum) {
+          await supabase.from('products').update({ immagine: internalUrl }).eq('legacy_id', Number(productId));
+        } else {
+          await supabase.from('products').update({ immagine: internalUrl }).eq('id', String(productId));
+        }
+      } catch (errDb) {
+        console.warn("⚠️ Aggiornamento immagine Supabase avviso:", errDb.message);
+      }
+    }
+
+    invalidateProductsCache();
+
+    return res.json({
+      success: true,
+      productId: productId,
+      internalUrl: internalUrl,
+      filename: filename,
+      sizeBytes: webpBuffer.length,
+      updatedInLocal: updatedInLocal
+    });
+  } catch (err) {
+    console.error("❌ Errore /api/admin/store-image:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });

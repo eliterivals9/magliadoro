@@ -351,12 +351,30 @@
                     </div>
 
                     <!-- Filters Section -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-slate-100">
-                        <!-- Squadra Filter -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 pt-2 border-t border-slate-100">
+                        <!-- Main Filter: Destinazione -->
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Squadra</label>
-                            <select id="filter-squadra" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
-                                <option value="">Tutte le squadre</option>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Destinazione</label>
+                            <select id="filter-tipo-squadra" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                                <option value="">TUTTI</option>
+                                <option value="club">CLUB</option>
+                                <option value="nazionali">NAZIONALI</option>
+                            </select>
+                        </div>
+
+                        <!-- Club Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Club</label>
+                            <select id="filter-club" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                                <option value="">Tutti i Club</option>
+                            </select>
+                        </div>
+
+                        <!-- Nazionale Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nazionale</label>
+                            <select id="filter-nazionale" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                                <option value="">Tutte le Nazionali</option>
                             </select>
                         </div>
 
@@ -1356,6 +1374,65 @@
                                 <button onclick="avviaTraduzioneMassiva()" id="btn-mass-translate" class="w-full py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md shadow-brand-gold/15 transition-all">
                                     <span>🌍</span> Traduci Catalogo
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD RECENTE: SINCRONIZZAZIONE IMMAGINI CATALOGO -->
+                    <div id="card-sync-immagini-catalogo" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-6 col-span-1 lg:col-span-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-2xl">🖼️</span>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Sincronizzazione Immagini Catalogo</h3>
+                                    <p class="text-xs text-slate-500">Scarica e converte in WebP 300x300 le immagini sul nostro storage interno per nascondere gli URL del fornitore.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button id="btn-sync-pilota" onclick="avviaSincronizzazioneImmagini(true)" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span>🧪</span> TEST PILOTA (3 Prodotti)
+                                </button>
+                                <button id="btn-sync-start" onclick="avviaSincronizzazioneImmagini(false)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span>▶️</span> AVVIA SINCRONIZZAZIONE
+                                </button>
+                                <button id="btn-sync-pause" onclick="pausaSincronizzazioneImmagini()" disabled class="px-4 py-2 bg-slate-200 text-slate-400 font-extrabold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-not-allowed">
+                                    <span>⏸️</span> PAUSA
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Metric Cards -->
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Totale Prodotti</span>
+                                <span id="sync-total-count" class="text-base font-black text-slate-800">0</span>
+                            </div>
+                            <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100 text-center">
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Già Migrate</span>
+                                <span id="sync-migrated-count" class="text-base font-black text-emerald-700">0</span>
+                            </div>
+                            <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100 text-center">
+                                <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Da Migrare</span>
+                                <span id="sync-remaining-count" class="text-base font-black text-amber-700">0</span>
+                            </div>
+                            <div class="bg-rose-50 p-3 rounded-2xl border border-rose-100 text-center">
+                                <span class="text-[10px] font-bold text-rose-600 uppercase tracking-wider block">Errori / Saltati</span>
+                                <span id="sync-error-count" class="text-base font-black text-rose-700">0</span>
+                            </div>
+                            <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-100 text-center col-span-2 sm:col-span-1">
+                                <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Completamento</span>
+                                <span id="sync-percentage" class="text-base font-black text-indigo-700">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar & Status -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs font-bold text-slate-600">
+                                <span id="sync-status-text">Stato: In attesa dell'avvio</span>
+                                <span id="sync-batch-info" class="text-slate-400 text-[11px] font-mono">--</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+                                <div id="sync-progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
                             </div>
                         </div>
                     </div>

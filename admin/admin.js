@@ -853,25 +853,105 @@ document.addEventListener('DOMContentLoaded', async () => {
 /**
  * Gestisce l'inizializzazione degli event listeners per i filtri e la ricerca
  */
+/**
+ * Determina se un prodotto appartiene alla sezione NAZIONALI o CLUB
+ * basandosi sulle informazioni centralizzate delle squadre (squadreCatalogo) e sul fallback di categoria.
+ */
+function isProdottoNazionale(p) {
+    if (!p) return false;
+    if (p.squadra) {
+        const sqNorm = p.squadra.trim().toLowerCase();
+        const teamObj = Array.isArray(squadreCatalogo) && squadreCatalogo.find(t => t && t.name && t.name.trim().toLowerCase() === sqNorm);
+        if (teamObj && teamObj.categoria) {
+            const cat = teamObj.categoria.trim().toLowerCase();
+            if (cat === 'nazionali' || cat === 'nazionale') return true;
+            if (cat === 'club' || cat === 'nba') return false;
+        }
+    }
+    const catProd = (p.categoria || '').trim().toLowerCase();
+    return (catProd === 'nazionale' || catProd === 'nazionali' || catProd === 'mondiali');
+}
+window.isProdottoNazionale = isProdottoNazionale;
+
+/**
+ * Inizializza i listener per i filtri del catalogo prodotti
+ */
 let isFiltersInitialized = false;
 function inizializzaFiltri() {
     if (isFiltersInitialized) return;
     isFiltersInitialized = true;
+    const filterTipoSquadra = document.getElementById('filter-tipo-squadra');
     const filterSquadra = document.getElementById('filter-squadra');
+    const filterClub = document.getElementById('filter-club');
+    const filterNazionale = document.getElementById('filter-nazionale');
     const filterCategoria = document.getElementById('filter-categoria');
     const filterStagione = document.getElementById('filter-stagione');
     const filterSenzaFornitore = document.getElementById('filter-senza-fornitore');
 
-    const applyFilters = () => {
+    const updateFilterStateUI = () => {
+        const tipoVal = filterTipoSquadra ? filterTipoSquadra.value : "";
+        if (tipoVal === "club") {
+            if (filterClub) {
+                filterClub.disabled = false;
+                filterClub.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (filterNazionale) {
+                filterNazionale.value = "";
+                filterNazionale.disabled = true;
+                filterNazionale.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else if (tipoVal === "nazionali") {
+            if (filterNazionale) {
+                filterNazionale.disabled = false;
+                filterNazionale.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (filterClub) {
+                filterClub.value = "";
+                filterClub.disabled = true;
+                filterClub.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        } else {
+            // TUTTI
+            if (filterClub) {
+                filterClub.disabled = false;
+                filterClub.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (filterNazionale) {
+                filterNazionale.disabled = false;
+                filterNazionale.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    };
+    window.updateFilterStateUI = updateFilterStateUI;
+
+    const applyFilters = (e) => {
+        if (e && e.target) {
+            if (e.target.id === 'filter-tipo-squadra') {
+                updateFilterStateUI();
+            } else if (e.target.id === 'filter-club' && e.target.value) {
+                if (filterNazionale) filterNazionale.value = "";
+                if (filterSquadra) filterSquadra.value = "";
+            } else if (e.target.id === 'filter-nazionale' && e.target.value) {
+                if (filterClub) filterClub.value = "";
+                if (filterSquadra) filterSquadra.value = "";
+            } else if (e.target.id === 'filter-squadra' && e.target.value) {
+                if (filterClub) filterClub.value = "";
+                if (filterNazionale) filterNazionale.value = "";
+            }
+        }
         currentProductsPage = 1;
         renderProdotti();
     };
 
+    if (filterTipoSquadra) filterTipoSquadra.addEventListener('change', applyFilters);
     if (filterSquadra) filterSquadra.addEventListener('change', applyFilters);
+    if (filterClub) filterClub.addEventListener('change', applyFilters);
+    if (filterNazionale) filterNazionale.addEventListener('change', applyFilters);
     if (filterCategoria) filterCategoria.addEventListener('change', applyFilters);
     if (filterStagione) filterStagione.addEventListener('change', applyFilters);
     if (filterSenzaFornitore) filterSenzaFornitore.addEventListener('change', applyFilters);
 
+    updateFilterStateUI();
     // Inizializza l'event delegation per la tabella prodotti
     inizializzaDelegazioneEventiTabellaProdotti();
 }
@@ -2812,14 +2892,20 @@ function aggiornaStatisticheLottoCorrente() {
  * Genera dinamicamente le opzioni per i select dei filtri (Squadra, Stagione, Categoria) leggendo i prodotti reali
  */
 function generaOpzioniFiltri() {
+    const filterTipoSquadra = document.getElementById('filter-tipo-squadra');
     const filterSquadra = document.getElementById('filter-squadra');
+    const filterClub = document.getElementById('filter-club');
+    const filterNazionale = document.getElementById('filter-nazionale');
     const filterStagione = document.getElementById('filter-stagione');
     const filterCategoria = document.getElementById('filter-categoria');
 
-    if (!filterSquadra || !filterStagione || !filterCategoria) return;
+    if (!filterStagione || !filterCategoria) return;
 
     // Salva i valori attualmente selezionati
-    const querySquadra = filterSquadra.value;
+    const queryTipoSquadra = filterTipoSquadra ? filterTipoSquadra.value : "";
+    const querySquadra = filterSquadra ? filterSquadra.value : "";
+    const queryClub = filterClub ? filterClub.value : "";
+    const queryNazionale = filterNazionale ? filterNazionale.value : "";
     const queryStagione = filterStagione.value;
     const queryCategoria = filterCategoria.value;
 
@@ -2827,6 +2913,23 @@ function generaOpzioniFiltri() {
     const squadre = squadreCatalogo.length > 0
         ? [...new Set(squadreCatalogo.map(t => t.name).filter(Boolean))].sort()
         : [...new Set(prodotti.map(p => p.squadra).filter(Boolean))].sort();
+
+    // Identifica le squadre presenti effettivamente nel catalogo prodotti
+    const squadreInProdotti = [...new Set(prodotti.map(p => p.squadra).filter(Boolean))];
+    const clubsSet = new Set();
+    const nazionaliSet = new Set();
+
+    squadreInProdotti.forEach(sq => {
+        if (isProdottoNazionale({ squadra: sq })) {
+            nazionaliSet.add(sq);
+        } else {
+            clubsSet.add(sq);
+        }
+    });
+
+    const clubsList = Array.from(clubsSet).sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+    const nazionaliList = Array.from(nazionaliSet).sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+
     const stagioni = [...new Set(prodotti.map(p => p.stagione).filter(Boolean))].sort().reverse();
     
     const prodCategorie = prodotti.map(p => p.categoria).filter(Boolean);
@@ -2861,17 +2964,31 @@ function generaOpzioniFiltri() {
         .filter(c => normalizeTextForSearch(c) !== 'tutti' && normalizeTextForSearch(c) !== 'tutto')
         .sort();
 
-    // Aggiorna select squadra
-    filterSquadra.innerHTML = '<option value="">Tutte le squadre</option>' + 
-        squadre.map(sq => `<option value="${sq}" ${sq === querySquadra ? 'selected' : ''}>${sq}</option>`).join('');
+    // Aggiorna select squadra se presente
+    if (filterSquadra) {
+        filterSquadra.innerHTML = '<option value="">Tutte le squadre</option>' + 
+            squadre.map(sq => `<option value="${escapeHtml(sq)}" ${sq === querySquadra ? 'selected' : ''}>${escapeHtml(sq)}</option>`).join('');
+    }
+
+    // Aggiorna select club
+    if (filterClub) {
+        filterClub.innerHTML = '<option value="">Tutti i Club</option>' + 
+            clubsList.map(c => `<option value="${escapeHtml(c)}" ${c === queryClub ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('');
+    }
+
+    // Aggiorna select nazionale
+    if (filterNazionale) {
+        filterNazionale.innerHTML = '<option value="">Tutte le Nazionali</option>' + 
+            nazionaliList.map(n => `<option value="${escapeHtml(n)}" ${n === queryNazionale ? 'selected' : ''}>${escapeHtml(n)}</option>`).join('');
+    }
 
     // Aggiorna select stagione
     filterStagione.innerHTML = '<option value="">Tutte le stagioni</option>' + 
-        stagioni.map(st => `<option value="${st}" ${st === queryStagione ? 'selected' : ''}>${st}</option>`).join('');
+        stagioni.map(st => `<option value="${escapeHtml(st)}" ${st === queryStagione ? 'selected' : ''}>${escapeHtml(st)}</option>`).join('');
 
     // Aggiorna select categoria
     filterCategoria.innerHTML = '<option value="">Tutte le categorie</option>' + 
-        categorie.map(cat => `<option value="${cat}" ${cat === queryCategoria ? 'selected' : ''}>${cat}</option>`).join('');
+        categorie.map(cat => `<option value="${escapeHtml(cat)}" ${cat === queryCategoria ? 'selected' : ''}>${escapeHtml(cat)}</option>`).join('');
 }
 
 /**
@@ -3019,8 +3136,17 @@ function resetTuttiFiltriEOrdinamento() {
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.value = "";
 
+    const filterTipoSquadra = document.getElementById('filter-tipo-squadra');
+    if (filterTipoSquadra) filterTipoSquadra.value = "";
+
     const filterSquadra = document.getElementById('filter-squadra');
     if (filterSquadra) filterSquadra.value = "";
+
+    const filterClub = document.getElementById('filter-club');
+    if (filterClub) filterClub.value = "";
+
+    const filterNazionale = document.getElementById('filter-nazionale');
+    if (filterNazionale) filterNazionale.value = "";
 
     const filterCategoria = document.getElementById('filter-categoria');
     if (filterCategoria) filterCategoria.value = "";
@@ -3030,6 +3156,10 @@ function resetTuttiFiltriEOrdinamento() {
 
     const filterSenzaFornitore = document.getElementById('filter-senza-fornitore');
     if (filterSenzaFornitore) filterSenzaFornitore.checked = false;
+
+    if (typeof updateFilterStateUI === 'function') {
+        updateFilterStateUI();
+    }
 
     currentProductsPage = 1;
     aggiornaIndicatoriOrdinamento();
@@ -3371,7 +3501,10 @@ function renderProdotti() {
 
     // Leggi i filtri correnti
     const querySearch = activeSearchQuery || "";
+    const queryTipoSquadra = document.getElementById('filter-tipo-squadra')?.value || "";
     const querySquadra = document.getElementById('filter-squadra')?.value || "";
+    const queryClub = document.getElementById('filter-club')?.value || "";
+    const queryNazionale = document.getElementById('filter-nazionale')?.value || "";
     const queryCategoria = document.getElementById('filter-categoria')?.value || "";
     const queryStagione = document.getElementById('filter-stagione')?.value || "";
     const querySenzaFornitore = document.getElementById('filter-senza-fornitore')?.checked || false;
@@ -3423,8 +3556,19 @@ function renderProdotti() {
             }
         }
 
+        // 1b. Filtro Destinazione (Macro-Tipo: TUTTI / CLUB / NAZIONALI)
+        const isNaz = isProdottoNazionale(p);
+        if (queryTipoSquadra === 'club' && isNaz) return false;
+        if (queryTipoSquadra === 'nazionali' && !isNaz) return false;
+
         // 2. Filtro Squadra
         if (querySquadra && p.squadra !== querySquadra) return false;
+
+        // 2b. Filtro Club
+        if (queryClub && p.squadra !== queryClub) return false;
+
+        // 2c. Filtro Nazionale
+        if (queryNazionale && p.squadra !== queryNazionale) return false;
 
         // 3. Filtro Categoria
         if (queryCategoria && p.categoria !== queryCategoria) return false;
@@ -4846,6 +4990,9 @@ function switchTab(tabId, preserveSelectionMode = false) {
         }
         if (tabId === 'impostazioni' && typeof controllaStatoConnessioni === 'function') {
             controllaStatoConnessioni();
+        }
+        if (tabId === 'gestione-catalogo' && typeof aggiornaMetricheSincronizzazioneImmagini === 'function') {
+            aggiornaMetricheSincronizzazioneImmagini();
         }
     } else if (tabId === 'gestione-ordini') {
         caricaGestioneOrdini();
@@ -23482,6 +23629,253 @@ window.eseguiRollbackPerformance = async function() {
         }
     }
 };
+
+/* ==========================================================================
+ * STRUMENTO: SINCRONIZZAZIONE IMMAGINI CATALOGO (Client-Assisted Storage Sync)
+ * ========================================================================== */
+let isSyncRunning = false;
+let isSyncPaused = false;
+let syncStats = {
+    total: 0,
+    migrated: 0,
+    remaining: 0,
+    errors: 0
+};
+
+async function aggiornaMetricheSincronizzazioneImmagini() {
+    try {
+        let prods = Array.isArray(prodotti) && prodotti.length > 0 ? prodotti : [];
+        if (prods.length === 0) {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+            if (data && Array.isArray(data.products)) {
+                prods = data.products;
+            }
+        }
+
+        const total = prods.length;
+        let migrated = 0;
+        let remaining = 0;
+
+        prods.forEach(p => {
+            const img = (p.immagine || '').trim();
+            if (img.startsWith('/uploads/') || img.startsWith('uploads/') || img.startsWith('http://localhost') || img.startsWith(window.location.origin)) {
+                migrated++;
+            } else if (img) {
+                remaining++;
+            }
+        });
+
+        syncStats.total = total;
+        syncStats.migrated = migrated;
+        syncStats.remaining = remaining;
+
+        const totalElem = document.getElementById('sync-total-count');
+        const migratedElem = document.getElementById('sync-migrated-count');
+        const remainingElem = document.getElementById('sync-remaining-count');
+        const errorElem = document.getElementById('sync-error-count');
+        const percentageElem = document.getElementById('sync-percentage');
+        const progressBar = document.getElementById('sync-progress-bar');
+
+        if (totalElem) totalElem.textContent = total;
+        if (migratedElem) migratedElem.textContent = migrated;
+        if (remainingElem) remainingElem.textContent = remaining;
+        if (errorElem) errorElem.textContent = syncStats.errors;
+
+        const pct = total > 0 ? Math.round((migrated / total) * 100) : 0;
+        if (percentageElem) percentageElem.textContent = `${pct}%`;
+        if (progressBar) progressBar.style.width = `${pct}%`;
+    } catch (e) {
+        console.warn("⚠️ Errore calcolo metriche sincronizzazione immagini:", e.message);
+    }
+}
+
+function convertiBlobInWebP300x300(blob) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objectUrl = URL.createObjectURL(blob);
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 300;
+                canvas.height = 300;
+                const ctx = canvas.getContext('2d');
+
+                const scale = Math.max(300 / img.width, 300 / img.height);
+                const x = 150 - (img.width / 2) * scale;
+                const y = 150 - (img.height / 2) * scale;
+
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(0, 0, 300, 300);
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                let dataUrl = canvas.toDataURL('image/webp', 0.80);
+                if (!dataUrl.startsWith('data:image/webp')) {
+                    dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+                }
+                URL.revokeObjectURL(objectUrl);
+                resolve(dataUrl);
+            } catch (err) {
+                URL.revokeObjectURL(objectUrl);
+                reject(err);
+            }
+        };
+        img.onerror = (err) => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Errore durante il caricamento dell'immagine nel canvas"));
+        };
+        img.src = objectUrl;
+    });
+}
+
+async function elaboraSingolaImmagineProdotto(prodotto) {
+    const originalUrl = (prodotto.immagine || '').trim();
+    if (!originalUrl || originalUrl.startsWith('/uploads/') || originalUrl.startsWith('uploads/')) {
+        return { success: true, alreadyMigrated: true, internalUrl: originalUrl };
+    }
+
+    let imageBase64 = null;
+
+    try {
+        const response = await fetch(originalUrl, {
+            headers: { 'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8' }
+        });
+        if (response.ok) {
+            const blob = await response.blob();
+            imageBase64 = await convertiBlobInWebP300x300(blob);
+        }
+    } catch (e) {
+        console.warn(`[SYNC CLIENT] Direct fetch fallito per ${prodotto.squadra} (id: ${prodotto.id}), ricorso a fallback server.`);
+    }
+
+    const res = await fetch('/api/admin/store-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            productId: prodotto.id || prodotto.legacy_id,
+            originalUrl: originalUrl,
+            imageBase64: imageBase64
+        })
+    });
+
+    const data = await res.json();
+    if (!data || !data.success) {
+        throw new Error(data?.error || "Endpoint /api/admin/store-image non ha restituito success: true");
+    }
+
+    prodotto.immagine_originale = originalUrl;
+    prodotto.immagine = data.internalUrl;
+
+    return { success: true, internalUrl: data.internalUrl };
+}
+
+async function avviaSincronizzazioneImmagini(isPilot = false) {
+    if (isSyncRunning) return;
+
+    let prods = Array.isArray(prodotti) && prodotti.length > 0 ? prodotti : [];
+    if (prods.length === 0) {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data && Array.isArray(data.products)) {
+            prods = data.products;
+            prodotti = prods;
+        }
+    }
+
+    let daMigrare = prods.filter(p => {
+        const img = (p.immagine || '').trim();
+        return img && !img.startsWith('/uploads/') && !img.startsWith('uploads/');
+    });
+
+    if (daMigrare.length === 0) {
+        alert("Tutte le immagini sono già state migrate nello storage interno!");
+        await aggiornaMetricheSincronizzazioneImmagini();
+        return;
+    }
+
+    if (isPilot) {
+        daMigrare = daMigrare.slice(0, 3);
+    }
+
+    isSyncRunning = true;
+    isSyncPaused = false;
+
+    const btnStart = document.getElementById('btn-sync-start');
+    const btnPilot = document.getElementById('btn-sync-pilota');
+    const btnPause = document.getElementById('btn-sync-pause');
+    const statusText = document.getElementById('sync-status-text');
+    const batchInfo = document.getElementById('sync-batch-info');
+
+    if (btnStart) btnStart.disabled = true;
+    if (btnPilot) btnPilot.disabled = true;
+    if (btnPause) {
+        btnPause.disabled = false;
+        btnPause.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
+        btnPause.classList.add('bg-slate-800', 'text-white', 'hover:bg-slate-900', 'cursor-pointer');
+    }
+
+    const BATCH_SIZE = isPilot ? 1 : 10;
+    let index = 0;
+    let successCount = 0;
+    let failCount = 0;
+
+    if (statusText) statusText.textContent = isPilot ? "Stato: Esecuzione Test Pilota (3 Prodotti)..." : "Stato: Sincronizzazione in corso...";
+
+    while (index < daMigrare.length && isSyncRunning && !isSyncPaused) {
+        const chunk = daMigrare.slice(index, index + BATCH_SIZE);
+        if (batchInfo) batchInfo.textContent = `Batch ${Math.floor(index / BATCH_SIZE) + 1} di ${Math.ceil(daMigrare.length / BATCH_SIZE)} (${index + 1}-${Math.min(index + chunk.length, daMigrare.length)} / ${daMigrare.length})`;
+
+        await Promise.all(chunk.map(async (p) => {
+            try {
+                const res = await elaboraSingolaImmagineProdotto(p);
+                if (res.success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                    syncStats.errors++;
+                }
+            } catch (err) {
+                console.error(`❌ Errore sync per ${p.squadra} (${p.id}):`, err.message);
+                failCount++;
+                syncStats.errors++;
+            }
+        }));
+
+        index += chunk.length;
+        await aggiornaMetricheSincronizzazioneImmagini();
+        await new Promise(r => setTimeout(r, 100));
+    }
+
+    isSyncRunning = false;
+
+    if (btnStart) btnStart.disabled = false;
+    if (btnPilot) btnPilot.disabled = false;
+    if (btnPause) {
+        btnPause.disabled = true;
+        btnPause.classList.remove('bg-slate-800', 'text-white', 'hover:bg-slate-900', 'cursor-pointer');
+        btnPause.classList.add('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
+    }
+
+    if (isSyncPaused) {
+        if (statusText) statusText.textContent = "Stato: Sincronizzazione in Pausa.";
+    } else {
+        if (statusText) statusText.textContent = isPilot ? `Stato: Test Pilota Completato! (${successCount} migrate, ${failCount} errori)` : `Stato: Sincronizzazione Completata! (${successCount} migrate, ${failCount} errori)`;
+        if (typeof renderProdotti === 'function') renderProdotti();
+    }
+}
+
+function pausaSincronizzazioneImmagini() {
+    if (isSyncRunning) {
+        isSyncPaused = true;
+        isSyncRunning = false;
+        const statusText = document.getElementById('sync-status-text');
+        if (statusText) statusText.textContent = "Stato: Pausa richiesta...";
+    }
+}
+
+window.aggiornaMetricheSincronizzazioneImmagini = aggiornaMetricheSincronizzazioneImmagini;
+window.avviaSincronizzazioneImmagini = avviaSincronizzazioneImmagini;
+window.pausaSincronizzazioneImmagini = pausaSincronizzazioneImmagini;
 
 
 
