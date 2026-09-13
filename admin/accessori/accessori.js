@@ -808,6 +808,131 @@ async function salvaPrezzoRapidoAccessorio(accId, rawVal, field) {
 }
 window.salvaPrezzoRapidoAccessorio = salvaPrezzoRapidoAccessorio;
 
+// Gestione Upload ed Elaborazione Immagine Accessorio
+function comprimiImmagineAccessorioAsync(file, maxDim = 1200, quality = 0.8) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = () => resolve(e.target.result);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleAccessoryImageUpload(inputEl) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+
+    if (!file.type || !file.type.startsWith('image/')) {
+        showAccessoriToast("Seleziona un file immagine valido (PNG, JPG, WEBP, GIF, SVG).", "error");
+        inputEl.value = '';
+        return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+        showAccessoriToast("Dimensione del file troppo elevata (Max 15MB).", "error");
+        inputEl.value = '';
+        return;
+    }
+
+    const statusEl = document.getElementById('modal-acc-img-status');
+    const subtextEl = document.getElementById('modal-acc-img-subtext');
+    const progressEl = document.getElementById('modal-acc-upload-progress');
+    const percentEl = document.getElementById('modal-acc-upload-percent');
+    const btnAllegaImg = document.getElementById('btn-acc-allega-img');
+
+    if (progressEl) progressEl.classList.remove('hidden');
+    if (statusEl) statusEl.innerText = "Elaborazione e caricamento...";
+    if (percentEl) percentEl.innerText = "Caricamento 0%";
+    if (btnAllegaImg) btnAllegaImg.disabled = true;
+
+    try {
+        const base64ToSend = await comprimiImmagineAccessorioAsync(file, 1200, 0.85);
+        if (!base64ToSend) {
+            throw new Error("Impossibile leggere il file immagine.");
+        }
+
+        const uploadResult = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/upload', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable && percentEl) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    percentEl.innerText = `Caricamento ${percent}%`;
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success && (data.filePath || data.url)) {
+                            resolve(data.filePath || data.url);
+                        } else {
+                            reject(new Error(data.error || "Risposta upload non valida dal server"));
+                        }
+                    } catch (e) {
+                        reject(new Error("Errore durante l'analisi della risposta del server"));
+                    }
+                } else {
+                    reject(new Error(`Errore HTTP ${xhr.status} durante il caricamento`));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error("Errore di connessione di rete durante l'upload"));
+            xhr.send(JSON.stringify({ filename: file.name, base64: base64ToSend }));
+        });
+
+        const hiddenInput = document.getElementById('modal-acc-immagine');
+        if (hiddenInput) hiddenInput.value = uploadResult;
+
+        showAccessoriToast("Immagine caricata con successo!", "success");
+        updateModalImagePreview();
+    } catch (err) {
+        console.error("⚠️ Errore caricamento immagine accessorio:", err);
+        showAccessoriToast("Errore durante il caricamento: " + err.message, "error");
+        inputEl.value = '';
+        if (statusEl) statusEl.innerText = "Errore durante il caricamento";
+    } finally {
+        if (progressEl) progressEl.classList.add('hidden');
+        if (btnAllegaImg) btnAllegaImg.disabled = false;
+        inputEl.value = '';
+    }
+}
+
+function removeAccessoryImage() {
+    const hiddenInput = document.getElementById('modal-acc-immagine');
+    if (hiddenInput) hiddenInput.value = '';
+    const fileInput = document.getElementById('modal-acc-file-input');
+    if (fileInput) fileInput.value = '';
+    updateModalImagePreview();
+    showAccessoriToast("Immagine rimossa dall'accessorio.", "info");
+}
+
 // Gestione Modale Aggiunta/Modifica Singola
 function openAddAccessoryModal() {
     currentEditingId = null;
@@ -816,6 +941,7 @@ function openAddAccessoryModal() {
 
     document.getElementById('form-accessory').reset();
     document.getElementById('modal-acc-id').value = "";
+    document.getElementById('modal-acc-immagine').value = "";
     document.getElementById('modal-acc-stato').value = "attivo";
     document.getElementById('modal-acc-disponibile').value = "true";
     document.getElementById('modal-acc-prezzo').value = "";
@@ -859,22 +985,38 @@ function closeAccessoryModal() {
     currentEditingId = null;
 }
 
-// Live preview immagine nel form
+// Live preview e stato dell'immagine allegata nel form
 function updateModalImagePreview() {
-    const inputEl = document.getElementById('modal-acc-immagine');
-    const inputUrl = inputEl ? inputEl.value : '';
+    const hiddenInput = document.getElementById('modal-acc-immagine');
+    const imgUrl = hiddenInput ? hiddenInput.value.trim() : '';
+
     const previewImg = document.getElementById('modal-acc-preview-img');
     const placeholder = document.getElementById('modal-acc-preview-placeholder');
+    const statusEl = document.getElementById('modal-acc-img-status');
+    const subtextEl = document.getElementById('modal-acc-img-subtext');
+    const btnAllegaLabel = document.getElementById('btn-acc-allega-label');
+    const btnRimuovi = document.getElementById('btn-acc-rimuovi-img');
 
-    if (inputUrl && inputUrl.trim()) {
+    if (imgUrl) {
         if (previewImg) {
-            previewImg.src = inputUrl.trim();
+            previewImg.src = imgUrl;
             previewImg.classList.remove('hidden');
         }
         if (placeholder) placeholder.classList.add('hidden');
+        if (statusEl) statusEl.innerText = "Immagine allegata";
+        if (subtextEl) subtextEl.innerText = imgUrl.startsWith('/uploads/') ? "File locale pronto sul server" : "Immagine configurata per l'articolo";
+        if (btnAllegaLabel) btnAllegaLabel.innerText = "SOSTITUISCI IMMAGINE";
+        if (btnRimuovi) btnRimuovi.classList.remove('hidden');
     } else {
-        if (previewImg) previewImg.classList.add('hidden');
+        if (previewImg) {
+            previewImg.src = '';
+            previewImg.classList.add('hidden');
+        }
         if (placeholder) placeholder.classList.remove('hidden');
+        if (statusEl) statusEl.innerText = "Nessuna immagine allegata";
+        if (subtextEl) subtextEl.innerText = "Formati supportati: PNG, JPG, WEBP, GIF";
+        if (btnAllegaLabel) btnAllegaLabel.innerText = "ALLEGA IMMAGINE";
+        if (btnRimuovi) btnRimuovi.classList.add('hidden');
     }
 }
 
@@ -911,8 +1053,8 @@ async function handleAccessoryFormSubmit(e) {
         const disponibile = document.getElementById('modal-acc-disponibile').value === 'true';
         const stato = document.getElementById('modal-acc-stato').value;
 
-        if (!nome || !categoria) {
-            showAccessoriToast("Nome e categoria sono obbligatori", "error");
+        if (!immagine) {
+            showAccessoriToast("Allega un'immagine per l'accessorio prima di salvare.", "error");
             submitBtn.innerText = originalText;
             submitBtn.disabled = false;
             return;
@@ -1037,748 +1179,8 @@ async function executeDeleteAccessory() {
 }
 
 // =========================================================================
-// FASE 3: IMPORTAZIONE ED ESPORTAZIONE JSON ACCESSORI
+// ESPORTAZIONE JSON / CSV ACCESSORI
 // =========================================================================
-
-let anteprimaAccessoriData = [];
-let currentAnteprimaFilter = 'tutti';
-
-/**
- * Funzione di utilità per pulire e convertire qualsiasi rappresentazione di prezzo/costo in numero valido
- */
-function parseNumericPrice(val) {
-    if (val === undefined || val === null || val === '') return null;
-    if (typeof val === 'number') return isNaN(val) ? null : val;
-    
-    let str = String(val).trim();
-    if (!str) return null;
-
-    // Se è un array (es. ["4.50"] o [4, 5])
-    if (Array.isArray(val)) {
-        str = val.join(' - ');
-    } else if (typeof val === 'object') {
-        str = Object.values(val).join(' - ');
-    }
-
-    // Se c'è un range es. "12 - 15" o "12-15", prendi il massimo
-    if (str.includes('-')) {
-        const parts = str.split('-');
-        const v1 = parseNumericPrice(parts[0]);
-        const v2 = parseNumericPrice(parts[1]);
-        if (v1 !== null && v2 !== null) return Math.max(v1, v2);
-        if (v1 !== null) return v1;
-        if (v2 !== null) return v2;
-    }
-
-    // Sostituisci virgola con punto se virgola usata come decimale
-    if (str.includes(',') && !str.includes('.')) {
-        str = str.replace(/,/g, '.');
-    } else if (str.includes(',') && str.includes('.')) {
-        // es. 1.200,50 -> 1200.50
-        str = str.replace(/\./g, '').replace(/,/g, '.');
-    }
-
-    // Rimuovi simboli di valuta e caratteri non numerici (lasciando cifre e punto)
-    str = str.replace(/[^0-9.]/g, '');
-    const parts = str.split('.');
-    if (parts.length > 2) {
-        str = parts[0] + '.' + parts.slice(1).join('');
-    }
-
-    const num = parseFloat(str);
-    return (isNaN(num) || num < 0) ? null : num;
-}
-
-/**
- * Estrae l'array di prodotti da qualsiasi formato o contenitore JSON
- */
-function parseRawAccessoryItems(parsed) {
-    if (!parsed) return [];
-    if (Array.isArray(parsed)) return parsed;
-
-    if (typeof parsed === 'object') {
-        // Controllo chiavi note di contenimento
-        const candidates = [
-            'accessories', 'accessori', 'prodotti', 'products', 
-            'data', 'items', 'results', 'catalog', 'catalogo', 
-            'elements', 'rows', 'list'
-        ];
-        for (const key of candidates) {
-            if (Array.isArray(parsed[key])) {
-                return parsed[key];
-            }
-        }
-
-        // Se è un dizionario con ID/chiavi numeriche (es. {"0": {...}, "1": {...}} o {"acc_1": {...}})
-        const values = Object.values(parsed);
-        if (values.length > 0 && typeof values[0] === 'object' && values[0] !== null) {
-            return values;
-        }
-
-        return [parsed];
-    }
-    return [];
-}
-
-/**
- * Estrae il nome dell'accessorio controllando tutti i campi standard ed esportati
- */
-function extractAccessoryName(raw) {
-    if (!raw) return '';
-    const candidates = [
-        raw.nome, raw.name, raw.versione, raw.nome_finale,
-        raw.product_title, raw.product_name, raw.title, raw.titolo,
-        raw.nome_prodotto, raw.item_name, raw.label, raw.alt_text, raw.image_alt
-    ];
-
-    for (const val of candidates) {
-        if (val !== undefined && val !== null && String(val).trim() !== '') {
-            return String(val).trim();
-        }
-    }
-
-    // Se c'è una descrizione breve utilizzabile
-    if (raw.descrizione && typeof raw.descrizione === 'string' && raw.descrizione.length < 80 && !raw.descrizione.includes('\n')) {
-        return raw.descrizione.trim();
-    }
-    if (raw.description && typeof raw.description === 'string' && raw.description.length < 80 && !raw.description.includes('\n')) {
-        return raw.description.trim();
-    }
-
-    return '';
-}
-
-/**
- * Deduce o normalizza la categoria dell'accessorio in base al campo o al nome
- */
-function extractAccessoryCategory(raw, productName = '') {
-    const rawCat = (raw.categoria || raw.category || raw.category_name || raw.cat || raw.type || raw.sezione || raw.tipo || '').toString().trim();
-    
-    // Mappatura categorie note
-    const lowerRaw = rawCat.toLowerCase();
-    if (lowerRaw.includes('calzetton') || lowerRaw.includes('socks knee') || lowerRaw.includes('calzettoni')) return 'Calzettoni';
-    if (lowerRaw.includes('calz') || lowerRaw.includes('grip') || lowerRaw.includes('sock')) return 'Calze';
-    if (lowerRaw.includes('guant') || lowerRaw.includes('glove')) return 'Guanti';
-    if (lowerRaw.includes('pallon') || lowerRaw.includes('ball')) return 'Palloni';
-    if (lowerRaw.includes('cappellin') || lowerRaw.includes('cap') || lowerRaw.includes('hat') || lowerRaw.includes('beanie')) return 'Cappellini';
-    if (lowerRaw.includes('sciarpa') || lowerRaw.includes('scarf')) return 'Sciarpe';
-    if (lowerRaw.includes('borsa') || lowerRaw.includes('bag') || lowerRaw.includes('zaino') || lowerRaw.includes('backpack') || lowerRaw.includes('gymsack')) return 'Borse';
-    if (lowerRaw.includes('fascia') || lowerRaw.includes('capitano') || lowerRaw.includes('armband') || lowerRaw.includes('captain')) return 'Fasce Capitano';
-
-    if (rawCat && rawCat.toLowerCase() !== 'accessori' && rawCat.toLowerCase() !== 'accessories' && rawCat.toLowerCase() !== 'other' && rawCat.toLowerCase() !== 'altro') {
-        return rawCat;
-    }
-
-    // Deduce dal nome del prodotto se la categoria è generica o mancante
-    const lowerName = (productName || '').toLowerCase();
-    if (lowerName.includes('calzetton') || lowerName.includes('knee sock') || lowerName.includes('calzetta')) return 'Calzettoni';
-    if (lowerName.includes('calz') || lowerName.includes('grip') || lowerName.includes('sock') || lowerName.includes('anti-slip')) return 'Calze';
-    if (lowerName.includes('guant') || lowerName.includes('glove')) return 'Guanti';
-    if (lowerName.includes('pallon') || lowerName.includes('ball') || lowerName.includes('fifa')) return 'Palloni';
-    if (lowerName.includes('cappellin') || lowerName.includes('cap') || lowerName.includes('hat') || lowerName.includes('beanie')) return 'Cappellini';
-    if (lowerName.includes('sciarpa') || lowerName.includes('scarf')) return 'Sciarpe';
-    if (lowerName.includes('borsa') || lowerName.includes('bag') || lowerName.includes('zaino') || lowerName.includes('backpack') || lowerName.includes('gymsack')) return 'Borse';
-    if (lowerName.includes('fascia') || lowerName.includes('capitano') || lowerName.includes('armband') || lowerName.includes('captain')) return 'Fasce Capitano';
-
-    return 'Altri Accessori';
-}
-
-/**
- * Estrae il prezzo di vendita dal JSON senza forzare valori arbitrari
- */
-function extractAccessoryPrice(raw) {
-    const candidates = [
-        raw.prezzo, raw.price, raw.prezzo_vendita, raw.prezzoVendita, 
-        raw.sale_price, raw.retail_price, raw.prezzo_consigliato, 
-        raw.vendita, raw.amount, raw.prezzo_eur, raw.price_eur
-    ];
-
-    for (const val of candidates) {
-        const parsed = parseNumericPrice(val);
-        if (parsed !== null && parsed >= 0) {
-            return parsed;
-        }
-    }
-
-    return 0;
-}
-
-/**
- * Estrae il costo fornitore controllando tutti i campi possibili
- */
-function extractAccessorySupplierCost(raw) {
-    const candidates = [
-        raw.prezzo_fornitore, raw.costo_fornitore, raw.costo, raw.cost,
-        raw.supplier_price, raw.wholesale_price, raw.prezzo_costo,
-        raw.costo_usd, raw.price_usd, raw.importo_fornitore
-    ];
-
-    for (const val of candidates) {
-        const parsed = parseNumericPrice(val);
-        if (parsed !== null && parsed >= 0) {
-            return parsed;
-        }
-    }
-    return 0;
-}
-
-/**
- * Estrae e normalizza l'immagine dell'accessorio
- */
-function extractAccessoryImage(raw) {
-    let rawImg = raw.immagine || raw.image || raw.product_image || raw.foto || raw.imgUrl || raw.img || raw.photo || raw.picture || raw.thumbnail || raw.images || '';
-    
-    let imgUrl = '';
-    if (Array.isArray(rawImg)) {
-        imgUrl = rawImg.length > 0 ? String(rawImg[0]) : '';
-    } else if (rawImg && typeof rawImg === 'object') {
-        imgUrl = String(rawImg.url || rawImg.src || rawImg.href || rawImg.link || '');
-    } else {
-        imgUrl = String(rawImg || '');
-    }
-    imgUrl = imgUrl.trim();
-
-    if (imgUrl.startsWith('//')) {
-        imgUrl = 'https:' + imgUrl;
-    } else if (imgUrl.startsWith('/') && !imgUrl.startsWith('//')) {
-        imgUrl = 'https://jerseys-catalog.com' + imgUrl;
-    }
-
-    if (!imgUrl) {
-        return 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&auto=format&fit=crop&q=80';
-    }
-    return imgUrl;
-}
-
-/**
- * Estrae la taglia dell'accessorio
- */
-function extractAccessoryTaglia(raw) {
-    const tagliaVal = raw.taglia || raw.size || raw.taglie || raw.sizes || raw.misure || (raw.opzioni && raw.opzioni.taglie) || (raw.options && raw.options.sizes);
-    if (Array.isArray(tagliaVal)) {
-        return tagliaVal.join(', ');
-    }
-    if (tagliaVal && typeof tagliaVal === 'string' && tagliaVal.trim() !== '') {
-        return tagliaVal.trim();
-    }
-    return 'Unica';
-}
-
-/**
- * Estrae la disponibilità e lo stato dell'accessorio
- */
-function extractAccessoryDisponibilita(raw) {
-    const dispVal = raw.disponibile !== undefined ? raw.disponibile : (
-        raw.disponibilita !== undefined ? raw.disponibilita : (
-            raw.available !== undefined ? raw.available : (
-                raw.in_stock !== undefined ? raw.in_stock : (
-                    raw.inStock !== undefined ? raw.inStock : (
-                        raw.active !== undefined ? raw.active : (
-                            raw.attivo !== undefined ? raw.attivo : true
-                        )
-                    )
-                )
-            )
-        )
-    );
-
-    if (typeof dispVal === 'boolean') return dispVal;
-    if (typeof dispVal === 'number') return dispVal === 1;
-    if (typeof dispVal === 'string') {
-        const s = dispVal.toLowerCase().trim();
-        return s === 'true' || s === '1' || s === 'si' || s === 'sì' || s === 'yes' || s === 'disponibile' || s === 'attivo';
-    }
-    return true;
-}
-
-/**
- * Carica un JSON di esempio nella textarea di importazione
- */
-function caricaEsempioJsonAccessori() {
-    const textarea = document.getElementById('import-accessories-textarea');
-    if (!textarea) return;
-    
-    const sampleData = [
-        {
-            "nome": "Calzettoni Gara Milan Home",
-            "categoria": "Calzettoni",
-            "codice": "ACC-MIL-SOCK",
-            "prezzo": 12.00,
-            "prezzo_fornitore": 4.50,
-            "taglia": "L (41-45)",
-            "immagine": "https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?w=400&auto=format&fit=crop&q=80",
-            "descrizione": "Calzettoni ufficiali traspiranti con supporto arco plantare",
-            "disponibile": true,
-            "stato": "attivo"
-        },
-        {
-            "nome": "Guanti Termici Inter Training",
-            "categoria": "Guanti",
-            "codice": "ACC-INT-GLOV",
-            "prezzo": 18.50,
-            "prezzo_fornitore": 7.00,
-            "taglia": "M",
-            "immagine": "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400&auto=format&fit=crop&q=80",
-            "descrizione": "Guanti in pile tecnico con grip in silicone sui palmi",
-            "disponibile": true,
-            "stato": "attivo"
-        },
-        {
-            "nome": "Fascia Capitano Juventus Custom",
-            "categoria": "Fasce Capitano",
-            "codice": "ACC-JUV-CPT",
-            "prezzo": 9.90,
-            "prezzo_fornitore": 2.80,
-            "taglia": "Unica",
-            "immagine": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&auto=format&fit=crop&q=80",
-            "descrizione": "Fascia capitano elastica regolabile con chiusura in velcro",
-            "disponibile": true,
-            "stato": "attivo"
-        },
-        {
-            "nome": "Pallone Replica Serie A 2024/25",
-            "categoria": "Palloni",
-            "codice": "ACC-BALL-SA",
-            "prezzo": 29.00,
-            "prezzo_fornitore": 11.50,
-            "taglia": "Taglia 5",
-            "immagine": "https://images.unsplash.com/photo-1614632537197-3ce01e2303c7?w=400&auto=format&fit=crop&q=80",
-            "descrizione": "Pallone da gara cucito a macchina con camera d'aria rinforzata",
-            "disponibile": true,
-            "stato": "attivo"
-        }
-    ];
-
-    textarea.value = JSON.stringify(sampleData, null, 2);
-    showAccessoriToast("JSON di esempio caricato nella textarea!", "info");
-}
-
-/**
- * Gestisce la selezione di un file .json (da header o da sezione importazione)
- */
-function handleAccessoryImportFile(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith('.json')) {
-        showAccessoriToast("Seleziona un file in formato .json valido.", "error");
-        event.target.value = '';
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const content = e.target.result;
-            processaContenutoJSONAccessori(content, file.name);
-        } catch (err) {
-            console.error("Errore lettura file JSON accessori:", err);
-            showAccessoriToast("Errore durante la lettura del file: " + err.message, "error");
-        }
-    };
-    reader.onerror = function() {
-        showAccessoriToast("Impossibile leggere il file selezionato.", "error");
-    };
-    reader.readAsText(file);
-
-    // Reset input per permettere di ricaricare lo stesso file
-    event.target.value = '';
-}
-
-/**
- * Elabora il contenuto JSON incollato nella textarea
- */
-function processaImportazioneJSONAccessoriDaTextarea() {
-    const textarea = document.getElementById('import-accessories-textarea');
-    if (!textarea || !textarea.value.trim()) {
-        showAccessoriToast("Incolla del testo JSON o seleziona un file .json prima di procedere.", "error");
-        return;
-    }
-    processaContenutoJSONAccessori(textarea.value, 'input-manuale.json');
-}
-
-/**
- * Parsing, Normalizzazione Universale, Anti-duplicazione e Creazione dell'Anteprima Pre-Database
- */
-function processaContenutoJSONAccessori(rawJson, filename = 'accessori.json') {
-    let parsed;
-    try {
-        parsed = JSON.parse(rawJson);
-    } catch (e) {
-        showAccessoriToast("Formato JSON non valido: " + e.message, "error");
-        return;
-    }
-
-    const items = parseRawAccessoryItems(parsed);
-
-    if (!items || items.length === 0) {
-        showAccessoriToast("Il file JSON non contiene nessun elemento accessorio valido.", "error");
-        return;
-    }
-
-    // Helper per trovare se l'accessorio esiste già nel catalogo locale
-    const trovaAccessorioEsistente = (rawItem, nome, categoria, taglia, codice) => {
-        const tId = (rawItem.id !== undefined && rawItem.id !== null) ? String(rawItem.id).trim() : '';
-        const tCodice = (codice || rawItem.codice || rawItem.code || rawItem.sku || '').toString().trim().toLowerCase();
-        const tNome = (nome || '').trim().toLowerCase();
-        const tCat = (categoria || '').trim().toLowerCase();
-        const tTaglia = (taglia || '').trim().toLowerCase();
-
-        return allAccessories.find(acc => {
-            if (!acc) return false;
-            const accId = String(acc.id || '').trim();
-            const accCodice = String(acc.codice || '').trim().toLowerCase();
-            const accNome = String(acc.nome || '').trim().toLowerCase();
-            const accCat = String(acc.categoria || '').trim().toLowerCase();
-            const accTaglia = String(acc.taglia || '').trim().toLowerCase();
-
-            // 1. Corrispondenza per ID esplicito
-            if (tId && accId && tId === accId) return true;
-            // 2. Corrispondenza per Codice articolo esplicito
-            if (tCodice && accCodice && tCodice === accCodice) return true;
-            // 3. Corrispondenza per Nome + Categoria
-            if (tNome && accNome && tNome === accNome && tCat === accCat) {
-                if (tTaglia && accTaglia) return tTaglia === accTaglia;
-                return true;
-            }
-            return false;
-        });
-    };
-
-    anteprimaAccessoriData = [];
-    const categoriesSet = new Set();
-
-    items.forEach((raw, idx) => {
-        const riga = idx + 1;
-        
-        // 1. Estrazione del nome con fallback multipli
-        const nome = extractAccessoryName(raw);
-
-        // 2. Estrazione e deduzione categoria reale
-        const categoria = extractAccessoryCategory(raw, nome);
-
-        // 3. Estrazione costo fornitore
-        const numCosto = extractAccessorySupplierCost(raw);
-
-        // 4. Estrazione prezzo di vendita reale dal JSON
-        const numPrezzo = extractAccessoryPrice(raw);
-
-        // 5. Estrazione taglia, immagine, descrizione, codice
-        const taglia = extractAccessoryTaglia(raw);
-        const immagine = extractAccessoryImage(raw);
-        const codice = (raw.codice || raw.code || raw.sku || raw.item_id || '').toString().trim();
-        const descrizione = (raw.descrizione || raw.description || '').toString().trim();
-        const disponibile = extractAccessoryDisponibilita(raw);
-        const stato = (raw.stato && String(raw.stato).toLowerCase() === 'disattivato') ? 'disattivato' : 'attivo';
-
-        // Validazione dei dati
-        const errori = [];
-        if (!nome) {
-            errori.push("Nome mancante");
-        }
-        if (numPrezzo === undefined || numPrezzo === null || isNaN(numPrezzo) || numPrezzo < 0) {
-            errori.push("Prezzo non valido");
-        }
-
-        if (categoria) categoriesSet.add(categoria);
-
-        const existing = trovaAccessorioEsistente(raw, nome, categoria, taglia, codice);
-        let importStatus = 'new';
-        let importError = null;
-
-        if (errori.length > 0) {
-            importStatus = 'error';
-            importError = errori.join(', ');
-        } else if (existing) {
-            importStatus = 'update';
-        } else {
-            importStatus = 'new';
-        }
-
-        anteprimaAccessoriData.push({
-            riga,
-            id: raw.id || (existing ? existing.id : null),
-            nome,
-            categoria,
-            codice: codice || (existing ? existing.codice : null),
-            prezzo: isNaN(numPrezzo) ? 0 : numPrezzo,
-            prezzo_fornitore: isNaN(numCosto) ? 0 : numCosto,
-            taglia,
-            immagine,
-            descrizione,
-            disponibile,
-            stato,
-            _import_status: importStatus,
-            _import_error: importError,
-            _existing_item: existing || null
-        });
-    });
-
-    // Aggiornamento statistiche Header Anteprima
-    const filenameEl = document.getElementById('prev-acc-filename');
-    const totEl = document.getElementById('prev-acc-totale');
-    const nuoviEl = document.getElementById('prev-acc-nuovi');
-    const aggEl = document.getElementById('prev-acc-aggiornati');
-    const errEl = document.getElementById('prev-acc-errori');
-    const countAllEl = document.getElementById('prev-count-all');
-    const countNewEl = document.getElementById('prev-count-new');
-    const countUpEl = document.getElementById('prev-count-update');
-    const countErrEl = document.getElementById('prev-count-error');
-    const btnConfirmLabel = document.getElementById('btn-confirm-import-label');
-    const btnConfirm = document.getElementById('btn-confirm-import-accessories');
-
-    const countTotale = anteprimaAccessoriData.length;
-    const countNuovi = anteprimaAccessoriData.filter(i => i._import_status === 'new').length;
-    const countAgg = anteprimaAccessoriData.filter(i => i._import_status === 'update').length;
-    const countErr = anteprimaAccessoriData.filter(i => i._import_status === 'error').length;
-    const countValidi = countNuovi + countAgg;
-
-    if (filenameEl) filenameEl.innerText = filename;
-    if (totEl) totEl.innerText = countTotale;
-    if (nuoviEl) nuoviEl.innerText = countNuovi;
-    if (aggEl) aggEl.innerText = countAgg;
-    if (errEl) errEl.innerText = countErr;
-
-    if (countAllEl) countAllEl.innerText = countTotale;
-    if (countNewEl) countNewEl.innerText = countNuovi;
-    if (countUpEl) countUpEl.innerText = countAgg;
-    if (countErrEl) countErrEl.innerText = countErr;
-
-    if (btnConfirmLabel) btnConfirmLabel.innerText = `Conferma Importazione (${countValidi})`;
-    if (btnConfirm) {
-        btnConfirm.disabled = countValidi === 0;
-        if (countValidi === 0) {
-            btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
-            btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-    }
-
-    // Render Tag Categorie Rilevate
-    const catTagsContainer = document.getElementById('prev-acc-categories-tags');
-    if (catTagsContainer) {
-        catTagsContainer.innerHTML = Array.from(categoriesSet).slice(0, 4).map(c => 
-            `<span class="px-2 py-0.5 bg-slate-200/80 rounded-md font-semibold text-[10px] text-slate-700">${c}</span>`
-        ).join('') + (categoriesSet.size > 4 ? `<span class="text-[10px] text-slate-400 font-bold">+${categoriesSet.size - 4} altre</span>` : '');
-    }
-
-    // Imposta filtro su 'tutti' e renderizza la tabella
-    currentAnteprimaFilter = 'tutti';
-    impostaFiltroAnteprima('tutti');
-
-    // Mostra Modal Anteprima
-    const modal = document.getElementById('accessory-import-preview-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-    }
-}
-
-/**
- * Imposta il filtro visuale della tabella di anteprima (Tutti / Nuovi / Da aggiornare / Errori)
- */
-function impostaFiltroAnteprima(filtro) {
-    currentAnteprimaFilter = filtro;
-
-    const tabs = ['tutti', 'new', 'update', 'error'];
-    tabs.forEach(t => {
-        const btn = document.getElementById('prev-tab-' + t);
-        if (btn) {
-            if (t === filtro) {
-                btn.className = 'px-3 py-1.5 bg-slate-900 text-white font-bold rounded-lg cursor-pointer transition-all shadow-xs';
-            } else {
-                btn.className = 'px-3 py-1.5 bg-slate-200/70 hover:bg-slate-200 text-slate-700 font-bold rounded-lg cursor-pointer transition-all';
-            }
-        }
-    });
-
-    renderTabellaAnteprimaAccessori();
-}
-
-/**
- * Renderizza le righe della tabella di anteprima
- */
-function renderTabellaAnteprimaAccessori() {
-    const tbody = document.getElementById('accessory-import-preview-tbody');
-    if (!tbody) return;
-
-    let filtered = anteprimaAccessoriData;
-    if (currentAnteprimaFilter !== 'tutti') {
-        filtered = anteprimaAccessoriData.filter(i => i._import_status === currentAnteprimaFilter);
-    }
-
-    if (filtered.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="10" class="py-8 text-center text-slate-400 font-medium italic">
-                    Nessun elemento presente con questo filtro.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = filtered.map(item => {
-        let badgeHtml = '';
-        let rowBg = 'hover:bg-slate-50/80';
-
-        if (item._import_status === 'new') {
-            badgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-md"><span>➕</span> Nuovo</span>`;
-        } else if (item._import_status === 'update') {
-            badgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-extrabold rounded-md"><span>🔄</span> Aggiornamento</span>`;
-        } else {
-            badgeHtml = `<span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-800 text-[10px] font-extrabold rounded-md"><span>⚠️</span> Errore</span>`;
-            rowBg = 'bg-red-50/40 hover:bg-red-50/70';
-        }
-
-        const noteText = item._import_status === 'error' 
-            ? `<span class="text-red-600 font-bold">${item._import_error}</span>`
-            : (item._import_status === 'update' 
-                ? `<span class="text-slate-400">Aggiornerà ID: <code class="font-mono text-[10px]">${item._existing_item ? item._existing_item.id : item.id}</code></span>`
-                : `<span class="text-emerald-600">Nuovo inserimento</span>`);
-
-        return `
-            <tr class="transition-colors ${rowBg}">
-                <td class="py-2.5 px-3 text-center text-slate-400 font-mono text-[11px]">${item.riga}</td>
-                <td class="py-2.5 px-3">${badgeHtml}</td>
-                <td class="py-2.5 px-3 text-center">
-                    <img src="${item.immagine}" alt="${item.nome}" class="w-8 h-8 object-cover rounded-lg border border-slate-200 mx-auto" onerror="this.src='https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=100&auto=format&fit=crop&q=80'">
-                </td>
-                <td class="py-2.5 px-3 font-bold text-slate-900 truncate max-w-[200px]" title="${item.nome}">
-                    ${item.nome || '<em class="text-red-500 font-normal">Senza nome</em>'}
-                </td>
-                <td class="py-2.5 px-3">
-                    <span class="px-2 py-0.5 bg-slate-100 border border-slate-200/80 rounded-md font-semibold text-[10px] text-slate-700">
-                        ${item.categoria}
-                    </span>
-                </td>
-                <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900">
-                    ${formatCurrency(item.prezzo, '€')}
-                </td>
-                <td class="py-2.5 px-3 text-right font-mono text-slate-500">
-                    ${formatCurrency(item.prezzo_fornitore, '$')}
-                </td>
-                <td class="py-2.5 px-3 text-center">
-                    <span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-mono text-[10px]">${item.taglia}</span>
-                </td>
-                <td class="py-2.5 px-3 text-center">
-                    ${item.disponibile 
-                        ? '<span class="text-emerald-600" title="Disponibile">✅</span>' 
-                        : '<span class="text-red-500" title="Non disponibile">❌</span>'}
-                </td>
-                <td class="py-2.5 px-3 text-[11px]">
-                    ${noteText}
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-/**
- * Chiude la modale di anteprima senza effettuare alcuna modifica
- */
-function chiudiAnteprimaImportazioneAccessori() {
-    const modal = document.getElementById('accessory-import-preview-modal');
-    if (modal) modal.classList.add('hidden');
-    anteprimaAccessoriData = [];
-}
-
-/**
- * Invia i dati validati al backend atomico /api/accessories/import_batch
- */
-async function confermaEdEseguiImportazioneAccessori() {
-    const validItems = anteprimaAccessoriData.filter(i => i._import_status !== 'error');
-    if (validItems.length === 0) {
-        showAccessoriToast("Nessun accessorio valido da importare.", "error");
-        return;
-    }
-
-    const btn = document.getElementById('btn-confirm-import-accessories');
-    const label = document.getElementById('btn-confirm-import-label');
-    const originalLabel = label ? label.innerText : '';
-
-    if (btn) btn.disabled = true;
-    if (label) label.innerText = "Salvataggio in corso...";
-
-    try {
-        const payload = validItems.map(item => ({
-            id: item.id || undefined,
-            codice: item.codice || undefined,
-            nome: item.nome,
-            categoria: item.categoria,
-            prezzo: item.prezzo,
-            prezzo_fornitore: item.prezzo_fornitore,
-            taglia: item.taglia,
-            immagine: item.immagine,
-            descrizione: item.descrizione,
-            disponibile: item.disponibile,
-            stato: item.stato
-        }));
-
-        const res = await fetch('/api/accessories/import_batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accessories: payload })
-        });
-
-        const data = await res.json();
-
-        if (data && data.success) {
-            // Chiude anteprima
-            chiudiAnteprimaImportazioneAccessori();
-
-            // Mostra Modale Report Risultati
-            const resAnalizzati = document.getElementById('res-acc-analizzati');
-            const resImportati = document.getElementById('res-acc-importati');
-            const resAggiornati = document.getElementById('res-acc-aggiornati');
-            const resDuplicati = document.getElementById('res-acc-duplicati');
-            const resErrori = document.getElementById('res-acc-errori');
-            const errorBox = document.getElementById('res-acc-errori-box');
-            const errorList = document.getElementById('res-acc-errori-list');
-
-            if (resAnalizzati) resAnalizzati.innerText = data.analizzati || validItems.length;
-            if (resImportati) resImportati.innerText = data.importati || 0;
-            if (resAggiornati) resAggiornati.innerText = data.aggiornati || 0;
-            if (resDuplicati) resDuplicati.innerText = data.duplicati || 0;
-            if (resErrori) resErrori.innerText = data.errori || 0;
-
-            if (data.errori_dettagli && data.errori_dettagli.length > 0 && errorBox && errorList) {
-                errorBox.classList.remove('hidden');
-                errorList.innerHTML = data.errori_dettagli.map(e => 
-                    `<li>Riga ${e.riga}: ${e.nome ? `<strong>${e.nome}</strong> - ` : ''}${e.errore}</li>`
-                ).join('');
-            } else if (errorBox) {
-                errorBox.classList.add('hidden');
-            }
-
-            const resultsModal = document.getElementById('accessory-import-results-modal');
-            if (resultsModal) resultsModal.classList.remove('hidden');
-
-            // Ricarica la tabella in background
-            await loadAccessories();
-        } else {
-            showAccessoriToast("Errore durante l'importazione: " + (data.error || 'Risposta non valida'), "error");
-        }
-    } catch (err) {
-        console.error("⚠️ Errore salvataggio batch accessori:", err);
-        showAccessoriToast("Errore di connessione durante l'importazione: " + err.message, "error");
-    } finally {
-        if (btn) btn.disabled = false;
-        if (label) label.innerText = originalLabel;
-    }
-}
-
-/**
- * Chiude la modale di riepilogo e torna alla visualizzazione dell'elenco
- */
-function chiudiReportImportazioneAccessori() {
-    const resultsModal = document.getElementById('accessory-import-results-modal');
-    if (resultsModal) resultsModal.classList.remove('hidden');
-    
-    // Switch to elenco tab se siamo in un'altra sezione
-    if (typeof window.switchAccessoriTab === 'function') {
-        window.switchAccessoriTab('elenco');
-    }
-}
 
 /**
  * Esporta l'intero catalogo Accessori in formato JSON o CSV perfettamente compatibile e simmetrico
@@ -1888,19 +1290,13 @@ window.loadAccessories = loadAccessories;
 window.openAddAccessoryModal = openAddAccessoryModal;
 window.openEditAccessoryModal = openEditAccessoryModal;
 window.closeAccessoryModal = closeAccessoryModal;
+window.handleAccessoryImageUpload = handleAccessoryImageUpload;
+window.removeAccessoryImage = removeAccessoryImage;
+window.updateModalImagePreview = updateModalImagePreview;
 window.toggleAccessoryStatus = toggleAccessoryStatus;
 window.confirmDeleteAccessory = confirmDeleteAccessory;
 window.closeDeleteConfirmModal = closeDeleteConfirmModal;
 window.executeDeleteAccessory = executeDeleteAccessory;
 window.previewImageLarge = previewImageLarge;
 window.closeImagePreview = closeImagePreview;
-
-// Export Funzioni Importazione JSON Accessori
-window.caricaEsempioJsonAccessori = caricaEsempioJsonAccessori;
-window.handleAccessoryImportFile = handleAccessoryImportFile;
-window.processaImportazioneJSONAccessoriDaTextarea = processaImportazioneJSONAccessoriDaTextarea;
-window.processaContenutoJSONAccessori = processaContenutoJSONAccessori;
-window.impostaFiltroAnteprima = impostaFiltroAnteprima;
-window.chiudiAnteprimaImportazioneAccessori = chiudiAnteprimaImportazioneAccessori;
-window.confermaEdEseguiImportazioneAccessori = confermaEdEseguiImportazioneAccessori;
-window.chiudiReportImportazioneAccessori = chiudiReportImportazioneAccessori;
+window.esportaAccessori = esportaAccessori;

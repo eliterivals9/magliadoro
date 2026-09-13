@@ -2076,9 +2076,15 @@ async function generaExcelLotto(lottoId, orders) {
         const detectedExt = detectImageFormat(imgBuffer);
         if (detectedExt) {
           try {
-            const excelExt = detectedExt === 'webp' ? 'png' : detectedExt;
+            let finalBuffer = imgBuffer;
+            let excelExt = detectedExt;
+            if (detectedExt === 'webp') {
+              finalBuffer = await sharp(imgBuffer).toFormat('png').toBuffer();
+              excelExt = 'png';
+            }
+
             const imageId = workbook.addImage({
-              buffer: imgBuffer,
+              buffer: finalBuffer,
               extension: excelExt,
             });
             
@@ -5856,215 +5862,7 @@ app.post('/api/accessories/batch-update', (req, res) => {
   }
 });
 
-// POST /api/accessories/import_batch - Importazione massiva JSON catalogo Accessori
-app.post('/api/accessories/import_batch', (req, res) => {
-  try {
-    const { accessories } = req.body;
-    if (!Array.isArray(accessories) || accessories.length === 0) {
-      return res.status(400).json({ success: false, error: "Nessun accessorio fornito per l'importazione." });
-    }
 
-    const currentAccessories = getLocalAccessories();
-    let countImportati = 0;
-    let countAggiornati = 0;
-    let countDuplicati = 0;
-    let countErrori = 0;
-    const erroriDettagli = [];
-
-    // Helper per pulire numeri/prezzi
-    const parsePrice = (val) => {
-      if (val === undefined || val === null || val === '') return null;
-      if (typeof val === 'number') return isNaN(val) ? null : val;
-      let str = String(val).trim();
-      if (str.includes('-')) {
-        const parts = str.split('-');
-        const v1 = parsePrice(parts[0]);
-        const v2 = parsePrice(parts[1]);
-        if (v1 !== null && v2 !== null) return Math.max(v1, v2);
-        if (v1 !== null) return v1;
-        if (v2 !== null) return v2;
-      }
-      if (str.includes(',') && !str.includes('.')) str = str.replace(/,/g, '.');
-      str = str.replace(/[^0-9.]/g, '');
-      const parts = str.split('.');
-      if (parts.length > 2) str = parts[0] + '.' + parts.slice(1).join('');
-      const n = parseFloat(str);
-      return (isNaN(n) || n < 0) ? null : n;
-    };
-
-    // Helper per dedurre categoria se assente o generica
-    const deduceCategory = (rawCat, rawName) => {
-      const lowerCat = String(rawCat || '').toLowerCase().trim();
-      if (lowerCat.includes('calzetton') || lowerCat.includes('socks knee')) return 'Calzettoni';
-      if (lowerCat.includes('calz') || lowerCat.includes('grip') || lowerCat.includes('sock')) return 'Calze';
-      if (lowerCat.includes('guant') || lowerCat.includes('glove')) return 'Guanti';
-      if (lowerCat.includes('pallon') || lowerCat.includes('ball')) return 'Palloni';
-      if (lowerCat.includes('cappellin') || lowerCat.includes('cap') || lowerCat.includes('hat') || lowerCat.includes('beanie')) return 'Cappellini';
-      if (lowerCat.includes('sciarpa') || lowerCat.includes('scarf')) return 'Sciarpe';
-      if (lowerCat.includes('borsa') || lowerCat.includes('bag') || lowerCat.includes('zaino') || lowerCat.includes('backpack')) return 'Borse';
-      if (lowerCat.includes('fascia') || lowerCat.includes('capitano') || lowerCat.includes('armband')) return 'Fasce Capitano';
-
-      if (rawCat && rawCat.toLowerCase() !== 'accessori' && rawCat.toLowerCase() !== 'accessories' && rawCat.toLowerCase() !== 'other') {
-        return rawCat.trim();
-      }
-
-      const lowerName = String(rawName || '').toLowerCase();
-      if (lowerName.includes('calzetton') || lowerName.includes('knee sock')) return 'Calzettoni';
-      if (lowerName.includes('calz') || lowerName.includes('grip') || lowerName.includes('sock') || lowerName.includes('anti-slip')) return 'Calze';
-      if (lowerName.includes('guant') || lowerName.includes('glove')) return 'Guanti';
-      if (lowerName.includes('pallon') || lowerName.includes('ball')) return 'Palloni';
-      if (lowerName.includes('cappellin') || lowerName.includes('cap') || lowerName.includes('hat') || lowerName.includes('beanie')) return 'Cappellini';
-      if (lowerName.includes('sciarpa') || lowerName.includes('scarf')) return 'Sciarpe';
-      if (lowerName.includes('borsa') || lowerName.includes('bag') || lowerName.includes('zaino') || lowerName.includes('backpack')) return 'Borse';
-      if (lowerName.includes('fascia') || lowerName.includes('capitano') || lowerName.includes('armband')) return 'Fasce Capitano';
-
-      return 'Altri Accessori';
-    };
-
-    // Helper per trovare accessorio esistente
-    const findExistingIndex = (item, list) => {
-      const targetId = item.id !== undefined && item.id !== null ? String(item.id).trim() : '';
-      const targetCodice = item.codice !== undefined && item.codice !== null ? String(item.codice).trim().toLowerCase() : '';
-      const targetNome = (item.nome || item.name || item.title || item.versione || item.nome_finale || '').trim().toLowerCase();
-      const targetCat = deduceCategory(item.categoria || item.category, targetNome).toLowerCase();
-      const targetTaglia = (item.taglia || item.size || '').trim().toLowerCase();
-
-      return list.findIndex(acc => {
-        if (!acc) return false;
-        const accId = String(acc.id || '').trim();
-        const accCodice = String(acc.codice || '').trim().toLowerCase();
-        const accNome = String(acc.nome || '').trim().toLowerCase();
-        const accCat = String(acc.categoria || '').trim().toLowerCase();
-        const accTaglia = String(acc.taglia || '').trim().toLowerCase();
-
-        // 1. Corrispondenza per ID esplicito
-        if (targetId && accId && targetId === accId) return true;
-        // 2. Corrispondenza per Codice articolo esplicito
-        if (targetCodice && accCodice && targetCodice === accCodice) return true;
-        // 3. Corrispondenza per Nome + Categoria (+ Taglia se specificata)
-        if (targetNome && accNome && targetNome === accNome && targetCat === accCat) {
-          if (targetTaglia && accTaglia) return targetTaglia === accTaglia;
-          return true;
-        }
-        return false;
-      });
-    };
-
-    let updatedList = [...currentAccessories];
-
-    accessories.forEach((item, index) => {
-      const riga = index + 1;
-      const nome = (item.nome || item.name || item.title || item.versione || item.nome_finale || item.product_title || item.product_name || item.item_name || '').toString().trim();
-      const categoria = deduceCategory(item.categoria || item.category || item.cat, nome);
-      
-      const rawPrice = item.prezzo !== undefined ? item.prezzo : (item.price !== undefined ? item.price : (item.prezzo_vendita !== undefined ? item.prezzo_vendita : item.sale_price));
-      let pPrezzo = parsePrice(rawPrice);
-      if (pPrezzo === null) {
-        pPrezzo = 0;
-      }
-
-      const rawCost = item.prezzo_fornitore !== undefined ? item.prezzo_fornitore : (item.costo_fornitore !== undefined ? item.costo_fornitore : (item.costo !== undefined ? item.costo : item.supplier_price));
-      let pCosto = parsePrice(rawCost);
-      if (pCosto === null) {
-        pCosto = 0;
-      }
-
-      // Validazione base
-      const errori = [];
-      if (!nome || typeof nome !== 'string' || nome.trim() === '') {
-        errori.push("Nome accessorio mancante");
-      }
-      if (pPrezzo === null || pPrezzo < 0) {
-        errori.push("Prezzo non valido o mancante");
-      }
-
-      if (errori.length > 0) {
-        countErrori++;
-        erroriDettagli.push({ riga, nome: nome || `Elemento #${riga}`, errore: errori.join(', ') });
-        return;
-      }
-
-      const pDisponibile = item.disponibile !== undefined ? (item.disponibile === true || String(item.disponibile).toLowerCase() === 'true' || item.disponibile === 1 || String(item.disponibile) === '1') : (item.disponibilita !== undefined ? (item.disponibilita === true || String(item.disponibilita).toLowerCase() === 'true') : true);
-      const pStato = (item.stato && String(item.stato).toLowerCase() === 'disattivato') ? 'disattivato' : 'attivo';
-      const pTaglia = (Array.isArray(item.taglia) ? item.taglia.join(', ') : (item.taglia || item.size || 'Unica')).toString().trim();
-      
-      let pImmagine = item.immagine || item.image || item.imgUrl || item.img || item.product_image || item.foto || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&auto=format&fit=crop&q=80';
-      if (Array.isArray(pImmagine)) pImmagine = pImmagine[0] || '';
-      else if (typeof pImmagine === 'object') pImmagine = pImmagine.url || pImmagine.src || '';
-      pImmagine = String(pImmagine).trim();
-      if (pImmagine.startsWith('//')) pImmagine = 'https:' + pImmagine;
-
-      const pDescrizione = (item.descrizione || item.description || '').toString().trim();
-
-      const existingIdx = findExistingIndex(item, updatedList);
-
-      if (existingIdx !== -1) {
-        // Aggiorna accessorio esistente
-        const old = updatedList[existingIdx];
-        updatedList[existingIdx] = {
-          ...old,
-          nome: nome.trim(),
-          categoria: categoria.trim(),
-          codice: item.codice || old.codice || old.id,
-          prezzo: pPrezzo,
-          prezzo_fornitore: isNaN(pCosto) ? old.prezzo_fornitore : pCosto,
-          taglia: pTaglia || old.taglia,
-          immagine: pImmagine || old.immagine,
-          descrizione: pDescrizione || old.descrizione,
-          disponibile: pDisponibile,
-          stato: pStato,
-          tipo_catalogo: 'accessori',
-          updated_at: new Date().toISOString()
-        };
-        countAggiornati++;
-      } else {
-        // Crea nuovo accessorio
-        const newId = (item.id && !updatedList.some(a => String(a.id) === String(item.id))) 
-          ? String(item.id).trim() 
-          : `acc_${Date.now()}_${Math.floor(Math.random() * 1000)}_${index}`;
-        
-        const newCodice = item.codice ? String(item.codice).trim() : `ACC-${String(updatedList.length + 1).padStart(4, '0')}`;
-
-        const newAccessory = {
-          id: newId,
-          codice: newCodice,
-          nome: nome.trim(),
-          categoria: categoria.trim(),
-          prezzo: pPrezzo,
-          prezzo_fornitore: isNaN(pCosto) ? 0 : pCosto,
-          taglia: pTaglia,
-          immagine: pImmagine,
-          descrizione: pDescrizione,
-          disponibile: pDisponibile,
-          stato: pStato,
-          tipo_catalogo: 'accessori',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        updatedList.push(newAccessory);
-        countImportati++;
-      }
-    });
-
-    saveLocalAccessories(updatedList);
-    console.log(`[ACCESSORI IMPORT] Importazione completata: ${countImportati} creati, ${countAggiornati} aggiornati, ${countErrori} errori.`);
-
-    return res.json({
-      success: true,
-      analizzati: accessories.length,
-      importati: countImportati,
-      aggiornati: countAggiornati,
-      duplicati: countDuplicati,
-      errori: countErrori,
-      errori_dettagli: erroriDettagli,
-      totalCount: updatedList.length
-    });
-  } catch (err) {
-    console.error("⚠️ [ACCESSORI IMPORT] Errore POST /api/accessories/import_batch:", err.message);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
 
 // POST /api/settings/products/translate_all - Traduce tutti i prodotti nel database (Supabase o locale)
 app.post('/api/settings/products/translate_all', async (req, res) => {
@@ -10511,8 +10309,13 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
           const ext = detectImageFormat(buf);
           if (ext) {
             try {
-              const excelExt = ext === 'webp' ? 'png' : ext;
-              const imgId = workbook.addImage({ buffer: buf, extension: excelExt });
+              let finalBuf = buf;
+              let excelExt = ext;
+              if (ext === 'webp') {
+                finalBuf = await sharp(buf).toFormat('png').toBuffer();
+                excelExt = 'png';
+              }
+              const imgId = workbook.addImage({ buffer: finalBuf, extension: excelExt });
               worksheet.addImage(imgId, {
                 tl: { col: 1.1, row: currentRowNum - 1 + 0.05 },
                 ext: { width: 104, height: 104 },

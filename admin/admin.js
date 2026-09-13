@@ -4604,6 +4604,13 @@ async function salvaProdotto() {
             await caricaDati();
             sincronizzaReportDuplicati();
             if (typeof sincronizzaReportSenzaFiltro === 'function') sincronizzaReportSenzaFiltro();
+
+            // Avvio automatico sincronizzazione immagini in background per nuovi prodotti o modifiche
+            if (typeof avviaSincronizzazioneImmagini === 'function') {
+                avviaSincronizzazioneImmagini(false, true).catch(err => {
+                    console.warn("⚠️ Avviso sincronizzazione automatica immagini:", err.message);
+                });
+            }
         } else {
             showToast("Errore durante il salvataggio: " + resultError.message, "error");
         }
@@ -10946,6 +10953,13 @@ async function eseguiImportazioneSottoConferma() {
                 }
                 if (typeof caricaSquadre === 'function') {
                     await caricaSquadre();
+                }
+
+                // Avvio automatico sincronizzazione immagini in background per i nuovi prodotti importati
+                if (typeof avviaSincronizzazioneImmagini === 'function') {
+                    avviaSincronizzazioneImmagini(false, true).catch(err => {
+                        console.warn("⚠️ Avviso sincronizzazione automatica immagini:", err.message);
+                    });
                 }
             } else {
                 // In caso di errore o prodotti non salvati, NON chiudiamo automaticamente la finestra
@@ -23769,7 +23783,7 @@ async function elaboraSingolaImmagineProdotto(prodotto) {
     return { success: true, internalUrl: data.internalUrl };
 }
 
-async function avviaSincronizzazioneImmagini(isPilot = false) {
+async function avviaSincronizzazioneImmagini(isPilot = false, isSilent = false) {
     if (isSyncRunning) return;
 
     let prods = Array.isArray(prodotti) && prodotti.length > 0 ? prodotti : [];
@@ -23788,7 +23802,9 @@ async function avviaSincronizzazioneImmagini(isPilot = false) {
     });
 
     if (daMigrare.length === 0) {
-        alert("Tutte le immagini sono già state migrate nello storage interno!");
+        if (!isSilent) {
+            alert("Tutte le immagini sono già state migrate nello storage interno!");
+        }
         await aggiornaMetricheSincronizzazioneImmagini();
         return;
     }
@@ -23799,6 +23815,10 @@ async function avviaSincronizzazioneImmagini(isPilot = false) {
 
     isSyncRunning = true;
     isSyncPaused = false;
+
+    if (isSilent && typeof showToast === 'function') {
+        showToast(`Importazione completata — sincronizzazione immagini avviata per ${daMigrare.length} prodotti...`, "info");
+    }
 
     const btnStart = document.getElementById('btn-sync-start');
     const btnPilot = document.getElementById('btn-sync-pilota');
@@ -23819,7 +23839,7 @@ async function avviaSincronizzazioneImmagini(isPilot = false) {
     let successCount = 0;
     let failCount = 0;
 
-    if (statusText) statusText.textContent = isPilot ? "Stato: Esecuzione Test Pilota (3 Prodotti)..." : "Stato: Sincronizzazione in corso...";
+    if (statusText) statusText.textContent = isPilot ? "Stato: Esecuzione Test Pilota (3 Prodotti)..." : `Stato: Sincronizzazione in corso (${daMigrare.length} nuovi prodotti)...`;
 
     while (index < daMigrare.length && isSyncRunning && !isSyncPaused) {
         const chunk = daMigrare.slice(index, index + BATCH_SIZE);
@@ -23860,6 +23880,9 @@ async function avviaSincronizzazioneImmagini(isPilot = false) {
         if (statusText) statusText.textContent = "Stato: Sincronizzazione in Pausa.";
     } else {
         if (statusText) statusText.textContent = isPilot ? `Stato: Test Pilota Completato! (${successCount} migrate, ${failCount} errori)` : `Stato: Sincronizzazione Completata! (${successCount} migrate, ${failCount} errori)`;
+        if (isSilent && typeof showToast === 'function') {
+            showToast(`Sincronizzazione immagini in background completata (${successCount} salvate, ${failCount} errori)`, "success");
+        }
         if (typeof renderProdotti === 'function') renderProdotti();
     }
 }

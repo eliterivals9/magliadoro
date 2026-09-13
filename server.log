@@ -214862,3 +214862,628 @@ ordersAffected: 5
 totalShipping: 45
 [2026-09-13T13:35:58.326Z] [LOG] [CACHE /api/products] Cache in memoria invalidata per aggiornamento dati.
 [2026-09-13T14:10:32.069Z] [LOG] [API /api/products] Successfully loaded 4423 products from Supabase via helper in 702ms
+[2026-09-13T14:11:05.335Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-13T14:11:05.352Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-13T14:11:05.352Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:11:05.353Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-13T14:11:05.353Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:11:08.354Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-13T14:11:08.355Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:11:08.409Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:11:08.502Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:11:09.020Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:11:15.621Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:11:15.689Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:11:17.052Z] [LOG] [API /api/products] Successfully loaded 4423 products from Supabase via helper in 948ms
+[2026-09-13T14:19:09.962Z] [LOG] [TEAMS_AUTO_REG] Rilevate 3 nuove squadre da inserire: [
+  "Test AutoSync Club 1 (Club - Altri Club)",
+  "Test AutoSync Naz 2 (Nazionali - Europa)",
+  "Test AutoSync JPG 3 (Club - Altri Club)"
+]
+[2026-09-13T14:19:10.051Z] [LOG] [CACHE /api/products] Cache in memoria invalidata per aggiornamento dati.
+[2026-09-13T14:19:55.926Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-13T14:19:55.945Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-13T14:19:55.945Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:19:55.946Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-13T14:19:55.946Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:19:58.950Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-13T14:19:58.998Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:19:59.098Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:19:59.215Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:19:59.729Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:20:08.665Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:20:08.899Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:20:10.777Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 1137ms
+[2026-09-13T14:22:54.121Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 2.91
+conversionRate: 0.856
+convertedEUR: 2.49
+sourceFunction: calculateLottoTotals
+[2026-09-13T14:22:54.122Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.86
+conversionRate: 0.8618
+convertedEUR: 15.39
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:22:54.180Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:22:54.232Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 19
+conversionRate: 0.862
+convertedEUR: 16.38
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:22:54.272Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:22:54.317Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.8603
+convertedEUR: 17.21
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:22:54.357Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 4
+totalQuantity: 5
+shippingRate: 9
+ordersAffected: 5
+totalShipping: 45
+[2026-09-13T14:24:38.168Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-13T14:24:38.187Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-13T14:24:38.187Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:24:38.188Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-13T14:24:38.188Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:24:41.190Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-13T14:24:41.248Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:24:41.355Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:24:41.478Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:24:42.204Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:24:43.541Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:24:44.608Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:24:45.492Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 730ms
+[2026-09-13T14:27:30.662Z] [LOG] [EXCEL LOTTO] Generazione dinamica on-demand per Lotto #4 (IN CORSO) con 5 ordini attivi
+[2026-09-13T14:27:31.312Z] [LOG] [GENERA EXCEL] Catalogo Supabase caricato: 4426 prodotti.
+[2026-09-13T14:27:31.326Z] [LOG] [GENERA EXCEL] Compilazione normalizzata di 5 righe per il Lotto #4
+[2026-09-13T14:27:32.513Z] [LOG] ✅ Excel generato con successo in: /app/applet/lotti/LOTTO_0004.xlsx | Pezzi: 5 | Totale Articoli: $51.86 | Spedizione: $45 | Totale Fornitore: $96.86
+[2026-09-13T14:27:56.829Z] [LOG] [EXCEL LOTTO] Generazione dinamica on-demand per Lotto #4 (IN CORSO) con 5 ordini attivi
+[2026-09-13T14:27:57.326Z] [LOG] [GENERA EXCEL] Catalogo Supabase caricato: 4426 prodotti.
+[2026-09-13T14:27:57.336Z] [LOG] [GENERA EXCEL] Compilazione normalizzata di 5 righe per il Lotto #4
+[2026-09-13T14:27:57.689Z] [LOG] ✅ Excel generato con successo in: /app/applet/lotti/LOTTO_0004.xlsx | Pezzi: 5 | Totale Articoli: $51.86 | Spedizione: $45 | Totale Fornitore: $96.86
+[2026-09-13T14:28:45.474Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-13T14:28:45.496Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-13T14:28:45.497Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:28:45.498Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-13T14:28:45.498Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:28:48.499Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-13T14:28:48.501Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:28:48.607Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:28:48.743Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:28:49.326Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:28:50.307Z] [LOG] [EXCEL LOTTO] Generazione dinamica on-demand per Lotto #4 (IN CORSO) con 5 ordini attivi
+[2026-09-13T14:28:50.779Z] [LOG] [GENERA EXCEL] Catalogo Supabase caricato: 4426 prodotti.
+[2026-09-13T14:28:50.790Z] [LOG] [GENERA EXCEL] Compilazione normalizzata di 5 righe per il Lotto #4
+[2026-09-13T14:28:51.413Z] [LOG] ✅ Excel generato con successo in: /app/applet/lotti/LOTTO_0004.xlsx | Pezzi: 5 | Totale Articoli: $51.86 | Spedizione: $45 | Totale Fornitore: $96.86
+[2026-09-13T14:29:27.081Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-13T14:29:27.097Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-13T14:29:27.097Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:29:27.098Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-13T14:29:27.098Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:29:30.100Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-13T14:29:30.158Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:29:30.299Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:29:30.452Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:29:31.064Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:29:36.996Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:29:37.057Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:29:38.198Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 605ms
+[2026-09-13T14:29:44.710Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 2.91
+conversionRate: 0.856
+convertedEUR: 2.49
+sourceFunction: calculateLottoTotals
+[2026-09-13T14:29:44.711Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.86
+conversionRate: 0.8618
+convertedEUR: 15.39
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:29:44.763Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:29:44.803Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 19
+conversionRate: 0.862
+convertedEUR: 16.38
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:29:44.842Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:29:44.890Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.8603
+convertedEUR: 17.21
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:29:44.928Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 4
+totalQuantity: 5
+shippingRate: 9
+ordersAffected: 5
+totalShipping: 45
+[2026-09-13T14:29:50.684Z] [LOG] [TORNEI DEBUG] Operazione: SELECT FROM public.tornei
+[2026-09-13T14:29:50.742Z] [LOG] [TORNEI DEBUG] Supabase SELECT completata, trovati 2 tornei
+[2026-09-13T14:29:53.155Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 2.91
+conversionRate: 0.856
+convertedEUR: 2.49
+sourceFunction: calculateLottoTotals
+[2026-09-13T14:29:53.161Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.86
+conversionRate: 0.8618
+convertedEUR: 15.39
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.167Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8625
+convertedEUR: 12.94
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.171Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.172Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.86
+conversionRate: 0.8618
+convertedEUR: 15.39
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.176Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8625
+convertedEUR: 12.94
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8625
+convertedEUR: 12.94
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8625
+convertedEUR: 12.94
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.181Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.187Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.187Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.192Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 19
+conversionRate: 0.862
+convertedEUR: 16.38
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.192Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 30
+conversionRate: 0.8625
+convertedEUR: 25.88
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.198Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.199Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.205Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.205Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 19
+conversionRate: 0.862
+convertedEUR: 16.38
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.211Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.218Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15.3
+conversionRate: 0.8614
+convertedEUR: 13.18
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.218Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.8614
+convertedEUR: 14.64
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.218Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 30
+conversionRate: 0.856
+convertedEUR: 25.68
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.228Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.228Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.232Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.8603
+convertedEUR: 17.21
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.232Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32.3
+conversionRate: 0.8614
+convertedEUR: 27.82
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.238Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.252Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.252Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.8603
+convertedEUR: 17.21
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.254Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 690
+conversionRate: 0.8614
+convertedEUR: 594.37
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.259Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: getOrderItemsDetailedSupplierCosts
+[2026-09-13T14:29:53.259Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.856
+convertedEUR: 12.84
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.260Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-09-13T14:29:53.260Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 15
+conversionRate: 0.8614
+convertedEUR: 12.92
+sourceFunction: /api/profit-splits
+[2026-09-13T14:29:53.260Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-09-13T14:29:53.261Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-09-13T14:30:02.820Z] [LOG] [EXCEL LOTTO] Generazione dinamica on-demand per Lotto #4 (IN CORSO) con 5 ordini attivi
+[2026-09-13T14:30:03.389Z] [LOG] [GENERA EXCEL] Catalogo Supabase caricato: 4426 prodotti.
+[2026-09-13T14:30:03.397Z] [LOG] [GENERA EXCEL] Compilazione normalizzata di 5 righe per il Lotto #4
+[2026-09-13T14:30:03.980Z] [LOG] ✅ Excel generato con successo in: /app/applet/lotti/LOTTO_0004.xlsx | Pezzi: 5 | Totale Articoli: $51.86 | Spedizione: $45 | Totale Fornitore: $96.86
+[2026-09-13T14:38:33.841Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-13T14:38:33.858Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-13T14:38:33.858Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:38:33.859Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-13T14:38:33.860Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-13T14:38:36.861Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-13T14:38:36.910Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:38:37.086Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:38:37.304Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:38:38.168Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-13T14:38:42.458Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-13T14:38:42.513Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-13T14:38:43.625Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 662ms
+[2026-09-13T14:38:47.192Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 2.91
+conversionRate: 0.856
+convertedEUR: 2.49
+sourceFunction: calculateLottoTotals
+[2026-09-13T14:38:47.192Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.86
+conversionRate: 0.8618
+convertedEUR: 15.39
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:38:47.254Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:38:47.291Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 19
+conversionRate: 0.862
+convertedEUR: 16.38
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:38:47.333Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.862
+convertedEUR: 17.24
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:38:47.371Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 20
+conversionRate: 0.8603
+convertedEUR: 17.21
+sourceFunction: recalculateCurrentLottoInternal
+[2026-09-13T14:38:47.413Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 4
+totalQuantity: 5
+shippingRate: 9
+ordersAffected: 5
+totalShipping: 45
+[2026-09-13T14:41:59.182Z] [LOG] 📸 Immagine caricata in locale con successo: /uploads/1789310519182-test_accessory.png
+[2026-09-13T14:41:59.200Z] [LOG] [ACCESSORI] Nuovo accessorio aggiunto: #accessorio-008 - Accessorio Test Upload (Guanti)
+[2026-09-13T14:41:59.207Z] [LOG] [ACCESSORI] Accessorio eliminato con successo: ID accessorio-008
