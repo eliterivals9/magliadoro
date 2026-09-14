@@ -215487,3 +215487,18 @@ totalShipping: 45
 [2026-09-13T14:41:59.182Z] [LOG] 📸 Immagine caricata in locale con successo: /uploads/1789310519182-test_accessory.png
 [2026-09-13T14:41:59.200Z] [LOG] [ACCESSORI] Nuovo accessorio aggiunto: #accessorio-008 - Accessorio Test Upload (Guanti)
 [2026-09-13T14:41:59.207Z] [LOG] [ACCESSORI] Accessorio eliminato con successo: ID accessorio-008
+[2026-09-14T14:47:01.291Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-14T14:47:01.311Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-14T14:47:01.311Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-14T14:47:01.312Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-14T14:47:01.313Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-14T14:47:03.409Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-14T14:47:03.800Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-14T14:47:04.313Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-14T14:47:04.313Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-14T14:47:04.433Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-14T14:47:04.571Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-14T14:47:05.339Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 623ms
+[2026-09-14T14:47:05.938Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-14T14:47:06.462Z] [LOG] ✅ [RECLASS] Stato revisione inizializzato con 0 prodotti.
+[2026-09-14T14:57:39.220Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 681ms

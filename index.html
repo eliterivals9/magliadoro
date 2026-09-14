@@ -17903,7 +17903,7 @@ function renderizzaProdottiSquadraConFiltri() {
             prodotti = prodotti.filter(p => isProdottoValidoPubblico(p));
 
             // CRITICO: separazione assoluta tra Club, Nazionali e Accessori
-            if (isClubSquad || squadraSelezionata === 'tutti_club' || modalitaClubCorrente === 'tutti-gli-articoli') {
+            if (!isNazSquad && (isClubSquad || squadraSelezionata === 'tutti_club' || modalitaClubCorrente === 'tutti-gli-articoli')) {
                 prodotti = prodotti.filter(p => isClub(p.squadra) && !((p.categoria || '').toLowerCase().includes('accessori')));
             } else {
                 prodotti = prodotti.filter(p => isNazionale(p.squadra) && !((p.categoria || '').toLowerCase().includes('accessori')));
