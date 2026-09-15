@@ -215502,3 +215502,46 @@ totalShipping: 45
 [2026-09-14T14:47:05.938Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
 [2026-09-14T14:47:06.462Z] [LOG] ✅ [RECLASS] Stato revisione inizializzato con 0 prodotti.
 [2026-09-14T14:57:39.220Z] [LOG] [API /api/products] Successfully loaded 4426 products from Supabase via helper in 681ms
+[2026-09-15T09:35:47.011Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-15T09:35:47.028Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-15T09:35:47.028Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-15T09:35:47.029Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-15T09:35:47.029Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-15T09:35:49.248Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-15T09:35:49.499Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-15T09:35:50.031Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-15T09:35:50.031Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-15T09:35:50.108Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-15T09:35:50.186Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-15T09:35:50.772Z] [LOG] [API /api/products] Successfully loaded 4553 products from Supabase via helper in 473ms
+[2026-09-15T09:35:50.834Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-15T09:35:51.283Z] [LOG] ✅ [RECLASS] Stato revisione inizializzato con 0 prodotti.
+[2026-09-15T09:42:14.325Z] [LOG] [API /api/products] Successfully loaded 4553 products from Supabase via helper in 616ms
+[2026-09-15T09:43:18.916Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-15T09:43:18.932Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-15T09:43:18.932Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-15T09:43:18.933Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-15T09:43:18.933Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-15T09:43:21.935Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-15T09:43:21.995Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-15T09:43:22.199Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-15T09:43:22.362Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-15T09:43:22.972Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-15T09:44:02.619Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-15T09:44:02.699Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-15T09:44:03.793Z] [LOG] [API /api/products] Successfully loaded 4553 products from Supabase via helper in 558ms
+[2026-09-15T09:53:40.302Z] [LOG] [API /api/products] Successfully loaded 4553 products from Supabase via helper in 677ms
+[2026-09-15T09:53:47.943Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-09-15T09:53:47.961Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-09-15T09:53:47.961Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-15T09:53:47.961Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-09-15T09:53:47.962Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-09-15T09:53:50.979Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-09-15T09:53:50.990Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-09-15T09:53:51.161Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-09-15T09:53:51.344Z] [LOG] === INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-15T09:53:51.609Z] [LOG] [API /api/products] Successfully loaded 4553 products from Supabase via helper in 648ms
+[2026-09-15T09:53:51.924Z] [LOG] === COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===
+[2026-09-15T09:53:58.114Z] [WARN] [PROTEZIONE REGRESSIONE] Tentativo di sovrascrittura di Supabase Storage con path effimero locale bloccato per prodotto c3ad9fe0-8cf1-409f-bec1-18d48f0730ce.
+[2026-09-15T09:53:58.199Z] [LOG] [CACHE /api/products] Cache in memoria invalidata per aggiornamento dati.
+[2026-09-15T09:53:58.832Z] [LOG] [API /api/products] Successfully loaded 4553 products from Supabase via helper in 626ms

@@ -1,0 +1,875 @@
+[
+  {
+    "id": "6924ab6e-b250-4570-acfa-0a2cac93ea9f",
+    "legacy_id": 18,
+    "nome": "Boca Juniors - Versione Fan Casa Boca Juniors",
+    "old_img": "/uploads/prodotti/img_ccc901a47d8f8fea.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_15d93df5c64e1099.webp",
+    "content_type": "image/webp",
+    "size": 5350
+  },
+  {
+    "id": "10837043-a64f-49bb-850c-35efaa0e9d32",
+    "legacy_id": 1,
+    "nome": "Santos - Maglia Retrò Edizione Speciale Santos",
+    "old_img": "/uploads/prodotti/img_2794ffd17b5314a6.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_be420ae64f49a133.webp",
+    "content_type": "image/webp",
+    "size": 4406
+  },
+  {
+    "id": "b498e5cd-2d3d-4601-8b2d-9bb78338c532",
+    "legacy_id": 8,
+    "nome": "Celta Vigo - Fan Seconda Trasferta Celta Vigo",
+    "old_img": "/uploads/prodotti/img_6e797f907905bd05.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_061372b485329906.webp",
+    "content_type": "image/webp",
+    "size": 23878
+  },
+  {
+    "id": "f778c53f-054d-4bbd-9300-2d32f0257df5",
+    "legacy_id": 2,
+    "nome": "Santos - Maglia Retrò Fuori Casa Santos",
+    "old_img": "/uploads/prodotti/img_0d4fbca997303846.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5095b4d37eb8d87a.webp",
+    "content_type": "image/webp",
+    "size": 5386
+  },
+  {
+    "id": "49d2a149-f74c-40d2-b3d7-eb725873da97",
+    "legacy_id": 1,
+    "nome": "Barcellona - Fan Terza Barcellona",
+    "old_img": "/uploads/prodotti/img_e110f697e92eff85.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_be2a70aa4b5759d7.webp",
+    "content_type": "image/webp",
+    "size": 14756
+  },
+  {
+    "id": "2b32f07d-9960-4467-8bb4-287bc3cd487c",
+    "legacy_id": 5,
+    "nome": "Santos - Maglia Retrò Bambino Santos",
+    "old_img": "/uploads/prodotti/img_0eeaa9e2590c994e.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_bf1d5bfdb6f59217.webp",
+    "content_type": "image/webp",
+    "size": 18362
+  },
+  {
+    "id": "64c7f944-4ee4-432a-88b1-4b2a422049e4",
+    "legacy_id": 16,
+    "nome": "Paris Saint-Germain - Fan Allenamento Paris Saint-Germain Argento",
+    "old_img": "/uploads/prodotti/img_e33ac4da8b47a296.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a36ffa8ca66224e5.webp",
+    "content_type": "image/webp",
+    "size": 17430
+  },
+  {
+    "id": "4eaeb06c-173d-4c16-87ab-be1f06645270",
+    "legacy_id": 7,
+    "nome": "Flamengo - Antivento Flamengo",
+    "old_img": "/uploads/prodotti/img_efb7227e7d8cbf5f.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_8035a69e47d97078.webp",
+    "content_type": "image/webp",
+    "size": 22706
+  },
+  {
+    "id": "0e546769-b559-4201-8db6-d0542864d0c0",
+    "legacy_id": 2,
+    "nome": "Athletico Paranaense - Maglia Athletico Paranaense",
+    "old_img": "/uploads/prodotti/img_6c73fbe0688933ad.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ba40ed357a53aef2.webp",
+    "content_type": "image/webp",
+    "size": 28084
+  },
+  {
+    "id": "5f92402d-4971-4a2b-9773-ec44511f76cd",
+    "legacy_id": 12,
+    "nome": "Manchester United - Antivento Manchester United Nero e Bianco",
+    "old_img": "/uploads/prodotti/img_daff0282f0d94d6c.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_697d61611444a7ac.webp",
+    "content_type": "image/webp",
+    "size": 27110
+  },
+  {
+    "id": "89070f8d-7fa5-4b8e-9628-49ae6c75124f",
+    "legacy_id": 9,
+    "nome": "Paris Saint-Germain - Fan Allenamento Paris Saint-Germain",
+    "old_img": "/uploads/prodotti/img_ae4ad53aea34ec71.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_fb38695645f281b8.webp",
+    "content_type": "image/webp",
+    "size": 21870
+  },
+  {
+    "id": "92d061d2-9ccb-4e64-9f6f-47b40052fa60",
+    "legacy_id": 5,
+    "nome": "Barcellona - Tuta Barcellona Rossa",
+    "old_img": "/uploads/prodotti/img_4766ffffebf7bf66.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_299e34c812232fb5.webp",
+    "content_type": "image/webp",
+    "size": 6498
+  },
+  {
+    "id": "12fe9ae3-87e8-484d-8bd1-42c4a80af457",
+    "legacy_id": 17,
+    "nome": "Club América - Fan Seconda Trasferta Club América",
+    "old_img": "/uploads/prodotti/img_11e0801bf6e1f2ec.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_7f9bb37953a88db0.webp",
+    "content_type": "image/webp",
+    "size": 26716
+  },
+  {
+    "id": "887e8893-6cb0-43e7-8d18-e7cf3a190a03",
+    "legacy_id": 2,
+    "nome": "Flamengo - Fan Seconda Trasferta Flamengo",
+    "old_img": "/uploads/prodotti/img_c4ee26a8902e909b.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_079af1504205e468.webp",
+    "content_type": "image/webp",
+    "size": 25788
+  },
+  {
+    "id": "a1be2d36-a611-4d95-a747-8ab198f47acf",
+    "legacy_id": 10,
+    "nome": "Bayer Leverkusen - Fan Casa Bayer Leverkusen",
+    "old_img": "/uploads/prodotti/img_ba92c935f1867112.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_e8c6e065ecb6f735.webp",
+    "content_type": "image/webp",
+    "size": 22622
+  },
+  {
+    "id": "0ac87487-8ee4-4500-b355-fbf5810f52b8",
+    "legacy_id": 3,
+    "nome": "Paris Saint-Germain - Fan Fuori Casa Paris Saint-Germain",
+    "old_img": "/uploads/prodotti/img_569b69803506bdf9.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_57f4728837a5b701.webp",
+    "content_type": "image/webp",
+    "size": 15968
+  },
+  {
+    "id": "1097ef8a-f311-4e9b-b139-266e2ec4f033",
+    "legacy_id": 18,
+    "nome": "Leicester City - Fan Fuori Casa Leicester City",
+    "old_img": "/uploads/prodotti/img_1964c749f0b9686d.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_6e6229244a19f982.webp",
+    "content_type": "image/webp",
+    "size": 20110
+  },
+  {
+    "id": "2a9487c0-ecc5-4219-b85e-c629aa56b58f",
+    "legacy_id": 3,
+    "nome": "Brasile - Mezza Zip Brasile Bianca",
+    "old_img": "/uploads/prodotti/img_01b32c0dd0ddfac7.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d999cc01ec3007c9.webp",
+    "content_type": "image/webp",
+    "size": 9276
+  },
+  {
+    "id": "22d382ad-e125-42ef-a61c-bb9c72b2676f",
+    "legacy_id": 4,
+    "nome": "Tottenham Hotspur - Fan Casa Tottenham Hotspur",
+    "old_img": "/uploads/prodotti/img_94e758b77a1da25a.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ebaadc2390e59ee9.webp",
+    "content_type": "image/webp",
+    "size": 14348
+  },
+  {
+    "id": "55bc5bc1-258c-44be-8199-a84b0db7dc6c",
+    "legacy_id": 11,
+    "nome": "Sporting Lisbona (Sporting CP) - Fan Fuori Casa Sporting Lisbona (Sporting CP)",
+    "old_img": "/uploads/prodotti/img_b0c5e4ab5a70345a.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_bd2db7efd40a1bc2.webp",
+    "content_type": "image/webp",
+    "size": 18990
+  },
+  {
+    "id": "91c755f2-ef4e-492e-b095-99c65a9e8cd6",
+    "legacy_id": 1,
+    "nome": "Brasile - Mezza Zip Brasile Verde",
+    "old_img": "/uploads/prodotti/img_f5b4097fe6e0985f.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a88369b1a4bc2b61.webp",
+    "content_type": "image/webp",
+    "size": 9994
+  },
+  {
+    "id": "3f9f1bdc-4197-448e-9ea4-2e5e3ebcea77",
+    "legacy_id": 19,
+    "nome": "Barcellona - Fan Allenamento Barcellona Nera e Gialla",
+    "old_img": "/uploads/prodotti/img_20b259cfc8d8832a.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_c44bd6036be3d947.webp",
+    "content_type": "image/webp",
+    "size": 28304
+  },
+  {
+    "id": "69ef2ea7-174c-44d1-8490-1bb81286d97c",
+    "legacy_id": 12,
+    "nome": "AC Milan - Kit Portiere AC Milan Giallo",
+    "old_img": "/uploads/prodotti/img_96088608b7efae2c.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_2a30b5873e42f533.webp",
+    "content_type": "image/webp",
+    "size": 23592
+  },
+  {
+    "id": "60b4796e-7a7f-49e1-b998-c9574d84be7c",
+    "legacy_id": 5,
+    "nome": "Bayern Monaco - Fan Fuori Casa Bayern Monaco",
+    "old_img": "/uploads/prodotti/img_8a5143abdf732330.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_21864e102c661cd3.webp",
+    "content_type": "image/webp",
+    "size": 13736
+  },
+  {
+    "id": "ba8b76dc-0e15-444a-abc8-b786163f8a63",
+    "legacy_id": 20,
+    "nome": "Brighton - Fan Seconda Trasferta Brighton",
+    "old_img": "/uploads/prodotti/img_e9a1fea2d23a2ec5.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1150025a43d8b00a.webp",
+    "content_type": "image/webp",
+    "size": 17112
+  },
+  {
+    "id": "0f040c09-bbe6-4b10-90c7-b3fb765b8ca1",
+    "legacy_id": 2,
+    "nome": "Brasile - Mezza Zip Brasile Verde",
+    "old_img": "/uploads/prodotti/img_c2ee299ffd1d8963.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_afee0aa7d69c9103.webp",
+    "content_type": "image/webp",
+    "size": 11520
+  },
+  {
+    "id": "ed209d8b-0b61-406a-9026-a1157ce5eb60",
+    "legacy_id": 22,
+    "nome": "Manchester United - Antivento Manchester United",
+    "old_img": "/uploads/prodotti/img_5b7289182b858d0f.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_dcbf52e51910d1a2.webp",
+    "content_type": "image/webp",
+    "size": 7360
+  },
+  {
+    "id": "93321f13-a661-4321-98f3-836dacc27ece",
+    "legacy_id": 13,
+    "nome": "AC Milan - Kit Portiere AC Milan Rosso",
+    "old_img": "/uploads/prodotti/img_363a7751dd43036c.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_e6d5b792b753e429.webp",
+    "content_type": "image/webp",
+    "size": 30614
+  },
+  {
+    "id": "dbdcb049-14f9-46c0-a163-93467ed86d5c",
+    "legacy_id": 6,
+    "nome": "Club América - Fan Casa Club América",
+    "old_img": "/uploads/prodotti/img_941f431885778801.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_9af801a36c2ff527.webp",
+    "content_type": "image/webp",
+    "size": 18988
+  },
+  {
+    "id": "b31c7cf9-d47c-49e0-849d-333d2090598f",
+    "legacy_id": 15,
+    "nome": "Southampton - Fan Seconda Trasferta Southampton",
+    "old_img": "/uploads/prodotti/img_cb8f0193b8693f9c.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_35724adb1308cb59.webp",
+    "content_type": "image/webp",
+    "size": 19922
+  },
+  {
+    "id": "9453feb5-7d88-49bb-b454-9e4b69a71feb",
+    "legacy_id": 23,
+    "nome": "Real Zaragoza - Fan Fuori Casa Real Zaragoza",
+    "old_img": "/uploads/prodotti/img_f675fa7a73de7be1.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_91eef1fe4e7cc300.webp",
+    "content_type": "image/webp",
+    "size": 17510
+  },
+  {
+    "id": "be803771-5264-48cc-adb1-7625088f6307",
+    "legacy_id": 7,
+    "nome": "Sporting Lisbona (Sporting CP) - Fan Casa Sporting Lisbona (Sporting CP)",
+    "old_img": "/uploads/prodotti/img_5ef85de2e6fe4315.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_294f0340a84c8b15.webp",
+    "content_type": "image/webp",
+    "size": 15800
+  },
+  {
+    "id": "2a66e329-4509-4150-af7d-7715994b41a6",
+    "legacy_id": 13,
+    "nome": "Italia - Mezza Zip Italia Celeste",
+    "old_img": "/uploads/prodotti/img_bc7bb5871282856b.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_79cc606db3e4bfb1.webp",
+    "content_type": "image/webp",
+    "size": 13680
+  },
+  {
+    "id": "b3d0e6fc-5f6c-4d6b-bd77-fced62428718",
+    "legacy_id": 14,
+    "nome": "Boca Juniors - Maglia Retrò Bambino Casa Boca Juniors",
+    "old_img": "/uploads/prodotti/img_21547583bb002562.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1feecf80e3a5ff02.webp",
+    "content_type": "image/webp",
+    "size": 8156
+  },
+  {
+    "id": "b1ece19c-563d-4a13-b28b-3869b300804a",
+    "legacy_id": 16,
+    "nome": "Juventus - Maglia Retrò Casa Juventus",
+    "old_img": "/uploads/prodotti/img_60cf98fffb8e8127.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_cd5bda2cdf45610c.webp",
+    "content_type": "image/webp",
+    "size": 11140
+  },
+  {
+    "id": "06d77289-5782-4170-b51a-58cc4124c2b8",
+    "legacy_id": 7,
+    "nome": "Leeds United - Player Casa Leeds United",
+    "old_img": "/uploads/prodotti/img_23657925aa06237e.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_0c81ba018c629ed4.webp",
+    "content_type": "image/webp",
+    "size": 16102
+  },
+  {
+    "id": "3c3f4893-21e2-4486-9617-19ab7828b7be",
+    "legacy_id": 3,
+    "nome": "LA Galaxy - Maglia Retrò LA Galaxy",
+    "old_img": "/uploads/prodotti/img_fa68a988ee1c6491.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_786f6ce908e22aa4.webp",
+    "content_type": "image/webp",
+    "size": 12726
+  },
+  {
+    "id": "58d6368f-7308-40fe-8cc4-40f8a53c5235",
+    "legacy_id": 16,
+    "nome": "Manchester City - Player Casa Manchester City",
+    "old_img": "/uploads/prodotti/img_700fd00e046d30ca.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_6709121e5e84bfde.webp",
+    "content_type": "image/webp",
+    "size": 7254
+  },
+  {
+    "id": "bc35dfd1-068b-4691-990a-95552cc41c94",
+    "legacy_id": 17,
+    "nome": "Manchester United - Player Casa Manchester United",
+    "old_img": "/uploads/prodotti/img_1c25c279372257dd.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a4894fa49a92ce7d.webp",
+    "content_type": "image/webp",
+    "size": 9410
+  },
+  {
+    "id": "e66d3425-6ed4-4b09-88f4-b3e281826a83",
+    "legacy_id": 8,
+    "nome": "Al Nassr - Fan Casa Al Nassr",
+    "old_img": "/uploads/prodotti/img_608a2c0adb1d62f9.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_79d942e5f9795a71.webp",
+    "content_type": "image/webp",
+    "size": 12334
+  },
+  {
+    "id": "075afc6c-e62f-4789-be15-a38796a14851",
+    "legacy_id": 9,
+    "nome": "Inter - Fan Seconda Trasferta Inter",
+    "old_img": "/uploads/prodotti/img_08142ae4e9912d45.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_971a2268b3441680.webp",
+    "content_type": "image/webp",
+    "size": 17054
+  },
+  {
+    "id": "2e66ad92-f40d-4c90-a16d-e9d4b902b1bd",
+    "legacy_id": 14,
+    "nome": "Aston Villa - Fan Fuori Casa Aston Villa",
+    "old_img": "/uploads/prodotti/img_93f8d9cff2208d89.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a90aa4217ff051ae.webp",
+    "content_type": "image/webp",
+    "size": 19256
+  },
+  {
+    "id": "33354985-b918-4d7f-bbe4-043fdcb06847",
+    "legacy_id": 11,
+    "nome": "Manchester United - Fan Casa Manchester United",
+    "old_img": "/uploads/prodotti/img_b4704c5b469021cc.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ed349c447f320cd7.webp",
+    "content_type": "image/webp",
+    "size": 18064
+  },
+  {
+    "id": "07d6a6a0-9c3c-44da-9f06-4a528fb12691",
+    "legacy_id": 10,
+    "nome": "Barcellona - Fan Fuori Casa Barcellona",
+    "old_img": "/uploads/prodotti/img_f68afdb8f4c5a43a.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ea045bb9f1400ce0.webp",
+    "content_type": "image/webp",
+    "size": 21542
+  },
+  {
+    "id": "d09e0e51-e825-4336-8852-6ede25e5b4fd",
+    "legacy_id": 12,
+    "nome": "Crystal Palace - Fan Casa Crystal Palace",
+    "old_img": "/uploads/prodotti/img_f1a29a4b5a6a88db.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_194bdf03915c6cc6.webp",
+    "content_type": "image/webp",
+    "size": 24906
+  },
+  {
+    "id": "1ed9d01a-eed4-42c5-bab0-53720b3360e1",
+    "legacy_id": 13,
+    "nome": "Olympique Marsiglia - Fan Seconda Trasferta Olympique Marsiglia",
+    "old_img": "/uploads/prodotti/img_bad143b0233e69ba.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_e6df1703975c1c53.webp",
+    "content_type": "image/webp",
+    "size": 18544
+  },
+  {
+    "id": "309c407e-e8d5-4742-9cbf-c6fa6d49b760",
+    "legacy_id": 25,
+    "nome": "Spagna - Mezza Zip Spagna",
+    "old_img": "/uploads/prodotti/img_43ec05bb6de218a6.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_2363ec9cbb3e2087.webp",
+    "content_type": "image/webp",
+    "size": 7100
+  },
+  {
+    "id": "6d391e07-5653-46b0-adc7-476209a83b0d",
+    "legacy_id": 24,
+    "nome": "Manchester City - Kit Fuori Casa Manchester City",
+    "old_img": "/uploads/prodotti/img_949cf1ecd8e838c2.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_fbeee75ca3abfa74.webp",
+    "content_type": "image/webp",
+    "size": 10856
+  },
+  {
+    "id": "4b09922f-bfd3-48c1-a630-81603ec0a63f",
+    "legacy_id": 8,
+    "nome": "Flamengo - Kit Bambino Casa Flamengo",
+    "old_img": "/uploads/prodotti/img_d3b2a997b46012f3.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_6e4840230d21f5c8.webp",
+    "content_type": "image/webp",
+    "size": 15804
+  },
+  {
+    "id": "76e81a38-daf8-492a-8844-d95099e735a6",
+    "legacy_id": 19,
+    "nome": "Club América - Player Edizione Speciale Club América Beige",
+    "old_img": "/uploads/prodotti/img_3f63b9d870950f1b.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d70e0478ffc0d0d0.webp",
+    "content_type": "image/webp",
+    "size": 5496
+  },
+  {
+    "id": "dec6dd04-800b-4694-88ff-eae07d2cf048",
+    "legacy_id": 18,
+    "nome": "Liverpool F.C. - Player Casa Liverpool F.C.",
+    "old_img": "/uploads/prodotti/img_9ddbd04b227b0c42.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_917a8137220d000c.webp",
+    "content_type": "image/webp",
+    "size": 14374
+  },
+  {
+    "id": "2e68da44-1ddd-4c92-9f76-855668a6191d",
+    "legacy_id": 21,
+    "nome": "SSC Napoli - Player Seconda Trasferta SSC Napoli",
+    "old_img": "/uploads/prodotti/img_56e139be1245bd85.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5c161edb9a74f351.webp",
+    "content_type": "image/webp",
+    "size": 7312
+  },
+  {
+    "id": "5fc34a0d-8a80-4a25-aea9-5493b8df28c9",
+    "legacy_id": 23,
+    "nome": "Chivas de Guadalajara - Player Casa Chivas de Guadalajara Maniche Lunghe",
+    "old_img": "/uploads/prodotti/img_fe461e35a09c52dd.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_3eca15e0cb907b69.webp",
+    "content_type": "image/webp",
+    "size": 13392
+  },
+  {
+    "id": "c3ad9fe0-8cf1-409f-bec1-18d48f0730ce",
+    "legacy_id": 1,
+    "nome": "Liverpool F.C. - Kit Bambino Seconda Trasferta Liverpool F.C.",
+    "old_img": "/uploads/prodotti/img_fb90b8d897334cae.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1d2070525a81f9d8.webp",
+    "content_type": "image/webp",
+    "size": 18398
+  },
+  {
+    "id": "7340e074-6128-4c47-b06a-a5ad2a449dcf",
+    "legacy_id": 2,
+    "nome": "Flamengo - Kit Bambino Seconda Trasferta Flamengo",
+    "old_img": "/uploads/prodotti/img_201849d005ec9809.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d051fdfa79a72a73.webp",
+    "content_type": "image/webp",
+    "size": 13606
+  },
+  {
+    "id": "fd4b67a4-9374-4663-b5a7-f75f8a44f286",
+    "legacy_id": 4,
+    "nome": "Arsenal F.C. - Kit Bambino Seconda Trasferta Arsenal F.C.",
+    "old_img": "/uploads/prodotti/img_0d2fb9f30ba7a1a8.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4e3694644268a6e5.webp",
+    "content_type": "image/webp",
+    "size": 17182
+  },
+  {
+    "id": "961b23d9-9f2b-4c2b-8bdf-626036a4a6b4",
+    "legacy_id": 3,
+    "nome": "Bayern Monaco - Kit Bambino Fuori Casa Bayern Monaco",
+    "old_img": "/uploads/prodotti/img_7105b4ece9dd2884.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1535eb3cf73ff5d8.webp",
+    "content_type": "image/webp",
+    "size": 13942
+  },
+  {
+    "id": "dfedfaf0-a5c4-4846-a0d3-e75aecf46bdd",
+    "legacy_id": 5,
+    "nome": "Boca Juniors - Kit Bambino Casa Boca Juniors",
+    "old_img": "/uploads/prodotti/img_69e3a0a72af9b7ff.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_398cbd68abf3569d.webp",
+    "content_type": "image/webp",
+    "size": 16194
+  },
+  {
+    "id": "b62166f4-bec5-45e8-83b2-0befc863c9bc",
+    "legacy_id": 17,
+    "nome": "Manchester United - Mezza Zip Manchester United Blu Royal",
+    "old_img": "/uploads/prodotti/img_7fa5f014be01b642.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_99f7da41fc7bdd21.webp",
+    "content_type": "image/webp",
+    "size": 9406
+  },
+  {
+    "id": "d980dfe4-b344-45f3-a56f-7849eb2d78ba",
+    "legacy_id": 21,
+    "nome": "Olympique Marsiglia - Mezza Zip Olympique Marsiglia Blu Royal",
+    "old_img": "/uploads/prodotti/img_4bc61a9b25741195.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_2892b771d5702ba5.webp",
+    "content_type": "image/webp",
+    "size": 6478
+  },
+  {
+    "id": "e03287ce-4eae-41e6-9f2f-3653b3f779db",
+    "legacy_id": 11,
+    "nome": "Liverpool F.C. - Tuta Liverpool F.C.",
+    "old_img": "/uploads/prodotti/img_fa850c28d5272666.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_7c5d631c2d9f88b3.webp",
+    "content_type": "image/webp",
+    "size": 6716
+  },
+  {
+    "id": "da253ebc-7695-455d-8ecf-662218c20c68",
+    "legacy_id": 14,
+    "nome": "Manchester United - Antivento Manchester United Blu e Bianco",
+    "old_img": "/uploads/prodotti/img_d5511b58f2801071.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_9b13fc9aad489dd0.webp",
+    "content_type": "image/webp",
+    "size": 16792
+  },
+  {
+    "id": "69adf9b9-db21-49ca-80d8-2596218d3bbd",
+    "legacy_id": 19,
+    "nome": "Manchester United - Antivento Manchester United Bianco",
+    "old_img": "/uploads/prodotti/img_1c11709b37a1b829.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_0867bed9f531db1e.webp",
+    "content_type": "image/webp",
+    "size": 17786
+  },
+  {
+    "id": "b80e09c9-93ba-4cdd-a992-f2325846a0ad",
+    "legacy_id": 19,
+    "nome": "Manchester United - Maglia Retrò Fuori Casa Manchester United",
+    "old_img": "/uploads/prodotti/img_52241b178bbaedb8.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_2de40d0cf659076f.webp",
+    "content_type": "image/webp",
+    "size": 8938
+  },
+  {
+    "id": "e6a4cacf-7ce9-43ed-94bb-e5afeeb3aa44",
+    "legacy_id": 20,
+    "nome": "Bayern Monaco - Maglia Retrò Casa Bayern Monaco",
+    "old_img": "/uploads/prodotti/img_036f044bc0fcbdf6.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_bc00eef4c97bb443.webp",
+    "content_type": "image/webp",
+    "size": 8740
+  },
+  {
+    "id": "7af95f7b-93f7-4271-8b0e-b473b8749181",
+    "legacy_id": 21,
+    "nome": "Real Madrid - Maglia Retrò Fuori Casa Real Madrid",
+    "old_img": "/uploads/prodotti/img_c5b79494ed7d99b9.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ee2e0edf7918cde5.webp",
+    "content_type": "image/webp",
+    "size": 8310
+  },
+  {
+    "id": "351e7c17-c3ea-42cd-9375-e6f83d633d01",
+    "legacy_id": 15,
+    "nome": "Manchester United - Antivento Manchester United Rosso e Nero",
+    "old_img": "/uploads/prodotti/img_8631ec8973d76e66.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_09528875ddf11377.webp",
+    "content_type": "image/webp",
+    "size": 17972
+  },
+  {
+    "id": "019d62e9-2253-4cea-8404-7b5b22e02d28",
+    "legacy_id": 20,
+    "nome": "Olympique Marsiglia - Antivento Olympique Marsiglia Arancione",
+    "old_img": "/uploads/prodotti/img_b54cca341e6069d2.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_3d8fb2050c2e4e10.webp",
+    "content_type": "image/webp",
+    "size": 4894
+  },
+  {
+    "id": "6ac8968d-db95-4229-88c4-6a0fce81bc15",
+    "legacy_id": 3,
+    "nome": "Athletico Paranaense - Maglia Athletico Paranaense",
+    "old_img": "/uploads/prodotti/img_95a528badfe8c043.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_c2602056e8745305.webp",
+    "content_type": "image/webp",
+    "size": 27472
+  },
+  {
+    "id": "30136b64-579e-4595-9d67-cb1656001a6f",
+    "legacy_id": 11,
+    "nome": "Bayern Monaco - Maglia Casa Bayern Monaco",
+    "old_img": "/uploads/prodotti/img_fe42fd5a0c12fc4c.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_b5ed6b9e92e96bd8.webp",
+    "content_type": "image/webp",
+    "size": 13330
+  },
+  {
+    "id": "03ec74d3-8ecc-464b-ac4e-5c16e844d80d",
+    "legacy_id": 13,
+    "nome": "Manchester United - Antivento Manchester United Nero",
+    "old_img": "/uploads/prodotti/img_98862bb665be2745.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_3c12fa586583cc56.webp",
+    "content_type": "image/webp",
+    "size": 4968
+  },
+  {
+    "id": "1c0075ee-fd70-4812-87bf-751cdb81f283",
+    "legacy_id": 7,
+    "nome": "Athletico Paranaense - Maglia Retrò Terza Athletico Paranaense",
+    "old_img": "/uploads/prodotti/img_a06953745ea3edc9.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_08dca0b161b8aa07.webp",
+    "content_type": "image/webp",
+    "size": 7730
+  },
+  {
+    "id": "eda66281-52df-4137-a0f9-a8a1d3f88099",
+    "legacy_id": 6,
+    "nome": "Al Nassr - Player Fuori Casa Al Nassr",
+    "old_img": "/uploads/prodotti/img_7fe245d98b03ab67.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_0f5b5f4f409f0f15.webp",
+    "content_type": "image/webp",
+    "size": 13100
+  },
+  {
+    "id": "d78bf1b4-f285-4374-8a98-c143eae7f839",
+    "legacy_id": 15,
+    "nome": "Flamengo - Player Seconda Trasferta Flamengo",
+    "old_img": "/uploads/prodotti/img_723115033e218cb7.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_136957ce863208de.webp",
+    "content_type": "image/webp",
+    "size": 20888
+  },
+  {
+    "id": "bb3e2375-7b42-42f9-8ede-64d621d3f6df",
+    "legacy_id": 8,
+    "nome": "Real Betis - Maglia Retrò Casa Real Betis",
+    "old_img": "/uploads/prodotti/img_4d14de4e2e806f57.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d15439a793eb22f6.webp",
+    "content_type": "image/webp",
+    "size": 10382
+  },
+  {
+    "id": "ef91e166-2662-40da-a6f2-9e87a5fe7194",
+    "legacy_id": 9,
+    "nome": "Liverpool F.C. - Maglia Retrò Casa Liverpool F.C.",
+    "old_img": "/uploads/prodotti/img_854b060c40c0fd94.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_55c736b04b20f309.webp",
+    "content_type": "image/webp",
+    "size": 7322
+  },
+  {
+    "id": "0772da5e-2f8d-4000-8a84-fa61b33db8fc",
+    "legacy_id": 10,
+    "nome": "Liverpool F.C. - Maglia Retrò Fuori Casa Liverpool F.C.",
+    "old_img": "/uploads/prodotti/img_bda1933d432687fe.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_fbb96726844cf59e.webp",
+    "content_type": "image/webp",
+    "size": 8042
+  },
+  {
+    "id": "360cf347-5911-4ef4-802d-ec0943b4c7aa",
+    "legacy_id": 12,
+    "nome": "Bayern Monaco - Maglia Retrò Fuori Casa Bayern Monaco",
+    "old_img": "/uploads/prodotti/img_3814332d9f4d94dd.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_240015c202d4ce7d.webp",
+    "content_type": "image/webp",
+    "size": 10544
+  },
+  {
+    "id": "8adc130e-bfab-4b12-bfad-57b63d141203",
+    "legacy_id": 20,
+    "nome": "Club América - Player Edizione Speciale Club América",
+    "old_img": "/uploads/prodotti/img_4c1700220101abf2.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_29b83339c598746f.webp",
+    "content_type": "image/webp",
+    "size": 6736
+  },
+  {
+    "id": "c1884358-4097-4ef8-ab05-358b815a8443",
+    "legacy_id": 22,
+    "nome": "Cruz Azul - Player Casa Cruz Azul Maniche Lunghe",
+    "old_img": "/uploads/prodotti/img_69352de9e125ebf4.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_fd11086680f35d51.webp",
+    "content_type": "image/webp",
+    "size": 11160
+  },
+  {
+    "id": "526a8ed9-c340-450c-8350-5872c7e7f7f2",
+    "legacy_id": 7,
+    "nome": "Francia - Mezza Zip Francia",
+    "old_img": "/uploads/prodotti/img_4e9e88bf4d11b80a.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_582d59b75cb193af.webp",
+    "content_type": "image/webp",
+    "size": 7244
+  },
+  {
+    "id": "69586521-7af0-4bc8-8d5f-061679ec03ec",
+    "legacy_id": 9,
+    "nome": "Francia - Mezza Zip Francia Bianca",
+    "old_img": "/uploads/prodotti/img_93083b83c613fd87.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_205d64afecffaa39.webp",
+    "content_type": "image/webp",
+    "size": 8796
+  },
+  {
+    "id": "f03c49a6-a77d-4c62-b29f-2b4a339ce371",
+    "legacy_id": 18,
+    "nome": "Manchester United - Giacca Manchester United Blu Royal",
+    "old_img": "/uploads/prodotti/img_dc895c03a7d131ff.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_6db276b0bda09cc5.webp",
+    "content_type": "image/webp",
+    "size": 7554
+  },
+  {
+    "id": "d61e51f2-08f8-46d9-b927-82df9e758926",
+    "legacy_id": 10,
+    "nome": "Francia - Mezza Zip Francia Blu Navy",
+    "old_img": "/uploads/prodotti/img_a62a074c88dd5b2a.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4e7c3035ef9aafc4.webp",
+    "content_type": "image/webp",
+    "size": 17074
+  },
+  {
+    "id": "85cbcba5-0b56-4ea6-be89-60f63b94582b",
+    "legacy_id": 12,
+    "nome": "Germania - Mezza Zip Germania Grigia",
+    "old_img": "/uploads/prodotti/img_24ce459975f4218e.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5359f11391a59b01.webp",
+    "content_type": "image/webp",
+    "size": 11274
+  },
+  {
+    "id": "92017ec3-a092-4c86-871a-b970473b0d97",
+    "legacy_id": 15,
+    "nome": "Messico - Mezza Zip Messico Verde",
+    "old_img": "/uploads/prodotti/img_b0eb690b0df4b5e1.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_06e7507b177b8e9b.webp",
+    "content_type": "image/webp",
+    "size": 12484
+  },
+  {
+    "id": "dee58b2b-6eb8-4391-a2a1-ecefbc586ea4",
+    "legacy_id": 19,
+    "nome": "Portogallo - Mezza Zip Portogallo Bordeaux",
+    "old_img": "/uploads/prodotti/img_6c56cf76f612cfb5.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_023be931a3e587e6.webp",
+    "content_type": "image/webp",
+    "size": 11486
+  },
+  {
+    "id": "0977bb35-4212-455e-aca4-419aefe48569",
+    "legacy_id": 17,
+    "nome": "Portogallo - Mezza Zip Portogallo Nera",
+    "old_img": "/uploads/prodotti/img_b84250e83bb2a35e.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_f7f9cf3cc0c14576.webp",
+    "content_type": "image/webp",
+    "size": 16440
+  },
+  {
+    "id": "31cbd192-a1c7-4cc0-8e21-a3227410b848",
+    "legacy_id": 23,
+    "nome": "Spagna - Mezza Zip Spagna Rossa Due Stelle",
+    "old_img": "/uploads/prodotti/img_f612b03602955cb7.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_128a82c5d24c7c2d.webp",
+    "content_type": "image/webp",
+    "size": 7328
+  },
+  {
+    "id": "a802489f-4957-4845-a216-7cd9b53227c5",
+    "legacy_id": 21,
+    "nome": "Spagna - Mezza Zip Spagna Nera Due Stelle",
+    "old_img": "/uploads/prodotti/img_f94f8621e1f8ab95.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_fb593d13af130fd8.webp",
+    "content_type": "image/webp",
+    "size": 5694
+  },
+  {
+    "id": "feadbb8f-a38c-4e47-b195-5cb934151d24",
+    "legacy_id": 16,
+    "nome": "Manchester United - Kit Allenamento Manchester United Nero",
+    "old_img": "/uploads/prodotti/img_77b9e88b8ce396f7.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_59c1f0043bf46281.webp",
+    "content_type": "image/webp",
+    "size": 12498
+  },
+  {
+    "id": "aa67c985-6343-4dd2-96be-2541b27167ba",
+    "legacy_id": 4,
+    "nome": "Athletico Paranaense - Maglia Athletico Paranaense",
+    "old_img": "/uploads/prodotti/img_d48108c27cc40268.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1dd0e6047e46df14.webp",
+    "content_type": "image/webp",
+    "size": 13156
+  },
+  {
+    "id": "c54af252-5135-4af3-a8ed-a87f63136dcb",
+    "legacy_id": 1,
+    "nome": "Athletico Paranaense - Maglia Athletico Paranaense",
+    "old_img": "/uploads/prodotti/img_b0a29aded89161d7.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d3875b9a57d1b330.webp",
+    "content_type": "image/webp",
+    "size": 6582
+  },
+  {
+    "id": "213b5dbc-4f52-4185-809f-797d8c43fb29",
+    "legacy_id": 6,
+    "nome": "Barcellona - Tuta Barcellona Blu Royal",
+    "old_img": "/uploads/prodotti/img_1f68158892729ac3.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_20894f6ff6666753.webp",
+    "content_type": "image/webp",
+    "size": 6356
+  },
+  {
+    "id": "2bb996b4-7803-4fee-a133-f56f724162da",
+    "legacy_id": 10,
+    "nome": "Liverpool F.C. - Mezza Zip Liverpool F.C. Viola",
+    "old_img": "/uploads/prodotti/img_330ac4630915759f.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_301de1f78ae25119.webp",
+    "content_type": "image/webp",
+    "size": 7332
+  },
+  {
+    "id": "06bb6a20-2b85-44cd-9a8c-f3aa15cc9607",
+    "legacy_id": 20,
+    "nome": "Portogallo - Mezza Zip Portogallo Rosa",
+    "old_img": "/uploads/prodotti/img_db6b17d4a7f5a7ef.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_84f04991e5d2b634.webp",
+    "content_type": "image/webp",
+    "size": 17782
+  },
+  {
+    "id": "a0070132-97bb-4eaa-bd75-a7effecd901a",
+    "legacy_id": 22,
+    "nome": "Spagna - Mezza Zip Spagna Blu Navy",
+    "old_img": "/uploads/prodotti/img_a8b35f2ba44b356c.webp",
+    "storage_url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_b20a3667ad3aee0f.webp",
+    "content_type": "image/webp",
+    "size": 24266
+  }
+]

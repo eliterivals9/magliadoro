@@ -1,0 +1,233 @@
+{
+  "sample10Restored": [
+    {
+      "id": "6924ab6e-b250-4570-acfa-0a2cac93ea9f",
+      "nome": "Boca Juniors - Versione Fan Casa Boca Juniors",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_15d93df5c64e1099.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "10837043-a64f-49bb-850c-35efaa0e9d32",
+      "nome": "Santos - Maglia Retrò Edizione Speciale Santos",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_be420ae64f49a133.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "b498e5cd-2d3d-4601-8b2d-9bb78338c532",
+      "nome": "Celta Vigo - Fan Seconda Trasferta Celta Vigo",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_061372b485329906.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "f778c53f-054d-4bbd-9300-2d32f0257df5",
+      "nome": "Santos - Maglia Retrò Fuori Casa Santos",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5095b4d37eb8d87a.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "49d2a149-f74c-40d2-b3d7-eb725873da97",
+      "nome": "Barcellona - Fan Terza Barcellona",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_be2a70aa4b5759d7.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "2b32f07d-9960-4467-8bb4-287bc3cd487c",
+      "nome": "Santos - Maglia Retrò Bambino Santos",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_bf1d5bfdb6f59217.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "64c7f944-4ee4-432a-88b1-4b2a422049e4",
+      "nome": "Paris Saint-Germain - Fan Allenamento Paris Saint-Germain Argento",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a36ffa8ca66224e5.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "4eaeb06c-173d-4c16-87ab-be1f06645270",
+      "nome": "Flamengo - Antivento Flamengo",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_8035a69e47d97078.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "0e546769-b559-4201-8db6-d0542864d0c0",
+      "nome": "Athletico Paranaense - Maglia Athletico Paranaense",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ba40ed357a53aef2.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "5f92402d-4971-4a2b-9773-ec44511f76cd",
+      "nome": "Manchester United - Antivento Manchester United Nero e Bianco",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_697d61611444a7ac.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    }
+  ],
+  "sample5Untouched": [
+    {
+      "id": "dfea4db2-fc45-4cfc-835a-7b405c68946b",
+      "nome": "Bayern Monaco - Maglia Retrò Casa Bayern Monaco",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a6a760c408a4d5b6.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "17035c9e-6ddd-4d91-9f61-05bffd4d1774",
+      "nome": "Paris Saint-Germain - Kit Bambino Edizione Speciale Paris Saint-Germain",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d2bf0e97802f15b2.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "8ce2c44a-e26c-41ff-9813-2c43e3e4beaa",
+      "nome": "Tottenham Hotspur - Player Casa Tottenham Hotspur",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_fe0de7fc5aa1fe81.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "ac3dd2db-9f13-4041-b7bf-89904695f164",
+      "nome": "Spagna - Mezza Zip Spagna Bianca Due Stelle",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_9ca1f57e85bc8cd2.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    },
+    {
+      "id": "fc642a86-48b4-4d26-9f86-ef4520da6808",
+      "nome": "Al Nassr - Kit Bambino Fuori Casa Al Nassr",
+      "url": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_3a736cd8ce81cfea.webp",
+      "httpStatus": 200,
+      "contentType": "image/webp",
+      "ok": true
+    }
+  ],
+  "remaining15Unmapped": [
+    {
+      "id": "cd8c2a26-01e6-4eeb-b4ad-4ff505999d8d",
+      "legacy_id": 3,
+      "squadra": "Al Ahli Saudi",
+      "versione": "Player Fuori Casa Al Ahli Saudi",
+      "immagine": "/uploads/prodotti/img_2dbf6680a22bec45.webp"
+    },
+    {
+      "id": "350967e8-7b1e-4acc-aadf-fa80fefa46c9",
+      "legacy_id": 5,
+      "squadra": "Bayer Leverkusen",
+      "versione": "Player Fuori Casa Bayer Leverkusen",
+      "immagine": "/uploads/prodotti/img_793db1e28d44d416.webp"
+    },
+    {
+      "id": "0299480e-5895-4ac5-9d79-dca024bc1ce1",
+      "legacy_id": 6,
+      "squadra": "Bayern Monaco",
+      "versione": "Player Seconda Trasferta Bayern Monaco Maniche Lunghe",
+      "immagine": "/uploads/prodotti/img_1b28ce9a04957dba.webp"
+    },
+    {
+      "id": "d970fba7-49f8-478a-866b-83bf94b29d9b",
+      "legacy_id": 7,
+      "squadra": "Inter Miami",
+      "versione": "Player Seconda Trasferta Inter Miami Maniche Lunghe",
+      "immagine": "/uploads/prodotti/img_74ae4b70f234a2ac.webp"
+    },
+    {
+      "id": "ed30d6ef-72fd-441d-9856-8580d14b732e",
+      "legacy_id": 10,
+      "squadra": "Barcellona",
+      "versione": "Mezza Zip Barcellona Nera",
+      "immagine": "/uploads/prodotti/img_d069b54bce366826.webp"
+    },
+    {
+      "id": "c40ad1ef-ec38-4679-9ce4-2941fb8ab9fc",
+      "legacy_id": 11,
+      "squadra": "Barcellona",
+      "versione": "Mezza Zip Barcellona Gialla",
+      "immagine": "/uploads/prodotti/img_37c071fb53c6fda4.webp"
+    },
+    {
+      "id": "c37559fc-df98-4829-b72e-f8d43e4ad8e8",
+      "legacy_id": 12,
+      "squadra": "Barcellona",
+      "versione": "Mezza Zip Barcellona Viola",
+      "immagine": "/uploads/prodotti/img_be6f06e30898f3a5.webp"
+    },
+    {
+      "id": "d1d3c3e8-a55e-45fc-af24-96680b1c853d",
+      "legacy_id": 14,
+      "squadra": "River Plate",
+      "versione": "Mezza Zip River Plate Bianca",
+      "immagine": "/uploads/prodotti/img_d526b7a7da52153b.webp"
+    },
+    {
+      "id": "ec4d4b89-4d6e-4d00-90e1-5baab4979d9d",
+      "legacy_id": 15,
+      "squadra": "Boca Juniors",
+      "versione": "Mezza Zip Boca Juniors Blu",
+      "immagine": "/uploads/prodotti/img_5a5bb51f318e60ce.webp"
+    },
+    {
+      "id": "5f266ab9-14f1-4b8c-8ac3-bc1df28c2630",
+      "legacy_id": 18,
+      "squadra": "Real Madrid",
+      "versione": "Polo Allenamento Real Madrid Beige",
+      "immagine": "/uploads/prodotti/img_4be0baf6c1d3e84c.webp"
+    },
+    {
+      "id": "22c2e896-58c4-4f93-bbd4-0e253af74888",
+      "legacy_id": 20,
+      "squadra": "Manchester United",
+      "versione": "Polo Allenamento Manchester United Rossa",
+      "immagine": "/uploads/prodotti/img_f351ec33ea58dbf3.webp"
+    },
+    {
+      "id": "fdc8f722-8c11-4c91-91b5-c1e6a5a6babd",
+      "legacy_id": 21,
+      "squadra": "Manchester United",
+      "versione": "Polo Allenamento Manchester United Nera",
+      "immagine": "/uploads/prodotti/img_63797144163f99c0.webp"
+    },
+    {
+      "id": "d6319496-76de-406a-9cb2-b79bb4e15e44",
+      "legacy_id": 22,
+      "squadra": "Real Madrid",
+      "versione": "Polo Allenamento Real Madrid Beige",
+      "immagine": "/uploads/prodotti/img_bdae60987b772ff1.webp"
+    },
+    {
+      "id": "765c0b03-9db6-4877-9480-8e13cc3a3464",
+      "legacy_id": 23,
+      "squadra": "Real Madrid",
+      "versione": "Polo Allenamento Real Madrid Verde",
+      "immagine": "/uploads/prodotti/img_891a508e334006e6.webp"
+    },
+    {
+      "id": "e83f8b0c-7a95-4d55-9bcf-3cf9c0f9d3d6",
+      "legacy_id": 24,
+      "squadra": "Feyenoord",
+      "versione": "Polo Allenamento Feyenoord",
+      "immagine": "/uploads/prodotti/img_cc3c66bb1afccbc3.webp"
+    }
+  ]
+}

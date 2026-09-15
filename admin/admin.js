@@ -4605,12 +4605,8 @@ async function salvaProdotto() {
             sincronizzaReportDuplicati();
             if (typeof sincronizzaReportSenzaFiltro === 'function') sincronizzaReportSenzaFiltro();
 
-            // Avvio automatico sincronizzazione immagini in background per nuovi prodotti o modifiche
-            if (typeof avviaSincronizzazioneImmagini === 'function') {
-                avviaSincronizzazioneImmagini(false, true).catch(err => {
-                    console.warn("⚠️ Avviso sincronizzazione automatica immagini:", err.message);
-                });
-            }
+            // Sincronizzazione automatica disattivata: Supabase Storage è la sorgente persistente
+            // Le immagini sono già gestite direttamente senza sincronizzazione locale su filesystem effimero.
         } else {
             showToast("Errore durante il salvataggio: " + resultError.message, "error");
         }
@@ -10955,12 +10951,8 @@ async function eseguiImportazioneSottoConferma() {
                     await caricaSquadre();
                 }
 
-                // Avvio automatico sincronizzazione immagini in background per i nuovi prodotti importati
-                if (typeof avviaSincronizzazioneImmagini === 'function') {
-                    avviaSincronizzazioneImmagini(false, true).catch(err => {
-                        console.warn("⚠️ Avviso sincronizzazione automatica immagini:", err.message);
-                    });
-                }
+                // Sincronizzazione automatica disattivata: Supabase Storage è la sorgente persistente
+                // Le immagini dei prodotti importati rimangono persistenti senza sovrascritture su filesystem locale.
             } else {
                 // In caso di errore o prodotti non salvati, NON chiudiamo automaticamente la finestra
                 const countImportati = result.importati || 0;
@@ -23656,6 +23648,11 @@ let syncStats = {
     errors: 0
 };
 
+function isSupabaseStorageUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    return url.includes('.supabase.co/storage/') || url.includes('/storage/v1/object/public/prodotti/');
+}
+
 async function aggiornaMetricheSincronizzazioneImmagini() {
     try {
         let prods = Array.isArray(prodotti) && prodotti.length > 0 ? prodotti : [];
@@ -23673,7 +23670,7 @@ async function aggiornaMetricheSincronizzazioneImmagini() {
 
         prods.forEach(p => {
             const img = (p.immagine || '').trim();
-            if (img.startsWith('/uploads/') || img.startsWith('uploads/') || img.startsWith('http://localhost') || img.startsWith(window.location.origin)) {
+            if (isSupabaseStorageUrl(img) || img.startsWith('/uploads/') || img.startsWith('uploads/') || img.startsWith('http://localhost') || img.startsWith(window.location.origin)) {
                 migrated++;
             } else if (img) {
                 remaining++;
@@ -23744,7 +23741,8 @@ function convertiBlobInWebP300x300(blob) {
 
 async function elaboraSingolaImmagineProdotto(prodotto) {
     const originalUrl = (prodotto.immagine || '').trim();
-    if (!originalUrl || originalUrl.startsWith('/uploads/') || originalUrl.startsWith('uploads/')) {
+    // Se l'immagine è già su Supabase Storage o già migrata, NON toccarla
+    if (!originalUrl || isSupabaseStorageUrl(originalUrl) || originalUrl.startsWith('/uploads/') || originalUrl.startsWith('uploads/')) {
         return { success: true, alreadyMigrated: true, internalUrl: originalUrl };
     }
 
@@ -23796,9 +23794,10 @@ async function avviaSincronizzazioneImmagini(isPilot = false, isSilent = false) 
         }
     }
 
+    // Le immagini su Supabase Storage sono considerate già persistenti e migrate
     let daMigrare = prods.filter(p => {
         const img = (p.immagine || '').trim();
-        return img && !img.startsWith('/uploads/') && !img.startsWith('uploads/');
+        return img && !isSupabaseStorageUrl(img) && !img.startsWith('/uploads/') && !img.startsWith('uploads/');
     });
 
     if (daMigrare.length === 0) {

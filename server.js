@@ -5208,6 +5208,19 @@ app.put('/api/products/:id', async (req, res) => {
     const finalTarget = target !== undefined ? target : original.target;
     const finalVersione = versione !== undefined ? formattaNomenclaturaVersione(normalizedSquadra, normalizedCategoria, versione, normalizedStagione) : original.versione;
 
+    // Protezione contro regressione: un URL Supabase Storage valido non può essere declassato a path locale effimero /uploads/
+    let resolvedImmagine = original.immagine;
+    if (finalImmagine !== undefined) {
+      const isOriginalStorage = typeof original.immagine === 'string' && (original.immagine.includes('.supabase.co/storage/') || original.immagine.includes('/storage/v1/object/public/prodotti/'));
+      const isNewLocal = typeof finalImmagine === 'string' && (finalImmagine.startsWith('/uploads/') || finalImmagine.startsWith('uploads/'));
+      if (isOriginalStorage && isNewLocal) {
+        console.warn(`[PROTEZIONE REGRESSIONE] Tentativo di sovrascrittura di Supabase Storage con path effimero locale bloccato per prodotto ${id}.`);
+        resolvedImmagine = original.immagine;
+      } else {
+        resolvedImmagine = finalImmagine;
+      }
+    }
+
     const payload = {
       squadra: traduciTestoProdotto(normalizedSquadra),
       categoria: normalizedCategoria,
@@ -5215,7 +5228,7 @@ app.put('/api/products/:id', async (req, res) => {
       versione: traduciTestoProdotto(finalVersione),
       stagione: normalizedStagione,
       prezzo: prezzo !== undefined ? Number(prezzo) : original.prezzo,
-      immagine: finalImmagine !== undefined ? finalImmagine : original.immagine,
+      immagine: resolvedImmagine,
       prezzo_fornitore: prezzo_fornitore !== undefined ? (prezzo_fornitore !== null && prezzo_fornitore !== '' ? Number(prezzo_fornitore) : null) : original.prezzo_fornitore
     };
     if (payload.categoria === 'Portiere') {
@@ -15039,13 +15052,52 @@ app.get('/api/admin/performance/status', (req, res) => {
   }
 });
 
-// POST /api/admin/store-image - Salva l'immagine convertita in WebP ed aggiorna il riferimento nel DB
+// POST /api/admin/store-image - Salva l'immagine su Supabase Storage (persistente) ed aggiorna il DB
 app.post('/api/admin/store-image', async (req, res) => {
   try {
     const { productId, originalUrl, imageBase64 } = req.body || {};
 
     if (!productId) {
       return res.status(400).json({ success: false, error: "productId mancante." });
+    }
+
+    const isSupabaseStorage = (url) => typeof url === 'string' && (url.includes('.supabase.co/storage/') || url.includes('/storage/v1/object/public/prodotti/'));
+
+    // 1. Se l'URL fornito è già un URL Supabase Storage valido, non rielaborare né sovrascrivere
+    if (originalUrl && isSupabaseStorage(originalUrl)) {
+      return res.json({
+        success: true,
+        productId: productId,
+        internalUrl: originalUrl,
+        alreadyMigrated: true,
+        storage: 'supabase'
+      });
+    }
+
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
+
+    // 2. Protezione regressione: se il prodotto nel DB ha già un URL Supabase Storage valido, non declassare
+    if (supabase) {
+      try {
+        const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+        const query = supabase.from('products').select('immagine');
+        const { data: curProd } = isNum 
+          ? await query.eq('legacy_id', Number(productId)).maybeSingle() 
+          : await query.eq('id', String(productId)).maybeSingle();
+
+        if (curProd && curProd.immagine && isSupabaseStorage(curProd.immagine)) {
+          console.log(`[PROTEZIONE] Prodotto ${productId} possiede già immagine su Supabase Storage: ${curProd.immagine}. Preservata.`);
+          return res.json({
+            success: true,
+            productId: productId,
+            internalUrl: curProd.immagine,
+            alreadyMigrated: true,
+            storage: 'supabase'
+          });
+        }
+      } catch (errCheck) {
+        console.warn("Avviso verifica protezione Supabase Storage:", errCheck.message);
+      }
     }
 
     let webpBuffer = null;
@@ -15091,15 +15143,57 @@ app.post('/api/admin/store-image', async (req, res) => {
     const hash = crypto.createHash('sha256').update(key).digest('hex').substring(0, 16);
     const filename = `img_${hash}.webp`;
 
-    if (!fs.existsSync(PRODOTTI_UPLOADS_DIR)) {
-      fs.mkdirSync(PRODOTTI_UPLOADS_DIR, { recursive: true });
+    let persistentUrl = null;
+
+    // 3. Destinazione persistente: SUPABASE STORAGE (bucket: 'prodotti')
+    if (supabase) {
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('prodotti')
+          .upload(filename, webpBuffer, {
+            contentType: 'image/webp',
+            upsert: true
+          });
+
+        if (!uploadError) {
+          const { data: pubData } = supabase.storage.from('prodotti').getPublicUrl(filename);
+          if (pubData && pubData.publicUrl) {
+            persistentUrl = pubData.publicUrl;
+          }
+        } else {
+          console.error("❌ Errore caricamento in Supabase Storage:", uploadError.message);
+        }
+      } catch (storageErr) {
+        console.error("❌ Eccezione caricamento Supabase Storage:", storageErr.message);
+      }
     }
 
-    const filePath = path.join(PRODOTTI_UPLOADS_DIR, filename);
-    fs.writeFileSync(filePath, webpBuffer);
+    // Fallback locale offline solo se Supabase Storage non è raggiungibile
+    if (!persistentUrl) {
+      if (!fs.existsSync(PRODOTTI_UPLOADS_DIR)) {
+        fs.mkdirSync(PRODOTTI_UPLOADS_DIR, { recursive: true });
+      }
+      const filePath = path.join(PRODOTTI_UPLOADS_DIR, filename);
+      fs.writeFileSync(filePath, webpBuffer);
+      persistentUrl = `/uploads/prodotti/${filename}`;
+      console.warn("⚠️ Fallback temporaneo su filesystem locale:", persistentUrl);
+    }
 
-    const internalUrl = `/uploads/prodotti/${filename}`;
+    // 4. Aggiorna riferimento persistente nel database (con URL Supabase Storage)
+    if (supabase && persistentUrl && !persistentUrl.startsWith('/uploads/')) {
+      try {
+        const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+        if (isNum) {
+          await supabase.from('products').update({ immagine: persistentUrl }).eq('legacy_id', Number(productId));
+        } else {
+          await supabase.from('products').update({ immagine: persistentUrl }).eq('id', String(productId));
+        }
+      } catch (errDb) {
+        console.warn("⚠️ Aggiornamento immagine Supabase avviso:", errDb.message);
+      }
+    }
 
+    // Aggiorna anche file locale se presente
     let updatedInLocal = false;
     if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
       let localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
@@ -15111,23 +15205,9 @@ app.post('/api/admin/store-image', async (req, res) => {
         if (!localProds[idx].immagine_originale && localProds[idx].immagine && !localProds[idx].immagine.startsWith('/uploads/')) {
           localProds[idx].immagine_originale = localProds[idx].immagine;
         }
-        localProds[idx].immagine = internalUrl;
+        localProds[idx].immagine = persistentUrl;
         fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
         updatedInLocal = true;
-      }
-    }
-
-    const supabase = getSupabaseAdminClient() || getSupabaseClient();
-    if (supabase) {
-      try {
-        const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
-        if (isNum) {
-          await supabase.from('products').update({ immagine: internalUrl }).eq('legacy_id', Number(productId));
-        } else {
-          await supabase.from('products').update({ immagine: internalUrl }).eq('id', String(productId));
-        }
-      } catch (errDb) {
-        console.warn("⚠️ Aggiornamento immagine Supabase avviso:", errDb.message);
       }
     }
 
@@ -15136,9 +15216,10 @@ app.post('/api/admin/store-image', async (req, res) => {
     return res.json({
       success: true,
       productId: productId,
-      internalUrl: internalUrl,
+      internalUrl: persistentUrl,
       filename: filename,
       sizeBytes: webpBuffer.length,
+      storage: persistentUrl.startsWith('http') ? 'supabase' : 'local',
       updatedInLocal: updatedInLocal
     });
   } catch (err) {
