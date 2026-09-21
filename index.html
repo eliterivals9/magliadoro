@@ -529,10 +529,12 @@ body {
             }
 
             #pagina-club .griglia-maglie,
-            #pagina-mondiali .griglia-maglie {
+            #pagina-mondiali .griglia-maglie,
+            #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+            #pagina-accessori .griglia-maglie {
                 display: grid !important;
                 grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-                gap: 16px !important;
+                gap: 14px !important;
                 width: 100% !important;
                 align-items: stretch !important;
             }
@@ -6324,43 +6326,419 @@ body {
             border-color: #d6a43a;
             box-shadow: 0 4px 12px rgba(214, 164, 58, 0.35);
         }
+        /* Griglia Accessori: Desktop 4 Colonne di Default */
+        #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+        #pagina-accessori .griglia-maglie,
         .accessories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 24px;
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 14px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            align-items: stretch !important;
         }
-        .accessories-card {
-            background: linear-gradient(145deg, #181818 0%, #121212 100%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius-l);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
+        /* ==========================================================================
+           SEZIONE ACCESSORI - CARD PRODOTTO: DESIGN COMPATTO, OBJECT-FIT CONTAIN
+           ========================================================================== */
+
+        /* 1. CONTENITORE CARD: Stabile, nessun transform né ingrandimento */
+        .card-accessorio,
+        .accessories-card,
+        #pagina-accessori .card-maglia {
+            background: linear-gradient(145deg, #181818 0%, #121212 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: var(--radius-l, 10px) !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            position: relative !important;
+            height: 100% !important;
+            box-sizing: border-box !important;
+            transform: none !important; /* CRITICO: la card non deve MAI subire scale o transform */
+            transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
         }
-        .accessories-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(214, 164, 58, 0.4);
-            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5), 0 0 15px rgba(214, 164, 58, 0.15);
+
+        .card-accessorio:hover,
+        .accessories-card:hover,
+        #pagina-accessori .card-maglia:hover {
+            transform: none !important; /* Non si solleva né ingrandisce */
+            border-color: rgba(214, 164, 58, 0.45) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(214, 164, 58, 0.1) !important;
         }
-        .accessories-card-img-wrap {
-            width: 100%;
-            height: 240px;
-            position: relative;
-            background: #0d0d0d;
-            overflow: hidden;
-            cursor: pointer;
+
+        /* 2. AREA IMMAGINE ACCESSORIO: Dimensioni ampliate per riempire la larghezza della card, contain, padding minimo */
+        .card-accessorio .area-immagine-accessorio,
+        .accessories-card-img-wrap,
+        #pagina-accessori .card-maglia .contenitore-foto {
+            position: relative !important;
+            width: 100% !important;
+            height: 250px !important;
+            min-height: 250px !important;
+            max-height: 250px !important;
+            background: #141414 !important;
+            overflow: hidden !important; /* L'immagine non fuoriesce mai dall'area */
+            cursor: zoom-in !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 2px !important; /* Spazio perimetrale minimo per massimizzare la larghezza utile dell'immagine */
+            margin: 0 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+            box-sizing: border-box !important;
         }
-        .accessories-card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s ease;
+
+        .card-accessorio .wrapper-foto-accessorio {
+            width: 100% !important;
+            height: 100% !important;
+            position: relative !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
-        .accessories-card:hover .accessories-card-img {
-            transform: scale(1.06);
+
+        /* 3. IMMAGINE PRODOTTO: object-fit contain, centrata, zero zoom automatico, zero crop */
+        .card-accessorio .foto-accessorio,
+        .accessories-card-img,
+        #pagina-accessori .card-maglia .foto-maglia {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            object-fit: contain !important;
+            object-position: center !important;
+            display: block !important;
+            transform: none !important;
+            transform-origin: center center !important;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45)) !important;
+            pointer-events: none !important;
         }
+
+        /* Hover sull'area immagine: nessun crop, immagine rimane intatta e centrata */
+        .card-accessorio .area-immagine-accessorio:hover .foto-accessorio,
+        .card-accessorio:hover .foto-accessorio,
+        .accessories-card-img-wrap:hover .accessories-card-img,
+        #pagina-accessori .card-maglia .contenitore-foto:hover .foto-maglia {
+            transform: none !important;
+        }
+
+        /* 4. BADGE TIPO E CUORE WISHLIST */
+        .card-accessorio .badge-card-tipo {
+            position: absolute !important;
+            top: 9px !important;
+            left: 9px !important;
+            right: auto !important;
+            z-index: 5 !important;
+            background: rgba(0, 0, 0, 0.72) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            border: 1px solid rgba(214, 164, 58, 0.35) !important;
+            color: var(--primary, #d4a339) !important;
+            font-size: 9.5px !important;
+            font-weight: 800 !important;
+            padding: 3px 7px !important;
+            border-radius: 4px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            line-height: 1.2 !important;
+            pointer-events: none !important;
+        }
+
+        .card-accessorio .wishlist-heart-btn {
+            position: absolute !important;
+            top: 9px !important;
+            right: 9px !important;
+            left: auto !important;
+            z-index: 5 !important;
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: rgba(18, 18, 18, 0.65) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 50% !important;
+            padding: 0 !important;
+            cursor: pointer !important;
+            transition: transform 0.2s ease, background 0.2s ease !important;
+        }
+
+        .card-accessorio .wishlist-heart-btn:hover {
+            transform: scale(1.08) !important;
+            background: rgba(18, 18, 18, 0.9) !important;
+            border-color: var(--primary, #D4A339) !important;
+        }
+
+        /* 5. ELEMENTI CHE NON DEVONO MAI INGRANDIRSI O ZOOMARE */
+        .card-accessorio .info-accessorio,
+        .card-accessorio .testo-info,
+        .card-accessorio h3,
+        .card-accessorio .stagione,
+        .card-accessorio .dettagli-accessorio,
+        .card-accessorio .prezzo-box-accessorio,
+        .card-accessorio .prezzo-accessorio,
+        .card-accessorio .btn-accessorio,
+        .card-accessorio .wishlist-heart-btn,
+        .card-accessorio .badge-card-tipo,
+        .accessories-card-body,
+        .accessories-card-footer {
+            transform: none !important;
+        }
+
+        /* 6. CONTENUTO INFO CARD: Design compatto calibrato su 4 colonne */
+        .card-accessorio .info-accessorio,
+        #pagina-accessori .card-maglia .info-maglia {
+            padding: 10px 12px 12px 12px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-grow: 1 !important;
+            justify-content: space-between !important;
+            gap: 6px !important;
+            box-sizing: border-box !important;
+        }
+
+        .card-accessorio .info-accessorio .testo-info {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 3px !important;
+        }
+
+        .card-accessorio h3 {
+            font-size: 12.5px !important;
+            font-weight: 700 !important;
+            color: #FFFFFF !important;
+            line-height: 1.3 !important;
+            margin: 0 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            min-height: 32px !important;
+        }
+
+        .card-accessorio .stagione {
+            font-size: 11px !important;
+            color: var(--on-surface-de-emphasis, rgba(255, 255, 255, 0.6)) !important;
+            margin: 0 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        /* 7. DISPOSIZIONE INFERIORE: PREZZO + PULSANTE */
+        .card-accessorio .dettagli-accessorio,
+        .accessories-card-footer,
+        #pagina-accessori .card-maglia .dettagli-prezzo-bottone {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 6px !important;
+            width: 100% !important;
+            margin-top: auto !important;
+            padding-top: 6px !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.04) !important;
+            box-sizing: border-box !important;
+        }
+
+        .card-accessorio .prezzo-box-accessorio,
+        .accessories-card-price,
+        #pagina-accessori .card-maglia .prezzo-box {
+            flex-shrink: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            white-space: nowrap !important;
+            line-height: 1 !important;
+            text-align: left !important;
+        }
+
+        .card-accessorio .prezzo-accessorio,
+        #pagina-accessori .card-maglia .prezzo {
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            color: var(--primary, #D4A339) !important;
+            line-height: 1 !important;
+            letter-spacing: -0.2px !important;
+        }
+
+        /* 8. PULSANTE "AGGIUNGI AL CARRELLO" COMPLETO E MAI TAGLIATO */
+        .card-accessorio .btn-accessorio,
+        .accessories-card-btn,
+        #pagina-accessori .card-accessorio .btn-configura,
+        #pagina-accessori .card-accessorio .btn-accessorio {
+            flex: 1 1 auto !important;
+            width: auto !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            padding: 6.5px 7px !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.15px !important;
+            line-height: 1.25 !important;
+            white-space: nowrap !important;
+            text-align: center !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 6px !important;
+            background: var(--gold-gradient) !important;
+            color: #000000 !important;
+            border: none !important;
+            cursor: pointer !important;
+            box-shadow: 0 2px 6px rgba(214, 164, 58, 0.25) !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        .card-accessorio .btn-accessorio:hover,
+        .accessories-card-btn:hover,
+        #pagina-accessori .card-accessorio .btn-configura:hover,
+        #pagina-accessori .card-accessorio .btn-accessorio:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 10px rgba(214, 164, 58, 0.4) !important;
+        }
+
+        .card-accessorio .btn-accessorio:active,
+        .accessories-card-btn:active,
+        #pagina-accessori .card-accessorio .btn-configura:active,
+        #pagina-accessori .card-accessorio .btn-accessorio:active {
+            transform: translateY(0) !important;
+        }
+
+        /* TABLET: 769px - 1024px */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+            #pagina-accessori .griglia-maglie,
+            .accessories-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: 12px !important;
+            }
+            .card-accessorio .area-immagine-accessorio,
+            #pagina-accessori .card-accessorio .contenitore-foto {
+                height: 220px !important;
+                min-height: 220px !important;
+                max-height: 220px !important;
+                padding: 2px !important;
+            }
+            .card-accessorio .prezzo-accessorio,
+            #pagina-accessori .card-accessorio .prezzo {
+                font-size: 14.5px !important;
+            }
+            .card-accessorio .btn-accessorio,
+            #pagina-accessori .card-accessorio .btn-configura {
+                padding: 6px 7px !important;
+                font-size: 9.5px !important;
+            }
+        }
+
+        /* SMARTPHONE: <= 768px (2 CARD PER RIGA) */
+        @media (max-width: 768px) {
+            #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+            #pagina-accessori .griglia-maglie,
+            .accessories-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+            .card-accessorio .badge-card-tipo {
+                top: 6px !important;
+                left: 6px !important;
+                font-size: 8px !important;
+                padding: 2px 6px !important;
+            }
+            .card-accessorio .wishlist-heart-btn {
+                top: 6px !important;
+                right: 6px !important;
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 12px !important;
+            }
+            .card-accessorio .area-immagine-accessorio,
+            #pagina-accessori .card-accessorio .contenitore-foto {
+                height: clamp(180px, 52vw, 220px) !important;
+                min-height: clamp(180px, 52vw, 220px) !important;
+                max-height: clamp(180px, 52vw, 220px) !important;
+                padding: 2px !important;
+            }
+            .card-accessorio .info-accessorio,
+            #pagina-accessori .card-accessorio .info-maglia {
+                padding: 7px 7px 8px 7px !important;
+                gap: 4px !important;
+            }
+            .card-accessorio h3 {
+                font-size: 11px !important;
+                height: 28px !important;
+                min-height: 28px !important;
+                line-height: 1.25 !important;
+            }
+            .card-accessorio .stagione {
+                font-size: 8.5px !important;
+            }
+            /* Disposizione responsive coerente su smartphone: prezzo sopra, pulsante a larghezza piena sotto */
+            .card-accessorio .dettagli-accessorio,
+            #pagina-accessori .card-accessorio .dettagli-prezzo-bottone {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 4px !important;
+                width: 100% !important;
+                margin-top: auto !important;
+                padding-top: 2px !important;
+            }
+            .card-accessorio .prezzo-box-accessorio,
+            #pagina-accessori .card-accessorio .prezzo-box {
+                text-align: center !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            .card-accessorio .prezzo-accessorio,
+            #pagina-accessori .card-accessorio .prezzo {
+                font-size: 13.5px !important;
+            }
+            .card-accessorio .btn-accessorio,
+            .accessories-card-btn,
+            #pagina-accessori .card-accessorio .btn-configura,
+            #pagina-accessori .card-accessorio .btn-accessorio,
+            #pagina-accessori .btn-accessorio {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 6.5px 4px !important;
+                font-size: 9.5px !important;
+                font-weight: 800 !important;
+                letter-spacing: 0.15px !important;
+                white-space: nowrap !important;
+                text-align: center !important;
+                border-radius: 5px !important;
+                background: var(--gold-gradient) !important;
+                color: #000000 !important;
+                border: none !important;
+                box-shadow: 0 2px 6px rgba(214, 164, 58, 0.3) !important;
+                line-height: 1.2 !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .card-accessorio .btn-accessorio,
+            .accessories-card-btn,
+            #pagina-accessori .card-accessorio .btn-configura,
+            #pagina-accessori .card-accessorio .btn-accessorio,
+            #pagina-accessori .btn-accessorio {
+                font-size: 8.5px !important;
+                padding: 5px 2px !important;
+                letter-spacing: 0.05px !important;
+            }
+        }
+
         .accessories-card-badge {
             position: absolute;
             top: 12px;
@@ -6718,14 +7096,16 @@ body {
                 max-width: 100% !important;
                 padding: 20px 14px calc(90px + env(safe-area-inset-bottom, 0px)) 14px !important;
             }
-            #pagina-club .layout-club-video-container {
+            #pagina-club .layout-club-video-container,
+            #pagina-accessori .layout-club-video-container {
                 display: flex !important;
                 flex-direction: row !important;
                 align-items: flex-start !important;
                 gap: 16px !important;
                 margin-top: 16px !important;
             }
-            #pagina-club .sidebar-leghe-club {
+            #pagina-club .sidebar-leghe-club,
+            #pagina-accessori .sidebar-leghe-club {
                 display: block !important;
                 width: 200px !important;
                 min-width: 190px !important;
@@ -6832,7 +7212,8 @@ body {
             }
 
             /* Layout colonna su Smartphone: Sidebar in alto full-width + Area destra sotto */
-            #pagina-club .layout-club-video-container {
+            #pagina-club .layout-club-video-container,
+            #pagina-accessori .layout-club-video-container {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -6844,7 +7225,9 @@ body {
 
             /* Sidebar Mobile Compatta (Pannello Navigazione in Alto) */
             #pagina-club #sidebar-leghe-club.sidebar-leghe-club,
-            #pagina-club .sidebar-leghe-club {
+            #pagina-club .sidebar-leghe-club,
+            #pagina-accessori #sidebar-categorie-accessori.sidebar-leghe-club,
+            #pagina-accessori .sidebar-leghe-club {
                 display: block !important;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -7070,7 +7453,8 @@ body {
             }
 
             /* VISTA 2: PRODOTTI DEL CLUB & TUTTI GLI ARTICOLI (Design Mobile Dedicato) */
-            #pagina-club .barra-navigazione-club-prodotti {
+            #pagina-club .barra-navigazione-club-prodotti,
+            #pagina-accessori .barra-navigazione-club-prodotti {
                 padding: 6px 8px !important;
                 margin-bottom: 8px !important;
                 border-radius: 8px !important;
@@ -7122,22 +7506,26 @@ body {
             #pagina-club #box-nav-tutti-articoli[style*="display:none"] {
                 display: none !important;
             }
-            #pagina-club .info-tutti-articoli-header {
+            #pagina-club .info-tutti-articoli-header,
+            #pagina-accessori .info-tutti-articoli-header {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: flex-start !important;
                 gap: 2px !important;
                 min-width: 0 !important;
             }
-            #pagina-club .info-tutti-articoli-header > div {
+            #pagina-club .info-tutti-articoli-header > div,
+            #pagina-accessori .info-tutti-articoli-header > div {
                 display: flex !important;
                 align-items: center !important;
                 gap: 5px !important;
             }
-            #pagina-club .info-tutti-articoli-header span[style*="font-size: 20px"] {
+            #pagina-club .info-tutti-articoli-header span[style*="font-size: 20px"],
+            #pagina-accessori .info-tutti-articoli-header span[style*="font-size: 20px"] {
                 font-size: 15px !important;
             }
-            #pagina-club .info-tutti-articoli-header h2 {
+            #pagina-club .info-tutti-articoli-header h2,
+            #pagina-accessori .info-tutti-articoli-header h2 {
                 font-size: 13.5px !important;
                 font-weight: 800 !important;
                 color: #FFFFFF !important;
@@ -7146,7 +7534,8 @@ body {
                 line-height: 1.2 !important;
                 white-space: nowrap !important;
             }
-            #pagina-club #conteggio-prodotti-club-totali {
+            #pagina-club #conteggio-prodotti-club-totali,
+            #pagina-accessori #conteggio-prodotti-accessori-totali {
                 font-size: 8.5px !important;
                 font-weight: 700 !important;
                 color: var(--primary, #D4A339) !important;
@@ -7225,7 +7614,8 @@ body {
 
             /* Ordinamento e Filtri dinamici: Griglia premium a 2 colonne per smartphone */
             #pagina-club #ordinamento-club-container,
-            #pagina-mondiali #ordinamento-nazionali-container {
+            #pagina-mondiali #ordinamento-nazionali-container,
+            #pagina-accessori #ordinamento-accessori-container {
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 12px 10px !important;
@@ -7245,7 +7635,9 @@ body {
             #pagina-mondiali #wrapper-filtro-categoria-nazionale,
             #pagina-mondiali #wrapper-filtro-categoria-nazionali,
             #pagina-mondiali #wrapper-filtro-squadra-nazionali,
-            #pagina-mondiali #wrapper-filtro-stagione-nazionali {
+            #pagina-mondiali #wrapper-filtro-stagione-nazionali,
+            #pagina-accessori #wrapper-filtro-categoria-accessori,
+            #pagina-accessori #wrapper-filtro-marca-accessori {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -7258,8 +7650,10 @@ body {
             /* Ordina per e Cerca si estendono su entrambe le colonne per massimizzare la larghezza */
             #pagina-club #barra-ordinamento-prodotti-club,
             #pagina-mondiali #barra-ordinamento-prodotti-nazionali,
+            #pagina-accessori #barra-ordinamento-prodotti-accessori,
             #pagina-club #wrapper-cerca-articoli-club,
-            #pagina-mondiali #wrapper-cerca-articoli-nazionali {
+            #pagina-mondiali #wrapper-cerca-articoli-nazionali,
+            #pagina-accessori #wrapper-cerca-articoli-accessori {
                 grid-column: span 2 !important;
                 width: 100% !important;
                 display: block !important;
@@ -7268,7 +7662,8 @@ body {
             }
 
             #pagina-club #wrapper-select-ordinamento-club,
-            #pagina-mondiali #wrapper-select-ordinamento-nazionali {
+            #pagina-mondiali #wrapper-select-ordinamento-nazionali,
+            #pagina-accessori #wrapper-select-ordinamento-accessori {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -7278,7 +7673,8 @@ body {
             }
 
             #pagina-club #ordinamento-club-container label,
-            #pagina-mondiali #ordinamento-nazionali-container label {
+            #pagina-mondiali #ordinamento-nazionali-container label,
+            #pagina-accessori #ordinamento-accessori-container label {
                 font-size: 10px !important;
                 font-weight: 800 !important;
                 color: var(--primary, #D4A339) !important;
@@ -7291,8 +7687,10 @@ body {
 
             #pagina-club #ordinamento-club-container select.select-premium,
             #pagina-mondiali #ordinamento-nazionali-container select.select-premium,
+            #pagina-accessori #ordinamento-accessori-container select.select-premium,
             #pagina-club #input-cerca-articoli-club,
-            #pagina-mondiali #input-cerca-articoli-nazionali {
+            #pagina-mondiali #input-cerca-articoli-nazionali,
+            #pagina-accessori #input-cerca-articoli-accessori {
                 width: 100% !important;
                 max-width: 100% !important;
                 height: 38px !important;
@@ -7310,7 +7708,9 @@ body {
             #pagina-club #input-cerca-articoli-club:focus,
             #pagina-club #ordinamento-club-container select.select-premium:focus,
             #pagina-mondiali #input-cerca-articoli-nazionali:focus,
-            #pagina-mondiali #ordinamento-nazionali-container select.select-premium:focus {
+            #pagina-mondiali #ordinamento-nazionali-container select.select-premium:focus,
+            #pagina-accessori #input-cerca-articoli-accessori:focus,
+            #pagina-accessori #ordinamento-accessori-container select.select-premium:focus {
                 border-color: rgba(214, 164, 58, 0.5) !important;
                 box-shadow: 0 0 8px rgba(214, 164, 58, 0.2) !important;
             }
@@ -7433,7 +7833,9 @@ body {
             #pagina-mondiali.in-vista-prodotti #contenitore-nazionali-griglia.griglia-maglie,
             #pagina-mondiali.in-vista-prodotti .griglia-maglie,
             #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) #contenitore-nazionali-griglia.griglia-maglie,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .griglia-maglie {
+            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .griglia-maglie,
+            #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+            #pagina-accessori .griglia-maglie {
                 width: 100% !important;
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
@@ -7627,7 +8029,9 @@ body {
             #pagina-club #contenitore-club-griglia.griglia-maglie,
             #pagina-club .griglia-maglie,
             #pagina-mondiali #contenitore-nazionali-griglia.griglia-maglie,
-            #pagina-mondiali .griglia-maglie {
+            #pagina-mondiali .griglia-maglie,
+            #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+            #pagina-accessori .griglia-maglie {
                 display: grid !important;
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: clamp(5px, 1.6vw, 7px) !important;
@@ -8854,64 +9258,93 @@ body {
     </div>
 
     
-    <!-- SCHEDA PAGINA: ACCESSORI (ARCHITETTURA INDIPENDENTE) -->
-    <div id="pagina-accessori" class="sezione-pagina accessories-section">
-        
-        <!-- VISTA: ACCESSORI IN ALLESTIMENTO (ATTIVA) -->
-        <div id="accessori-allestimento-view" class="accessori-allestimento-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 55vh; padding: 60px 20px 90px 20px; text-align: center; box-sizing: border-box;">
-            <div class="accessori-allestimento-card" style="max-width: 580px; width: 100%; background: linear-gradient(145deg, #141414 0%, #0d0d0d 100%); border: 1px solid rgba(214, 164, 58, 0.22); border-radius: var(--radius-xl, 16px); padding: 48px 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 25px rgba(214, 164, 58, 0.06); display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
-                
-                <!-- ICONA ELEGANTE LUXURY -->
-                <div style="width: 76px; height: 76px; border-radius: 50%; background: radial-gradient(circle, rgba(214, 164, 58, 0.18) 0%, rgba(214, 164, 58, 0.04) 70%, transparent 100%); border: 1px solid rgba(214, 164, 58, 0.35); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; box-shadow: 0 0 20px rgba(214, 164, 58, 0.15);">
-                    <span style="font-size: 34px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">🎒</span>
-                </div>
-                
-                <!-- TAG / EYEBROW COERENTE CON IL SITO -->
-                <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary, #d6a43a); margin-bottom: 12px; display: inline-block;">Maglia d'Oro Collection</span>
-                
-                <!-- TITOLO PRINCIPALE -->
-                <h2 style="font-size: clamp(22px, 3.5vw, 30px); font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; color: #ffffff; margin: 0 0 16px 0; line-height: 1.25;">ACCESSORI IN ALLESTIMENTO</h2>
-                
-                <!-- SOTTOTITOLO -->
-                <p style="font-size: 15px; line-height: 1.6; color: rgba(255, 255, 255, 0.8); max-width: 460px; margin: 0 auto 12px auto; font-weight: 400;">
-                    Stiamo preparando una nuova selezione di accessori. Torna presto per scoprire tutte le novità.
-                </p>
-                
-                <!-- PICCOLO TESTO -->
-                <p style="font-size: 13px; color: rgba(255, 255, 255, 0.45); margin: 0 auto 32px auto; font-weight: 500; letter-spacing: 0.3px;">
-                    La sezione sarà disponibile a breve.
-                </p>
-                
-                <!-- PULSANTE TORNA ALLA HOME -->
-                <button type="button" id="btn-torna-home-accessori" onclick="mostraSezioneCompleta('home')" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 28px; border-radius: var(--radius-m, 8px); background: var(--gold-gradient, linear-gradient(135deg, #d6a43a 0%, #b8860b 100%)); color: #000000; font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; border: none; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 10px 25px rgba(214, 164, 58, 0.25);">
-                    <span class="material-icons" style="font-size: 18px; line-height: 1;">home</span>
-                    <span>Torna alla Home</span>
-                </button>
+    <!-- SCHEDA PAGINA: ACCESSORI -->
+    <div id="pagina-accessori" class="sezione-pagina">
+        <div class="banner-categoria-premium" id="banner-accessori-premium" style="background-image: linear-gradient(to right, rgba(11, 11, 11, 0.92) 20%, rgba(11, 11, 11, 0.45) 100%), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1400&auto=format&fit=crop&q=80');">
+            <div class="banner-overlay"></div>
+            <div class="banner-content">
+                <span class="banner-tag">Maglia d'Oro Collection</span>
+                <h2 class="banner-title" id="titolo-dinamico-accessori">ACCESSORI</h2>
+                <p class="banner-subtitle">Calze tecniche, calzettoni gara, palloni, guanti, cappellini e accessori di alta qualità progettati per completare il tuo stile sportivo.</p>
             </div>
         </div>
+        <main style="max-width: 1440px; margin: 0 auto; padding: 24px 16px;">
+            <div class="layout-club-video-container" id="layout-accessori-container">
+                <!-- SIDEBAR DELLE CATEGORIE ACCESSORI A SINISTRA -->
+                <aside id="sidebar-categorie-accessori" class="sidebar-leghe-club">
+                    <div class="sidebar-leghe-header">
+                        <span class="sidebar-leghe-title">🎒 ACCESSORI</span>
+                    </div>
+                    <div id="lista-categorie-accessori-sidebar" class="lista-leghe-sidebar">
+                        <!-- Popolato dinamicamente da renderizzaSidebarAccessori() -->
+                    </div>
+                </aside>
 
-        <!-- VISTA CATALOGO ACCESSORI (PRESERVATA PER FUTURA RIATTIVAZIONE) -->
-        <div id="accessori-catalogo-view" style="display: none;">
-            <div class="banner-categoria-premium" id="banner-accessori-premium" style="background-image: linear-gradient(to right, rgba(11, 11, 11, 0.92) 20%, rgba(11, 11, 11, 0.45) 100%), url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1400&auto=format&fit=crop&q=80');">
-                <div class="banner-overlay"></div>
-                <div class="banner-content">
-                    <span class="banner-tag">Maglia d'Oro Collection</span>
-                    <h2 class="banner-title" id="titolo-dinamico-accessori">ACCESSORI</h2>
-                    <p class="banner-subtitle">Calze tecniche, calzettoni gara, palloni, guanti, cappellini e accessori di alta qualità progettati per completare il tuo stile sportivo.</p>
+                <!-- AREA PRINCIPALE ACCESSORI A DESTRA -->
+                <div id="area-destra-accessori" class="area-destra-club">
+                    <!-- HEADER BARRA PRODOTTI (Identica a barra-navigazione-club-prodotti di CLUB) -->
+                    <div class="barra-navigazione-club-prodotti" id="barra-navigazione-accessori-prodotti">
+                        <div id="box-nav-accessori" style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 12px;">
+                            <div class="info-tutti-articoli-header">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 20px;">🎒</span>
+                                    <h2 style="font-size: 18px; font-weight: 800; color: #FFFFFF; margin: 0; letter-spacing: -0.3px;">Catalogo Accessori</h2>
+                                </div>
+                                <span id="conteggio-prodotti-accessori-totali" class="badge-conteggio-squadre" style="margin-top: 4px; display: inline-block;">Caricamento accessori...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENITORE FILTRI TENDINA ACCESSORI TOOLBAR UNIFICATA (Identica a #ordinamento-club-container) -->
+                    <div id="ordinamento-accessori-container" style="display: flex; justify-content: flex-start; align-items: center; background: #111111; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 16px; gap: 12px 18px; flex-wrap: wrap; min-height: 52px; box-sizing: border-box;">
+                        
+                        <!-- FILTRO CATEGORIA DINAMICO -->
+                        <div id="wrapper-filtro-categoria-accessori" style="display: flex; align-items: center; gap: 8px;">
+                            <label for="select-filtro-categoria-accessori" style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; line-height: 1;">Categoria:</label>
+                            <select id="select-filtro-categoria-accessori" onchange="cambiaFiltroCategoriaAccessori(this.value)" class="select-premium" style="background: #161616; border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; outline: none;">
+                                <option value="tutte" style="background-color: #111; color: #fff;">Tutte le Categorie</option>
+                            </select>
+                        </div>
+
+                        <!-- FILTRO MARCA DINAMICO -->
+                        <div id="wrapper-filtro-marca-accessori" style="display: flex; align-items: center; gap: 8px;">
+                            <label for="select-filtro-marca-accessori" style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; line-height: 1;">Marca:</label>
+                            <select id="select-filtro-marca-accessori" onchange="cambiaFiltroMarcaAccessori(this.value)" class="select-premium" style="background: #161616; border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; outline: none;">
+                                <option value="tutte" style="background-color: #111; color: #fff;">Tutte le Marche</option>
+                            </select>
+                        </div>
+
+                        <!-- CERCA ARTICOLI ACCESSORI -->
+                        <div id="wrapper-cerca-articoli-accessori" style="display: flex; align-items: center; gap: 8px;">
+                            <label for="input-cerca-articoli-accessori" style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; line-height: 1;">Cerca:</label>
+                            <div style="position: relative;">
+                                <input type="text" id="input-cerca-articoli-accessori" placeholder="Cerca accessori..." oninput="cercaArticoliAccessori(this.value)" class="select-premium" style="background: #161616; border: 1px solid rgba(255, 255, 255, 0.08) !important; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; width: 160px;">
+                            </div>
+                        </div>
+
+                        <!-- ORDINA PER (Identico a Club) -->
+                        <div id="barra-ordinamento-prodotti-accessori" style="display: flex; align-items: center; gap: 8px;">
+                            <div id="wrapper-select-ordinamento-accessori" style="display: flex; align-items: center; gap: 8px;">
+                                <label for="select-ordinamento-accessori" style="font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.5px; margin: 0; line-height: 1;">Ordina per:</label>
+                                <select id="select-ordinamento-accessori" onchange="cambiaOrdinamentoAccessori(this.value)" class="select-premium" style="background: #161616; border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px;">
+                                    <option value="piu-recenti" style="background-color: #111; color: #fff;">Più recenti</option>
+                                    <option value="novita" style="background-color: #111; color: #fff;">Novità</option>
+                                    <option value="prezzo-crescente" style="background-color: #111; color: #fff;">Prezzo crescente</option>
+                                    <option value="prezzo-decrescente" style="background-color: #111; color: #fff;">Prezzo decrescente</option>
+                                    <option value="alfabetico-az" style="background-color: #111; color: #fff;">Ordine alfabetico A-Z</option>
+                                    <option value="alfabetico-za" style="background-color: #111; color: #fff;">Ordine alfabetico Z-A</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GRIGLIA ACCESSORI (Identica a griglia-maglie di CLUB) -->
+                    <div class="griglia-maglie" id="contenitore-accessori-griglia">
+                        <!-- Articoli caricati dinamicamente da caricaAccessori() -->
+                    </div>
                 </div>
             </div>
-            <main class="accessories-container">
-                <!-- BARRA FILTRI CATEGORIE ACCESSORI DINAMICHE -->
-                <div class="accessories-filter-container" id="accessori-filtri-container">
-                    <!-- Categorie popolate dinamicamente da databaseAccessori -->
-                </div>
-
-                <!-- GRIGLIA ACCESSORI -->
-                <div class="accessories-grid" id="contenitore-accessori-griglia">
-                    <!-- Articoli caricati dinamicamente da caricaAccessori() -->
-                </div>
-            </main>
-        </div>
+        </main>
     </div>
 
     <!-- SCHEDA PAGINA: RECENSIONI -->
@@ -10526,11 +10959,11 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
 
     
     <!-- MODAL DETTAGLIO ACCESSORIO (SEPARATO E INDIPENDENTE) -->
-    <div id="modal-accessorio-dettaglio" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+    <div id="modal-accessorio-dettaglio" onclick="if(event.target === this) chiudiAccessorioModal()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
         <div style="background: linear-gradient(145deg, #181818 0%, #111111 100%); border: 1px solid rgba(214, 164, 58, 0.3); border-radius: var(--radius-xl); max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-sizing: border-box; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
             <button onclick="chiudiAccessorioModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: 700;">✕</button>
-            <div style="width: 100%; height: 260px; border-radius: var(--radius-l); overflow: hidden; background: #0a0a0a; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.06);">
-                <img id="modal-acc-img" src="" alt="Accessorio" style="width: 100%; height: 100%; object-fit: cover;">
+            <div style="width: 100%; height: 260px; border-radius: var(--radius-l); overflow: hidden; background: #0a0a0a; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">
+                <img id="modal-acc-img" src="" alt="Accessorio" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
             <span id="modal-acc-categoria" style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;"></span>
             <h3 id="modal-acc-nome" style="font-size: 20px; font-weight: 900; color: #fff; margin: 0 0 10px 0; line-height: 1.3;"></h3>
@@ -10548,9 +10981,9 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                 </div>
             </div>
 
-            <button onclick="confermaAggiungiAccessorioCarrello()" style="width: 100%; background: var(--gold-gradient); color: #000; border: none; padding: 14px; border-radius: var(--radius-m); font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(214, 164, 58, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+            <button id="btn-conferma-modal-acc" onclick="confermaAggiungiAccessorioCarrello()" style="width: 100%; background: var(--gold-gradient); color: #000; border: none; padding: 14px; border-radius: var(--radius-m); font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(214, 164, 58, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
                 <span class="material-icons" style="font-size: 18px;">shopping_cart</span>
-                <span>Aggiungi al Carrello</span>
+                <span id="btn-conferma-modal-acc-text">Aggiungi al Carrello</span>
             </button>
         </div>
     </div>
@@ -10883,6 +11316,25 @@ function chiudiZoomImmagine(){
 window.apriZoomImmagine = apriZoomImmagine;
 window.chiudiZoomImmagine = chiudiZoomImmagine;
 
+function apriLightbox(eventOrSrc, srcOrTitle, maybeTitle) {
+    let src = '';
+    let title = '';
+    if (eventOrSrc && typeof eventOrSrc === 'object' && typeof eventOrSrc.stopPropagation === 'function') {
+        eventOrSrc.stopPropagation();
+        src = srcOrTitle;
+        title = maybeTitle || '';
+    } else if (typeof eventOrSrc === 'string') {
+        src = eventOrSrc;
+        title = srcOrTitle || '';
+    } else {
+        src = srcOrTitle || '';
+    }
+    if (src && typeof apriZoomImmagine === 'function') {
+        apriZoomImmagine(src);
+    }
+}
+window.apriLightbox = apriLightbox;
+
 // Chiusura con tasto Esc
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' || e.key === 'Esc') {
@@ -10908,99 +11360,350 @@ document.addEventListener('keydown', function(e) {
         // =========================================================================
         // SEZIONE ACCESSORI: ARCHITETTURA COMPLETAMENTE INDIPENDENTE E ISOLATA
         // =========================================================================
-        // Flag reversibile: impostare a false per riattivare la visualizzazione del catalogo Accessori
-        const ACCESSORI_IN_ALLESTIMENTO = true;
+        const ACCESSORI_IN_ALLESTIMENTO = false;
 
         let databaseAccessori = [];
+        let settingsCatalogoAccessori = null;
         let categorieAccessori = [];
-        let categoriaAccessoriSelezionata = 'tutti';
+        let marcheAccessori = [];
+        let filtroCategoriaAccessori = 'tutte';
+        let filtroMarcaAccessori = 'tutte';
+        let queryRicercaAccessori = '';
+        let ordinamentoAccessori = 'piu-recenti';
+        let categoriaAccessoriSelezionata = 'tutti'; // Compatibilità preesistente
         let accessorioInDettaglio = null;
         let accessorioQtySelezionata = 1;
 
         function applicaStatoAccessori() {
-            const allestimentoView = document.getElementById('accessori-allestimento-view');
             const catalogoView = document.getElementById('accessori-catalogo-view');
-            if (ACCESSORI_IN_ALLESTIMENTO) {
-                if (allestimentoView) allestimentoView.style.display = 'flex';
-                if (catalogoView) catalogoView.style.display = 'none';
+            if (catalogoView) catalogoView.style.display = 'block';
+        }
+
+        // Renderizza la Sidebar Categorie Accessori dinamicamente (identica a Club e Nazionali)
+        function renderizzaSidebarAccessori() {
+            const containerSidebar = document.getElementById('lista-categorie-accessori-sidebar');
+            if (!containerSidebar) return;
+
+            const totaleAccessori = Array.isArray(databaseAccessori) ? databaseAccessori.length : 0;
+
+            // Raccogli categorie da settings o dal catalogo locale
+            let listaCat = [];
+            if (settingsCatalogoAccessori && Array.isArray(settingsCatalogoAccessori.categories) && settingsCatalogoAccessori.categories.length > 0) {
+                listaCat = settingsCatalogoAccessori.categories
+                    .filter(c => c && (c.attiva !== false || (typeof c.products_count === 'number' && c.products_count > 0)))
+                    .map(c => ({
+                        id: c.id,
+                        nome: c.nome,
+                        icona: c.icona || '🎒',
+                        ordine: Number(c.ordine) || 99
+                    }));
             } else {
-                if (allestimentoView) allestimentoView.style.display = 'none';
-                if (catalogoView) catalogoView.style.display = 'block';
+                listaCat = categorieAccessori.map((c, idx) => ({
+                    id: `cat-${idx}`,
+                    nome: c,
+                    icona: '🎒',
+                    ordine: idx + 1
+                }));
+            }
+
+            // Assicura che anche categorie presenti in databaseAccessori ma non ancora in settings siano mostrate
+            databaseAccessori.forEach(a => {
+                if (a && a.categoria && a.categoria.trim() !== '') {
+                    const clean = a.categoria.trim();
+                    const exists = listaCat.some(c => c.nome.toLowerCase() === clean.toLowerCase());
+                    if (!exists) {
+                        listaCat.push({
+                            id: `cat-dyn-${clean}`,
+                            nome: clean,
+                            icona: '🎒',
+                            ordine: 999
+                        });
+                    }
+                }
+            });
+
+            // Ordina per ordine
+            listaCat.sort((a, b) => (a.ordine - b.ordine) || a.nome.localeCompare(b.nome));
+
+            const isTutti = (filtroCategoriaAccessori === 'tutte' || !filtroCategoriaAccessori);
+
+            let html = `
+                <div class="item-lega-sidebar ${isTutti ? 'attivo' : ''}" data-cat="tutte" onclick="selezionaCategoriaAccessoriInSidebar('tutte')" style="margin-bottom: 12px; padding: 10px 12px;">
+                    <span style="font-weight: 700; display: inline-flex; align-items: center; gap: 9px;">🎒 Tutti gli Accessori</span>
+                    <span class="badge-squadre-lega" id="badge-totale-articoli-accessori">${totaleAccessori}</span>
+                </div>
+
+                <div class="sidebar-divider" style="height: 1px; background: rgba(255, 255, 255, 0.08); margin: 8px 0 14px 0;"></div>
+
+                <div style="padding: 6px 12px 10px 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: var(--primary, #D4A339); text-transform: uppercase;">
+                    🎒 Categorie
+                </div>
+            `;
+
+            listaCat.forEach(cat => {
+                // Calcola conteggio reale prodotti per questa categoria
+                const count = databaseAccessori.filter(a => (a.categoria || '').toLowerCase().trim() === cat.nome.toLowerCase().trim()).length;
+                const isAttiva = (!isTutti && filtroCategoriaAccessori.toLowerCase().trim() === cat.nome.toLowerCase().trim());
+
+                html += `
+                    <div class="item-lega-sidebar ${isAttiva ? 'attivo' : ''}" data-cat="${cat.nome.replace(/"/g, '&quot;')}" onclick="selezionaCategoriaAccessoriInSidebar('${cat.nome.replace(/'/g, "\\'")}')">
+                        <span style="display: inline-flex; align-items: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-right: 10px; flex-shrink: 0; font-size: 16px;">${cat.icona || '🎒'}</span>
+                            <span>${cat.nome}</span>
+                        </span>
+                        <span class="badge-squadre-lega">${count}</span>
+                    </div>
+                `;
+            });
+
+            containerSidebar.innerHTML = html;
+        }
+        window.renderizzaSidebarAccessori = renderizzaSidebarAccessori;
+
+        // Seleziona categoria direttamente da sidebar
+        function selezionaCategoriaAccessoriInSidebar(catNome) {
+            filtroCategoriaAccessori = (catNome === 'tutte' || catNome === 'tutti') ? 'tutte' : catNome;
+            categoriaAccessoriSelezionata = filtroCategoriaAccessori;
+
+            // Sincronizza dropdown filtri
+            const selCat = document.getElementById('select-filtro-categoria-accessori');
+            if (selCat) {
+                selCat.value = filtroCategoriaAccessori;
+            }
+
+            aggiornaStatoSidebarAccessori();
+            renderizzaAccessori();
+
+            // Su mobile effettua uno scroll fluido verso i prodotti
+            if (window.innerWidth <= 768) {
+                const griglia = document.getElementById('area-destra-accessori') || document.getElementById('contenitore-accessori-griglia');
+                if (griglia) {
+                    griglia.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
         }
+        window.selezionaCategoriaAccessoriInSidebar = selezionaCategoriaAccessoriInSidebar;
+
+        // Aggiorna classe 'attivo' nella sidebar senza ridisegnarla
+        function aggiornaStatoSidebarAccessori() {
+            const containerSidebar = document.getElementById('lista-categorie-accessori-sidebar');
+            if (!containerSidebar) return;
+
+            const items = containerSidebar.querySelectorAll('.item-lega-sidebar');
+            const target = (filtroCategoriaAccessori || 'tutte').toLowerCase().trim();
+
+            items.forEach(item => {
+                const cat = (item.getAttribute('data-cat') || '').toLowerCase().trim();
+                if (cat === target) {
+                    item.classList.add('attivo');
+                } else {
+                    item.classList.remove('attivo');
+                }
+            });
+        }
+        window.aggiornaStatoSidebarAccessori = aggiornaStatoSidebarAccessori;
+
+        function popolaSelectFiltriAccessori() {
+            const selCat = document.getElementById('select-filtro-categoria-accessori');
+            if (selCat) {
+                let htmlCat = '<option value="tutte" style="background-color: #111; color: #fff;">Tutte le Categorie</option>';
+
+                // Se presenti impostazioni con ordine e icone, le usiamo per il dropdown
+                if (settingsCatalogoAccessori && Array.isArray(settingsCatalogoAccessori.categories) && settingsCatalogoAccessori.categories.length > 0) {
+                    const sorted = [...settingsCatalogoAccessori.categories]
+                        .filter(c => c.attiva !== false || (typeof c.products_count === 'number' && c.products_count > 0))
+                        .sort((a, b) => (Number(a.ordine) || 99) - (Number(b.ordine) || 99));
+
+                    sorted.forEach(cat => {
+                        const isSel = (filtroCategoriaAccessori.toLowerCase() === cat.nome.toLowerCase()) ? 'selected' : '';
+                        const label = (cat.icona ? `${cat.icona} ` : '') + cat.nome;
+                        htmlCat += `<option value="${cat.nome.replace(/"/g, '&quot;')}" ${isSel} style="background-color: #111; color: #fff;">${label}</option>`;
+                    });
+                } else {
+                    categorieAccessori.forEach(cat => {
+                        const isSel = (filtroCategoriaAccessori.toLowerCase() === cat.toLowerCase()) ? 'selected' : '';
+                        htmlCat += `<option value="${cat.replace(/"/g, '&quot;')}" ${isSel} style="background-color: #111; color: #fff;">${cat}</option>`;
+                    });
+                }
+
+                selCat.innerHTML = htmlCat;
+                if (filtroCategoriaAccessori && filtroCategoriaAccessori !== 'tutte') {
+                    selCat.value = filtroCategoriaAccessori;
+                } else {
+                    selCat.value = 'tutte';
+                }
+            }
+
+            const selMarca = document.getElementById('select-filtro-marca-accessori');
+            if (selMarca) {
+                let htmlMarca = '<option value="tutte" style="background-color: #111; color: #fff;">Tutte le Marche</option>';
+                marcheAccessori.forEach(m => {
+                    const isSel = (filtroMarcaAccessori.toLowerCase() === m.toLowerCase()) ? 'selected' : '';
+                    htmlMarca += `<option value="${m.replace(/"/g, '&quot;')}" ${isSel} style="background-color: #111; color: #fff;">${m}</option>`;
+                });
+                selMarca.innerHTML = htmlMarca;
+                if (filtroMarcaAccessori && filtroMarcaAccessori !== 'tutte' && marcheAccessori.some(m => m.toLowerCase() === filtroMarcaAccessori.toLowerCase())) {
+                    selMarca.value = filtroMarcaAccessori;
+                } else {
+                    selMarca.value = 'tutte';
+                }
+            }
+
+            const selOrd = document.getElementById('select-ordinamento-accessori');
+            if (selOrd) {
+                selOrd.value = ordinamentoAccessori;
+            }
+
+            const inputCerca = document.getElementById('input-cerca-articoli-accessori');
+            if (inputCerca) {
+                inputCerca.value = queryRicercaAccessori;
+            }
+        }
+        window.popolaSelectFiltriAccessori = popolaSelectFiltriAccessori;
+
+        function cambiaFiltroCategoriaAccessori(val) {
+            filtroCategoriaAccessori = val || 'tutte';
+            categoriaAccessoriSelezionata = val === 'tutte' ? 'tutti' : val;
+            aggiornaStatoSidebarAccessori();
+            renderizzaAccessori();
+        }
+        window.cambiaFiltroCategoriaAccessori = cambiaFiltroCategoriaAccessori;
+
+        function cambiaFiltroMarcaAccessori(val) {
+            filtroMarcaAccessori = val || 'tutte';
+            renderizzaAccessori();
+        }
+        window.cambiaFiltroMarcaAccessori = cambiaFiltroMarcaAccessori;
+
+        let debounceTimerRicercaAccessori = null;
+        function cercaArticoliAccessori(val) {
+            queryRicercaAccessori = (val || '').trim().toLowerCase();
+            clearTimeout(debounceTimerRicercaAccessori);
+            debounceTimerRicercaAccessori = setTimeout(() => {
+                renderizzaAccessori();
+            }, 150);
+        }
+        window.cercaArticoliAccessori = cercaArticoliAccessori;
+
+        function cambiaOrdinamentoAccessori(val) {
+            ordinamentoAccessori = val || 'piu-recenti';
+            renderizzaAccessori();
+        }
+        window.cambiaOrdinamentoAccessori = cambiaOrdinamentoAccessori;
+
+        function resettaFiltriAccessori() {
+            filtroCategoriaAccessori = 'tutte';
+            filtroMarcaAccessori = 'tutte';
+            queryRicercaAccessori = '';
+            ordinamentoAccessori = 'piu-recenti';
+            categoriaAccessoriSelezionata = 'tutti';
+            aggiornaStatoSidebarAccessori();
+            popolaSelectFiltriAccessori();
+            renderizzaAccessori();
+        }
+        window.resettaFiltriAccessori = resettaFiltriAccessori;
 
         async function caricaAccessori(categoriaFiltro = null) {
             applicaStatoAccessori();
-            if (ACCESSORI_IN_ALLESTIMENTO) {
-                // Modalità in allestimento: mostra schermata di preparazione senza caricare il catalogo prodotti
-                return;
-            }
 
             const container = document.getElementById('contenitore-accessori-griglia');
             if (categoriaFiltro !== null) {
+                filtroCategoriaAccessori = (categoriaFiltro === 'tutti' ? 'tutte' : categoriaFiltro);
                 categoriaAccessoriSelezionata = categoriaFiltro;
             }
 
-            if (container && databaseAccessori.length === 0) {
+            if (container && (!databaseAccessori || databaseAccessori.length === 0)) {
                 container.innerHTML = `
                     <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 60px 0; color: rgba(255,255,255,0.5);">
-                        <span class="material-icons" style="animation: spin 1s linear infinite; font-size: 28px; color: var(--primary);">sync</span>
+                        <span class="material-icons animate-spin" style="font-size: 28px; color: var(--primary, #d4a339);">sync</span>
                         <span style="font-size: 15px; font-weight: 600;">Caricamento catalogo accessori...</span>
                     </div>
                 `;
             }
 
             try {
-                const res = await fetch('/api/accessories');
-                const data = await res.json();
-                if (data.success && Array.isArray(data.accessories)) {
-                    databaseAccessori = data.accessories;
+                // Caricamento parallelo di Accessori e Impostazioni Catalogo
+                const [resAcc, resSettings] = await Promise.allSettled([
+                    fetch('/api/accessories'),
+                    fetch('/api/accessories/settings')
+                ]);
+
+                if (resAcc.status === 'fulfilled') {
+                    const data = await resAcc.value.json();
+                    if (data.success && Array.isArray(data.accessories)) {
+                        databaseAccessori = data.accessories.filter(a => a && a.stato !== 'disattivato');
+                    } else {
+                        databaseAccessori = [];
+                    }
                 } else {
+                    console.error("⚠️ Errore fetch /api/accessories:", resAcc.reason);
                     databaseAccessori = [];
                 }
+
+                if (resSettings.status === 'fulfilled') {
+                    const dataSet = await resSettings.value.json();
+                    if (dataSet && dataSet.success && dataSet.settings) {
+                        settingsCatalogoAccessori = dataSet.settings;
+                    }
+                }
             } catch (err) {
-                console.error("⚠️ Errore fetch /api/accessories:", err);
+                console.error("⚠️ Errore fetch /api/accessories o /api/accessories/settings:", err);
                 databaseAccessori = [];
             }
 
-            // Estrai categorie dinamicamente
+            // Integra anche eventuali prodotti con categoria Accessori già presenti nel catalogo prodotti generale
+            if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+                databaseProdotti.forEach(p => {
+                    const cat = (p.categoria || '').toLowerCase();
+                    const tipo = (p.tipo_catalogo || '').toLowerCase();
+                    if (cat === 'accessori' || tipo === 'accessori') {
+                        const esisteGia = databaseAccessori.some(a => String(a.id) === String(p.id) || (p.codice && a.codice === p.codice));
+                        if (!esisteGia) {
+                            databaseAccessori.push({
+                                id: p.id,
+                                codice: p.codice || `acc-${p.id}`,
+                                categoria: p.sottocategoria || p.categoria || 'Accessori',
+                                marca: p.marca || '',
+                                nome: p.nome || p.titolo || 'Accessorio',
+                                descrizione: p.descrizione || '',
+                                immagine: p.immagine || p.foto || '',
+                                prezzo: Number(p.prezzo) || 0,
+                                taglia: p.taglia || 'Unica',
+                                stato: p.stato || 'attivo'
+                            });
+                        }
+                    }
+                });
+            }
+
+            window.databaseAccessori = databaseAccessori;
+
+            // Estrai categorie e marche dinamicamente
             const setCat = new Set();
+            const setMarche = new Set();
             databaseAccessori.forEach(item => {
-                if (item && item.categoria && item.categoria.trim() !== '') {
-                    setCat.add(item.categoria.trim());
+                if (item) {
+                    if (item.categoria && item.categoria.trim() !== '') {
+                        setCat.add(item.categoria.trim());
+                    }
+                    if (item.marca && item.marca.trim() !== '') {
+                        setMarche.add(item.marca.trim());
+                    }
                 }
             });
-            categorieAccessori = Array.from(setCat);
+            categorieAccessori = Array.from(setCat).sort((a, b) => a.localeCompare(b));
+            marcheAccessori = Array.from(setMarche).sort((a, b) => a.localeCompare(b));
 
-            renderizzaFiltriAccessori();
+            renderizzaSidebarAccessori();
+            popolaSelectFiltriAccessori();
             renderizzaAccessori();
         }
 
-        function renderizzaFiltriAccessori() {
-            const container = document.getElementById('accessori-filtri-container');
-            if (!container) return;
-
-            let html = `
-                <button class="accessories-filter-btn ${categoriaAccessoriSelezionata === 'tutti' ? 'active' : ''}" onclick="filtraAccessori('tutti')">
-                    Tutti gli Accessori
-                </button>
-            `;
-
-            categorieAccessori.forEach(cat => {
-                const activeClass = categoriaAccessoriSelezionata === cat ? 'active' : '';
-                html += `
-                    <button class="accessories-filter-btn ${activeClass}" onclick="filtraAccessori('${cat.replace(/'/g, "\\'")}')">
-                        ${cat}
-                    </button>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
+        // Funzione di retrocompatibilità per chiamate pregresse
         function filtraAccessori(cat) {
+            filtroCategoriaAccessori = (cat === 'tutti' ? 'tutte' : cat);
             categoriaAccessoriSelezionata = cat;
-            renderizzaFiltriAccessori();
+            popolaSelectFiltriAccessori();
             renderizzaAccessori();
         }
 
@@ -11008,48 +11711,165 @@ document.addEventListener('keydown', function(e) {
             const container = document.getElementById('contenitore-accessori-griglia');
             if (!container) return;
 
-            const itemsFiltrati = categoriaAccessoriSelezionata === 'tutti'
-                ? databaseAccessori
-                : databaseAccessori.filter(item => item.categoria === categoriaAccessoriSelezionata);
+            // Se l'intero catalogo accessori è vuoto
+            if (!databaseAccessori || databaseAccessori.length === 0) {
+                const badgeConteggioTotale = document.getElementById('conteggio-prodotti-accessori-totali');
+                if (badgeConteggioTotale) badgeConteggioTotale.innerText = '0 articoli disponibili';
 
-            if (!itemsFiltrati || itemsFiltrati.length === 0) {
                 container.innerHTML = `
-                    <div class="accessories-empty-state">
-                        <div style="display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(214, 164, 58, 0.1); border: 1px solid rgba(214, 164, 58, 0.3); color: var(--primary); margin-bottom: 16px;">
-                            <span class="material-icons" style="font-size: 32px;">sports_soccer</span>
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 70px 20px; color: var(--on-surface-de-emphasis); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="width: 76px; height: 76px; border-radius: 50%; background: radial-gradient(circle, rgba(214, 164, 58, 0.15) 0%, rgba(214, 164, 58, 0.03) 70%, transparent 100%); border: 1px solid rgba(214, 164, 58, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <span style="font-size: 34px; line-height: 1;">🎒</span>
                         </div>
-                        <h3 style="font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 8px;">Accessori in arrivo</h3>
-                        <p style="font-size: 13px; color: rgba(255,255,255,0.6); max-width: 440px; margin: 0; line-height: 1.5;">Stiamo selezionando i migliori accessori ufficiali per questa categoria. Torna presto per scoprire le novità!</p>
+                        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary, #d6a43a); margin-bottom: 8px; display: inline-block;">Maglia d'Oro Collection</span>
+                        <h3 style="font-size: clamp(20px, 3vw, 24px); font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; color: #ffffff; margin: 0 0 12px 0;">NESSUN ACCESSORIO DISPONIBILE</h3>
+                        <p style="font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.7); max-width: 440px; margin: 0 auto 8px auto;">
+                            Scopri la nostra selezione di accessori.
+                        </p>
+                        <p style="font-size: 13px; color: rgba(255, 255, 255, 0.45); max-width: 440px; margin: 0 auto 24px auto;">
+                            Presto saranno disponibili nuovi articoli.
+                        </p>
+                        <button type="button" class="btn-configura" onclick="mostraSezioneCompleta('home')" style="padding: 12px 26px; border-radius: var(--radius-m, 8px); display: inline-block; width: auto !important;">
+                            Torna alla Home
+                        </button>
                     </div>
                 `;
                 return;
             }
 
+            // Applicazione Filtri
+            let items = [...databaseAccessori];
+
+            // 1. Filtro Categoria
+            if (filtroCategoriaAccessori && filtroCategoriaAccessori !== 'tutte') {
+                const catTarget = filtroCategoriaAccessori.toLowerCase().trim();
+                items = items.filter(item => (item.categoria || '').toLowerCase().trim() === catTarget);
+            }
+
+            // 2. Filtro Marca (gestione resiliente di articoli senza marca o con marca vuota)
+            if (filtroMarcaAccessori && filtroMarcaAccessori !== 'tutte') {
+                const marcaTarget = filtroMarcaAccessori.toLowerCase().trim();
+                items = items.filter(item => (item.marca || '').toLowerCase().trim() === marcaTarget);
+            }
+
+            // 3. Filtro Ricerca Testuale
+            if (queryRicercaAccessori && queryRicercaAccessori !== '') {
+                const q = queryRicercaAccessori.toLowerCase();
+                items = items.filter(item => {
+                    const n = (item.nome || '').toLowerCase();
+                    const c = (item.categoria || '').toLowerCase();
+                    const m = (item.marca || '').toLowerCase();
+                    const d = (item.descrizione || '').toLowerCase();
+                    const cod = (item.codice || '').toLowerCase();
+                    return n.includes(q) || c.includes(q) || m.includes(q) || d.includes(q) || cod.includes(q);
+                });
+            }
+
+            // 4. Ordinamento
+            items.sort((a, b) => {
+                if (ordinamentoAccessori === 'piu-recenti' || ordinamentoAccessori === 'novita') {
+                    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                    if (dateA !== dateB) return dateB - dateA;
+                    return String(b.id || '').localeCompare(String(a.id || ''));
+                } else if (ordinamentoAccessori === 'prezzo-crescente') {
+                    return (Number(a.prezzo) || 0) - (Number(b.prezzo) || 0);
+                } else if (ordinamentoAccessori === 'prezzo-decrescente') {
+                    return (Number(b.prezzo) || 0) - (Number(a.prezzo) || 0);
+                } else if (ordinamentoAccessori === 'alfabetico-az') {
+                    return (a.nome || '').localeCompare(b.nome || '');
+                } else if (ordinamentoAccessori === 'alfabetico-za') {
+                    return (b.nome || '').localeCompare(a.nome || '');
+                }
+                return 0;
+            });
+
+            // Aggiorna Badge Conteggio Dinamico
+            const badgeConteggioTotale = document.getElementById('conteggio-prodotti-accessori-totali');
+            if (badgeConteggioTotale) {
+                badgeConteggioTotale.innerText = `${items.length} ${items.length === 1 ? 'articolo disponibile' : 'articoli disponibili'}`;
+            }
+
+            // Se nessun articolo soddisfa la combinazione di filtri selezionata
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--on-surface-de-emphasis);">
+                        <span style="font-size: 38px; display: block; margin-bottom: 12px;">🎒</span>
+                        <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 6px; color: #fff; text-transform: uppercase; letter-spacing: 0.5px;">Nessun accessorio trovato</h3>
+                        <p style="font-size: 13px; opacity: 0.8; max-width: 420px; margin: 0 auto 16px auto;">Non ci sono articoli disponibili per i filtri selezionati.</p>
+                        <button type="button" class="btn-configura" onclick="resettaFiltriAccessori()" style="padding: 10px 20px; font-size: 12px; display: inline-block; width: auto !important; margin: 0 auto;">
+                            Reimposta Filtri
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Renderizza Griglia Card Prodotto (struttura identica a Club)
             let html = '';
-            itemsFiltrati.forEach(item => {
+            items.forEach((item, idx) => {
                 const img = item.immagine || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80';
-                const prezzoFormatted = (Number(item.prezzo) || 0).toFixed(2).replace('.', ',');
-                const nomeEscaped = (item.nome || 'Accessorio').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const idEscaped = (item.id || '').replace(/'/g, "\\'");
+                
+                const catNorm = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(item.categoria || '') : (item.categoria || '');
+                const isCalz = catNorm.toLowerCase() === 'calzettoni';
+                let priceToDisplay = Number(item.prezzo) || 0;
+                let isTorneoSpecialPrice = false;
+                if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid && isCalz && window.fornituraTorneoAttiva.prezzo_calzettoni !== null && window.fornituraTorneoAttiva.prezzo_calzettoni !== undefined && window.fornituraTorneoAttiva.prezzo_calzettoni !== '') {
+                    priceToDisplay = Number(window.fornituraTorneoAttiva.prezzo_calzettoni);
+                    isTorneoSpecialPrice = true;
+                }
+                const prezzoFormatted = priceToDisplay.toFixed(2).replace('.', ',');
+                const nomeEscaped = (item.nome || 'Accessorio Ufficiale').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const idEscaped = String(item.id || '').replace(/'/g, "\\'");
+                const catEscaped = (item.categoria || 'Accessorio').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const marcaEscaped = (item.marca || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+                const isSaved = window.wishlistProdottiIds && item.id && (
+                    window.wishlistProdottiIds.includes(item.id) ||
+                    window.wishlistProdottiIds.includes(Number(item.id)) ||
+                    window.wishlistProdottiIds.includes(String(item.id))
+                );
+                const heartIcon = isSaved ? '❤️' : '🤍';
+                const heartButtonHtml = item.id ? `
+                    <button class="wishlist-heart-btn ${isSaved ? 'salvato' : ''}" id="heart-btn-acc-${item.id}" onclick="toggleWishlist('${idEscaped}', event)" title="${isSaved ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">
+                        ${heartIcon}
+                    </button>
+                ` : '';
+
+                const badgeHtml = item.categoria ? `<div class="badge-card-tipo">${catEscaped}</div>` : '';
+
+                const isManuale = accessorioRichiedeTagliaManuale(item);
+                let tagliaCardInfo = '';
+                if (isManuale) {
+                    tagliaCardInfo = ' • Taglia a scelta';
+                } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
+                    tagliaCardInfo = ' • ' + item.taglia;
+                }
+
+                let infoLine = '';
+                if (item.marca && item.marca.trim() !== '') {
+                    infoLine = `Marca: <span style="color: rgba(255, 255, 255, 0.85); font-weight: 600;">${marcaEscaped}</span>${tagliaCardInfo}`;
+                } else {
+                    infoLine = `<span style="color: rgba(255, 255, 255, 0.85); font-weight: 600;">${catEscaped}</span>${tagliaCardInfo}`;
+                }
 
                 html += `
-                    <div class="accessories-card" id="card-acc-${item.id}">
-                        <div class="accessories-card-img-wrap" onclick="apriAccessorioModal('${idEscaped}')">
-                            <img src="${img}" alt="${nomeEscaped}" class="accessories-card-img" onerror="this.src='https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80'">
-                            <span class="accessories-card-badge">${item.categoria || 'Accessorio'}</span>
-                        </div>
-                        <div class="accessories-card-body">
-                            <div>
-                                <span class="accessories-card-cat">${item.categoria || 'Accessorio'}</span>
-                                <h4 class="accessories-card-title">${item.nome || 'Accessorio Ufficiale'}</h4>
-                                <p class="accessories-card-desc">${item.descrizione || ''}</p>
+                    <div class="card-maglia card-accessorio" id="card-acc-${item.id}">
+                        ${badgeHtml}
+                        ${heartButtonHtml}
+                        <div class="contenitore-foto area-immagine-accessorio" onclick="apriLightbox(event, '${img.replace(/'/g, "\\'")}', '${nomeEscaped}')" style="cursor: zoom-in;" title="Clicca per ingrandire l'immagine">
+                            <div class="wrapper-foto-accessorio">
+                                <img src="${img}" alt="${nomeEscaped}" class="foto-maglia foto-accessorio" loading="${idx >= 4 ? 'lazy' : 'eager'}" decoding="async" onerror="this.onerror=null;this.src='https://placehold.co/240x240/eaeef3/1e293b?text=Accessorio'">
                             </div>
-                            <div class="accessories-card-footer">
-                                <div class="accessories-card-price">${prezzoFormatted}€</div>
-                                <button class="accessories-card-btn" onclick="apriAccessorioModal('${idEscaped}')">
-                                    <span class="material-icons" style="font-size: 16px;">shopping_cart</span>
-                                    <span>Acquista</span>
-                                </button>
+                        </div>
+                        <div class="info-maglia info-accessorio">
+                            <div class="testo-info">
+                                <h3 style="display: inline-block; vertical-align: middle; margin: 0;">${nomeEscaped}</h3>
+                                <p class="stagione">${infoLine}</p>
+                            </div>
+                            <div class="dettagli-prezzo-bottone dettagli-accessorio">
+                                <div class="prezzo-box prezzo-box-accessorio"><span class="prezzo prezzo-accessorio">${prezzoFormatted}€</span></div>
+                                <button class="btn-configura btn-accessorio" onclick="apriAccessorioModal('${idEscaped}')">Aggiungi al Carrello</button>
                             </div>
                         </div>
                     </div>
@@ -11057,14 +11877,86 @@ document.addEventListener('keydown', function(e) {
             });
 
             container.innerHTML = html;
+            if (typeof aggiornaIconeCuoriWishlist === 'function') {
+                aggiornaIconeCuoriWishlist();
+            }
         }
 
-        function apriAccessorioModal(id) {
-            const item = databaseAccessori.find(a => String(a.id) === String(id));
+        function gestisciHoverZoomAccessorio(e, container) {
+            // Immagine accessori sempre mantenuta intera, centrata e senza zoom automatico
+        }
+
+        function resettaHoverZoomAccessorio(container) {
+            // Immagine accessori sempre mantenuta intera, centrata e senza zoom automatico
+        }
+        window.gestisciHoverZoomAccessorio = gestisciHoverZoomAccessorio;
+        window.resettaHoverZoomAccessorio = resettaHoverZoomAccessorio;
+
+        function isCartItemAccessory(item) {
+            if (!item) return false;
+            if (item.tipo_catalogo === 'accessori') return true;
+            if (item.accessory_id) return true;
+            if (item.id && (String(item.id).startsWith('accessorio-') || String(item.id).startsWith('acc-'))) return true;
+            if (typeof databaseAccessori !== 'undefined' && Array.isArray(databaseAccessori)) {
+                if (databaseAccessori.some(a => String(a.id) === String(item.id) || (a.codice && String(a.codice) === String(item.id)))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        window.isCartItemAccessory = isCartItemAccessory;
+
+        function accessorioRichiedeTagliaManuale(item) {
+            if (!item) return false;
+            if (item.richiede_taglia === true || item.gestione_taglia === 'manuale') return true;
+            if (item.taglia && String(item.taglia).toLowerCase() === 'manuale') return true;
+            const cat = String(item.categoria || '').toLowerCase().trim();
+            const nome = String(item.nome || '').toLowerCase().trim();
+            if ((cat.includes('calz') || nome.includes('calz')) && item.gestione_taglia !== 'nessuna') {
+                return true;
+            }
+            return false;
+        }
+
+        let accessorioIndexInModifica = null;
+        window.accessorioIndexInModifica = null;
+
+        async function apriAccessorioModal(id, editIndex = null) {
+            if ((!databaseAccessori || databaseAccessori.length === 0) && typeof caricaAccessori === 'function') {
+                try {
+                    await caricaAccessori();
+                } catch(e) {}
+            }
+
+            let item = null;
+            if (databaseAccessori && Array.isArray(databaseAccessori)) {
+                item = databaseAccessori.find(a => String(a.id) === String(id) || (a.codice && String(a.codice) === String(id)));
+            }
+
+            const isEdit = (editIndex !== null && editIndex !== undefined && editIndex >= 0 && typeof carrello !== 'undefined' && carrello[editIndex]);
+            const cartItemToEdit = isEdit ? carrello[editIndex] : null;
+
+            if (!item && cartItemToEdit) {
+                item = {
+                    id: cartItemToEdit.accessory_id || cartItemToEdit.id || id,
+                    nome: cartItemToEdit.squadra || 'Accessorio',
+                    categoria: cartItemToEdit.categoria || 'Accessori',
+                    prezzo: cartItemToEdit.prezzo || 0,
+                    prezzo_originale: cartItemToEdit.prezzo_originale || cartItemToEdit.prezzo || 0,
+                    immagine: cartItemToEdit.imgUrl || '',
+                    taglia: cartItemToEdit.taglia || 'manuale',
+                    gestione_taglia: (cartItemToEdit.taglia && cartItemToEdit.taglia !== 'manuale' && cartItemToEdit.taglia !== 'nessuna') ? 'manuale' : 'manuale',
+                    descrizione: ''
+                };
+            }
+
             if (!item) return;
 
             accessorioInDettaglio = item;
-            accessorioQtySelezionata = 1;
+            accessorioIndexInModifica = isEdit ? editIndex : null;
+            window.accessorioIndexInModifica = accessorioIndexInModifica;
+
+            accessorioQtySelezionata = cartItemToEdit ? (Number(cartItemToEdit.quantita) || 1) : 1;
 
             const modal = document.getElementById('modal-accessorio-dettaglio');
             if (!modal) return;
@@ -11076,17 +11968,49 @@ document.addEventListener('keydown', function(e) {
             const descEl = document.getElementById('modal-acc-descrizione');
             const opzioniContainer = document.getElementById('modal-acc-opzioni-container');
             const qtyEl = document.getElementById('modal-acc-qty');
+            const btnTextEl = document.getElementById('btn-conferma-modal-acc-text');
 
-            if (imgEl) imgEl.src = item.immagine || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80';
-            if (catEl) catEl.innerText = item.categoria || 'Accessorio';
-            if (nomeEl) nomeEl.innerText = item.nome || 'Accessorio Ufficiale';
-            if (prezzoEl) prezzoEl.innerText = `${(Number(item.prezzo) || 0).toFixed(2).replace('.', ',')}€`;
+            if (imgEl) imgEl.src = (cartItemToEdit && cartItemToEdit.imgUrl) ? cartItemToEdit.imgUrl : (item.immagine || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80');
+            if (catEl) {
+                const brandStr = item.marca && item.marca.trim() !== '' ? `${item.marca} • ` : '';
+                catEl.innerText = `${brandStr}${item.categoria || 'Accessorio'}`;
+            }
+            if (nomeEl) nomeEl.innerText = item.nome || (cartItemToEdit ? cartItemToEdit.squadra : 'Accessorio Ufficiale');
+
+            const catNormModal = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(item.categoria || '') : (item.categoria || '');
+            const isCalzModal = catNormModal.toLowerCase() === 'calzettoni';
+            let priceToDisplayModal = (cartItemToEdit && cartItemToEdit.prezzo !== undefined) ? Number(cartItemToEdit.prezzo) : (Number(item.prezzo) || 0);
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid && isCalzModal && window.fornituraTorneoAttiva.prezzo_calzettoni !== null && window.fornituraTorneoAttiva.prezzo_calzettoni !== undefined && window.fornituraTorneoAttiva.prezzo_calzettoni !== '') {
+                priceToDisplayModal = Number(window.fornituraTorneoAttiva.prezzo_calzettoni);
+            }
+            if (prezzoEl) prezzoEl.innerText = `${priceToDisplayModal.toFixed(2).replace('.', ',')}€`;
             if (descEl) descEl.innerText = item.descrizione || '';
-            if (qtyEl) qtyEl.innerText = '1';
+            if (qtyEl) qtyEl.innerText = String(accessorioQtySelezionata);
+
+            if (btnTextEl) {
+                btnTextEl.innerText = accessorioIndexInModifica !== null ? "Salva Modifiche" : "Aggiungi al Carrello";
+            }
 
             if (opzioniContainer) {
                 let opzHtml = '';
-                if (item.opzioni && Array.isArray(item.opzioni.taglie) && item.opzioni.taglie.length > 0) {
+                const isManuale = accessorioRichiedeTagliaManuale(item) || (cartItemToEdit && cartItemToEdit.taglia && cartItemToEdit.taglia !== 'nessuna');
+
+                if (isManuale) {
+                    opzHtml += `
+                        <div id="box-taglia-manuale-acc" style="margin-bottom: 6px;">
+                            <label for="modal-acc-input-taglia" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                                <span>TAGLIA <span style="color: #ef4444;">*</span></span>
+                                <span style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: none;">Inserimento manuale</span>
+                            </label>
+                            <div style="position: relative;">
+                                <input type="text" id="modal-acc-input-taglia" placeholder="Scrivi la taglia" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: var(--radius-m); background: #121212; border: 1.5px solid rgba(214, 164, 58, 0.4); color: #ffffff; font-size: 14px; font-weight: 700; outline: none; transition: all 0.2s;" oninput="const err = document.getElementById('modal-acc-taglia-errore'); if(err) err.style.display='none'; this.style.borderColor='var(--primary)';" onkeydown="if(event.key==='Enter'){event.preventDefault(); confermaAggiungiAccessorioCarrello();}">
+                            </div>
+                            <div id="modal-acc-taglia-errore" style="display: none; color: #ef4444; font-size: 12px; font-weight: 700; margin-top: 6px;">
+                                Inserisci la taglia prima di procedere.
+                            </div>
+                        </div>
+                    `;
+                } else if (item.opzioni && Array.isArray(item.opzioni.taglie) && item.opzioni.taglie.length > 0) {
                     opzHtml += `
                         <div>
                             <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Seleziona Misura / Taglia</label>
@@ -11095,7 +12019,7 @@ document.addEventListener('keydown', function(e) {
                             </select>
                         </div>
                     `;
-                } else if (item.taglia) {
+                } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
                     opzHtml += `
                         <div>
                             <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Taglia</label>
@@ -11117,15 +12041,50 @@ document.addEventListener('keydown', function(e) {
                     `;
                 }
                 opzioniContainer.innerHTML = opzHtml;
+
+                // Precompilazione campi in modalità Modifica
+                if (cartItemToEdit) {
+                    const inputTaglia = document.getElementById('modal-acc-input-taglia');
+                    if (inputTaglia && cartItemToEdit.taglia) {
+                        inputTaglia.value = (cartItemToEdit.taglia === 'manuale' || cartItemToEdit.taglia === 'nessuna') ? '' : cartItemToEdit.taglia;
+                    }
+                    const selectTaglia = document.getElementById('modal-acc-select-taglia');
+                    if (selectTaglia && cartItemToEdit.taglia) {
+                        selectTaglia.value = cartItemToEdit.taglia;
+                    }
+                    const selectColore = document.getElementById('modal-acc-select-colore');
+                    if (selectColore && cartItemToEdit.infoPerso) {
+                        const matchColore = cartItemToEdit.infoPerso.match(/Colore:\s*(.+)$/i);
+                        if (matchColore) {
+                            selectColore.value = matchColore[1].trim();
+                        }
+                    }
+                }
             }
 
             modal.style.display = 'flex';
+            // Auto focus input taglia se presente
+            setTimeout(() => {
+                const inp = document.getElementById('modal-acc-input-taglia');
+                if (inp) {
+                    inp.focus();
+                    if (inp.value) {
+                        inp.select();
+                    }
+                }
+            }, 50);
         }
 
         function chiudiAccessorioModal() {
             const modal = document.getElementById('modal-accessorio-dettaglio');
             if (modal) modal.style.display = 'none';
             accessorioInDettaglio = null;
+            accessorioIndexInModifica = null;
+            window.accessorioIndexInModifica = null;
+            const btnTextEl = document.getElementById('btn-conferma-modal-acc-text');
+            if (btnTextEl) {
+                btnTextEl.innerText = "Aggiungi al Carrello";
+            }
         }
 
         function modificaModalAccQty(delta) {
@@ -11154,31 +12113,170 @@ document.addEventListener('keydown', function(e) {
                 }
             }
 
-            const selectTaglia = document.getElementById('modal-acc-select-taglia');
-            const selectColore = document.getElementById('modal-acc-select-colore');
+            const isManuale = accessorioRichiedeTagliaManuale(item);
+            let tagliaScelta = '';
 
-            const tagliaScelta = selectTaglia ? selectTaglia.value : (item.taglia || 'Unica');
+            if (isManuale) {
+                const inputTaglia = document.getElementById('modal-acc-input-taglia');
+                const rawTaglia = inputTaglia ? inputTaglia.value.trim() : '';
+                const erroreTaglia = document.getElementById('modal-acc-taglia-errore');
+
+                if (!rawTaglia) {
+                    if (erroreTaglia) {
+                        erroreTaglia.style.display = 'block';
+                    }
+                    if (inputTaglia) {
+                        inputTaglia.style.borderColor = '#ef4444';
+                        inputTaglia.focus();
+                    }
+                    const msg = "Inserisci la taglia prima di procedere.";
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(msg, "error");
+                    } else {
+                        alert(msg);
+                    }
+                    return;
+                }
+                tagliaScelta = rawTaglia;
+            } else {
+                const selectTaglia = document.getElementById('modal-acc-select-taglia');
+                if (selectTaglia) {
+                    tagliaScelta = selectTaglia.value;
+                } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
+                    tagliaScelta = item.taglia;
+                } else {
+                    tagliaScelta = '';
+                }
+            }
+
+            const selectColore = document.getElementById('modal-acc-select-colore');
             const coloreScelto = selectColore ? selectColore.value : '';
 
             let infoPerso = coloreScelto ? `Colore: ${coloreScelto}` : 'Accessorio Ufficiale';
 
+            const catNormItem = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(item.categoria || '') : (item.categoria || '');
+            const isCalzItem = catNormItem.toLowerCase() === 'calzettoni';
+
+            // Controllo sicurezza Convenzione Torneo
+            let itemPrezzo = Number(item.prezzo) || 19.99;
+            let itemPrezzoOrig = Number(item.prezzo) || itemPrezzo;
+            let fornituraMeta = null;
+
+            if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
+                const authCats = window.fornituraTorneoAttiva.categorie_autorizzate;
+                const effCat = item.categoria || (isCalzItem ? 'Calzettoni' : 'Accessori');
+                if (typeof isCategoriaAutorizzataTorneo === 'function' && !isCategoriaAutorizzataTorneo(effCat, authCats)) {
+                    const msg = `Prodotto non autorizzato dalla convenzione torneo: "${item.nome || 'Accessorio'}" (${effCat}). Categorie consentite: ${Array.isArray(authCats) && authCats.length > 0 ? authCats.join(', ') : 'Nessuna'}.`;
+                    if (window.mostraToastPremium) {
+                        window.mostraToastPremium(msg, "warning");
+                    } else {
+                        alert(msg);
+                    }
+                    return;
+                }
+
+                if (isCalzItem && window.fornituraTorneoAttiva.prezzo_calzettoni !== null && window.fornituraTorneoAttiva.prezzo_calzettoni !== undefined && window.fornituraTorneoAttiva.prezzo_calzettoni !== '') {
+                    itemPrezzo = Number(window.fornituraTorneoAttiva.prezzo_calzettoni);
+                }
+
+                fornituraMeta = {
+                    torneo_id: window.fornituraTorneoAttiva.torneo_id,
+                    torneo_squadra_id: window.fornituraTorneoAttiva.torneo_squadra_id,
+                    squadra_id: window.fornituraTorneoAttiva.torneo_squadra_id,
+                    codice_univoco: window.fornituraTorneoAttiva.codice_univoco,
+                    nome_squadra: window.fornituraTorneoAttiva.nome_squadra,
+                    torneo_nome: window.fornituraTorneoAttiva.torneo_nome,
+                    prezzo_concordato_unitario: itemPrezzo,
+                    quantita_assegnata: window.fornituraTorneoAttiva.quantita_assegnata
+                };
+            }
+
+            // MODALITÀ MODIFICA RIGA ESISTENTE
+            if (accessorioIndexInModifica !== null && accessorioIndexInModifica !== undefined && accessorioIndexInModifica >= 0 && carrello[accessorioIndexInModifica]) {
+                carrello[accessorioIndexInModifica].taglia = tagliaScelta;
+                carrello[accessorioIndexInModifica].quantita = accessorioQtySelezionata || 1;
+                carrello[accessorioIndexInModifica].infoPerso = infoPerso;
+                carrello[accessorioIndexInModifica].prezzo = itemPrezzo;
+                carrello[accessorioIndexInModifica].prezzo_originale = itemPrezzoOrig;
+                carrello[accessorioIndexInModifica].prezzo_concordato = itemPrezzo;
+                carrello[accessorioIndexInModifica].squadra = item.nome || carrello[accessorioIndexInModifica].squadra;
+                if (item.immagine) {
+                    carrello[accessorioIndexInModifica].imgUrl = item.immagine;
+                }
+                carrello[accessorioIndexInModifica].categoria = item.categoria || (isCalzItem ? 'Calzettoni' : 'Accessori');
+                carrello[accessorioIndexInModifica].tipo_catalogo = 'accessori';
+                if (item.id) {
+                    carrello[accessorioIndexInModifica].id = item.id;
+                    carrello[accessorioIndexInModifica].legacy_id = item.id;
+                    carrello[accessorioIndexInModifica].accessory_id = item.id;
+                }
+
+                if (fornituraMeta) {
+                    carrello[accessorioIndexInModifica].fornitura = fornituraMeta;
+                    carrello[accessorioIndexInModifica].torneo_id = fornituraMeta.torneo_id;
+                    carrello[accessorioIndexInModifica].torneo_squadra_id = fornituraMeta.torneo_squadra_id;
+                    carrello[accessorioIndexInModifica].squadra_id = fornituraMeta.squadra_id;
+                    carrello[accessorioIndexInModifica].codice_fornitura = fornituraMeta.codice_univoco;
+                    carrello[accessorioIndexInModifica].codice_univoco = fornituraMeta.codice_univoco;
+                    carrello[accessorioIndexInModifica].ha_prezzo_concordato = true;
+                }
+
+                accessorioIndexInModifica = null;
+                window.accessorioIndexInModifica = null;
+
+                salvaCarrelloInLocalStorage();
+
+                if (typeof couponApplicato !== 'undefined' && couponApplicato) {
+                    if (typeof ricalcolaCouponSePresente === 'function') {
+                        ricalcolaCouponSePresente().then(() => {
+                            aggiornaGraficaCarrello();
+                        });
+                    } else {
+                        aggiornaGraficaCarrello();
+                    }
+                } else {
+                    aggiornaGraficaCarrello();
+                }
+
+                chiudiAccessorioModal();
+
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium(`"${item.nome}" aggiornato nel carrello!`, 'success');
+                }
+                return;
+            }
+
+            // MODALITÀ AGGIUNGI NUOVO ARTICOLO
             const nuovoElemento = {
                 id: item.id,
                 legacy_id: item.id,
+                accessory_id: item.id,
+                categoria: item.categoria || (isCalzItem ? 'Calzettoni' : 'Accessori'),
                 squadra: item.nome,
                 infoPerso: infoPerso,
                 taglia: tagliaScelta,
-                prezzo: Number(item.prezzo) || 19.99,
+                prezzo: itemPrezzo,
+                prezzo_originale: itemPrezzoOrig,
+                prezzo_concordato: itemPrezzo,
                 imgUrl: item.immagine,
                 quantita: accessorioQtySelezionata || 1,
-                tipo_catalogo: "accessori"
+                tipo_catalogo: "accessori",
+                ...(fornituraMeta ? {
+                    fornitura: fornituraMeta,
+                    torneo_id: fornituraMeta.torneo_id,
+                    torneo_squadra_id: fornituraMeta.torneo_squadra_id,
+                    squadra_id: fornituraMeta.squadra_id,
+                    codice_fornitura: fornituraMeta.codice_univoco,
+                    codice_univoco: fornituraMeta.codice_univoco,
+                    ha_prezzo_concordato: true
+                } : {})
             };
 
             let giaPresente = carrello.find(c =>
                 c.squadra === nuovoElemento.squadra &&
                 c.infoPerso === nuovoElemento.infoPerso &&
-                c.taglia === nuovoElemento.taglia &&
-                c.id === nuovoElemento.id
+                String(c.taglia || '').trim().toLowerCase() === String(nuovoElemento.taglia || '').trim().toLowerCase() &&
+                String(c.id) === String(nuovoElemento.id)
             );
 
             if (giaPresente) {
@@ -11211,6 +12309,12 @@ document.addEventListener('keydown', function(e) {
         window.caricaAccessori = caricaAccessori;
         window.filtraAccessori = filtraAccessori;
         window.renderizzaAccessori = renderizzaAccessori;
+        window.popolaSelectFiltriAccessori = popolaSelectFiltriAccessori;
+        window.cambiaFiltroCategoriaAccessori = cambiaFiltroCategoriaAccessori;
+        window.cambiaFiltroMarcaAccessori = cambiaFiltroMarcaAccessori;
+        window.cercaArticoliAccessori = cercaArticoliAccessori;
+        window.cambiaOrdinamentoAccessori = cambiaOrdinamentoAccessori;
+        window.resettaFiltriAccessori = resettaFiltriAccessori;
         window.apriAccessorioModal = apriAccessorioModal;
         window.chiudiAccessorioModal = chiudiAccessorioModal;
         window.modificaModalAccQty = modificaModalAccQty;
@@ -11338,6 +12442,9 @@ document.addEventListener('keydown', function(e) {
                 }
             }
             
+            if (lower === 'calzettoni' || lower === 'calze' || lower.includes('calzetton') || lower.includes('calze') || lower.includes('socks')) {
+                return 'Calzettoni';
+            }
             if (lower === 'retro' || lower === 'retrò' || lower.includes('retrò') || lower.includes('retro') || lower.includes('vintage') || lower.includes('storica') || lower.includes('commemorativa')) {
                 return 'Retro';
             }
@@ -16353,11 +17460,16 @@ for (const cat in hierarchy) {
             const badgeHTML = promo.badge ? `<span class="promo-badge">${promo.badge}</span>` : '';
             const subTitleHTML = promo.sottotitolo ? `<h4 class="promo-subtitle">${promo.sottotitolo}</h4>` : '';
             const descHTML = promo.descrizione ? `<p class="promo-desc">${promo.descrizione}</p>` : '';
-            const promoImgEsc = promo.immagine ? promo.immagine.replace(/'/g, "\\'").replace(/"/g, "&quot;") : '';
+            let promoImgUrl = promo.immagine || '';
+            if (promoImgUrl && !promoImgUrl.startsWith('data:') && promo.updated_at) {
+                const vParam = encodeURIComponent(promo.updated_at);
+                promoImgUrl += (promoImgUrl.includes('?') ? '&' : '?') + 'v=' + vParam;
+            }
+            const promoImgEsc = promoImgUrl ? promoImgUrl.replace(/'/g, "\\'").replace(/"/g, "&quot;") : '';
             const promoTitoloEsc = promo.titolo ? promo.titolo.replace(/'/g, "\\'").replace(/"/g, "&quot;") : 'Promozione';
-            const imgHTML = promo.immagine ? `
+            const imgHTML = promoImgUrl ? `
                 <div class="promo-img-container" onclick="apriLightbox(event, '${promoImgEsc}', '${promoTitoloEsc}')" title="Clicca per ingrandire l'immagine">
-                    <img src="${promo.immagine}" alt="${promo.titolo}" class="promo-img" onerror="this.parentElement.style.display='none'">
+                    <img src="${promoImgUrl}" alt="${promo.titolo}" class="promo-img" onerror="this.parentElement.style.display='none'">
                 </div>
             ` : '';
             const timerHTML = promo.mostra_timer ? `
@@ -19214,7 +20326,10 @@ function renderizzaProdottiSquadraConFiltri() {
                 return;
             }
             
-            const catalogo = Array.isArray(databaseProdotti) ? databaseProdotti : [];
+            const catalogo = [
+                ...(Array.isArray(databaseProdotti) ? databaseProdotti : []),
+                ...(Array.isArray(window.databaseAccessori) ? window.databaseAccessori : (Array.isArray(databaseAccessori) ? databaseAccessori : []))
+            ];
             const prodottiTrovati = [];
             ids.forEach(id => {
                 const prod = catalogo.find(p => String(p.id) === id || String(p.legacy_id) === id);
@@ -20610,6 +21725,16 @@ function renderizzaProdottiSquadraConFiltri() {
         function avviaModificaArticolo(index) {
             const item = carrello[index];
             if (!item) return;
+
+            // Se l'articolo nel carrello è un accessorio, apri lo stesso configuratore accessori
+            if (typeof isCartItemAccessory === 'function' && isCartItemAccessory(item)) {
+                if (typeof toggleCarrello === 'function' && document.getElementById('carrello-laterale') && document.getElementById('carrello-laterale').classList.contains('attivo')) {
+                    toggleCarrello();
+                }
+                const accId = item.accessory_id || item.legacy_id || item.id;
+                apriAccessorioModal(accId, index);
+                return;
+            }
             
             let basePrice = 23.99;
             let target = "";
@@ -20833,8 +21958,7 @@ function renderizzaProdottiSquadraConFiltri() {
             if (listaElementi) {
                 let htmlArticoli = '';
                 carrello.forEach((item, index) => {
-                    const isAcc = item.id && String(item.id).startsWith('acc-');
-                    const editBtnHtml = !isAcc ? ('<button onclick="avviaModificaArticolo(' + index + ')" style="background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0;">Modifica</button>') : '';
+                    const editBtnHtml = '<button onclick="avviaModificaArticolo(' + index + ')" style="background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0;">Modifica</button>';
                     const fornituraBadge = item.fornitura ? ('<span style="display: inline-block; font-size: 10px; background: rgba(214, 164, 58, 0.15); color: #d6a43a; border: 1px solid rgba(214, 164, 58, 0.3); padding: 1px 6px; border-radius: 4px; font-weight: 700; margin-top: 2px;">🏆 Convenzione: ' + escapeHtml(item.fornitura.nome_squadra || 'Squadra') + '</span>') : '';
 
                     let rigaPrezzoHtml = '';
@@ -20852,7 +21976,15 @@ function renderizzaProdottiSquadraConFiltri() {
                             '<img src="' + (item.imgUrl || '') + '" alt="' + (item.squadra || '') + '" onclick="apriZoomImmagine(\'' + (item.imgUrl || '').replace(/'/g, "\\'") + '\', event)" title="Clicca per ingrandire l\'immagine" style="width: 50px; height: 50px; object-fit: contain; background: #1a1a1a; border-radius: var(--radius-s); padding: 2px; cursor: zoom-in;">' +
                             '<div class="item-info" style="flex-grow: 1;">' +
                                 '<h5>' + (item.squadra || '') + '</h5>' +
-                                '<p style="font-size: 11px; margin: 2px 0;">Taglia: <strong>' + (item.taglia || 'Unica') + '</strong> ' + (item.infoPerso && item.infoPerso !== 'Nessuna' ? ' | ' + item.infoPerso : '') + '</p>' +
+                                '<p style="font-size: 11px; margin: 2px 0;">' + 
+                                    (item.taglia && String(item.taglia).trim() !== '' && item.taglia !== 'manuale' && item.taglia !== 'nessuna'
+                                        ? ('Taglia: <strong>' + item.taglia + '</strong>' + (item.infoPerso && item.infoPerso !== 'Nessuna' ? ' | ' + item.infoPerso : ''))
+                                        : (isCartItemAccessory(item)
+                                            ? (item.infoPerso && item.infoPerso !== 'Nessuna' ? item.infoPerso : '')
+                                            : ('Taglia: <strong>Unica</strong>' + (item.infoPerso && item.infoPerso !== 'Nessuna' ? ' | ' + item.infoPerso : ''))
+                                          )
+                                    ) + 
+                                '</p>' +
                                 (fornituraBadge ? ('<div style="margin-bottom: 2px;">' + fornituraBadge + '</div>') : '') +
                                 '<div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">' +
                                     rigaPrezzoHtml +

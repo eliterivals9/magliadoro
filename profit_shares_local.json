@@ -113,6 +113,86 @@
       "division_label": "100% Sergio",
       "order_data_key": "21/08/2026, 11:19:10"
     },
+    "304": {
+      "cost_eur": 11.21,
+      "division": "100_sergio",
+      "order_id": "304",
+      "updated_at": "2026-09-19T10:43:51.448Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "12/09/2026, 09:34:35"
+    },
+    "308": {
+      "cost_eur": 29.43,
+      "division": "100_sergio",
+      "order_id": "308",
+      "updated_at": "2026-09-19T10:43:34.027Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "15/09/2026, 12:07:19"
+    },
+    "314": {
+      "cost_eur": 12.19,
+      "division": "100_sergio",
+      "order_id": "314",
+      "updated_at": "2026-09-19T10:43:16.938Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "18/09/2026, 09:49:41"
+    },
+    "316": {
+      "cost_eur": 11.32,
+      "division": "100_sergio",
+      "order_id": "316",
+      "updated_at": "2026-09-19T10:42:59.477Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "18/09/2026, 21:02:28"
+    },
+    "321": {
+      "cost_eur": 40.83,
+      "division": "100_sergio",
+      "order_id": "321",
+      "updated_at": "2026-09-19T11:24:26.926Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "19/09/2026, 11:22:41"
+    },
+    "12/09/2026, 09:34:35": {
+      "cost_eur": 11.21,
+      "division": "100_sergio",
+      "order_id": "304",
+      "updated_at": "2026-09-19T10:43:51.448Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "12/09/2026, 09:34:35"
+    },
+    "15/09/2026, 12:07:19": {
+      "cost_eur": 29.43,
+      "division": "100_sergio",
+      "order_id": "308",
+      "updated_at": "2026-09-19T10:43:34.027Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "15/09/2026, 12:07:19"
+    },
+    "18/09/2026, 09:49:41": {
+      "cost_eur": 12.19,
+      "division": "100_sergio",
+      "order_id": "314",
+      "updated_at": "2026-09-19T10:43:16.938Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "18/09/2026, 09:49:41"
+    },
+    "18/09/2026, 21:02:28": {
+      "cost_eur": 11.32,
+      "division": "100_sergio",
+      "order_id": "316",
+      "updated_at": "2026-09-19T10:42:59.477Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "18/09/2026, 21:02:28"
+    },
+    "19/09/2026, 11:22:41": {
+      "cost_eur": 40.83,
+      "division": "100_sergio",
+      "order_id": "321",
+      "updated_at": "2026-09-19T11:24:26.926Z",
+      "division_label": "100% Sergio",
+      "order_data_key": "19/09/2026, 11:22:41"
+    },
     "21/08/2026, 09:54:06": {
       "cost_eur": 14.55,
       "division": "100_riccardo",
@@ -264,7 +344,15 @@
       "updated_at": "2026-08-27T05:27:51.816Z",
       "sergio_percentage": 50,
       "riccardo_percentage": 50
+    },
+    "4": {
+      "lotto_id": "4",
+      "split_mode": "manual",
+      "updated_at": "2026-09-19T10:42:00.951Z",
+      "sergio_percentage": 100,
+      "riccardo_percentage": 0
     }
   },
-  "extra_expenses": []
+  "extra_expenses": [],
+  "accantonamenti": []
 }

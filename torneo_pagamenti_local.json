@@ -1,0 +1,142 @@
+[
+  {
+    "id": "torneo_pag_1790014027777_8ky1c8",
+    "torneo_id": 25,
+    "torneo_nome": "Torneo",
+    "squadra_id": 4,
+    "nome_squadra": "Fc mascalucia",
+    "codice_fornitura": "MONDIALC-FCMASCALUC",
+    "capitano_nome": "Mario Rossi",
+    "capitano_telefono": "3331234567",
+    "cliente_nome": "Mario Rossi",
+    "cliente_telefono": "3331234567",
+    "data": "21/09/2026, 18:07:07",
+    "created_at": "2026-09-21T18:07:07.778Z",
+    "stato": "PAGATO",
+    "totale": 19,
+    "totale_formattato": "19,00 €",
+    "quantita_totale": 1,
+    "articoli_snapshot": [
+      {
+        "prodotto": "Atalanta",
+        "squadra": "Atalanta",
+        "categoria": "Kit",
+        "taglia": "L",
+        "infoPerso": "ROSSI 10",
+        "personalizzazione": "ROSSI 10",
+        "quantita": 1,
+        "prezzo": 19,
+        "totale_riga": 19,
+        "prezzo_fornitore": 7.5,
+        "imgUrl": "",
+        "fornitura": {
+          "torneo_id": 25,
+          "torneo_squadra_id": 4,
+          "squadra_id": 4,
+          "codice_univoco": "MONDIALC-FCMASCALUC",
+          "nome_squadra": "Fc mascalucia",
+          "torneo_nome": "MondialCup",
+          "prezzo_concordato_unitario": 19,
+          "quantita_assegnata": 10
+        }
+      }
+    ],
+    "raw_order_payload": {
+      "nome": "Mario Rossi",
+      "telefono": "3331234567",
+      "capitano_nome": "Mario Rossi",
+      "capitano_telefono": "3331234567",
+      "codice_fornitura": "MONDIALC-FCMASCALUC",
+      "carrello": [
+        {
+          "id": "293076ea-414d-473c-a4f6-eab55bcca461",
+          "legacy_id": 1,
+          "squadra": "Atalanta",
+          "categoria": "Kit",
+          "taglia": "L",
+          "quantita": 1,
+          "prezzo": 19,
+          "personalizzazione": "ROSSI 10",
+          "fornitura": {
+            "torneo_id": 25,
+            "torneo_squadra_id": 4,
+            "squadra_id": 4,
+            "codice_univoco": "MONDIALC-FCMASCALUC",
+            "nome_squadra": "Fc mascalucia",
+            "torneo_nome": "MondialCup",
+            "prezzo_concordato_unitario": 19,
+            "quantita_assegnata": 10
+          },
+          "torneo_id": 25,
+          "torneo_squadra_id": 4,
+          "squadra_id": 4,
+          "codice_univoco": "MONDIALC-FCMASCALUC",
+          "nome_squadra": "Fc mascalucia",
+          "torneo_nome": "MondialCup",
+          "ha_prezzo_concordato": true,
+          "prezzo_concordato": 19,
+          "prezzo_originale": 21.99,
+          "prezzo_fornitore": 7.5
+        }
+      ],
+      "calculated_rigaOrdine": {
+        "data": "21/09/2026, 18:07:07",
+        "nome": "Mario Rossi",
+        "telefono": "3331234567",
+        "squadra": "1x Atalanta",
+        "personalizzazione": "1x [No]",
+        "taglia": "1x [L]",
+        "totale": "19,00€",
+        "foto": "",
+        "Prezzo fornitore": "1x $7.50",
+        "Costo prodotti (USD)": "7,50",
+        "Costo spedizione (USD)": "1,00",
+        "osto spedizione (USD)": "1,00",
+        "Costo totale (USD)": "8,50",
+        "Cambio USD/EUR": "0,8713",
+        "Costo totale (EUR)": "7,41",
+        "Profitto (EUR)": "11,59",
+        "coupon_code": null,
+        "coupon_discount": 0,
+        "coupon_type": null,
+        "coupon_value": null,
+        "carrello": [
+          {
+            "id": "293076ea-414d-473c-a4f6-eab55bcca461",
+            "legacy_id": 1,
+            "squadra": "Atalanta",
+            "categoria": "Kit",
+            "taglia": "L",
+            "quantita": 1,
+            "prezzo": 19,
+            "personalizzazione": "ROSSI 10",
+            "fornitura": {
+              "torneo_id": 25,
+              "torneo_squadra_id": 4,
+              "squadra_id": 4,
+              "codice_univoco": "MONDIALC-FCMASCALUC",
+              "nome_squadra": "Fc mascalucia",
+              "torneo_nome": "MondialCup",
+              "prezzo_concordato_unitario": 19,
+              "quantita_assegnata": 10
+            },
+            "torneo_id": 25,
+            "torneo_squadra_id": 4,
+            "squadra_id": 4,
+            "codice_univoco": "MONDIALC-FCMASCALUC",
+            "nome_squadra": "Fc mascalucia",
+            "torneo_nome": "MondialCup",
+            "ha_prezzo_concordato": true,
+            "prezzo_concordato": 19,
+            "prezzo_originale": 21.99,
+            "prezzo_fornitore": 7.5
+          }
+        ],
+        "lotto_id": 4
+      }
+    },
+    "order_id": "328",
+    "data_pagamento": "21/09/2026, 18:07:08",
+    "updated_at": "2026-09-21T18:07:08.832Z"
+  }
+]

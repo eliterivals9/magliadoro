@@ -15,10 +15,25 @@
   },
   {
     "id": 3,
-    "name": "Arsenal F.C.",
-    "categoria": "Club",
-    "sezione": "Premier League",
-    "created_at": "2026-07-13T14:02:17.71336+00:00"
+    "torneo_id": 23,
+    "nome_squadra": "Fc Sergio",
+    "codice_univoco": "ETNAGOLD-FCSERGIO",
+    "quantita_assegnata": 10,
+    "categorie_autorizzate": [
+      "Kit",
+      "Versione Player",
+      "Fan",
+      "Calzettoni"
+    ],
+    "prodotti_autorizzati": [],
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true
+    },
+    "note": null,
+    "created_at": "2026-09-08T12:21:14.401+00:00",
+    "updated_at": "2026-09-21T17:50:36.286+00:00"
   },
   {
     "id": 4,
@@ -29,10 +44,23 @@
   },
   {
     "id": 5,
-    "name": "Chelsea F.C.",
-    "categoria": "Club",
-    "sezione": "Premier League",
-    "created_at": "2026-07-13T14:02:17.795487+00:00"
+    "torneo_id": 25,
+    "nome_squadra": "FC NoCalzettoni",
+    "codice_univoco": "ETNAGOLD-NOCALZE",
+    "quantita_assegnata": 5,
+    "categorie_autorizzate": [
+      "Kit",
+      "Tuta"
+    ],
+    "prodotti_autorizzati": [],
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true
+    },
+    "note": null,
+    "created_at": "2026-09-21T17:50:55.212+00:00",
+    "updated_at": "2026-09-21T17:50:55.211+00:00"
   },
   {
     "id": 6,

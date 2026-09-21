@@ -1,0 +1,22 @@
+[
+  {
+    "id": "e3e7bc12-abd0-4550-ace2-c9ebfadd2cdc",
+    "attiva": true,
+    "pagina": "home",
+    "badge": "🎁 PORTA UN AMICO",
+    "titolo": "Porta un amico e ottieni la personalizzazione GRATIS",
+    "sottotitolo": "Nome e numero inclusi gratuitamente",
+    "descrizione": "Porta un amico da Maglia d’Oro e ottieni la personalizzazione nome e numero GRATIS.\n\n✓ Personalizzazione nome e numero inclusa\n✓ Porta un amico e approfitta della promo\n✓ Valida sui completini idonei!",
+    "immagine": "/assets/marketing-promos/promo-porta-un-amico.webp",
+    "bottone_testo": "Scopri la promo",
+    "bottone_link": "/home",
+    "codice_sconto": "",
+    "tema": "gold",
+    "mostra_timer": true,
+    "posizione": "right",
+    "data_inizio": "2026-09-12T00:00:00+00:00",
+    "data_fine": "2026-09-19T13:40:00+00:00",
+    "updated_at": "2026-09-18T14:13:23.882Z",
+    "created_at": "2026-07-17T13:24:17.809+00:00"
+  }
+]

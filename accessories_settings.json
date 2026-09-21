@@ -1,0 +1,101 @@
+{
+  "brands": [
+    {
+      "id": "brand-adidas",
+      "nome": "Adidas",
+      "stato": "attivo",
+      "ordine": 1
+    },
+    {
+      "id": "brand-nike",
+      "nome": "Nike",
+      "stato": "attivo",
+      "ordine": 2
+    },
+    {
+      "id": "brand-puma",
+      "nome": "Puma",
+      "stato": "attivo",
+      "ordine": 3
+    },
+    {
+      "id": "brand-kappa",
+      "nome": "Kappa",
+      "stato": "attivo",
+      "ordine": 4
+    },
+    {
+      "id": "brand-macron",
+      "nome": "Macron",
+      "stato": "attivo",
+      "ordine": 5
+    },
+    {
+      "id": "brand-joma",
+      "nome": "Joma",
+      "stato": "attivo",
+      "ordine": 6
+    },
+    {
+      "id": "brand-newbalance",
+      "nome": "New Balance",
+      "stato": "attivo",
+      "ordine": 7
+    },
+    {
+      "id": "brand-mizuno",
+      "nome": "Mizuno",
+      "stato": "attivo",
+      "ordine": 8
+    },
+    {
+      "id": "brand-underarmour",
+      "nome": "Under Armour",
+      "stato": "attivo",
+      "ordine": 9
+    },
+    {
+      "id": "brand-umbro",
+      "nome": "Umbro",
+      "stato": "attivo",
+      "ordine": 10
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-calzettoni",
+      "nome": "Calzettoni Club",
+      "icona": "🧦",
+      "attiva": true,
+      "ordine": 1
+    },
+    {
+      "id": "cat-calze",
+      "nome": "Calze",
+      "icona": "🧦",
+      "attiva": true,
+      "ordine": 2
+    },
+    {
+      "id": "cat-altri",
+      "nome": "Altri Accessori",
+      "icona": "⭐",
+      "attiva": false,
+      "ordine": 9
+    },
+    {
+      "id": "cat-calzettoni-semplici-mubcdt9h",
+      "nome": "Calzettoni Semplici",
+      "icona": "🧦",
+      "attiva": true,
+      "ordine": 2
+    },
+    {
+      "id": "cat-calze-basse-mubtdrxi",
+      "nome": "Calze Basse",
+      "icona": "🧦",
+      "attiva": true,
+      "ordine": 4
+    }
+  ]
+}

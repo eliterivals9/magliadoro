@@ -351,7 +351,7 @@
                     </div>
 
                     <!-- Filters Section -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 pt-2 border-t border-slate-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4 pt-2 border-t border-slate-100">
                         <!-- Main Filter: Destinazione -->
                         <div>
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Destinazione</label>
@@ -383,6 +383,16 @@
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Categoria</label>
                             <select id="filter-categoria" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
                                 <option value="">Tutte le categorie</option>
+                            </select>
+                        </div>
+
+                        <!-- Target Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Target</label>
+                            <select id="filter-target" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                                <option value="">Tutti i target</option>
+                                <option value="Adulto">Adulto</option>
+                                <option value="Bambino">Bambino</option>
                             </select>
                         </div>
 
@@ -3289,6 +3299,19 @@
 
             <!-- SECTION FORNITURA TORNEI -->
             <section id="section-fornitura-tornei" class="tab-content hidden space-y-6">
+                <!-- Sub-navigation Tabs: Anagrafica vs Pagamenti -->
+                <div class="flex items-center gap-2 border-b border-slate-200 pb-3">
+                    <button id="tornei-tab-btn-anagrafica" onclick="switchTorneiSubTab('anagrafica')" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-900 text-white shadow transition-all flex items-center gap-2 cursor-pointer">
+                        <span>🏆</span> Anagrafica Tornei
+                    </button>
+                    <button id="tornei-tab-btn-pagamenti" onclick="switchTorneiSubTab('pagamenti')" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm transition-all flex items-center gap-2 cursor-pointer relative">
+                        <span>💳</span> Pagamenti
+                        <span id="tornei-badge-pagamenti-attesa" class="hidden px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white font-mono leading-none">0</span>
+                    </button>
+                </div>
+
+                <!-- SUB-TAB 1: ANAGRAFICA TORNEI -->
+                <div id="tornei-subtab-anagrafica" class="space-y-6">
                 <!-- VISTA 1: LISTA TORNEI -->
                 <div id="tornei-view-lista" class="space-y-6">
                     <!-- Header Card -->
@@ -3491,28 +3514,120 @@
                         </div>
                     </div>
                 </div>
+                </div> <!-- Fine tornei-subtab-anagrafica -->
+
+                <!-- SUB-TAB 2: PAGAMENTI FORNITURA TORNEI -->
+                <div id="tornei-view-pagamenti" class="hidden space-y-6">
+                    <!-- Header Card -->
+                    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-dark rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-xl relative overflow-hidden">
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-2">
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wider">
+                                    💳 Gestione Incassi & Conferme
+                                </div>
+                                <h2 class="text-xl md:text-2xl font-black tracking-tight">Pagamenti Fornitura Tornei</h2>
+                                <p class="text-slate-300 text-xs md:text-sm max-w-2xl font-medium leading-relaxed">
+                                    Tutti gli ordini inviati per le squadre convenzionate arrivano qui con lo stato <span class="font-bold text-amber-400 font-mono">IN ATTESA DI PAGAMENTO</span> e i prezzi congelati. Cliccando su <span class="font-bold text-emerald-400">PAGATO</span> l'ordine viene creato in <span class="font-bold text-white">Ordini Prodotti</span> e sincronizzato nel <span class="font-bold text-white">Lotto</span>.
+                                </p>
+                            </div>
+                            <button onclick="caricaPagamentiTorneiAdmin()" class="px-5 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 shadow-md transition-all uppercase tracking-wider flex items-center gap-2 cursor-pointer whitespace-nowrap self-start md:self-center">
+                                <span>🔄</span> Aggiorna
+                            </button>
+                        </div>
+                        <div class="absolute right-0 bottom-0 opacity-10 text-[180px] pointer-events-none select-none font-bold -mr-8 -mb-16">
+                            💳
+                        </div>
+                    </div>
+
+                    <!-- Stats Overview -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xl font-bold">
+                                📋
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Totale Ordini Torneo</span>
+                                <span id="pagamenti-stat-totali" class="text-lg font-black text-slate-900 font-mono">0</span>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl font-bold">
+                                ⏳
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">In Attesa di Pagamento</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="pagamenti-stat-attesa-count" class="text-lg font-black text-amber-600 font-mono">0</span>
+                                    <span id="pagamenti-stat-attesa-totale" class="text-xs font-bold text-slate-500 font-mono">(0,00 €)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                                💰
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Pagati & Inseriti in Ordini</span>
+                                <div class="flex items-baseline gap-2">
+                                    <span id="pagamenti-stat-pagati-count" class="text-lg font-black text-emerald-600 font-mono">0</span>
+                                    <span id="pagamenti-stat-pagati-totale" class="text-xs font-bold text-slate-500 font-mono">(0,00 €)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabella Pagamenti -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">📑</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Elenco Pagamenti & Ordini Torneo</h3>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-4">Squadra & Codice</th>
+                                        <th class="px-6 py-4">Torneo</th>
+                                        <th class="px-6 py-4">Capitano / Referente</th>
+                                        <th class="px-6 py-4 text-center">Data Invio</th>
+                                        <th class="px-6 py-4 text-center">Quantità</th>
+                                        <th class="px-6 py-4 text-center">Totale (€)</th>
+                                        <th class="px-6 py-4 text-center">Stato</th>
+                                        <th class="px-6 py-4 text-right pr-8">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pagamenti-tabella-body" class="divide-y divide-slate-100 text-slate-700 text-xs font-semibold">
+                                    <tr>
+                                        <td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">
+                                            Caricamento pagamenti in corso...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <!-- SECTION: SUDDIVISIONE CONTI (SERGIO & RICCARDO) -->
+            <!-- SECTION: SUDDIVISIONE CONTI & CASSA ACCANTONAMENTI -->
             <section id="section-suddivisione-conti" class="tab-content hidden space-y-6">
                 <!-- Header Card -->
                 <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-dark rounded-3xl p-6 md:p-8 text-white border border-slate-800 shadow-xl relative overflow-hidden">
                     <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="space-y-2">
                             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-gold/15 border border-brand-gold/30 text-brand-gold text-[10px] font-bold uppercase tracking-wider">
-                                ⚖️ Contabilità Interna Soci
+                                ⚖️ Gestione Cassa & Accantonamenti
                             </div>
-                            <h2 id="suddivisione-conti-main-title" class="text-xl md:text-2xl font-black tracking-tight">Suddivisione Conti (Sergio & Riccardo)</h2>
+                            <h2 id="suddivisione-conti-main-title" class="text-xl md:text-2xl font-black tracking-tight">Suddivisione Conti & Cassa</h2>
                             <p class="text-slate-300 text-xs md:text-sm max-w-2xl font-medium leading-relaxed">
-                                Gestione interna della suddivisione dei profitti per ordine e registrazione dei completini/prelievi presi per sé. Nessun dato economico originale dell'ordine viene modificato.
+                                Calcola l'<strong>Incasso Clienti</strong>, registra manualmente le somme da accantonare (costi <strong>Da anticipare</strong> e <strong>Articoli miei</strong>) e monitora l'<strong>Incasso realmente disponibile</strong>.
                             </p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2.5 self-start md:self-center">
-                            <button onclick="apriModalSpesaExtra()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
-                                <span>➕</span> AGGIUNGI SPESA
-                            </button>
-                            <button onclick="avviaSelezioneOrdinePerSuddivisione()" class="px-4 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
-                                <span>📝</span> MODIFICA ORDINE
+                            <button onclick="apriModalAccantonamento()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                                <span>➕</span> AGGIUNGI MOVIMENTO
                             </button>
                             <button onclick="caricaSuddivisioneConti()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-all flex items-center gap-2 cursor-pointer">
                                 <span>🔄</span> Ricarica
@@ -3520,7 +3635,7 @@
                         </div>
                     </div>
                     <div class="absolute right-0 bottom-0 opacity-10 text-[180px] pointer-events-none select-none font-bold -mr-8 -mb-16">
-                        ⚖️
+                        💶
                     </div>
                 </div>
 
@@ -3554,471 +3669,427 @@
                     </div>
                 </div>
 
-                <!-- Alert se lotto senza suddivisione salvata -->
-                <div id="profit-split-lot-empty-notice" class="hidden bg-amber-50/90 border border-amber-200 rounded-2xl p-4 text-amber-900 text-xs flex items-center gap-3">
-                    <span class="text-xl">ℹ️</span>
-                    <div>
-                        <span class="font-bold">Questo lotto non ha ancora una suddivisione conti salvata.</span>
-                        <span class="text-amber-700 ml-1">Puoi impostare le percentuali desiderate o registrare spese/acquisti personali per iniziare la configurazione di questo lotto.</span>
-                    </div>
-                </div>
-
-                <!-- Dashboard della sezione: Totali e Saldi Quote -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-                    <!-- 1. Totale Profitto Lotto -->
+                <!-- 5 CARD PRINCIPALI: INCASSO CLIENTI, ACCANTONAMENTI & DISPONIBILE -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- 1. Incasso Clienti -->
                     <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Profitto Disponibile</span>
-                            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-xl text-base">💰</span>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Incasso Clienti</span>
+                            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-xl text-base">💶</span>
                         </div>
                         <div class="space-y-1.5">
-                            <h3 id="split-total-profit" class="text-2xl font-black text-slate-900 font-mono">€ 0,00</h3>
-                            <div class="space-y-0.5 pt-1 border-t border-slate-100 text-[11px] text-slate-500">
-                                <div class="flex justify-between">
-                                    <span>Profitto ordini:</span>
-                                    <span id="split-orders-profit" class="font-mono font-semibold text-slate-700">€ 0,00</span>
-                                </div>
-                                <div class="flex justify-between text-amber-700">
-                                    <span>Alibaba Fee (3%):</span>
-                                    <span id="split-alibaba-fee" class="font-mono font-semibold">-€ 0,00</span>
-                                </div>
+                            <h3 id="acc-incasso-clienti" class="text-2xl font-black text-slate-900 font-mono">€ 0,00</h3>
+                            <div class="pt-1.5 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between">
+                                <span>Ordini lotto:</span>
+                                <span id="acc-ordini-count" class="font-mono font-bold text-slate-700">0 ordini</span>
                             </div>
-                            <p class="text-[10px] text-slate-400 font-medium pt-0.5"><span id="split-total-orders-count">0</span> ordini attivi nel lotto</p>
                         </div>
                     </div>
 
-                    <!-- 2. Quota & Saldo SERGIO -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    <!-- 2. Da Anticipare -->
+                    <div class="bg-white border border-amber-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden bg-amber-50/20">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-brand-gold uppercase tracking-wider flex items-center gap-1.5">
-                                👤 Sergio
+                            <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                                ⏳ Da Anticipare
                             </span>
-                            <span class="px-2 py-0.5 bg-amber-50 text-brand-gold font-bold text-[10px] rounded-lg">Socio</span>
+                            <span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-lg">Costi/Anticipi</span>
                         </div>
-                        <div class="space-y-1.5 mt-1">
-                            <div class="flex justify-between text-[11px] text-slate-500">
-                                <span>Quota profitto:</span>
-                                <span id="split-sergio-initial" class="font-mono font-bold text-slate-800">€ 0,00</span>
+                        <div class="space-y-1.5">
+                            <h3 id="acc-da-anticipare" class="text-2xl font-black text-amber-600 font-mono">€ 0,00</h3>
+                            <div class="pt-1.5 border-t border-amber-100 text-[11px] text-slate-500 flex justify-between">
+                                <span>Somma anticipi:</span>
+                                <span id="acc-da-anticipare-count" class="font-mono font-bold text-amber-700">0 voci</span>
                             </div>
-                            <div class="flex justify-between text-[11px] text-rose-500 font-medium">
-                                <span>Acquisti personali:</span>
-                                <span id="split-sergio-withdrawals" class="font-mono font-bold">-€ 0,00</span>
-                            </div>
-                            <div class="pt-1.5 border-t border-slate-100 flex justify-between items-baseline">
-                                <span class="text-[11px] font-extrabold text-slate-700 uppercase">Saldo:</span>
-                                <span id="split-sergio-net" class="text-xl font-black text-emerald-600 font-mono">€ 0,00</span>
-                            </div>
-                            <div id="split-sergio-status" class="pt-1 text-[10px] font-bold"></div>
                         </div>
                     </div>
 
-                    <!-- 3. Quota & Saldo RICCARDO -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    <!-- 3. Articoli Miei -->
+                    <div class="bg-white border border-indigo-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden bg-indigo-50/20">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
-                                👤 Riccardo
+                            <span class="text-[11px] font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1">
+                                👕 Articoli Miei
                             </span>
-                            <span class="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[10px] rounded-lg">Socio</span>
+                            <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 font-bold text-[10px] rounded-lg">Personali</span>
                         </div>
-                        <div class="space-y-1.5 mt-1">
-                            <div class="flex justify-between text-[11px] text-slate-500">
-                                <span>Quota profitto:</span>
-                                <span id="split-riccardo-initial" class="font-mono font-bold text-slate-800">€ 0,00</span>
+                        <div class="space-y-1.5">
+                            <h3 id="acc-articoli-miei" class="text-2xl font-black text-indigo-600 font-mono">€ 0,00</h3>
+                            <div class="pt-1.5 border-t border-indigo-100 text-[11px] text-slate-500 flex justify-between">
+                                <span>Somma articoli:</span>
+                                <span id="acc-articoli-miei-count" class="font-mono font-bold text-indigo-700">0 voci</span>
                             </div>
-                            <div class="flex justify-between text-[11px] text-rose-500 font-medium">
-                                <span>Acquisti personali:</span>
-                                <span id="split-riccardo-withdrawals" class="font-mono font-bold">-€ 0,00</span>
-                            </div>
-                            <div class="pt-1.5 border-t border-slate-100 flex justify-between items-baseline">
-                                <span class="text-[11px] font-extrabold text-slate-700 uppercase">Saldo:</span>
-                                <span id="split-riccardo-net" class="text-xl font-black text-emerald-600 font-mono">€ 0,00</span>
-                            </div>
-                            <div id="split-riccardo-status" class="pt-1 text-[10px] font-bold"></div>
                         </div>
                     </div>
 
-                    <!-- 4. Saldo Complessivo Soci -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                    <!-- 4. Totale Da Accantonare -->
+                    <div class="bg-white border border-rose-200/80 rounded-2xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden bg-rose-50/20">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-[11px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
-                                ⚖️ Saldo Complessivo
+                            <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1">
+                                🔒 Da Accantonare
                             </span>
-                            <span class="px-2 py-0.5 bg-purple-50 text-purple-700 font-bold text-[10px] rounded-lg">Totale Quote</span>
+                            <span class="px-2 py-0.5 bg-rose-100 text-rose-800 font-bold text-[10px] rounded-lg">Totale</span>
                         </div>
-                        <div class="space-y-1.5 mt-1">
-                            <div class="flex justify-between text-[11px] text-slate-500">
-                                <span>Riepilogo:</span>
-                                <span class="font-mono font-medium text-slate-600">Sergio + Riccardo</span>
+                        <div class="space-y-1.5">
+                            <h3 id="acc-totale-accantonare" class="text-2xl font-black text-rose-600 font-mono">€ 0,00</h3>
+                            <div class="pt-1.5 border-t border-rose-100 text-[11px] text-slate-500 flex justify-between">
+                                <span>Anticipi + Articoli:</span>
+                                <span id="acc-totale-count" class="font-mono font-bold text-rose-700">0 movimenti</span>
                             </div>
-                            <div class="pt-1.5 border-t border-slate-100 flex justify-between items-baseline">
-                                <span class="text-[11px] font-extrabold text-slate-700 uppercase">Saldo Totale:</span>
-                                <span id="split-total-net" class="text-xl font-black font-mono text-slate-900">€ 0,00</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Incasso Realmente Disponibile -->
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 shadow-md flex flex-col justify-between border border-slate-700 relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                                ✨ Incasso Disponibile
+                            </span>
+                            <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 font-bold text-[10px] rounded-lg border border-emerald-500/30">Netto Libero</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <h3 id="acc-incasso-disponibile" class="text-2xl font-black text-emerald-400 font-mono">€ 0,00</h3>
+                            <div class="pt-1.5 border-t border-slate-700 text-[11px] text-slate-300 flex justify-between">
+                                <span>Incasso - Accantonato:</span>
+                                <span id="acc-disponibile-status" class="font-mono font-bold text-emerald-300">100% libero</span>
                             </div>
-                            <div id="split-total-net-status" class="pt-1 text-[10px] font-bold"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sezione SUDDIVISIONE PROFITTO RESIDUO & RIEPILOGO FINALE -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                    <!-- Configurazione Suddivisione Profitto Residuo (7 Colonne su Desktop) -->
-                    <div class="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-5 md:p-6 shadow-sm flex flex-col justify-between relative">
-                        <div>
-                            <!-- Header & Badge Lotto -->
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                            <span>⚖️</span> SUDDIVISIONE PROFITTO
-                                        </h3>
-                                        <span id="profit-split-lotto-badge" class="px-2 py-0.5 bg-slate-100 text-slate-700 font-extrabold text-[10px] rounded-md border border-slate-200">Lotto #1</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500 mt-1">
-                                        Scegli la modalità di ripartizione del <strong>profitto residuo</strong> tra Sergio e Riccardo per questo lotto.
-                                    </p>
-                                </div>
-                                <div id="profit-split-save-status" class="text-[11px] font-bold text-slate-400 shrink-0 flex items-center gap-1.5 self-start sm:self-auto">
-                                    <span>💾 Salvataggio automatico</span>
-                                </div>
-                            </div>
-
-                            <!-- Selettore Modalità di Suddivisione (Manuale vs In Base alle Spese) -->
-                            <div class="mt-4 p-1.5 bg-slate-100/90 rounded-xl flex flex-col sm:flex-row gap-1.5 border border-slate-200/80">
-                                <button 
-                                    type="button" 
-                                    id="btn-mode-manual" 
-                                    onclick="cambiaModalitaSuddivisione('manual')" 
-                                    class="flex-1 py-2 px-3 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm bg-white text-slate-900 border border-slate-200/60"
-                                >
-                                    <span>✏️</span> PERCENTUALE MANUALE
-                                </button>
-                                <button 
-                                    type="button" 
-                                    id="btn-mode-by-expenses" 
-                                    onclick="cambiaModalitaSuddivisione('by_expenses')" 
-                                    class="flex-1 py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                    <span>🛒</span> IN BASE ALLE SPESE PERSONALI
-                                </button>
-                            </div>
-
-                            <!-- Quadro 4 Valori Chiave Richiesti: Profitto Disponibile, Acquisti, Saldo Residuo, Suddivisione -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 text-xs">
-                                <div class="space-y-0.5">
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">PROFITTO DISPONIBILE</div>
-                                    <div id="card-profitto-disponibile" class="text-sm font-black text-slate-900 font-mono">€ 0,00</div>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">ACQUISTI PERSONALI</div>
-                                    <div class="text-[11px] font-bold text-slate-700">
-                                        S: <span id="card-spese-sergio" class="text-rose-600 font-mono">€ 0,00</span> | R: <span id="card-spese-riccardo" class="text-rose-600 font-mono">€ 0,00</span>
-                                    </div>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">SALDO RESIDUO</div>
-                                    <div class="text-[11px] font-bold text-slate-700">
-                                        S: <span id="card-credito-sergio" class="text-amber-700 font-mono">€ 0,00</span> | R: <span id="card-credito-riccardo" class="text-blue-700 font-mono">€ 0,00</span>
-                                    </div>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">SUDDIVISIONE PROFITTO</div>
-                                    <div class="text-[11px] font-bold text-slate-700">
-                                        S: <span id="card-quota-sergio-brief" class="text-emerald-700 font-mono">50%</span> | R: <span id="card-quota-riccardo-brief" class="text-emerald-700 font-mono">50%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Banner Informativo Modalità Automatica (visibile solo se attiva la modalità in base alle spese) -->
-                            <div id="by-expenses-info-banner" class="hidden mt-3 p-3 bg-amber-50/80 border border-amber-200/90 rounded-xl text-xs text-amber-900 space-y-1">
-                                <div class="flex items-center gap-1.5 font-bold">
-                                    <span>💡</span> <span>Suddivisione 50/50 con deduzione spese personali:</span>
-                                </div>
-                                <p class="text-[11px] text-amber-800 leading-relaxed">
-                                    Il profitto disponibile viene suddiviso equamente al 50% di base tra Sergio e Riccardo. Gli acquisti personali sostenuti da ciascun socio vengono detratti dalla propria quota base (50%) per determinare il rispettivo <strong>Saldo Residuo</strong> finale.
+                <!-- FORMULA BANNER ESPLICATIVO -->
+                <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 text-xs text-slate-700">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">💡</span>
+                            <div>
+                                <h4 class="font-black text-slate-900 uppercase tracking-wider text-xs">Formula Incasso Disponibile</h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                    L'incasso realmente utilizzabile è calcolato sottraendo tutte le somme accantonate dall'incasso totale dei clienti.
                                 </p>
                             </div>
-
-                            <!-- Input Percentuali con Indicatori e Quote Live -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                                <!-- Sergio Input Card -->
-                                <div id="sergio-card-container" class="bg-amber-50/40 border border-amber-200/80 rounded-xl p-4 transition-all focus-within:border-brand-gold focus-within:ring-2 focus-within:ring-amber-200">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-1.5 font-black text-xs text-amber-900 uppercase tracking-wider">
-                                            <span>👤</span> Sergio
-                                        </div>
-                                        <span id="sergio-badge-mode" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100/80 text-brand-gold">Socio</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="relative flex-1">
-                                            <input 
-                                                type="number" 
-                                                id="profit-split-sergio-input" 
-                                                min="0" 
-                                                max="100" 
-                                                step="0.01" 
-                                                value="50" 
-                                                oninput="onSergioPercentageInput(this.value)" 
-                                                class="w-full pl-3 pr-8 py-2 text-xl font-black text-slate-900 bg-white border border-amber-300 rounded-lg focus:outline-none focus:border-brand-gold font-mono transition-all"
-                                            />
-                                            <span class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">%</span>
-                                        </div>
-                                        <div class="text-right shrink-0">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo Residuo</div>
-                                            <div id="split-sergio-share-preview" class="text-base font-black text-brand-gold font-mono">€ 0,00</div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-2.5 pt-2 border-t border-amber-200/60 flex justify-between items-center text-[11px]">
-                                        <span class="text-slate-500 font-medium">Saldo Residuo:</span>
-                                        <span id="split-sergio-credito-residuo" class="font-mono font-bold text-amber-800">€ 0,00</span>
-                                    </div>
-                                </div>
-
-                                <!-- Riccardo Input Card -->
-                                <div id="riccardo-card-container" class="bg-blue-50/40 border border-blue-200/80 rounded-xl p-4 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-1.5 font-black text-xs text-blue-900 uppercase tracking-wider">
-                                            <span>👤</span> Riccardo
-                                        </div>
-                                        <span id="riccardo-badge-mode" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100/80 text-blue-700">Socio</span>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <div class="relative flex-1">
-                                            <input 
-                                                type="number" 
-                                                id="profit-split-riccardo-input" 
-                                                min="0" 
-                                                max="100" 
-                                                step="0.01" 
-                                                value="50" 
-                                                oninput="onRiccardoPercentageInput(this.value)" 
-                                                class="w-full pl-3 pr-8 py-2 text-xl font-black text-slate-900 bg-white border border-blue-300 rounded-lg focus:outline-none focus:border-blue-600 font-mono transition-all"
-                                            />
-                                            <span class="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">%</span>
-                                        </div>
-                                        <div class="text-right shrink-0">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase">Saldo Residuo</div>
-                                            <div id="split-riccardo-share-preview" class="text-base font-black text-blue-700 font-mono">€ 0,00</div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-2.5 pt-2 border-t border-blue-200/60 flex justify-between items-center text-[11px]">
-                                        <span class="text-slate-500 font-medium">Saldo Residuo:</span>
-                                        <span id="split-riccardo-credito-residuo" class="font-mono font-bold text-blue-800">€ 0,00</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Range Slider Interattivo Bidirezionale (solo in modalità manuale) -->
-                            <div id="profit-split-slider-container" class="mt-4 px-1">
-                                <div class="flex justify-between items-center text-[11px] font-bold text-slate-500 mb-1.5">
-                                    <span class="text-amber-800 font-black">100% Sergio</span>
-                                    <span class="text-slate-400 text-[10px] font-normal">Trascina per bilanciare (Somma = 100%)</span>
-                                    <span class="text-blue-800 font-black">100% Riccardo</span>
-                                </div>
-                                <input 
-                                    type="range" 
-                                    id="profit-split-slider" 
-                                    min="0" 
-                                    max="100" 
-                                    step="1" 
-                                    value="50" 
-                                    oninput="onSliderPercentageInput(this.value)"
-                                    class="w-full h-2.5 bg-gradient-to-r from-amber-400 via-purple-400 to-blue-500 rounded-lg appearance-none cursor-pointer accent-slate-900"
-                                />
-                            </div>
-
-                            <!-- Pulsanti Rapidi (Presets) (solo in modalità manuale) -->
-                            <div id="profit-split-presets-container" class="mt-4 pt-3.5 border-t border-slate-100">
-                                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">
-                                    ⚡ Configurazioni Rapide:
-                                </div>
-                                <div class="flex flex-wrap gap-2">
-                                    <button type="button" onclick="impostaSuddivisioneProfittoPreset(50, 50)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer">
-                                        <span>⚖️</span> 50% / 50% (Predefinito)
-                                    </button>
-                                    <button type="button" onclick="impostaSuddivisioneProfittoPreset(100, 0)" class="px-3 py-1.5 bg-amber-100/70 hover:bg-amber-200 text-amber-900 font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer">
-                                        <span>👤</span> 100% Sergio / 0% Riccardo
-                                    </button>
-                                    <button type="button" onclick="impostaSuddivisioneProfittoPreset(0, 100)" class="px-3 py-1.5 bg-blue-100/70 hover:bg-blue-200 text-blue-900 font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer">
-                                        <span>👤</span> 0% Sergio / 100% Riccardo
-                                    </button>
-                                    <button type="button" onclick="impostaSuddivisioneProfittoPreset(70, 30)" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-lg border border-slate-200 transition-all flex items-center gap-1 cursor-pointer">
-                                        70% S / 30% R
-                                    </button>
-                                    <button type="button" onclick="impostaSuddivisioneProfittoPreset(60, 40)" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-lg border border-slate-200 transition-all flex items-center gap-1 cursor-pointer">
-                                        60% S / 40% R
-                                    </button>
-                                </div>
-                            </div>
                         </div>
-                    </div>
-
-                    <!-- Riepilogo Finale Conti Lotto (5 Colonne su Desktop) -->
-                    <div class="lg:col-span-5 bg-slate-900 text-white rounded-2xl p-5 md:p-6 shadow-md flex flex-col justify-between border border-slate-800">
-                        <div>
-                            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                                    <span>📊</span> RIEPILOGO FINALE CONTI
-                                </h3>
-                                <span id="riepilogo-mode-badge" class="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded-full">Quadratura 100%</span>
-                            </div>
-
-                            <div class="mt-4 space-y-2.5 text-xs">
-                                <div class="flex justify-between items-center py-1">
-                                    <span class="text-slate-400 font-medium">PROFITTO DISPONIBILE</span>
-                                    <span id="riepilogo-profitto-lotto" class="font-mono font-bold text-sm text-white">€ 0,00</span>
-                                </div>
-                                <div class="flex justify-between items-center py-1 text-rose-400">
-                                    <span class="font-medium">ACQUISTI SERGIO</span>
-                                    <span id="riepilogo-spese-sergio" class="font-mono font-bold">-€ 0,00</span>
-                                </div>
-                                <div class="flex justify-between items-center py-1 text-rose-400">
-                                    <span class="font-medium">ACQUISTI RICCARDO</span>
-                                    <span id="riepilogo-spese-riccardo" class="font-mono font-bold">-€ 0,00</span>
-                                </div>
-
-                                <!-- Box Profitto Residuo Dopo Acquisti (Sostituisce i vecchi crediti fuorvianti) -->
-                                <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 space-y-1.5">
-                                    <div class="flex justify-between items-baseline">
-                                        <span class="text-xs font-black text-amber-300 uppercase tracking-wider">PROFITTO RESIDUO DOPO ACQUISTI</span>
-                                        <span id="riepilogo-profitto-residuo" class="text-lg font-black text-amber-300 font-mono">€ 0,00</span>
-                                    </div>
-                                    <p class="text-[10px] text-slate-400 leading-snug">
-                                        Importo effettivamente disponibile per la suddivisione dopo aver sottratto gli acquisti personali di Sergio e Riccardo.
-                                    </p>
-                                </div>
-
-                                <div class="pt-1 space-y-2">
-                                    <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">SUDDIVISIONE PROFITTO</div>
-                                    <div class="bg-slate-800/80 rounded-xl p-3 space-y-2 border border-slate-700/60">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-amber-300 font-bold flex items-center gap-1.5">
-                                                <span>👤</span> Sergio (<span id="riepilogo-sergio-pct">50</span>%)
-                                            </span>
-                                            <span id="riepilogo-sergio-quota" class="font-mono font-bold text-emerald-400 text-sm">€ 0,00</span>
-                                        </div>
-                                        <div class="flex justify-between items-center pt-1.5 border-t border-slate-700/40">
-                                            <span class="text-blue-300 font-bold flex items-center gap-1.5">
-                                                <span>👤</span> Riccardo (<span id="riepilogo-riccardo-pct">50</span>%)
-                                            </span>
-                                            <span id="riepilogo-riccardo-quota" class="font-mono font-bold text-emerald-400 text-sm">€ 0,00</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 mt-4 border-t border-slate-800 flex justify-between items-baseline">
-                            <span class="text-xs font-black text-slate-300 uppercase tracking-wider">TOTALE PROFITTO ASSEGNATO</span>
-                            <span id="riepilogo-totale-assegnato" class="text-xl font-black text-emerald-400 font-mono">€ 0,00</span>
+                        <div class="flex flex-wrap items-center gap-2 text-xs font-mono font-bold bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
+                            <span class="text-blue-700">€ <span id="acc-banner-incasso">0,00</span></span>
+                            <span class="text-slate-400 font-sans font-normal">Incasso Clienti</span>
+                            <span class="text-slate-400">−</span>
+                            <span class="text-rose-600">€ <span id="acc-banner-accantonato">0,00</span></span>
+                            <span class="text-slate-400 font-sans font-normal">(<span class="text-amber-700">€ <span id="acc-banner-anticipare">0,00</span></span> ant. + <span class="text-indigo-700">€ <span id="acc-banner-articoli">0,00</span></span> art.)</span>
+                            <span class="text-slate-400">=</span>
+                            <span class="text-emerald-600 text-sm">€ <span id="acc-banner-disponibile">0,00</span></span>
+                            <span class="text-emerald-700 font-sans font-normal">Disponibile</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sezione SPESE EXTRA DEL LOTTO -->
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <!-- SEZIONE REGISTRO MOVIMENTI ACCANTONATI -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" id="acc-movimenti-section">
                     <div class="p-5 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                    <span>👟</span> SPESE EXTRA DEL LOTTO
+                                    <span>📋</span> REGISTRO MOVIMENTI & ACCANTONAMENTI
                                 </h3>
-                                <span id="split-extra-count-badge" class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold text-[10px] rounded-md border border-emerald-200">0 spese</span>
+                                <span id="acc-count-badge" class="px-2 py-0.5 bg-slate-200 text-slate-800 font-extrabold text-[10px] rounded-md">0 movimenti</span>
                             </div>
                             <p class="text-xs text-slate-500 mt-0.5">
-                                Spese extra (scarpe, calze, pantaloncini, completini aggiuntivi o accessori) acquistate per Sergio o Riccardo. Prezzo inserito in USD e convertito automaticamente in EUR.
+                                Registra le somme da togliere dall'Incasso Clienti: costi futuri da anticipare o articoli personali presi a carico dell'attività.
                             </p>
                         </div>
-                        <button onclick="apriModalSpesaExtra()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto cursor-pointer">
-                            <span>➕</span> AGGIUNGI SPESA
-                        </button>
-                    </div>
-
-                    <!-- Stato Vuoto Spese Extra -->
-                    <div id="split-extra-empty-state" class="p-8 text-center text-slate-500 space-y-3">
-                        <div class="text-4xl">🧦</div>
-                        <h4 class="text-sm font-bold text-slate-700">Nessuna spesa extra registrata</h4>
-                        <p class="text-xs text-slate-400 max-w-md mx-auto">
-                            Non sono presenti spese extra per questo lotto. Clicca "+ Aggiungi spesa" per inserire scarpe, calze, accessori o articoli personali.
-                        </p>
-                        <div>
-                            <button onclick="apriModalSpesaExtra()" class="mt-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 transition-all cursor-pointer">
-                                <span>➕</span> Aggiungi spesa extra
+                        <div class="flex items-center gap-2">
+                            <!-- Filtri Tipologia -->
+                            <div class="inline-flex p-1 bg-slate-200/70 rounded-xl text-xs">
+                                <button type="button" onclick="filtraMovimentiAccantonamento('tutti')" id="acc-filter-tutti" class="px-3 py-1.5 rounded-lg font-bold transition-all bg-white text-slate-900 shadow-xs cursor-pointer">
+                                    Tutti
+                                </button>
+                                <button type="button" onclick="filtraMovimentiAccantonamento('da_anticipare')" id="acc-filter-da_anticipare" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
+                                    ⏳ Da anticipare
+                                </button>
+                                <button type="button" onclick="filtraMovimentiAccantonamento('articolo_mio')" id="acc-filter-articolo_mio" class="px-3 py-1.5 rounded-lg font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
+                                    👕 Articoli miei
+                                </button>
+                            </div>
+                            <button onclick="apriModalAccantonamento()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer">
+                                <span>➕</span> AGGIUNGI
                             </button>
                         </div>
                     </div>
 
-                    <!-- Tabella Spese Extra (Visibile solo se ci sono spese extra) -->
-                    <div id="split-extra-table-container" class="hidden overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[750px]">
+                    <!-- Stato Vuoto Movimenti -->
+                    <div id="acc-empty-state" class="p-10 text-center text-slate-500 space-y-3">
+                        <div class="text-4xl">💰</div>
+                        <h4 class="text-sm font-bold text-slate-700">Nessun movimento registrato</h4>
+                        <p class="text-xs text-slate-400 max-w-md mx-auto">
+                            Non hai ancora registrato somme da accantonare per questo lotto. Clicca su <strong>"+ Aggiungi Movimento"</strong> per inserire un costo da anticipare o un articolo personale.
+                        </p>
+                        <div>
+                            <button onclick="apriModalAccantonamento()" class="mt-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 transition-all cursor-pointer">
+                                <span>➕</span> Aggiungi Movimento
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabella Movimenti -->
+                    <div id="acc-table-container" class="hidden overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[700px]">
                             <thead>
                                 <tr class="bg-slate-50/70 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                    <th class="px-6 py-3.5">Descrizione Articolo</th>
-                                    <th class="px-6 py-3.5 text-center">Quantità</th>
-                                    <th class="px-6 py-3.5 text-right">Prezzo Unit. (USD)</th>
-                                    <th class="px-6 py-3.5 text-right">Totale USD</th>
-                                    <th class="px-6 py-3.5 text-right">Totale EUR</th>
-                                    <th class="px-6 py-3.5 text-center">Assegnato a</th>
+                                    <th class="px-6 py-3.5">Data</th>
+                                    <th class="px-6 py-3.5">Tipologia</th>
+                                    <th class="px-6 py-3.5">Descrizione</th>
+                                    <th class="px-6 py-3.5 text-right">Importo (€)</th>
                                     <th class="px-6 py-3.5">Note</th>
                                     <th class="px-6 py-3.5 text-right pr-6">Azioni</th>
                                 </tr>
                             </thead>
-                            <tbody id="split-extra-tbody" class="divide-y divide-slate-100 text-slate-700 text-xs font-semibold">
-                                <!-- Righe spese extra inserite dinamicamente -->
+                            <tbody id="acc-tbody" class="divide-y divide-slate-100 text-slate-700 text-xs font-semibold">
+                                <!-- Popolato dinamicamente da admin.js -->
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Sezione MODIFICHE ALLA SUDDIVISIONE -->
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                <span>📝</span> MODIFICHE ALLA SUDDIVISIONE
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                Gli ordini non modificati rimangono automaticamente <strong class="text-slate-700">50% Sergio / 50% Riccardo</strong> e non compaiono in questa lista.
-                            </p>
+                <!-- SEZIONE STORICA / LEGACY: SUDDIVISIONE SOCI (SERGIO & RICCARDO) -->
+                <details class="bg-white border border-slate-200/90 rounded-2xl shadow-sm overflow-hidden group">
+                    <summary class="p-5 bg-slate-50/70 cursor-pointer select-none flex items-center justify-between font-bold text-slate-800 text-xs uppercase tracking-wider hover:bg-slate-100 transition-colors">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-base">📜</span>
+                            <span>Archivio Storico Suddivisione Soci (Sergio & Riccardo)</span>
+                            <span class="px-2 py-0.5 bg-slate-200 text-slate-600 rounded-md text-[10px] font-extrabold normal-case">Dati storici preservati</span>
                         </div>
-                        <button onclick="avviaSelezioneOrdinePerSuddivisione()" class="px-4 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto cursor-pointer">
-                            <span>➕</span> AGGIUNGI MODIFICA
-                        </button>
-                    </div>
+                        <span class="text-slate-400 text-xs group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
 
-                    <!-- Stato Vuoto (Nessuna modifica presente) -->
-                    <div id="split-modifiche-empty-state" class="p-10 text-center text-slate-500 space-y-3">
-                        <div class="text-4xl">📋</div>
-                        <h4 class="text-sm font-bold text-slate-700">Nessuna modifica presente</h4>
-                        <p class="text-xs text-slate-400 max-w-md mx-auto">
-                            Tutti gli ordini del lotto seguono la suddivisione standard <strong>50% Sergio / 50% Riccardo</strong> senza spese a carico personale.
-                        </p>
-                        <div>
-                            <button onclick="avviaSelezioneOrdinePerSuddivisione()" class="mt-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 transition-all cursor-pointer">
-                                <span>➕</span> Aggiungi modifica
-                            </button>
+                    <div class="p-5 md:p-6 space-y-6 border-t border-slate-100">
+                        <!-- Dashboard Quote Soci Legacy -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- 1. Totale Profitto Lotto -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Profitto Disponibile</span>
+                                    <span class="p-1 bg-blue-50 text-blue-600 rounded-lg text-sm">💰</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <h3 id="split-total-profit" class="text-xl font-black text-slate-900 font-mono">€ 0,00</h3>
+                                    <div class="space-y-0.5 pt-1 border-t border-slate-100 text-[10px] text-slate-500">
+                                        <div class="flex justify-between">
+                                            <span>Profitto ordini:</span>
+                                            <span id="split-orders-profit" class="font-mono font-semibold text-slate-700">€ 0,00</span>
+                                        </div>
+                                        <div class="flex justify-between text-amber-700">
+                                            <span>Alibaba Fee (3%):</span>
+                                            <span id="split-alibaba-fee" class="font-mono font-semibold">-€ 0,00</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 font-medium pt-0.5"><span id="split-total-orders-count">0</span> ordini nel lotto</p>
+                                </div>
+                            </div>
+
+                            <!-- 2. Quota & Saldo SERGIO -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[11px] font-bold text-brand-gold uppercase tracking-wider flex items-center gap-1">
+                                        👤 Sergio
+                                    </span>
+                                    <span class="px-2 py-0.5 bg-amber-50 text-brand-gold font-bold text-[10px] rounded-lg">Socio</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[11px] text-slate-500">
+                                        <span>Quota profitto:</span>
+                                        <span id="split-sergio-initial" class="font-mono font-bold text-slate-800">€ 0,00</span>
+                                    </div>
+                                    <div class="flex justify-between text-[11px] text-rose-500 font-medium">
+                                        <span>Acquisti personali:</span>
+                                        <span id="split-sergio-withdrawals" class="font-mono font-bold">-€ 0,00</span>
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-100 flex justify-between items-baseline">
+                                        <span class="text-[10px] font-extrabold text-slate-700 uppercase">Saldo:</span>
+                                        <span id="split-sergio-net" class="text-lg font-black text-emerald-600 font-mono">€ 0,00</span>
+                                    </div>
+                                    <div id="split-sergio-status" class="pt-0.5 text-[10px] font-bold"></div>
+                                </div>
+                            </div>
+
+                            <!-- 3. Quota & Saldo RICCARDO -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+                                        👤 Riccardo
+                                    </span>
+                                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold text-[10px] rounded-lg">Socio</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[11px] text-slate-500">
+                                        <span>Quota profitto:</span>
+                                        <span id="split-riccardo-initial" class="font-mono font-bold text-slate-800">€ 0,00</span>
+                                    </div>
+                                    <div class="flex justify-between text-[11px] text-rose-500 font-medium">
+                                        <span>Acquisti personali:</span>
+                                        <span id="split-riccardo-withdrawals" class="font-mono font-bold">-€ 0,00</span>
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-100 flex justify-between items-baseline">
+                                        <span class="text-[10px] font-extrabold text-slate-700 uppercase">Saldo:</span>
+                                        <span id="split-riccardo-net" class="text-lg font-black text-emerald-600 font-mono">€ 0,00</span>
+                                    </div>
+                                    <div id="split-riccardo-status" class="pt-0.5 text-[10px] font-bold"></div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Saldo Complessivo Soci -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[11px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
+                                        ⚖️ Saldo Totale
+                                    </span>
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 font-bold text-[10px] rounded-lg">Totale Quote</span>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[11px] text-slate-500">
+                                        <span>Riepilogo:</span>
+                                        <span class="font-mono font-medium text-slate-600">Sergio + Riccardo</span>
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-100 flex justify-between items-baseline">
+                                        <span class="text-[10px] font-extrabold text-slate-700 uppercase">Saldo Totale:</span>
+                                        <span id="split-total-net" class="text-lg font-black font-mono text-slate-900">€ 0,00</span>
+                                    </div>
+                                    <div id="split-total-net-status" class="pt-0.5 text-[10px] font-bold"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Tabella Modifiche (Visibile solo se ci sono modifiche) -->
-                    <div id="split-modifiche-table-container" class="hidden overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[750px]">
-                            <thead>
-                                <tr class="bg-slate-50/70 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                    <th class="px-6 py-3.5">Ordine</th>
-                                    <th class="px-6 py-3.5">Cliente</th>
-                                    <th class="px-6 py-3.5">Prodotto / Articoli</th>
-                                    <th class="px-6 py-3.5 text-right">Profitto</th>
-                                    <th class="px-6 py-3.5 text-right">Costo Acquisto</th>
-                                    <th class="px-6 py-3.5 text-center">Divisione</th>
-                                    <th class="px-6 py-3.5 text-right pr-6">Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody id="split-modifiche-tbody" class="divide-y divide-slate-100 text-slate-700 text-xs font-semibold">
-                                <!-- Righe inserite dinamicamente -->
-                            </tbody>
-                        </table>
+                        <!-- Sezione Slider e Modalità Suddivisione Soci -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                            <div class="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-4">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                        <span>⚖️</span> Percentuali Suddivisione Soci
+                                    </h3>
+                                    <span id="profit-split-lotto-badge" class="px-2 py-0.5 bg-slate-100 text-slate-700 font-extrabold text-[10px] rounded-md border border-slate-200">Lotto #1</span>
+                                </div>
+
+                                <div class="p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-200">
+                                    <button type="button" id="btn-mode-manual" onclick="cambiaModalitaSuddivisione('manual')" class="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1 cursor-pointer bg-white text-slate-900 shadow-xs">
+                                        <span>✏️</span> PERCENTUALE MANUALE
+                                    </button>
+                                    <button type="button" id="btn-mode-by-expenses" onclick="cambiaModalitaSuddivisione('by_expenses')" class="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                        <span>🛒</span> IN BASE ALLE SPESE
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div id="sergio-card-container" class="bg-amber-50/40 border border-amber-200/80 rounded-xl p-3">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <span class="font-black text-xs text-amber-900 uppercase">👤 Sergio</span>
+                                            <span id="sergio-badge-mode" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-brand-gold">Socio</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <input type="number" id="profit-split-sergio-input" min="0" max="100" step="0.01" value="50" oninput="onSergioPercentageInput(this.value)" class="w-full pl-2 pr-6 py-1.5 text-base font-black text-slate-900 bg-white border border-amber-300 rounded-lg font-mono">
+                                                <span class="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">%</span>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-[9px] font-bold text-slate-400 uppercase">Saldo</div>
+                                                <div id="split-sergio-share-preview" class="text-xs font-black text-brand-gold font-mono">€ 0,00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="riccardo-card-container" class="bg-blue-50/40 border border-blue-200/80 rounded-xl p-3">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <span class="font-black text-xs text-blue-900 uppercase">👤 Riccardo</span>
+                                            <span id="riccardo-badge-mode" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">Socio</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <input type="number" id="profit-split-riccardo-input" min="0" max="100" step="0.01" value="50" oninput="onRiccardoPercentageInput(this.value)" class="w-full pl-2 pr-6 py-1.5 text-base font-black text-slate-900 bg-white border border-blue-300 rounded-lg font-mono">
+                                                <span class="absolute right-2 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">%</span>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-[9px] font-bold text-slate-400 uppercase">Saldo</div>
+                                                <div id="split-riccardo-share-preview" class="text-xs font-black text-blue-700 font-mono">€ 0,00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="profit-split-slider-container" class="px-1">
+                                    <input type="range" id="profit-split-slider" min="0" max="100" step="1" value="50" oninput="onSliderPercentageInput(this.value)" class="w-full h-2 bg-gradient-to-r from-amber-400 via-purple-400 to-blue-500 rounded-lg appearance-none cursor-pointer accent-slate-900">
+                                </div>
+                            </div>
+
+                            <div class="lg:col-span-5 bg-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
+                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-2 border-b border-slate-800 pb-2">
+                                    <span>📊</span> Riepilogo Saldi Soci
+                                </h3>
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-400">Profitto Disponibile:</span>
+                                        <span id="riepilogo-profitto-lotto" class="font-mono font-bold text-white">€ 0,00</span>
+                                    </div>
+                                    <div class="flex justify-between text-rose-400">
+                                        <span>Spese Sergio:</span>
+                                        <span id="riepilogo-spese-sergio" class="font-mono font-bold">-€ 0,00</span>
+                                    </div>
+                                    <div class="flex justify-between text-rose-400">
+                                        <span>Spese Riccardo:</span>
+                                        <span id="riepilogo-spese-riccardo" class="font-mono font-bold">-€ 0,00</span>
+                                    </div>
+                                    <div class="pt-2 border-t border-slate-800 flex justify-between font-bold">
+                                        <span class="text-amber-400">Saldo Sergio:</span>
+                                        <span id="riepilogo-sergio-quota" class="font-mono text-emerald-400">€ 0,00</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold">
+                                        <span class="text-blue-400">Saldo Riccardo:</span>
+                                        <span id="riepilogo-riccardo-quota" class="font-mono text-emerald-400">€ 0,00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spese Extra Storiche & Modifiche Ordini -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Box Spese Extra -->
+                            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-xs uppercase text-slate-800">👟 Spese Extra Soci</span>
+                                        <span id="split-extra-count-badge" class="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded">0 spese</span>
+                                    </div>
+                                    <button onclick="apriModalSpesaExtra()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg cursor-pointer">
+                                        + Aggiungi
+                                    </button>
+                                </div>
+                                <div id="split-extra-empty-state" class="py-4 text-center text-slate-400 text-xs">
+                                    Nessuna spesa extra registrata.
+                                </div>
+                                <div id="split-extra-table-container" class="hidden overflow-x-auto max-h-48 overflow-y-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <tbody id="split-extra-tbody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Box Modifiche Ordini -->
+                            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-xs uppercase text-slate-800">📝 Modifiche Ordini Soci</span>
+                                    </div>
+                                    <button onclick="avviaSelezioneOrdinePerSuddivisione()" class="px-2.5 py-1 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-[11px] rounded-lg cursor-pointer">
+                                        + Modifica
+                                    </button>
+                                </div>
+                                <div id="split-modifiche-empty-state" class="py-4 text-center text-slate-400 text-xs">
+                                    Tutti gli ordini sono 50% / 50%.
+                                </div>
+                                <div id="split-modifiche-table-container" class="hidden overflow-x-auto max-h-48 overflow-y-auto">
+                                    <table class="w-full text-left text-xs">
+                                        <tbody id="split-modifiche-tbody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                </div>
+                </details>
             </section>
 
         </main>
@@ -5291,6 +5362,18 @@
                     </div>
                 </div>
 
+                <!-- Quota Calzettoni & Prezzo / Calzettoni -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Quota Calzettoni</label>
+                        <input type="number" min="0" step="1" id="torneo-form-quota-calzettoni" placeholder="Es. 50" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Prezzo / Calzettoni (€)</label>
+                        <input type="number" min="0" step="0.01" id="torneo-form-prezzo-calzettoni" placeholder="Es. 6.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                </div>
+
                 <!-- Personalizzazioni Autorizzate -->
                 <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2.5">
                     <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Personalizzazioni Ammesse</label>
@@ -5439,6 +5522,10 @@
                             <input type="checkbox" value="Kit Bambino" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
                             <span class="font-semibold text-slate-700">Kit Bambino</span>
                         </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                            <input type="checkbox" value="Calzettoni" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold">
+                            <span class="font-semibold text-slate-700">Calzettoni</span>
+                        </label>
                     </div>
                 </div>
 
@@ -5553,6 +5640,102 @@
                 <button type="button" id="btn-conferma-export-riepilogo" onclick="confermaGenerazioneExcelRiepilogativoTorneo()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2 cursor-pointer">
                     <span>📊</span> Genera Excel
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETTAGLIO ORDINE TORNEO & PAGAMENTO -->
+    <div id="modal-dettaglio-pagamento-torneo" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out max-h-[90vh] flex flex-col" id="modal-dettaglio-pagamento-container">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">💳</span>
+                    <div>
+                        <h3 id="pagamento-modal-titolo" class="text-base font-extrabold text-slate-900 leading-tight">Dettaglio Pagamento Torneo</h3>
+                        <p id="pagamento-modal-sottotitolo" class="text-xs text-slate-500 font-medium">Snapshot articoli e dati congelati</p>
+                    </div>
+                </div>
+                <button type="button" onclick="chiudiDettaglioPagamentoTorneo()" class="text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-lg hover:bg-slate-200/50 transition-colors cursor-pointer">
+                    <span class="text-xl leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 space-y-5 overflow-y-auto flex-1">
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/70 text-xs">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Squadra</span>
+                        <span id="pagamento-modal-squadra" class="font-extrabold text-slate-900 block truncate">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Codice</span>
+                        <span id="pagamento-modal-codice" class="font-bold text-amber-600 font-mono block truncate">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Torneo</span>
+                        <span id="pagamento-modal-torneo" class="font-bold text-slate-800 block truncate">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Stato</span>
+                        <span id="pagamento-modal-stato" class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold font-mono">-</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Referente / Capitano</span>
+                        <span id="pagamento-modal-referente" class="font-bold text-slate-800 block">-</span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Data Ricezione</span>
+                        <span id="pagamento-modal-data" class="font-mono text-slate-700 block">-</span>
+                    </div>
+                </div>
+
+                <!-- Snapshot Articoli Header -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Articoli Ordinati (Snapshot Congelato)</h4>
+                        <span id="pagamento-modal-tot-pezzi" class="text-[11px] font-bold text-slate-500 font-mono">0 articoli</span>
+                    </div>
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="px-4 py-3">Articolo / Prodotto</th>
+                                    <th class="px-3 py-3 text-center">Taglia</th>
+                                    <th class="px-3 py-3">Personalizzazione</th>
+                                    <th class="px-3 py-3 text-center">Qtà</th>
+                                    <th class="px-3 py-3 text-right">Prezzo</th>
+                                    <th class="px-4 py-3 text-right">Totale</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pagamento-modal-articoli-body" class="divide-y divide-slate-100 font-semibold text-slate-700">
+                                <!-- Righe popolate dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Totale Box -->
+                <div class="p-4 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-sm">
+                    <div>
+                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Totale Incasso Torneo</span>
+                        <span class="text-xs text-slate-300">Prezzi concordati e quota convenzione</span>
+                    </div>
+                    <div class="text-right">
+                        <span id="pagamento-modal-totale-valore" class="text-xl font-black font-mono text-white">0,00 €</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                <button type="button" onclick="chiudiDettaglioPagamentoTorneo()" class="px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-white transition-all uppercase tracking-wider cursor-pointer">
+                    Chiudi
+                </button>
+                <div id="pagamento-modal-actions">
+                    <!-- Bottone "PAGATO" se in attesa -->
+                </div>
             </div>
         </div>
     </div>
@@ -6992,6 +7175,145 @@
                     ASSEGNA
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI / MODIFICA MOVIMENTO ACCANTONAMENTO -->
+    <div id="modal-accantonamento" class="fixed inset-0 z-[10010] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md hidden overflow-y-auto">
+        <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[92vh]">
+            <!-- Modal Header -->
+            <div class="px-5 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">💰</span>
+                    <div>
+                        <h3 id="modal-acc-title" class="text-base font-black tracking-tight">Aggiungi Movimento Cassa</h3>
+                        <p class="text-[11px] text-slate-400">Registra una somma o collega ordini da togliere dall'Incasso Clienti</p>
+                    </div>
+                </div>
+                <button type="button" onclick="chiudiModalAccantonamento()" class="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer text-lg">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Form Body (Scrollable) -->
+            <form id="form-accantonamento" onsubmit="salvaMovimentoAccantonamento(event)" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-grow">
+                <input type="hidden" id="modal-acc-id" value="">
+
+                <!-- Selettore Tipologia -->
+                <div>
+                    <label class="block text-xs font-black text-slate-800 uppercase tracking-wider mb-2">Tipologia Movimento <span class="text-rose-500">*</span></label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer border-2 border-slate-200 rounded-xl p-3 flex flex-col items-center gap-1 text-center hover:border-amber-400 transition-all has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50/50">
+                            <input type="radio" name="acc_tipo" value="da_anticipare" class="sr-only" checked onchange="aggiornaFormAccantonamentoHelper()">
+                            <span class="text-xl">⏳</span>
+                            <span class="text-xs font-black text-slate-900">Da Anticipare</span>
+                            <span class="text-[10px] text-slate-500">Costi da coprire in futuro</span>
+                        </label>
+                        <label class="cursor-pointer border-2 border-slate-200 rounded-xl p-3 flex flex-col items-center gap-1 text-center hover:border-indigo-400 transition-all has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/50">
+                            <input type="radio" name="acc_tipo" value="articolo_mio" class="sr-only" onchange="aggiornaFormAccantonamentoHelper()">
+                            <span class="text-xl">👕</span>
+                            <span class="text-xs font-black text-slate-900">Articolo Mio</span>
+                            <span class="text-[10px] text-slate-500">Acquisto personale</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Sezione Collegamento Ordini Prodotti -->
+                <div class="border border-slate-200 bg-slate-50/70 rounded-2xl p-3.5 sm:p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>📦</span> Ordini Prodotti <span class="text-slate-400 font-normal lowercase text-[11px]">(seleziona per calcolo automatico)</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500">Seleziona uno o più ordini reali per accantonare il costo fornitore esatto</p>
+                        </div>
+                        <span id="modal-acc-orders-count-badge" class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px]">
+                            0 ordini
+                        </span>
+                    </div>
+
+                    <!-- Barra di Ricerca Ordini -->
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+                        <input type="text" id="modal-acc-orders-search" placeholder="Cerca ordine, cliente, prodotto o squadra..." oninput="filtraOrdiniPerAccantonamento(this.value)" class="w-full pl-8 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 transition-all">
+                        <button type="button" onclick="pulisciRicercaOrdiniAccantonamento()" id="btn-clear-search-acc-orders" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs p-1">✕</button>
+                    </div>
+
+                    <!-- Contenitore Lista Ordini Selezionabili -->
+                    <div id="modal-acc-orders-list" class="max-h-52 overflow-y-auto space-y-2 pr-1 rounded-xl border border-slate-200/90 bg-white p-2 divide-y divide-slate-100">
+                        <!-- Popolato via JS da caricaSelettoreOrdiniAccantonamento -->
+                        <div class="py-6 text-center text-xs text-slate-400">Caricamento ordini in corso...</div>
+                    </div>
+
+                    <!-- Box Riepilogo Ordini Selezionati & Calcolo Costo -->
+                    <div id="modal-acc-orders-summary" class="hidden p-3 bg-amber-50/80 border border-amber-200 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex items-center justify-between font-bold text-amber-900">
+                            <span class="flex items-center gap-1.5">
+                                <span>📋</span> <span id="modal-acc-summary-count">0 ordini selezionati</span>
+                            </span>
+                            <button type="button" onclick="deselezionaTuttiOrdiniAccantonamento()" class="text-[11px] text-rose-600 hover:text-rose-800 underline font-bold cursor-pointer">
+                                Deseleziona tutti
+                            </button>
+                        </div>
+                        <div class="text-[11px] text-amber-900 flex items-center justify-between pt-1 border-t border-amber-200/60 font-mono">
+                            <span id="modal-acc-summary-calc" class="truncate pr-2 font-medium">Costo fornitore totale: € 0,00</span>
+                            <strong id="modal-acc-summary-total" class="font-black text-rose-700 whitespace-nowrap text-xs">€ 0,00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descrizione -->
+                <div>
+                    <label for="modal-acc-descrizione" class="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1">
+                        Descrizione Movimento <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="modal-acc-descrizione" required placeholder="Es. Anticipo maglie lotto, Ordine #ORD-123, etc." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                </div>
+
+                <!-- Importo & Data in Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="modal-acc-importo" class="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1">
+                            Importo da Accantonare (€) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-xs">€</span>
+                            <input type="number" id="modal-acc-importo" required step="0.01" min="0.01" placeholder="0.00" class="w-full pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                        </div>
+                        <span class="text-[10px] text-slate-500 mt-1 block">Calcolato sul <strong>costo fornitore reale</strong> degli ordini selezionati.</span>
+                    </div>
+                    <div>
+                        <label for="modal-acc-data" class="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1">
+                            Data Movimento <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="date" id="modal-acc-data" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-brand-gold focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <!-- Note (Opzionali) -->
+                <div>
+                    <label for="modal-acc-note" class="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1">
+                        Note / Dettagli <span class="text-slate-400 font-normal">(Opzionale)</span>
+                    </label>
+                    <textarea id="modal-acc-note" rows="2" placeholder="Note aggiuntive, fornitore, riferimento ordine..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-gold focus:bg-white transition-all"></textarea>
+                </div>
+
+                <!-- Helper info box -->
+                <div id="modal-acc-helper" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-start gap-2">
+                    <span class="text-sm shrink-0">ℹ️</span>
+                    <span id="modal-acc-helper-text">Questo importo verrà sottratto dall'Incasso Clienti per calcolare l'incasso realmente disponibile.</span>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
+                    <button type="button" onclick="chiudiModalAccantonamento()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" id="modal-acc-btn-submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span>💾</span> Salva Movimento
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

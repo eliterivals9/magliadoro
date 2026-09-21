@@ -417,11 +417,19 @@ function normalizzaCategoria(categoria, customSettings = null) {
     "manica lunga": "Maniche Lunghe",
     "kit bambino": "Kit Bambino",
     "bambino": "Kit Bambino",
-    "portiere": "Portiere"
+    "portiere": "Portiere",
+    "calzettoni": "Calzettoni",
+    "calze": "Calzettoni",
+    "calzettone": "Calzettoni",
+    "socks": "Calzettoni"
   };
 
   if (CANONICAL_CATEGORIES[lower]) {
     return CANONICAL_CATEGORIES[lower];
+  }
+
+  if (lower.includes('calzetton') || lower.includes('calze') || lower.includes('socks')) {
+    return 'Calzettoni';
   }
 
   const s = customSettings || getSettings();
@@ -1249,8 +1257,8 @@ function parserPersonalizzazione(infoPerso, taglia, item = {}) {
   };
 }
 
-function getColumnIndexForSize(size) {
-  const s = String(size).toUpperCase().replace(/^1x\s+\[|\]$/g, '').replace(/^\[|\]$/g, '').trim();
+function getColumnIndexForSize(size, isCalz = false) {
+  const s = String(size || '').toUpperCase().replace(/^1x\s+\[|\]$/g, '').replace(/^\[|\]$/g, '').trim();
   if (s === 'S') return 5;
   if (s === 'M') return 6;
   if (s === 'L') return 7;
@@ -1267,7 +1275,33 @@ function getColumnIndexForSize(size) {
   if (s === '24') return 18;
   if (s === '26') return 19;
   if (s === '28') return 20;
-  return -1;
+
+  // Gestione taglie numeriche calzature / calzettoni EU (es. 42, 40-44, 39-42, 35-38, 43-46)
+  const numMatch = s.match(/\b(\d{2})\b/);
+  if (numMatch) {
+    const num = parseInt(numMatch[1], 10);
+    if (num >= 10 && num <= 28 && num % 2 === 0 && !isCalz) {
+      return 11 + Math.floor((num - 10) / 2);
+    }
+    // Taglie calzettoni EU:
+    // 35-38 -> S (col 5)
+    // 39-41 -> M (col 6)
+    // 42-44 -> L (col 7)
+    // 45-48 -> XL (col 8)
+    if (num >= 30 && num <= 38) return 5; // S
+    if (num >= 39 && num <= 41) return 6; // M
+    if (num >= 42 && num <= 44) return 7; // L
+    if (num >= 45 && num <= 49) return 8; // XL
+  }
+
+  if (s.includes('ADULT') || s.includes('UNICA') || s.includes('ONE') || s.includes('STANDARD')) {
+    return 7; // L
+  }
+  if (s.includes('BAMBIN') || s.includes('KID') || s.includes('JUNIOR')) {
+    return 16; // 20
+  }
+
+  return isCalz ? 7 : -1;
 }
 
 function calcolaCostoFornitoreProdotto(prezzoBaseUSD, infoPerso, item = {}) {
@@ -1429,6 +1463,70 @@ function getSupplierShippingCost(totalQuantityPcs, currentSettings = null) {
   const unitShipping = getShippingRateByQuantity(qty, settings);
   const totalShipping = Number((qty * unitShipping).toFixed(2));
   return { unitShipping, totalShipping };
+}
+
+/**
+ * Determina se un articolo dell'ordine o carrello contribuisce al calcolo della spedizione fornitore.
+ * Default retrocompatibile: true.
+ * Se l'articolo (o l'accessorio corrispondente nel catalogo) ha supplier_shipping_enabled === false o spedizione_fornitore === false, restituisce false.
+ */
+function isSupplierShippingEnabledForItem(item, accessoriesList = null) {
+  if (!item) return true;
+
+  // 1. Controllo diretto sull'oggetto item
+  if (item.supplier_shipping_enabled !== undefined && item.supplier_shipping_enabled !== null) {
+    return Boolean(item.supplier_shipping_enabled);
+  }
+  if (item.spedizione_fornitore !== undefined && item.spedizione_fornitore !== null) {
+    return Boolean(item.spedizione_fornitore);
+  }
+  if (item.applica_spedizione_fornitore !== undefined && item.applica_spedizione_fornitore !== null) {
+    return Boolean(item.applica_spedizione_fornitore);
+  }
+
+  // 2. Controllo catalogo accessori
+  let accList = accessoriesList;
+  if (!accList) {
+    try {
+      accList = getLocalAccessories();
+    } catch (e) {
+      accList = [];
+    }
+  }
+
+  if (Array.isArray(accList) && accList.length > 0) {
+    let matchedAcc = null;
+    const itemId = item.id !== undefined && item.id !== null ? String(item.id).trim() : '';
+    const accId = item.accessory_id !== undefined && item.accessory_id !== null ? String(item.accessory_id).trim() : '';
+    const code = item.codice !== undefined && item.codice !== null ? String(item.codice).trim() : '';
+
+    if (itemId) {
+      matchedAcc = accList.find(a => String(a.id) === itemId || String(a.codice) === itemId);
+    }
+    if (!matchedAcc && accId) {
+      matchedAcc = accList.find(a => String(a.id) === accId || String(a.codice) === accId);
+    }
+    if (!matchedAcc && code) {
+      matchedAcc = accList.find(a => String(a.codice) === code || String(a.id) === code);
+    }
+    if (!matchedAcc) {
+      const name = (item.nome || item.versione || item.squadra || "").trim().toLowerCase();
+      if (name) {
+        matchedAcc = accList.find(a => (a.nome || "").trim().toLowerCase() === name || (a.versione || "").trim().toLowerCase() === name);
+      }
+    }
+
+    if (matchedAcc) {
+      if (matchedAcc.supplier_shipping_enabled !== undefined && matchedAcc.supplier_shipping_enabled !== null) {
+        return Boolean(matchedAcc.supplier_shipping_enabled);
+      }
+      if (matchedAcc.spedizione_fornitore !== undefined && matchedAcc.spedizione_fornitore !== null) {
+        return Boolean(matchedAcc.spedizione_fornitore);
+      }
+    }
+  }
+
+  return true;
 }
 
 function getCentralizedExchangeRate(settings = null) {
@@ -1831,10 +1929,31 @@ function getExcelProductTitle(item, matchedProd) {
 }
 
 function compileProductFieldsForExcel(normalizedItem) {
+  const prod = normalizedItem.matchedProd;
+  const rawCat = String(normalizedItem.categoria || (prod ? prod.categoria : "") || "").trim();
+  const catNorm = normalizzaCategoria(rawCat).toLowerCase();
+  const squadra = (normalizedItem.squadra || "").trim();
+  const titleItalian = (normalizedItem.titleItalian || (prod ? (prod.versione || prod.nome) : "") || squadra).trim();
+  const nameNorm = (titleItalian + " " + squadra).toLowerCase();
+
+  const isCalz = catNorm === 'calzettoni' || catNorm.includes('calzet') || catNorm.includes('sock') ||
+                 nameNorm.includes('calzet') || nameNorm.includes('sock') ||
+                 (normalizedItem.tipo_catalogo === 'accessori' && (catNorm.includes('calz') || nameNorm.includes('calz') || nameNorm.includes('sock')));
+
+  if (isCalz) {
+    const isBambino = nameNorm.includes('bambino') || nameNorm.includes('kids') || nameNorm.includes('kid') || nameNorm.includes('junior');
+    const targetCh = isBambino ? "儿童" : "成人";
+    return {
+      titleEng: "Socks",
+      titleCh: "",
+      styleEng: targetCh,
+      isCalz: true
+    };
+  }
+
   const styleEng = normalizedItem.style || getExcelProductStyle(normalizedItem, normalizedItem.matchedProd);
   const titleEng = normalizedItem.titleItalian || getExcelProductTitle(normalizedItem, normalizedItem.matchedProd);
 
-  const squadra = (normalizedItem.squadra || "").trim();
   const versione = (normalizedItem.titleItalian || squadra).toLowerCase();
   const stagione = (normalizedItem.season || "25/26").trim();
 
@@ -1877,7 +1996,7 @@ function compileProductFieldsForExcel(normalizedItem) {
 
   const titleCh = `${seasonClean}${chTeam}${chVers}${chType}`;
 
-  return { titleEng, titleCh, styleEng };
+  return { titleEng, titleCh, styleEng, isCalz: false };
 }
 
 async function generaExcelLotto(lottoId, orders) {
@@ -1889,7 +2008,7 @@ async function generaExcelLotto(lottoId, orders) {
   const workbook = templateObj.workbook;
   const worksheet = templateObj.worksheet || workbook.getWorksheet(1) || workbook.worksheets[0];
 
-  // 1. CARICAMENTO COMPLETO E RESILIENTE DEL CATALOGO PRODOTTI (Paginazione Supabase completa per 4600+ prodotti)
+  // 1. CARICAMENTO COMPLETO E RESILIENTE DEL CATALOGO PRODOTTI E ACCESSORI
   let localProducts = [];
   try {
     localProducts = getLocalProducts();
@@ -1904,9 +2023,17 @@ async function generaExcelLotto(lottoId, orders) {
   } catch (e) {
     console.warn("⚠️ Warning caricamento prodotti completi per Excel:", e.message);
   }
-  const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+  let localAccessories = [];
+  try {
+    localAccessories = getLocalAccessories();
+  } catch (e) {}
 
-  // Pre-indicizzazione O(1) rigida: UUID e legacy_id (Nessun fallback ambiguo per sola squadra)
+  const allDbProducts = [
+    ...(supabaseProducts.length > 0 ? supabaseProducts : localProducts),
+    ...(Array.isArray(localAccessories) ? localAccessories : [])
+  ];
+
+  // Pre-indicizzazione O(1) rigida: UUID, legacy_id, codice, versione/nome
   const prodByIdMap = new Map();
   const prodByLegacyIdMap = new Map();
   const prodByExactVersioneMap = new Map();
@@ -1918,8 +2045,12 @@ async function generaExcelLotto(lottoId, orders) {
     if (p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id).trim() !== "") {
       prodByLegacyIdMap.set(String(p.legacy_id).trim(), p);
     }
-    if (p.versione) {
-      prodByExactVersioneMap.set(String(p.versione).trim().toLowerCase(), p);
+    if (p.codice !== undefined && p.codice !== null && String(p.codice).trim() !== "") {
+      prodByIdMap.set(String(p.codice).trim(), p);
+    }
+    const ver = p.versione || p.nome || p.titolo;
+    if (ver) {
+      prodByExactVersioneMap.set(String(ver).trim().toLowerCase(), p);
     }
   });
 
@@ -1943,25 +2074,33 @@ async function generaExcelLotto(lottoId, orders) {
       if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
         matchedProd = prodByIdMap.get(String(item.id).trim());
       }
+      if (!matchedProd && item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "") {
+        matchedProd = prodByIdMap.get(String(item.accessory_id).trim());
+      }
       if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
         const cand = prodByLegacyIdMap.get(String(item.legacy_id).trim());
         if (cand) {
-          const itemSqNorm = normalizzaStringaMatching(item.squadra || item.versione || "");
-          const candVerNorm = normalizzaStringaMatching(cand.versione || "");
+          const itemSqNorm = normalizzaStringaMatching(item.squadra || item.versione || item.nome || "");
+          const candVerNorm = normalizzaStringaMatching(cand.versione || cand.nome || "");
           const candSqNorm = normalizzaStringaMatching(cand.squadra || "");
           if (itemSqNorm === candVerNorm || itemSqNorm === candSqNorm || candVerNorm.includes(itemSqNorm) || itemSqNorm.includes(candVerNorm) || candSqNorm.includes(itemSqNorm)) {
             matchedProd = cand;
           }
         }
       }
-      if (!matchedProd && item.squadra) {
-        const sqKeyNorm = normalizzaStringaMatching(item.squadra);
+      if (!matchedProd && (item.squadra || item.nome || item.versione)) {
+        const sqKeyNorm = normalizzaStringaMatching(item.squadra || item.nome || item.versione);
         matchedProd = allDbProducts.find(p => {
-          const pVerNorm = normalizzaStringaMatching(p.versione);
-          const pSqNorm = normalizzaStringaMatching(p.squadra);
+          const pVerNorm = normalizzaStringaMatching(p.versione || p.nome || "");
+          const pSqNorm = normalizzaStringaMatching(p.squadra || "");
           return pVerNorm === sqKeyNorm || pSqNorm === sqKeyNorm;
         });
       }
+
+      const catNormTmp = normalizzaCategoria(item.categoria || (matchedProd ? matchedProd.categoria : '') || '').toLowerCase();
+      const isCalzTmp = catNormTmp === 'calzettoni' || catNormTmp.includes('calzet') || catNormTmp.includes('sock') ||
+                        String(item.squadra || item.versione || item.nome || '').toLowerCase().includes('calzet') || String(item.squadra || item.versione || item.nome || '').toLowerCase().includes('sock') ||
+                        (item.tipo_catalogo === 'accessori' && (catNormTmp.includes('calz') || String(item.squadra || '').toLowerCase().includes('calz')));
 
       // PREZZO FORNITORE BASE IN USD
       let basePriceUSD = 0;
@@ -1972,7 +2111,7 @@ async function generaExcelLotto(lottoId, orders) {
       } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && Number(item.Prezzo_fornitore) > 0) {
         basePriceUSD = Number(item.Prezzo_fornitore);
       } else {
-        basePriceUSD = 10.00;
+        basePriceUSD = isCalzTmp ? 3.00 : 10.00;
       }
 
       // Calcolo personalizzazioni fornitore in USD (Formula ufficiale: $1 Nome, $1 Numero, $1 Patch)
@@ -1983,8 +2122,8 @@ async function generaExcelLotto(lottoId, orders) {
       const supplierTotalPriceUSD = Number((supplierUnitPriceUSD * q).toFixed(2));
 
       // OGGETTO NORMALIZZATO CERTIFICATO: Stessa identica sorgente per tutti i campi
-      const titleItalian = matchedProd ? matchedProd.versione.trim() : (item.versione || item.squadra || "").trim();
-      const squadra = matchedProd ? matchedProd.squadra.trim() : (item.squadra || "").trim();
+      const titleItalian = matchedProd ? (matchedProd.versione || matchedProd.nome || matchedProd.titolo || "").trim() : (item.versione || item.nome || item.squadra || "").trim();
+      const squadra = matchedProd ? (matchedProd.squadra || matchedProd.nome || "").trim() : (item.squadra || item.nome || "").trim();
       const categoria = matchedProd ? String(matchedProd.categoria || "").trim() : String(item.categoria || "").trim();
       const season = matchedProd ? String(matchedProd.stagione || "25/26").trim() : (item.stagione || "25/26");
       
@@ -2020,6 +2159,7 @@ async function generaExcelLotto(lottoId, orders) {
         supplierCustomizationPriceUSD: Number(supplierCustomizationPriceUSD.toFixed(2)),
         supplierUnitPriceUSD: supplierUnitPriceUSD,
         supplierTotalPriceUSD: supplierTotalPriceUSD,
+        supplierShippingEnabled: isSupplierShippingEnabledForItem(item, localAccessories),
         matchedProd
       };
 
@@ -2062,7 +2202,7 @@ async function generaExcelLotto(lottoId, orders) {
     const item = normalizedItems[idx];
     const row = worksheet.getRow(currentRowNum);
 
-    const { titleEng, titleCh, styleEng } = compileProductFieldsForExcel(item);
+    const { titleEng, titleCh, styleEng, isCalz } = compileProductFieldsForExcel(item);
     const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
 
     // Col A (1): Immagine incorporata realmente nel workbook (104x104px)
@@ -2100,9 +2240,9 @@ async function generaExcelLotto(lottoId, orders) {
       }
     }
 
-    row.getCell(2).value = titleEng;          // Col B (2): 标题(title)
-    row.getCell(3).value = titleCh;           // Col C (3): 中文标题(title)
-    row.getCell(4).value = styleEng;          // Col D (4): 标签(styles)
+    row.getCell(2).value = titleEng;          // Col B (2): 标题(title) -> "Socks" per i calzettoni
+    row.getCell(3).value = titleCh;           // Col C (3): 中文标题(title) -> "" per i calzettoni
+    row.getCell(4).value = styleEng;          // Col D (4): 标签(styles) -> "成人" per calzettoni adulti, "儿童" per bambino
 
     // Svuota taglie (colonne 5 a 20)
     for (let c = 5; c <= 20; c++) {
@@ -2110,7 +2250,7 @@ async function generaExcelLotto(lottoId, orders) {
     }
 
     // Imposta la quantità corretta nella colonna della taglia
-    const colIdx = getColumnIndexForSize(item.taglia);
+    const colIdx = getColumnIndexForSize(item.taglia, isCalz);
     if (colIdx !== -1) {
       row.getCell(colIdx).value = item.quantity;
     }
@@ -2146,6 +2286,7 @@ async function generaExcelLotto(lottoId, orders) {
 
   const lastItemRowNum = currentRowNum > 4 ? currentRowNum - 1 : 4;
   const totalQuantityPcs = normalizedItems.reduce((acc, it) => acc + it.quantity, 0);
+  const shippingQuantityPcs = normalizedItems.filter(it => it.supplierShippingEnabled !== false).reduce((acc, it) => acc + it.quantity, 0);
   const totalItemsSupplierPriceUSD = Number(normalizedItems.reduce((acc, it) => acc + it.supplierTotalPriceUSD, 0).toFixed(2));
 
   // Righe finali riepilogo
@@ -2171,12 +2312,14 @@ async function generaExcelLotto(lottoId, orders) {
   shippingRow.getCell(1).font = { bold: true };
   
   const settings = getSettings();
-  const { unitShipping, totalShipping: totShippingUSD } = getSupplierShippingCost(totalQuantityPcs, settings);
+  const { unitShipping, totalShipping: totShippingUSD } = getSupplierShippingCost(shippingQuantityPcs, settings);
 
   shippingRow.getCell(24).value = unitShipping;
   shippingRow.getCell(24).numFmt = '#,##0.00';
   shippingRow.getCell(24).alignment = { horizontal: 'center', vertical: 'middle' };
-  shippingRow.getCell(25).value = { formula: `X${shippingRowNum}*U${totalQtyRowNum}`, result: totShippingUSD };
+  shippingRow.getCell(25).value = shippingQuantityPcs === totalQuantityPcs
+    ? { formula: `X${shippingRowNum}*U${totalQtyRowNum}`, result: totShippingUSD }
+    : { formula: `${shippingQuantityPcs}*X${shippingRowNum}`, result: totShippingUSD };
   shippingRow.getCell(25).font = { bold: true };
   shippingRow.getCell(25).numFmt = '#,##0.00';
   currentRowNum++;
@@ -2335,6 +2478,275 @@ function getSupabaseAdminClient() {
     console.warn("⚠️ Information: Supabase admin client initialization fallback:", err.message);
     return getSupabaseClient();
   }
+}
+
+// ==========================================
+// SERVIZIO CENTRALIZZATO GESTIONE IMMAGINI PRODOTTO (SUPABASE STORAGE)
+// ==========================================
+
+/**
+ * Verifica se un URL punta in modo valido e persistente a Supabase Storage (bucket 'prodotti')
+ */
+function isSupabaseStorageProductUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const clean = url.split('#')[0].trim();
+  return clean.includes('.supabase.co/storage/v1/object/public/prodotti/');
+}
+
+/**
+ * Controlla i magic bytes di un buffer per verificare che sia realmente un'immagine supportata.
+ */
+function hasValidImageMagicBytes(buf) {
+  if (!buf || buf.length < 12) return false;
+  // JPEG (FF D8 FF)
+  if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return true;
+  // PNG (89 50 4E 47 0D 0A 1A 0A)
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return true;
+  // GIF (GIF87a or GIF89a)
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return true;
+  // WebP (RIFF .... WEBP)
+  if (buf.subarray(0, 4).toString('ascii') === 'RIFF' && buf.subarray(8, 12).toString('ascii') === 'WEBP') return true;
+  // AVIF / HEIF / MP4 (ftyp)
+  if (buf.subarray(4, 8).toString('ascii') === 'ftyp') return true;
+  // BMP (BM)
+  if (buf[0] === 0x42 && buf[1] === 0x4D) return true;
+  return false;
+}
+
+/**
+ * Valida rigorosamente un buffer di immagine prima della conversione o dell'upload:
+ * - Dimensione minima (> 100 bytes)
+ * - Assenza di firme HTML o challenge anti-bot (Cloudflare, CAPTCHA, etc.)
+ * - Assenza di JSON di errore
+ * - Magic bytes validi
+ * - Validazione e decodifica metadati con Sharp (width & height > 0)
+ */
+async function validaBufferImmagine(buffer) {
+  if (!buffer || !Buffer.isBuffer(buffer)) {
+    throw new Error("Dati immagine non validi o formato buffer mancante.");
+  }
+
+  if (buffer.length < 100) {
+    throw new Error(`Contenuto immagine troppo piccolo (${buffer.length} byte), possibile payload corrotto o nullo.`);
+  }
+
+  // Analisi primi 1024 byte per individuare HTML / bot challenge / errori testo
+  const headerSample = buffer.subarray(0, Math.min(buffer.length, 1024)).toString('utf8').toLowerCase();
+  const htmlSignatures = [
+    '<!doctype', '<html', '<head', '<body', '<script',
+    'challenges.cloudflare.com', 'cf-browser-verification',
+    'turnstile', 'captcha', 'attention required!', 'access denied',
+    'just a moment...', 'enable javascript', 'checking your browser',
+    'security service to protect itself'
+  ];
+
+  for (const sig of htmlSignatures) {
+    if (headerSample.includes(sig)) {
+      throw new Error(`Contenuto non valido: rilevata risposta HTML / challenge anti-bot ('${sig}') invece di un'immagine valida.`);
+    }
+  }
+
+  // Verifica che non sia un JSON di errore
+  const firstChar = buffer[0];
+  if (firstChar === 0x7B || firstChar === 0x5B) { // '{' or '['
+    try {
+      JSON.parse(buffer.toString('utf8'));
+      throw new Error("Contenuto non valido: il server fornitore ha restituito dati JSON anziché un'immagine.");
+    } catch (jsonErr) {
+      if (jsonErr.message.includes("Contenuto non valido")) throw jsonErr;
+    }
+  }
+
+  // Controllo magic bytes
+  if (!hasValidImageMagicBytes(buffer)) {
+    throw new Error("Firma file (magic bytes) non riconosciuta come immagine valida (JPEG, PNG, WebP, GIF, AVIF, BMP).");
+  }
+
+  // Validazione decodifica e metadati Sharp
+  let metadata;
+  try {
+    metadata = await sharp(buffer).metadata();
+  } catch (sharpErr) {
+    throw new Error(`Decodifica immagine fallita: ${sharpErr.message}`);
+  }
+
+  if (!metadata || !metadata.width || !metadata.height) {
+    throw new Error("Metadati immagine non validi (dimensioni width/height assenti o non leggibili).");
+  }
+
+  return metadata;
+}
+
+/**
+ * Funzione centralizzata per acquisizione, validazione, conversione (WebP 300x300 qualità 80),
+ * caricamento e verifica su Supabase Storage (bucket 'prodotti').
+ * 
+ * Ritorna { success: true, publicUrl, filename, alreadyMigrated } oppure solleva un'eccezione.
+ * NON scrive MAI su filesystem locale né accetta fallback effimeri.
+ */
+async function processAndPersistProductImage({ imageSource, productId = null, originalUrl = '' }) {
+  if (!imageSource && !originalUrl) {
+    throw new Error("Nessuna sorgente immagine fornita.");
+  }
+
+  const candidate = (typeof imageSource === 'string' ? imageSource : (originalUrl || '')).trim();
+
+  // 1. Se è già un URL Supabase Storage valido nel bucket prodotti, è già persistente
+  if (candidate && isSupabaseStorageProductUrl(candidate)) {
+    return {
+      success: true,
+      publicUrl: candidate,
+      alreadyMigrated: true
+    };
+  }
+
+  // 2. Rifiuta categoricamente path locali effimeri
+  if (candidate && (candidate.startsWith('/uploads/') || candidate.startsWith('uploads/'))) {
+    throw new Error("I percorsi locali effimeri (/uploads/prodotti/) non sono ammessi come sorgente persistente.");
+  }
+
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
+  if (!supabase) {
+    throw new Error("Client Supabase non disponibile sul server per l'upload su Supabase Storage.");
+  }
+
+  let rawBuffer = null;
+
+  // 3. Acquisizione del buffer: Data URL, Buffer, o HTTP URL esterno
+  if (Buffer.isBuffer(imageSource)) {
+    rawBuffer = imageSource;
+  } else if (typeof imageSource === 'string' && imageSource.startsWith('data:')) {
+    const base64Clean = imageSource.replace(/^data:[^;]+;base64,/, '');
+    rawBuffer = Buffer.from(base64Clean, 'base64');
+  } else if (typeof imageSource === 'string' && (imageSource.startsWith('http://') || imageSource.startsWith('https://'))) {
+    const targetFetchUrl = imageSource;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const resp = await fetch(targetFetchUrl, {
+        headers: {
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          'accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          'referer': 'https://jerseys-catalog.com/'
+        },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) {
+        throw new Error(`Download dal fornitore fallito con HTTP ${resp.status} ${resp.statusText}`);
+      }
+
+      const contentType = (resp.headers.get('content-type') || '').toLowerCase();
+      if (contentType.includes('text/html') || contentType.includes('application/json') || contentType.includes('text/plain')) {
+        throw new Error(`Il server esterno ha risposto con '${contentType}' anziché con un file immagine.`);
+      }
+
+      const arrayBuf = await resp.arrayBuffer();
+      rawBuffer = Buffer.from(arrayBuf);
+    } catch (fetchErr) {
+      clearTimeout(timeoutId);
+      throw new Error(`Impossibile scaricare immagine da ${targetFetchUrl}: ${fetchErr.message}`);
+    }
+  } else {
+    throw new Error("Formato sorgente immagine non supportato (richiesto Buffer, data URL o URL HTTP/HTTPS).");
+  }
+
+  // 4. Validazione dell'immagine (magic bytes, html check, sharp decode)
+  await validaBufferImmagine(rawBuffer);
+
+  // 5. Conversione uniforme nel formato catalogo: WebP 300x300 qualità 80
+  let webpBuffer;
+  try {
+    webpBuffer = await sharp(rawBuffer)
+      .resize(300, 300, { fit: 'cover' })
+      .webp({ quality: 80 })
+      .toBuffer();
+  } catch (convErr) {
+    throw new Error(`Errore durante la conversione in WebP 300x300: ${convErr.message}`);
+  }
+
+  // 6. Generazione nome file deterministico basato su hash dei byte WebP (deduplicazione)
+  const hash = crypto.createHash('sha256').update(webpBuffer).digest('hex').substring(0, 16);
+  const filename = `img_${hash}.webp`;
+
+  // 7. Upload su Supabase Storage (bucket 'prodotti')
+  const { error: uploadError } = await supabase.storage
+    .from('prodotti')
+    .upload(filename, webpBuffer, {
+      contentType: 'image/webp',
+      upsert: true
+    });
+
+  if (uploadError) {
+    throw new Error(`Errore caricamento su Supabase Storage bucket 'prodotti': ${uploadError.message}`);
+  }
+
+  // 8. Ottenimento dell'URL pubblico
+  const { data: pubData } = supabase.storage.from('prodotti').getPublicUrl(filename);
+  if (!pubData || !pubData.publicUrl) {
+    throw new Error("Impossibile generare l'URL pubblico per il file caricato su Supabase Storage.");
+  }
+  const persistentUrl = pubData.publicUrl;
+
+  // 9. Verifica di esistenza effettiva del file nello Storage
+  try {
+    const { data: listData, error: listError } = await supabase.storage
+      .from('prodotti')
+      .list('', { search: filename, limit: 1 });
+    
+    const fileExists = !listError && listData && listData.some(f => f.name === filename);
+    if (!fileExists) {
+      const headRes = await fetch(persistentUrl, { method: 'HEAD' });
+      if (!headRes.ok) {
+        throw new Error(`Verifica esistenza file su Supabase Storage fallita per '${filename}' (HTTP ${headRes.status}).`);
+      }
+    }
+  } catch (verifyErr) {
+    console.warn("⚠️ Avviso durante la verifica esistenza file:", verifyErr.message);
+  }
+
+  return {
+    success: true,
+    publicUrl: persistentUrl,
+    filename: filename
+  };
+}
+
+/**
+ * Validatore centralizzato di protezione del database:
+ * Impedisce categoricamente che 'products.immagine' contenga /uploads/prodotti/ o URL esterni del fornitore non persistiti.
+ */
+function validateProductImageForDatabase(immagine, { isCreation = false, originalImmagine = null } = {}) {
+  if (!immagine) return "";
+
+  const clean = String(immagine).trim();
+  if (clean === "") return "";
+
+  // 1. Blocco assoluto percorsi locali effimeri
+  if (clean.startsWith('/uploads/') || clean.startsWith('uploads/')) {
+    throw new Error("Salvataggio rifiutato: percorsi locali effimeri (/uploads/prodotti/) non sono ammessi nel database. Le immagini devono risiedere su Supabase Storage.");
+  }
+
+  // 2. Blocco assoluto URL esterni jerseys-catalog.com non persistiti
+  if (clean.includes('jerseys-catalog.com')) {
+    throw new Error("Salvataggio rifiutato: URL esterno del fornitore (jerseys-catalog.com) non persistito. L'immagine deve essere caricata su Supabase Storage prima del salvataggio.");
+  }
+
+  // 3. Consenti URL Supabase Storage validi
+  if (isSupabaseStorageProductUrl(clean)) {
+    return clean;
+  }
+
+  // 4. Se è una nuova creazione o se l'immagine è stata modificata:
+  // NON consentire altri URL esterni generici o formati non persistiti
+  if (isCreation || (originalImmagine && clean !== originalImmagine)) {
+    throw new Error("Salvataggio rifiutato: l'immagine deve essere preventivamente caricata e verificata su Supabase Storage.");
+  }
+
+  // 5. Preservazione per record esistenti non modificati
+  return clean;
 }
 
 // ==========================================
@@ -3991,6 +4403,26 @@ app.post('/api/settings', async (req, res) => {
 // ==========================================
 
 const LOCAL_PROMOS_FILE = path.join(__dirname, 'marketing_promos_local.json');
+const MARKETING_PROMOS_ASSETS_DIR = path.join(__dirname, 'assets', 'marketing-promos');
+
+if (!fs.existsSync(MARKETING_PROMOS_ASSETS_DIR)) {
+  try {
+    fs.mkdirSync(MARKETING_PROMOS_ASSETS_DIR, { recursive: true });
+  } catch (e) {
+    console.error("Errore creazione directory marketing-promos:", e.message);
+  }
+}
+
+// In-memory cache per la promo attiva per evitare query ripetute a Supabase ad ogni polling
+let activePromoCache = {
+  data: null,
+  expiry: 0
+};
+const ACTIVE_PROMO_CACHE_TTL_MS = 60 * 1000; // 60 secondi di cache in memoria
+
+function invalidateActivePromoCache() {
+  activePromoCache = { data: null, expiry: 0 };
+}
 
 function getLocalPromos() {
   if (fs.existsSync(LOCAL_PROMOS_FILE)) {
@@ -4014,6 +4446,31 @@ function saveLocalPromos(promos) {
   }
 }
 
+// Helper per convertire in sicurezza immagini Base64 promo in file WebP ottimizzati
+async function convertPromoBase64ToWebp(base64Str) {
+  if (!base64Str || typeof base64Str !== 'string' || !base64Str.startsWith('data:image/')) {
+    return base64Str;
+  }
+  try {
+    const matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (matches && matches.length === 3) {
+      const fileBuffer = Buffer.from(matches[2], 'base64');
+      const filename = `promo_${Date.now()}.webp`;
+      const filePath = path.join(MARKETING_PROMOS_ASSETS_DIR, filename);
+      await sharp(fileBuffer)
+        .resize(900, 900, { fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 84 })
+        .toFile(filePath);
+      const publicUrl = `/assets/marketing-promos/${filename}`;
+      console.log(`✅ Immagine promo convertita in WebP ottimizzato: ${publicUrl}`);
+      return publicUrl;
+    }
+  } catch (err) {
+    console.error("⚠️ Errore conversione immagine promo Base64 in WebP:", err.message);
+  }
+  return base64Str;
+}
+
 // GET /api/marketing-promos - Leggi tutte le promo
 app.get('/api/marketing-promos', async (req, res) => {
   try {
@@ -4034,9 +4491,18 @@ app.get('/api/marketing-promos', async (req, res) => {
   }
 });
 
-// GET /api/marketing-promos/active - Leggi la promo attiva per la Home
+// GET /api/marketing-promos/active - Leggi la promo attiva per la Home (con cache in-memory 60s)
 app.get('/api/marketing-promos/active', async (req, res) => {
   try {
+    // 1. Verifica cache in-memory attiva
+    const now = Date.now();
+    if (activePromoCache.data && now < activePromoCache.expiry) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(activePromoCache.data);
+    }
+
+    // 2. Fetch da Supabase se cache scaduta
     const supabase = getSupabaseClient();
     if (supabase) {
       const { data, error } = await supabase
@@ -4048,14 +4514,36 @@ app.get('/api/marketing-promos/active', async (req, res) => {
         .limit(1);
       if (error) throw error;
       if (data && data.length > 0) {
-        return res.json({ success: true, promo: data[0] });
+        const promo = data[0];
+        // Protezione: se l'immagine è ancora una vecchia Base64, convertila automaticamente
+        if (promo.immagine && promo.immagine.startsWith('data:image/')) {
+          promo.immagine = await convertPromoBase64ToWebp(promo.immagine);
+        }
+        const payload = { success: true, promo };
+        activePromoCache = {
+          data: payload,
+          expiry: now + ACTIVE_PROMO_CACHE_TTL_MS
+        };
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        res.setHeader('X-Cache', 'MISS');
+        return res.json(payload);
       }
     }
     
-    // Fallback local file
+    // 3. Fallback local file
     const local = getLocalPromos();
     const activeLocal = local.find(p => p.pagina === 'home' && p.attiva === true);
-    return res.json({ success: true, promo: activeLocal || null });
+    if (activeLocal && activeLocal.immagine && activeLocal.immagine.startsWith('data:image/')) {
+      activeLocal.immagine = await convertPromoBase64ToWebp(activeLocal.immagine);
+    }
+    const fallbackPayload = { success: true, promo: activeLocal || null };
+    activePromoCache = {
+      data: fallbackPayload,
+      expiry: now + ACTIVE_PROMO_CACHE_TTL_MS
+    };
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    res.setHeader('X-Cache', 'MISS-LOCAL');
+    return res.json(fallbackPayload);
   } catch (err) {
     console.error("⚠️ Errore caricamento promo attiva:", err.message);
     return res.status(500).json({ success: false, error: err.message });
@@ -4085,6 +4573,12 @@ app.post('/api/marketing-promos', async (req, res) => {
       data_fine
     } = payload;
 
+    // Se l'immagine ricevuta è una Base64, convertila immediatamente in un file WebP leggero
+    let finalImmagine = (immagine || '').trim();
+    if (finalImmagine.startsWith('data:image/')) {
+      finalImmagine = await convertPromoBase64ToWebp(finalImmagine);
+    }
+
     const promoData = {
       attiva: Boolean(attiva),
       pagina,
@@ -4092,7 +4586,7 @@ app.post('/api/marketing-promos', async (req, res) => {
       titolo: titolo || '',
       sottotitolo: sottotitolo || '',
       descrizione: descrizione || '',
-      immagine: immagine || '',
+      immagine: finalImmagine,
       bottone_testo: bottone_testo || '',
       bottone_link: bottone_link || '',
       codice_sconto: codice_sconto || '',
@@ -4155,6 +4649,9 @@ app.post('/api/marketing-promos', async (req, res) => {
       localPromos.push(localPromoData);
     }
     saveLocalPromos(localPromos);
+
+    // Invalida immediatamente la cache server-side in modo che le modifiche siano istantanee
+    invalidateActivePromoCache();
 
     return res.json({ success: true, promo: savedPromo || localPromoData });
   } catch (err) {
@@ -4412,108 +4909,6 @@ function determinaCategoriaESezioneSquadraServer(squadName, sampleProduct) {
   return { categoria, sezione };
 }
 
-async function assicuraEsistenzaSquadreServer(products, supabase) {
-  if (!Array.isArray(products) || products.length === 0) {
-    return { create: 0, collegate: 0 };
-  }
-
-  let existingTeamsList = [];
-  if (supabase) {
-    try {
-      const { data: dbTeams, error: teamsError } = await supabase.from('teams').select('id, name, categoria, sezione');
-      if (!teamsError && dbTeams) {
-        existingTeamsList = dbTeams;
-      }
-    } catch (e) {
-      console.warn("⚠️ Errore lettura teams su Supabase in assicuraEsistenzaSquadreServer:", e.message);
-    }
-  }
-  
-  if (existingTeamsList.length === 0) {
-    existingTeamsList = getLocalTeams();
-  }
-
-  const squadreDaCreareMap = new Map();
-  let collegate = 0;
-
-  for (const p of products) {
-    if (!p.squadra || typeof p.squadra !== 'string') continue;
-    const squadTrim = p.squadra.trim();
-    if (!squadTrim || squadTrim === 'Sconosciuta' || squadTrim === 'SQUADRA NON RICONOSCIUTA') continue;
-
-    const matchedTeam = trovaSquadraCorrispondenteServer(squadTrim, existingTeamsList);
-    if (matchedTeam) {
-      p.squadra = matchedTeam.name;
-      collegate++;
-    } else {
-      const normKey = normalizzaNomeSquadraServer(squadTrim);
-      if (!squadreDaCreareMap.has(normKey)) {
-        const { categoria, sezione } = determinaCategoriaESezioneSquadraServer(squadTrim, p);
-        squadreDaCreareMap.set(normKey, {
-          name: squadTrim,
-          categoria,
-          sezione,
-          created_at: new Date().toISOString()
-        });
-      }
-    }
-  }
-
-  const nuoveSquadre = Array.from(squadreDaCreareMap.values());
-  let create = 0;
-
-  if (nuoveSquadre.length > 0) {
-    console.log(`[TEAMS_AUTO_REG] Rilevate ${nuoveSquadre.length} nuove squadre da inserire:`, nuoveSquadre.map(t => `${t.name} (${t.categoria} - ${t.sezione})`));
-    
-    if (supabase) {
-      try {
-        const { data: insertedData, error: insertError } = await supabase
-          .from('teams')
-          .insert(nuoveSquadre)
-          .select();
-
-        if (insertError) {
-          console.error("⚠️ Errore inserimento Supabase nuove squadre:", insertError.message);
-          const local = getLocalTeams();
-          saveLocalTeams([...local, ...nuoveSquadre]);
-          nuoveSquadre.forEach(t => existingTeamsList.push(t));
-          create = nuoveSquadre.length;
-        } else if (insertedData) {
-          create = insertedData.length;
-          insertedData.forEach(t => existingTeamsList.push(t));
-        }
-      } catch (e) {
-        console.error("⚠️ Eccezione inserimento Supabase nuove squadre:", e.message);
-        const local = getLocalTeams();
-        saveLocalTeams([...local, ...nuoveSquadre]);
-        nuoveSquadre.forEach(t => existingTeamsList.push(t));
-        create = nuoveSquadre.length;
-      }
-    } else {
-      const local = getLocalTeams();
-      saveLocalTeams([...local, ...nuoveSquadre]);
-      nuoveSquadre.forEach(t => existingTeamsList.push(t));
-      create = nuoveSquadre.length;
-    }
-
-    // Invalida immediatamente le cache
-    invalidateProductsCache();
-
-    // Ricollega i prodotti
-    for (const p of products) {
-      if (!p.squadra || typeof p.squadra !== 'string') continue;
-      const squadTrim = p.squadra.trim();
-      const matchedTeam = trovaSquadraCorrispondenteServer(squadTrim, existingTeamsList);
-      if (matchedTeam) {
-        p.squadra = matchedTeam.name;
-        collegate++;
-      }
-    }
-  }
-
-  return { create, collegate };
-}
-
 // POST /api/settings/products/import - Importa array di prodotti direttamente con validazione
 app.post('/api/settings/products/import', async (req, res) => {
   try {
@@ -4524,9 +4919,7 @@ app.post('/api/settings/products/import', async (req, res) => {
 
     const supabase = getSupabaseClient();
 
-    // Assicura l'esistenza automatica delle squadre mancanti prima della validazione
-    await assicuraEsistenzaSquadreServer(products, supabase);
-
+    // Validazione rigorosa: NON auto-creare squadre mancanti dal normale import JSON
     const { squadreValide, campionatiValidi } = await ottieniListeValidazione(supabase);
 
     // Recupera la lista di tutte le squadre già presenti nel database per la normalizzazione
@@ -4554,7 +4947,8 @@ app.post('/api/settings/products/import', async (req, res) => {
     let countErrori = 0;
     const seenIds = new Set();
 
-    products.forEach((p, index) => {
+    for (let index = 0; index < products.length; index++) {
+      const p = products[index];
       const riga = index + 1;
       
       // Allinea ID se mancante
@@ -4580,7 +4974,7 @@ app.post('/api/settings/products/import', async (req, res) => {
           riga,
           errore: errori.join(', ')
         });
-        return; // Salta il prodotto non valido
+        continue; // Salta il prodotto non valido
       }
 
       let cat = p.categoria || 'Kit';
@@ -4604,6 +4998,54 @@ app.post('/api/settings/products/import', async (req, res) => {
         squadreEsistenti.push(squadraNorm);
       }
 
+      // Persistenza atomica immagine su Supabase Storage
+      const rawImg = (p.immagine || '').trim();
+      let finalPersistentImg = '';
+
+      if (rawImg) {
+        if (isSupabaseStorageProductUrl(rawImg)) {
+          finalPersistentImg = rawImg;
+        } else if (rawImg.startsWith('/uploads/') || rawImg.startsWith('uploads/')) {
+          countErrori++;
+          erroriDettagli.push({
+            riga,
+            errore: "Percorsi locali effimeri (/uploads/) non ammessi per l'immagine. Le immagini devono risiedere su Supabase Storage."
+          });
+          continue;
+        } else {
+          try {
+            const persistResult = await processAndPersistProductImage({
+              imageSource: rawImg,
+              originalUrl: rawImg
+            });
+            finalPersistentImg = persistResult.publicUrl;
+          } catch (imgErr) {
+            console.error(`❌ Errore persistenza immagine per riga ${riga}:`, imgErr.message);
+            countErrori++;
+            erroriDettagli.push({
+              riga,
+              squadra: p.squadra,
+              versione: p.versione,
+              errore: `Immagine non salvabile su Supabase Storage: ${imgErr.message}. Prodotto saltato per evitare record con immagine corrotta o effimera.`
+            });
+            continue;
+          }
+        }
+      }
+
+      // Validazione di sicurezza prima del salvataggio nel database
+      try {
+        validateProductImageForDatabase(finalPersistentImg, { isCreation: true });
+      } catch (valErr) {
+        countErrori++;
+        erroriDettagli.push({
+          riga,
+          squadra: p.squadra,
+          errore: valErr.message
+        });
+        continue;
+      }
+
       validProducts.push({
         squadra: squadraNorm,
         categoria: cat,
@@ -4612,14 +5054,16 @@ app.post('/api/settings/products/import', async (req, res) => {
         versione: p.versione || 'Home',
         prezzo: parseFloat(p.prezzo),
         prezzo_fornitore: parseFloat(p.prezzo_fornitore || p.prezzoFornitore || 0),
-        immagine: p.immagine || '',
+        immagine: finalPersistentImg,
         legacy_id: pId ? Number(pId) : null
       });
-    });
+    }
 
     if (validProducts.length === 0) {
-      return res.json({
-        success: true,
+      const primoErrore = erroriDettagli[0]?.errore || "Nessun prodotto valido pronto per l'importazione.";
+      return res.status(countErrori > 0 ? 400 : 200).json({
+        success: countErrori === 0,
+        error: countErrori > 0 ? primoErrore : undefined,
         count: 0,
         analizzati: products.length,
         importati: 0,
@@ -4721,9 +5165,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
 
     const supabase = getSupabaseClient();
 
-    // -- GESTIONE AUTOMATICA DELLE SQUADRE MANCANTI DURANTE L'IMPORTAZIONE --
-    await assicuraEsistenzaSquadreServer(products, supabase);
-
+    // Validazione rigorosa: NON auto-creare squadre mancanti dal normale import JSON
     const { squadreValide, campionatiValidi } = await ottieniListeValidazione(supabase);
 
     let countImportati = 0;
@@ -4787,6 +5229,20 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
       }
     });
 
+    if (validBatchProducts.length === 0 && countErrori > 0) {
+      const primoErrore = erroriDettagli[0]?.errore || "Nessun prodotto valido pronto per l'importazione.";
+      return res.status(400).json({
+        success: false,
+        error: primoErrore,
+        analizzati: products.length,
+        importati: 0,
+        aggiornati: 0,
+        duplicati: 0,
+        errori: countErrori,
+        errori_dettagli: erroriDettagli
+      });
+    }
+
     if (!supabase) {
       if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
         let localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
@@ -4822,6 +5278,53 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
             // Duplicato segnalato: NON viene aggiornato e NON viene modificato il prodotto esistente
             countDuplicati++;
           } else {
+            const rawSupplierImg = estraiImmagineFornitore(p);
+            let finalPersistentImg = "";
+
+            if (rawSupplierImg) {
+              if (isSupabaseStorageProductUrl(rawSupplierImg)) {
+                finalPersistentImg = rawSupplierImg;
+              } else if (rawSupplierImg.startsWith('/uploads/') || rawSupplierImg.startsWith('uploads/')) {
+                countErrori++;
+                erroriDettagli.push({
+                  riga: p.__riga || (countImportati + countDuplicati + countErrori + 1),
+                  squadra: p.squadra,
+                  errore: "Percorsi locali effimeri (/uploads/) non ammessi per l'immagine. Le immagini devono risiedere su Supabase Storage."
+                });
+                continue;
+              } else {
+                try {
+                  const persistResult = await processAndPersistProductImage({
+                    imageSource: rawSupplierImg,
+                    originalUrl: rawSupplierImg
+                  });
+                  finalPersistentImg = persistResult.publicUrl;
+                } catch (imgErr) {
+                  console.error(`❌ Errore persistenza immagine per ${p.squadra}:`, imgErr.message);
+                  countErrori++;
+                  erroriDettagli.push({
+                    riga: p.__riga || (countImportati + countDuplicati + countErrori + 1),
+                    squadra: p.squadra,
+                    versione: p.versione || p.nome_finale,
+                    errore: `Immagine non salvabile su Supabase Storage: ${imgErr.message}. Prodotto saltato per evitare record con immagine corrotta o effimera.`
+                  });
+                  continue;
+                }
+              }
+            }
+
+            try {
+              validateProductImageForDatabase(finalPersistentImg, { isCreation: true });
+            } catch (valErr) {
+              countErrori++;
+              erroriDettagli.push({
+                riga: p.__riga || (countImportati + countDuplicati + countErrori + 1),
+                squadra: p.squadra,
+                errore: valErr.message
+              });
+              continue;
+            }
+
             const finalCat = normalizzaCategoria(p.categoria || 'Kit');
             const finalStagione = normalizzaSeason(p.stagione || '2024/2025');
             const payload = {
@@ -4833,7 +5336,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
               versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
               prezzo: parseFloat(p.prezzo),
               prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
-              immagine: estraiImmagineFornitore(p)
+              immagine: finalPersistentImg
             };
 
             const nextLegacyId =
@@ -4900,6 +5403,55 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
         // Duplicato segnalato: NON viene aggiornato e NON viene modificato il prodotto esistente
         countDuplicati++;
       } else {
+        const rawSupplierImg = estraiImmagineFornitore(p);
+        let finalPersistentImg = "";
+
+        if (rawSupplierImg) {
+          if (isSupabaseStorageProductUrl(rawSupplierImg)) {
+            finalPersistentImg = rawSupplierImg;
+          } else if (rawSupplierImg.startsWith('/uploads/') || rawSupplierImg.startsWith('uploads/')) {
+            countErrori++;
+            erroriDettagli.push({
+              riga: p.__riga || (countImportati + countDuplicati + countErrori + 1),
+              squadra: p.squadra,
+              versione: p.versione || p.nome_finale,
+              errore: "Percorsi locali effimeri (/uploads/) non ammessi per l'immagine. Le immagini devono risiedere su Supabase Storage."
+            });
+            continue;
+          } else {
+            try {
+              const persistResult = await processAndPersistProductImage({
+                imageSource: rawSupplierImg,
+                originalUrl: rawSupplierImg
+              });
+              finalPersistentImg = persistResult.publicUrl;
+            } catch (imgErr) {
+              console.error(`❌ Errore persistenza immagine fornitore per ${p.squadra} (${p.versione || p.nome_finale}):`, imgErr.message);
+              countErrori++;
+              erroriDettagli.push({
+                riga: p.__riga || (countImportati + countDuplicati + countErrori + 1),
+                squadra: p.squadra,
+                versione: p.versione || p.nome_finale,
+                errore: `Immagine non salvabile su Supabase Storage: ${imgErr.message}. Prodotto saltato per evitare record con immagine corrotta o effimera.`
+              });
+              continue; // Salta l'inserimento: nessun prodotto con immagine corrotta entra nel DB!
+            }
+          }
+        }
+
+        // Verifica di sicurezza prima del salvataggio nel DB
+        try {
+          validateProductImageForDatabase(finalPersistentImg, { isCreation: true });
+        } catch (valErr) {
+          countErrori++;
+          erroriDettagli.push({
+            riga: p.__riga || (countImportati + countDuplicati + countErrori + 1),
+            squadra: p.squadra,
+            errore: valErr.message
+          });
+          continue;
+        }
+
         const finalCat = normalizzaCategoria(p.categoria || 'Kit');
         const finalStagione = normalizzaSeason(p.stagione || '2024/2025');
         const payload = {
@@ -4911,7 +5463,7 @@ app.post('/api/settings/products/import_batch', async (req, res) => {
           versione: (p.nome_finale || p.versione ? (p.nome_finale || p.versione).trim() : 'Home'),
           prezzo: parseFloat(p.prezzo),
           prezzo_fornitore: p.prezzo_fornitore !== null && p.prezzo_fornitore !== undefined ? parseFloat(p.prezzo_fornitore) : null,
-          immagine: estraiImmagineFornitore(p)
+          immagine: finalPersistentImg
         };
 
         const nextLegacyId = dbProducts.length > countImportati ? Math.max(...dbProducts.map(item => parseInt(item.legacy_id || 0))) + 1 + countImportati : 1 + countImportati;
@@ -5139,7 +5691,47 @@ app.post('/api/products', async (req, res) => {
 
     const maxLegacyId = maxProd && maxProd.length > 0 ? Number(maxProd[0].legacy_id) || 0 : 0;
     const newLegacyId = maxLegacyId + 1;
-    const finalImmagine = immagine || image_url || "";
+
+    // Persistenza e validazione atomica su Supabase Storage per creazioni
+    const rawImmagine = (immagine || image_url || "").trim();
+    let finalImmagine = "";
+
+    if (rawImmagine) {
+      const [cleanImg, transformSuffix] = rawImmagine.includes('#') 
+        ? [rawImmagine.split('#')[0].trim(), '#' + rawImmagine.split('#').slice(1).join('#')] 
+        : [rawImmagine, ''];
+
+      if (cleanImg.startsWith('/uploads/') || cleanImg.startsWith('uploads/')) {
+        return res.status(400).json({
+          success: false,
+          error: "I percorsi locali effimeri (/uploads/prodotti/) non sono ammessi. L'immagine deve risiedere su Supabase Storage."
+        });
+      }
+
+      if (isSupabaseStorageProductUrl(cleanImg)) {
+        finalImmagine = cleanImg + transformSuffix;
+      } else {
+        try {
+          const persistResult = await processAndPersistProductImage({
+            imageSource: cleanImg,
+            originalUrl: cleanImg
+          });
+          finalImmagine = persistResult.publicUrl + transformSuffix;
+        } catch (imgErr) {
+          return res.status(400).json({
+            success: false,
+            error: `Impossibile persistere l'immagine su Supabase Storage: ${imgErr.message}. Nessun prodotto salvato nel database.`
+          });
+        }
+      }
+
+      try {
+        validateProductImageForDatabase(finalImmagine.split('#')[0], { isCreation: true });
+      } catch (valErr) {
+        return res.status(400).json({ success: false, error: valErr.message });
+      }
+    }
+
     const finalVersione = formattaNomenclaturaVersione(normalizedSquadra, normalizedCategoria, versione, normalizedStagione);
 
     const payload = {
@@ -5204,20 +5796,56 @@ app.put('/api/products/:id', async (req, res) => {
 
     const normalizedCategoria = categoria !== undefined ? normalizzaCategoria(categoria) : original.categoria;
 
-    const finalImmagine = immagine !== undefined ? immagine : (image_url !== undefined ? image_url : undefined);
+    const rawInputImmagine = immagine !== undefined ? immagine : (image_url !== undefined ? image_url : undefined);
     const finalTarget = target !== undefined ? target : original.target;
     const finalVersione = versione !== undefined ? formattaNomenclaturaVersione(normalizedSquadra, normalizedCategoria, versione, normalizedStagione) : original.versione;
 
-    // Protezione contro regressione: un URL Supabase Storage valido non può essere declassato a path locale effimero /uploads/
+    // Persistenza e validazione atomica su Supabase Storage per modifiche
     let resolvedImmagine = original.immagine;
-    if (finalImmagine !== undefined) {
-      const isOriginalStorage = typeof original.immagine === 'string' && (original.immagine.includes('.supabase.co/storage/') || original.immagine.includes('/storage/v1/object/public/prodotti/'));
-      const isNewLocal = typeof finalImmagine === 'string' && (finalImmagine.startsWith('/uploads/') || finalImmagine.startsWith('uploads/'));
-      if (isOriginalStorage && isNewLocal) {
-        console.warn(`[PROTEZIONE REGRESSIONE] Tentativo di sovrascrittura di Supabase Storage con path effimero locale bloccato per prodotto ${id}.`);
+    if (rawInputImmagine !== undefined) {
+      const candidateRaw = String(rawInputImmagine).trim();
+      if (!candidateRaw) {
+        resolvedImmagine = "";
+      } else if (candidateRaw === String(original.immagine).trim()) {
         resolvedImmagine = original.immagine;
       } else {
-        resolvedImmagine = finalImmagine;
+        const [cleanImg, transformSuffix] = candidateRaw.includes('#') 
+          ? [candidateRaw.split('#')[0].trim(), '#' + candidateRaw.split('#').slice(1).join('#')] 
+          : [candidateRaw, ''];
+
+        if (cleanImg.startsWith('/uploads/') || cleanImg.startsWith('uploads/')) {
+          return res.status(400).json({
+            success: false,
+            error: "I percorsi locali effimeri (/uploads/prodotti/) non sono ammessi. L'immagine deve risiedere su Supabase Storage."
+          });
+        }
+
+        if (isSupabaseStorageProductUrl(cleanImg)) {
+          resolvedImmagine = cleanImg + transformSuffix;
+        } else {
+          try {
+            const persistResult = await processAndPersistProductImage({
+              imageSource: cleanImg,
+              productId: id,
+              originalUrl: cleanImg
+            });
+            resolvedImmagine = persistResult.publicUrl + transformSuffix;
+          } catch (imgErr) {
+            return res.status(400).json({
+              success: false,
+              error: `Impossibile persistere l'immagine su Supabase Storage: ${imgErr.message}. Prodotto non modificato.`
+            });
+          }
+        }
+
+        try {
+          validateProductImageForDatabase(resolvedImmagine.split('#')[0], {
+            isCreation: false,
+            originalImmagine: original.immagine
+          });
+        } catch (valErr) {
+          return res.status(400).json({ success: false, error: valErr.message });
+        }
       }
     }
 
@@ -5593,13 +6221,64 @@ app.delete('/api/products/bulk/delete_unconfigured', async (req, res) => {
 // =========================================================================
 // MODULO SEPARATO & INDIPENDENTE: CATALOGO ACCESSORI
 // =========================================================================
+const LOCAL_ACCESSORIES_SETTINGS_FILE = path.join(__dirname, 'accessories_settings.json');
+
+const DEFAULT_ACCESSORIES_SETTINGS = {
+  categories: [
+    { id: "cat-calzettoni", nome: "Calzettoni", icona: "🧦", ordine: 1, attiva: true },
+    { id: "cat-calze", nome: "Calze", icona: "🧦", ordine: 2, attiva: true },
+    { id: "cat-guanti", nome: "Guanti", icona: "🧤", ordine: 3, attiva: true },
+    { id: "cat-palloni", nome: "Palloni", icona: "⚽", ordine: 4, attiva: true },
+    { id: "cat-cappellini", nome: "Cappellini", icona: "🧢", ordine: 5, attiva: true },
+    { id: "cat-sciarpe", nome: "Sciarpe", icona: "🧣", ordine: 6, attiva: true },
+    { id: "cat-borse", nome: "Borse", icona: "🎒", ordine: 7, attiva: true },
+    { id: "cat-fasce", nome: "Fasce Capitano", icona: "🎗️", ordine: 8, attiva: true },
+    { id: "cat-altri", nome: "Altri Accessori", icona: "⭐", ordine: 9, attiva: true }
+  ],
+  brands: [
+    { id: "brand-adidas", nome: "Adidas", stato: "attivo", ordine: 1 },
+    { id: "brand-nike", nome: "Nike", stato: "attivo", ordine: 2 },
+    { id: "brand-puma", nome: "Puma", stato: "attivo", ordine: 3 },
+    { id: "brand-kappa", nome: "Kappa", stato: "attivo", ordine: 4 },
+    { id: "brand-macron", nome: "Macron", stato: "attivo", ordine: 5 },
+    { id: "brand-joma", nome: "Joma", stato: "attivo", ordine: 6 },
+    { id: "brand-newbalance", nome: "New Balance", stato: "attivo", ordine: 7 },
+    { id: "brand-mizuno", nome: "Mizuno", stato: "attivo", ordine: 8 },
+    { id: "brand-underarmour", nome: "Under Armour", stato: "attivo", ordine: 9 },
+    { id: "brand-umbro", nome: "Umbro", stato: "attivo", ordine: 10 }
+  ]
+};
+
+let accessoriesSettingsCache = null;
+
+// Sincronizzazione persistente accessori con Supabase (sopravvive a restart container)
+async function syncAccessoriesFromSupabase() {
+  try {
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase.from('settings').select('value').eq('key', 'accessories_data').maybeSingle();
+      if (!error && data && Array.isArray(data.value) && data.value.length > 0) {
+        fs.writeFileSync(LOCAL_ACCESSORIES_FILE, JSON.stringify(data.value, null, 2), 'utf8');
+        console.log(`[ACCESSORI] Sincronizzati ${data.value.length} accessori da Supabase settings.`);
+        return data.value;
+      }
+    }
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore sincronizzazione accessori da Supabase:", err.message);
+  }
+  return null;
+}
+
+// Inizializzazione sync accessori in background all'avvio
+syncAccessoriesFromSupabase().catch(() => {});
+
 function getLocalAccessories() {
   try {
     if (fs.existsSync(LOCAL_ACCESSORIES_FILE)) {
       const raw = fs.readFileSync(LOCAL_ACCESSORIES_FILE, 'utf8');
       if (raw && raw.trim()) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     }
   } catch (err) {
@@ -5611,10 +6290,128 @@ function getLocalAccessories() {
 function saveLocalAccessories(accessories) {
   try {
     fs.writeFileSync(LOCAL_ACCESSORIES_FILE, JSON.stringify(accessories, null, 2), 'utf8');
+    
+    // Persistenza duratura su Supabase (settings: accessories_data)
+    (async () => {
+      try {
+        const supabase = getSupabaseAdminClient() || getSupabaseClient();
+        if (supabase) {
+          await supabase.from('settings').upsert({
+            key: 'accessories_data',
+            value: accessories,
+            updated_at: new Date().toISOString()
+          });
+        }
+      } catch (subErr) {
+        console.warn("⚠️ [ACCESSORI] Errore salvataggio asincrono accessori su Supabase:", subErr.message);
+      }
+    })();
+
     return true;
   } catch (err) {
     console.error("⚠️ [ACCESSORI] Errore salvataggio accessories_local.json:", err.message);
     return false;
+  }
+}
+
+// Lettura e sincronizzazione Impostazioni Catalogo (Categorie e Marche)
+async function getAccessoriesSettings() {
+  if (accessoriesSettingsCache) return accessoriesSettingsCache;
+
+  // 1. Prova lettura locale da file
+  let localSettings = null;
+  if (fs.existsSync(LOCAL_ACCESSORIES_SETTINGS_FILE)) {
+    try {
+      const raw = fs.readFileSync(LOCAL_ACCESSORIES_SETTINGS_FILE, 'utf8');
+      if (raw && raw.trim()) {
+        localSettings = JSON.parse(raw);
+      }
+    } catch (e) {}
+  }
+
+  // 2. Prova lettura da Supabase settings
+  try {
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
+    if (supabase) {
+      const { data, error } = await supabase.from('settings').select('value').eq('key', 'accessories_catalog_settings').maybeSingle();
+      if (!error && data && data.value && (data.value.categories || data.value.brands)) {
+        localSettings = data.value;
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ [IMPOSTAZIONI ACCESSORI] Errore lettura Supabase settings:", err.message);
+  }
+
+  // 3. Se non presente, unisci con i default e salva
+  if (!localSettings || !Array.isArray(localSettings.categories) || !Array.isArray(localSettings.brands)) {
+    localSettings = JSON.parse(JSON.stringify(DEFAULT_ACCESSORIES_SETTINGS));
+  }
+
+  // Assicura che tutte le categorie presenti negli accessori esistenti siano incluse (migrazione trasparente)
+  const currentAccessories = getLocalAccessories();
+  const existingCatNames = new Set(localSettings.categories.map(c => (c.nome || '').toLowerCase().trim()));
+  currentAccessories.forEach(item => {
+    if (item && item.categoria && item.categoria.trim() !== '') {
+      const rawName = item.categoria.trim();
+      if (!existingCatNames.has(rawName.toLowerCase())) {
+        const newId = `cat-${rawName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
+        localSettings.categories.push({
+          id: newId,
+          nome: rawName,
+          icona: rawName.toLowerCase().includes('calz') ? '🧦' : '🎒',
+          ordine: localSettings.categories.length + 1,
+          attiva: true
+        });
+        existingCatNames.add(rawName.toLowerCase());
+      }
+    }
+  });
+
+  // Assicura che tutte le marche presenti negli accessori esistenti siano incluse
+  const existingBrandNames = new Set(localSettings.brands.map(b => (b.nome || '').toLowerCase().trim()));
+  currentAccessories.forEach(item => {
+    if (item && item.marca && item.marca.trim() !== '') {
+      const rawBrand = item.marca.trim();
+      if (!existingBrandNames.has(rawBrand.toLowerCase())) {
+        const newId = `brand-${rawBrand.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
+        localSettings.brands.push({
+          id: newId,
+          nome: rawBrand,
+          stato: 'attivo',
+          ordine: localSettings.brands.length + 1
+        });
+        existingBrandNames.add(rawBrand.toLowerCase());
+      }
+    }
+  });
+
+  accessoriesSettingsCache = localSettings;
+  try {
+    fs.writeFileSync(LOCAL_ACCESSORIES_SETTINGS_FILE, JSON.stringify(localSettings, null, 2), 'utf8');
+  } catch (e) {}
+
+  return localSettings;
+}
+
+// Salvataggio permanente impostazioni catalogo accessori
+async function saveAccessoriesSettings(settings) {
+  accessoriesSettingsCache = settings;
+  try {
+    fs.writeFileSync(LOCAL_ACCESSORIES_SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
+  } catch (e) {}
+
+  try {
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
+    if (supabase) {
+      await supabase.from('settings').upsert({
+        key: 'accessories_catalog_settings',
+        value: settings,
+        updated_at: new Date().toISOString()
+      });
+      console.log("[IMPOSTAZIONI ACCESSORI] Impostazioni catalogo salvate su Supabase con successo.");
+    }
+  } catch (err) {
+    console.error("⚠️ [IMPOSTAZIONI ACCESSORI] Errore salvataggio Supabase:", err.message);
   }
 }
 
@@ -5633,19 +6430,307 @@ app.get('/api/accessories', (req, res) => {
   }
 });
 
-// GET /api/accessories/categories - Categorie dinamiche estratte dagli accessori
-app.get('/api/accessories/categories', (req, res) => {
+// GET /api/accessories/settings - Recupera configurazione dinamica Categorie e Marche con conteggi
+app.get('/api/accessories/settings', async (req, res) => {
   try {
+    const settings = await getAccessoriesSettings();
     const accessories = getLocalAccessories();
-    const categoriesSet = new Set(['Calze', 'Calzettoni', 'Guanti', 'Palloni', 'Cappellini', 'Sciarpe', 'Borse', 'Fasce Capitano', 'Altri Accessori']);
+
+    // Calcolo dinamico prodotti associati per ogni categoria
+    const categoryCounts = {};
+    const brandCounts = {};
     accessories.forEach(item => {
-      if (item && item.categoria && String(item.categoria).trim() !== '') {
-        categoriesSet.add(String(item.categoria).trim());
+      if (item) {
+        if (item.categoria) {
+          const c = String(item.categoria).trim().toLowerCase();
+          categoryCounts[c] = (categoryCounts[c] || 0) + 1;
+        }
+        if (item.marca) {
+          const m = String(item.marca).trim().toLowerCase();
+          brandCounts[m] = (brandCounts[m] || 0) + 1;
+        }
       }
     });
+
+    const categoriesWithCounts = (settings.categories || []).map(cat => ({
+      ...cat,
+      products_count: categoryCounts[(cat.nome || '').toLowerCase().trim()] || 0
+    }));
+
+    const brandsWithCounts = (settings.brands || []).map(brand => ({
+      ...brand,
+      products_count: brandCounts[(brand.nome || '').toLowerCase().trim()] || 0
+    }));
+
     return res.json({
       success: true,
-      categories: Array.from(categoriesSet)
+      settings: {
+        categories: categoriesWithCounts,
+        brands: brandsWithCounts
+      }
+    });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore GET /api/accessories/settings:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/settings - Salvataggio massivo o sincronizzazione impostazioni catalogo
+app.post('/api/accessories/settings', async (req, res) => {
+  try {
+    const { categories, brands } = req.body;
+    if (!Array.isArray(categories) || !Array.isArray(brands)) {
+      return res.status(400).json({ success: false, error: "Formato payload non valido (richiesti array 'categories' e 'brands')." });
+    }
+
+    const cleanCategories = categories.map((c, index) => ({
+      id: c.id ? String(c.id).trim() : `cat-${Date.now().toString(36)}-${index}`,
+      nome: String(c.nome || '').trim(),
+      icona: c.icona !== undefined ? String(c.icona).trim() : '🎒',
+      ordine: (c.ordine !== undefined && !isNaN(Number(c.ordine))) ? Number(c.ordine) : index + 1,
+      attiva: c.attiva !== undefined ? Boolean(c.attiva) : true
+    })).filter(c => c.nome !== '');
+
+    const cleanBrands = brands.map((b, index) => ({
+      id: b.id ? String(b.id).trim() : `brand-${Date.now().toString(36)}-${index}`,
+      nome: String(b.nome || '').trim(),
+      stato: b.stato === 'disattivato' ? 'disattivato' : 'attivo',
+      ordine: (b.ordine !== undefined && !isNaN(Number(b.ordine))) ? Number(b.ordine) : index + 1
+    })).filter(b => b.nome !== '');
+
+    const newSettings = {
+      categories: cleanCategories,
+      brands: cleanBrands
+    };
+
+    await saveAccessoriesSettings(newSettings);
+    return res.json({ success: true, settings: newSettings });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore POST /api/accessories/settings:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/settings/categories - Inserimento o aggiornamento singola categoria
+app.post('/api/accessories/settings/categories', async (req, res) => {
+  try {
+    const { id, nome, icona, ordine, attiva } = req.body;
+    if (!nome || !String(nome).trim()) {
+      return res.status(400).json({ success: false, error: "Il nome della categoria è obbligatorio." });
+    }
+
+    const cleanNome = String(nome).trim();
+    const settings = await getAccessoriesSettings();
+    const categories = [...(settings.categories || [])];
+
+    let targetIndex = -1;
+    if (id) {
+      targetIndex = categories.findIndex(c => String(c.id) === String(id));
+    }
+    if (targetIndex === -1) {
+      // Controlla per nome
+      targetIndex = categories.findIndex(c => (c.nome || '').toLowerCase().trim() === cleanNome.toLowerCase());
+    }
+
+    if (targetIndex >= 0) {
+      // Aggiornamento
+      const existing = categories[targetIndex];
+      categories[targetIndex] = {
+        ...existing,
+        nome: cleanNome,
+        icona: icona !== undefined ? String(icona).trim() : (existing.icona || '🎒'),
+        ordine: (ordine !== undefined && !isNaN(Number(ordine))) ? Number(ordine) : existing.ordine,
+        attiva: attiva !== undefined ? Boolean(attiva) : existing.attiva
+      };
+    } else {
+      // Nuova categoria
+      const generatedId = id ? String(id).trim() : `cat-${cleanNome.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
+      const maxOrder = categories.reduce((max, c) => Math.max(max, Number(c.ordine) || 0), 0);
+      categories.push({
+        id: generatedId,
+        nome: cleanNome,
+        icona: icona !== undefined ? String(icona).trim() : '🎒',
+        ordine: (ordine !== undefined && !isNaN(Number(ordine))) ? Number(ordine) : maxOrder + 1,
+        attiva: attiva !== undefined ? Boolean(attiva) : true
+      });
+    }
+
+    settings.categories = categories;
+    await saveAccessoriesSettings(settings);
+
+    return res.json({ success: true, categories });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore salvataggio categoria:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/accessories/settings/categories/:id - Eliminazione sicura categoria
+app.delete('/api/accessories/settings/categories/:id', async (req, res) => {
+  try {
+    const catId = req.params.id;
+    if (!catId) return res.status(400).json({ success: false, error: "ID categoria mancante." });
+
+    const settings = await getAccessoriesSettings();
+    const categories = [...(settings.categories || [])];
+    const catIndex = categories.findIndex(c => String(c.id) === String(catId));
+
+    if (catIndex === -1) {
+      return res.status(404).json({ success: false, error: "Categoria non trovata." });
+    }
+
+    const catToDelete = categories[catIndex];
+    const accessories = getLocalAccessories();
+    const countAssociated = accessories.filter(a => (a.categoria || '').toLowerCase().trim() === (catToDelete.nome || '').toLowerCase().trim()).length;
+
+    // Controllo di sicurezza: se la categoria è associata ad accessori, rifiuta con messaggio dettagliato
+    if (countAssociated > 0 && req.query.force !== 'true') {
+      return res.status(400).json({
+        success: false,
+        error: `Impossibile eliminare la categoria "${catToDelete.nome}": ci sono ${countAssociated} ${countAssociated === 1 ? 'accessorio associato' : 'accessori associati'}. Modifica o riassegna prima gli articoli.`,
+        associatedCount: countAssociated
+      });
+    }
+
+    categories.splice(catIndex, 1);
+    settings.categories = categories;
+    await saveAccessoriesSettings(settings);
+
+    console.log(`[IMPOSTAZIONI ACCESSORI] Categoria eliminata: ${catToDelete.nome} (ID ${catId})`);
+    return res.json({ success: true, message: `Categoria "${catToDelete.nome}" eliminata con successo.` });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore eliminazione categoria:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/accessories/settings/brands - Inserimento o aggiornamento singola marca
+app.post('/api/accessories/settings/brands', async (req, res) => {
+  try {
+    const { id, nome, stato, ordine } = req.body;
+    if (!nome || !String(nome).trim()) {
+      return res.status(400).json({ success: false, error: "Il nome della marca è obbligatorio." });
+    }
+
+    const cleanNome = String(nome).trim();
+    const settings = await getAccessoriesSettings();
+    const brands = [...(settings.brands || [])];
+
+    let targetIndex = -1;
+    if (id) {
+      targetIndex = brands.findIndex(b => String(b.id) === String(id));
+    }
+    if (targetIndex === -1) {
+      targetIndex = brands.findIndex(b => (b.nome || '').toLowerCase().trim() === cleanNome.toLowerCase());
+    }
+
+    if (targetIndex >= 0) {
+      const existing = brands[targetIndex];
+      brands[targetIndex] = {
+        ...existing,
+        nome: cleanNome,
+        stato: stato !== undefined ? (stato === 'disattivato' ? 'disattivato' : 'attivo') : existing.stato,
+        ordine: (ordine !== undefined && !isNaN(Number(ordine))) ? Number(ordine) : existing.ordine
+      };
+    } else {
+      const generatedId = id ? String(id).trim() : `brand-${cleanNome.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
+      const maxOrder = brands.reduce((max, b) => Math.max(max, Number(b.ordine) || 0), 0);
+      brands.push({
+        id: generatedId,
+        nome: cleanNome,
+        stato: stato === 'disattivato' ? 'disattivato' : 'attivo',
+        ordine: (ordine !== undefined && !isNaN(Number(ordine))) ? Number(ordine) : maxOrder + 1
+      });
+    }
+
+    settings.brands = brands;
+    await saveAccessoriesSettings(settings);
+
+    return res.json({ success: true, brands });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore salvataggio marca:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/accessories/settings/brands/:id - Eliminazione sicura marca
+app.delete('/api/accessories/settings/brands/:id', async (req, res) => {
+  try {
+    const brandId = req.params.id;
+    if (!brandId) return res.status(400).json({ success: false, error: "ID marca mancante." });
+
+    const settings = await getAccessoriesSettings();
+    const brands = [...(settings.brands || [])];
+    const brandIndex = brands.findIndex(b => String(b.id) === String(brandId));
+
+    if (brandIndex === -1) {
+      return res.status(404).json({ success: false, error: "Marca non trovata." });
+    }
+
+    const brandToDelete = brands[brandIndex];
+    const accessories = getLocalAccessories();
+    const countAssociated = accessories.filter(a => (a.marca || '').toLowerCase().trim() === (brandToDelete.nome || '').toLowerCase().trim()).length;
+
+    if (countAssociated > 0 && req.query.force !== 'true') {
+      return res.status(400).json({
+        success: false,
+        error: `Impossibile eliminare la marca "${brandToDelete.nome}": ci sono ${countAssociated} ${countAssociated === 1 ? 'accessorio associato' : 'accessori associati'}. Modifica o riassegna prima gli articoli.`,
+        associatedCount: countAssociated
+      });
+    }
+
+    brands.splice(brandIndex, 1);
+    settings.brands = brands;
+    await saveAccessoriesSettings(settings);
+
+    console.log(`[IMPOSTAZIONI ACCESSORI] Marca eliminata: ${brandToDelete.nome} (ID ${brandId})`);
+    return res.json({ success: true, message: `Marca "${brandToDelete.nome}" eliminata con successo.` });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore eliminazione marca:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/accessories/brands - Elenco marche attive configurate per filtri e dropdown
+app.get('/api/accessories/brands', async (req, res) => {
+  try {
+    const settings = await getAccessoriesSettings();
+    const activeBrands = (settings.brands || [])
+      .filter(b => b && b.stato !== 'disattivato')
+      .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0))
+      .map(b => b.nome);
+    return res.json({ success: true, brands: activeBrands });
+  } catch (err) {
+    console.error("⚠️ [ACCESSORI] Errore GET /api/accessories/brands:", err.message);
+    return res.status(500).json({ success: false, error: err.message, brands: [] });
+  }
+});
+
+// GET /api/accessories/categories - Categorie ordinate e attive configurate per la sidebar e dropdown
+app.get('/api/accessories/categories', async (req, res) => {
+  try {
+    const settings = await getAccessoriesSettings();
+    const activeCategories = (settings.categories || [])
+      .filter(c => c && c.attiva !== false)
+      .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0))
+      .map(c => c.nome);
+
+    // Unisce con eventuali categorie presenti negli accessori non ancora coperte
+    const accessories = getLocalAccessories();
+    const existingSet = new Set(activeCategories.map(c => c.toLowerCase()));
+    accessories.forEach(item => {
+      if (item && item.categoria && item.categoria.trim() !== '') {
+        const catName = item.categoria.trim();
+        if (!existingSet.has(catName.toLowerCase())) {
+          activeCategories.push(catName);
+          existingSet.add(catName.toLowerCase());
+        }
+      }
+    });
+
+    return res.json({
+      success: true,
+      categories: activeCategories
     });
   } catch (err) {
     console.error("⚠️ [ACCESSORI] Errore GET /api/accessories/categories:", err.message);
@@ -5654,16 +6739,45 @@ app.get('/api/accessories/categories', (req, res) => {
 });
 
 // POST /api/accessories - Inserimento nuovo accessorio (struttura scalabile e indipendente)
-app.post('/api/accessories', (req, res) => {
+app.post('/api/accessories', async (req, res) => {
   try {
-    const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche } = req.body;
+    const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche, marca, gestione_taglia, richiede_taglia } = req.body;
     if (!nome || !categoria) {
       return res.status(400).json({ success: false, error: "Campi obbligatori mancanti: nome, categoria." });
+    }
+
+    // Protezione anti-regressione percorsi effimeri e persistenza Supabase
+    let cleanImmagine = "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80";
+    if (immagine && typeof immagine === 'string') {
+      const trimmed = immagine.trim();
+      if (trimmed.startsWith('/uploads/') || trimmed.startsWith('uploads/')) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "I percorsi locali effimeri (/uploads/) non sono ammessi per gli accessori. L'immagine deve risiedere su Supabase Storage." 
+        });
+      }
+      if (trimmed.startsWith('blob:') || trimmed.startsWith('file:')) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "I riferimenti temporanei (blob/file) non sono ammessi. L'immagine deve risiedere su Supabase Storage." 
+        });
+      }
+      if (trimmed.startsWith('data:')) {
+        try {
+          const persistResult = await processAndPersistProductImage({ imageSource: trimmed });
+          cleanImmagine = persistResult.publicUrl;
+        } catch (persErr) {
+          return res.status(400).json({ success: false, error: "Errore persistenza immagine su Supabase Storage: " + persErr.message });
+        }
+      } else {
+        cleanImmagine = trimmed;
+      }
     }
 
     const accessories = getLocalAccessories();
     const cleanNome = String(nome).trim();
     const cleanCategoria = String(categoria).trim();
+    const cleanMarca = marca !== undefined && marca !== null ? String(marca).trim() : "";
     
     // Generazione ID univoco isolato per accessori
     let generatedId = req.body.id;
@@ -5678,19 +6792,33 @@ app.post('/api/accessories', (req, res) => {
       generatedId = `accessorio-${String(maxNum + 1).padStart(3, '0')}`;
     }
 
+    const isManuale = (gestione_taglia === 'manuale' || richiede_taglia === true || taglia === 'manuale' || (cleanCategoria.toLowerCase().includes('calz') && gestione_taglia !== 'nessuna'));
+    const gestioneTagliaVal = isManuale ? 'manuale' : 'nessuna';
+    const richiedeTagliaVal = isManuale;
+    const tagliaVal = isManuale ? 'manuale' : (taglia && taglia !== 'manuale' && taglia !== 'nessuna' ? String(taglia).trim() : '');
+
+    const isSupplierShippingEnabled = req.body.supplier_shipping_enabled !== undefined 
+      ? Boolean(req.body.supplier_shipping_enabled) 
+      : (req.body.spedizione_fornitore !== undefined ? Boolean(req.body.spedizione_fornitore) : true);
+
     const newAccessory = {
       id: generatedId,
       codice: codice ? String(codice).trim() : (req.body.cod_art ? String(req.body.cod_art).trim() : generatedId),
       categoria: cleanCategoria,
       nome: cleanNome,
+      marca: cleanMarca,
       descrizione: descrizione !== undefined ? String(descrizione).trim() : "",
-      immagine: immagine ? String(immagine).trim() : "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80",
+      immagine: cleanImmagine,
       prezzo: (prezzo !== undefined && prezzo !== null && !isNaN(Number(prezzo))) ? Number(prezzo) : 0,
       prezzo_fornitore: (prezzo_fornitore !== undefined && prezzo_fornitore !== null && !isNaN(Number(prezzo_fornitore))) ? Number(prezzo_fornitore) : 0,
       disponibile: disponibile !== undefined ? Boolean(disponibile) : true,
       stato: stato !== undefined ? (String(stato).toLowerCase() === 'disattivato' || stato === false ? 'disattivato' : 'attivo') : 'attivo',
       tipo_catalogo: "accessori",
-      taglia: taglia ? String(taglia).trim() : "Unica",
+      supplier_shipping_enabled: isSupplierShippingEnabled,
+      spedizione_fornitore: isSupplierShippingEnabled,
+      gestione_taglia: gestioneTagliaVal,
+      richiede_taglia: richiedeTagliaVal,
+      taglia: tagliaVal,
       opzioni: opzioni || specifiche || null,
       created_at: new Date().toISOString()
     };
@@ -5698,7 +6826,7 @@ app.post('/api/accessories', (req, res) => {
     accessories.push(newAccessory);
     saveLocalAccessories(accessories);
 
-    console.log(`[ACCESSORI] Nuovo accessorio aggiunto: #${newAccessory.id} - ${newAccessory.nome} (${newAccessory.categoria})`);
+    console.log(`[ACCESSORI] Nuovo accessorio aggiunto: #${newAccessory.id} - ${newAccessory.nome} (${newAccessory.categoria})${newAccessory.marca ? ' [Marca: ' + newAccessory.marca + ']' : ''}`);
     return res.json({ success: true, accessory: newAccessory });
   } catch (err) {
     console.error("⚠️ [ACCESSORI] Errore POST /api/accessories:", err.message);
@@ -5707,7 +6835,7 @@ app.post('/api/accessories', (req, res) => {
 });
 
 // PUT /api/accessories/:id - Modifica accessorio esistente
-app.put('/api/accessories/:id', (req, res) => {
+app.put('/api/accessories/:id', async (req, res) => {
   try {
     const accId = req.params.id;
     if (!accId) {
@@ -5722,7 +6850,54 @@ app.put('/api/accessories/:id', (req, res) => {
     }
 
     const current = accessories[index];
-    const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche } = req.body;
+    const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche, marca, gestione_taglia, richiede_taglia } = req.body;
+
+    let finalImmagine = current.immagine || "";
+    if (immagine !== undefined && immagine !== null && typeof immagine === 'string') {
+      const trimmed = immagine.trim();
+      if (trimmed !== current.immagine) {
+        if (trimmed.startsWith('/uploads/') || trimmed.startsWith('uploads/')) {
+          return res.status(400).json({ 
+            success: false, 
+            error: "I percorsi locali effimeri (/uploads/) non sono ammessi per gli accessori. L'immagine deve risiedere su Supabase Storage." 
+          });
+        }
+        if (trimmed.startsWith('blob:') || trimmed.startsWith('file:')) {
+          return res.status(400).json({ 
+            success: false, 
+            error: "I riferimenti temporanei (blob/file) non sono ammessi. L'immagine deve risiedere su Supabase Storage." 
+          });
+        }
+        if (trimmed.startsWith('data:')) {
+          try {
+            const persistResult = await processAndPersistProductImage({ imageSource: trimmed });
+            finalImmagine = persistResult.publicUrl;
+          } catch (persErr) {
+            return res.status(400).json({ success: false, error: "Errore persistenza immagine su Supabase Storage: " + persErr.message });
+          }
+        } else {
+          finalImmagine = trimmed;
+        }
+      }
+    }
+
+    const isManuale = gestione_taglia !== undefined 
+      ? (gestione_taglia === 'manuale')
+      : (richiede_taglia !== undefined 
+          ? Boolean(richiede_taglia)
+          : (current.gestione_taglia === 'manuale' || current.richiede_taglia === true || current.taglia === 'manuale'));
+
+    const gestioneTagliaVal = isManuale ? 'manuale' : 'nessuna';
+    const richiedeTagliaVal = isManuale;
+    const tagliaVal = isManuale ? 'manuale' : (taglia !== undefined ? (taglia === 'manuale' || taglia === 'nessuna' ? '' : String(taglia).trim()) : (current.taglia === 'manuale' ? '' : (current.taglia || '')));
+
+    const isSupplierShippingEnabled = req.body.supplier_shipping_enabled !== undefined 
+      ? Boolean(req.body.supplier_shipping_enabled) 
+      : (req.body.spedizione_fornitore !== undefined 
+          ? Boolean(req.body.spedizione_fornitore) 
+          : (current.supplier_shipping_enabled !== undefined 
+              ? Boolean(current.supplier_shipping_enabled) 
+              : (current.spedizione_fornitore !== undefined ? Boolean(current.spedizione_fornitore) : true)));
 
     const updatedAccessory = {
       ...current,
@@ -5730,14 +6905,19 @@ app.put('/api/accessories/:id', (req, res) => {
       tipo_catalogo: "accessori",
       categoria: categoria !== undefined ? String(categoria).trim() : current.categoria,
       nome: nome !== undefined ? String(nome).trim() : current.nome,
+      marca: marca !== undefined ? String(marca).trim() : (current.marca || ""),
       descrizione: descrizione !== undefined ? String(descrizione).trim() : (current.descrizione || ""),
-      immagine: immagine !== undefined ? String(immagine).trim() : (current.immagine || ""),
+      immagine: finalImmagine,
       prezzo: prezzo !== undefined && prezzo !== null && !isNaN(Number(prezzo)) ? Number(prezzo) : current.prezzo,
       prezzo_fornitore: prezzo_fornitore !== undefined && prezzo_fornitore !== null && !isNaN(Number(prezzo_fornitore)) ? Number(prezzo_fornitore) : current.prezzo_fornitore,
       disponibile: disponibile !== undefined ? Boolean(disponibile) : (current.disponibile !== undefined ? Boolean(current.disponibile) : true),
       stato: stato !== undefined ? (String(stato).toLowerCase() === 'disattivato' || stato === false ? 'disattivato' : 'attivo') : (current.stato || 'attivo'),
+      supplier_shipping_enabled: isSupplierShippingEnabled,
+      spedizione_fornitore: isSupplierShippingEnabled,
       codice: codice !== undefined ? String(codice).trim() : (current.codice || current.id),
-      taglia: taglia !== undefined ? String(taglia).trim() : (current.taglia || "Unica"),
+      gestione_taglia: gestioneTagliaVal,
+      richiede_taglia: richiedeTagliaVal,
+      taglia: tagliaVal,
       opzioni: opzioni !== undefined ? opzioni : (specifiche !== undefined ? specifiche : current.opzioni),
       updated_at: new Date().toISOString()
     };
@@ -5855,10 +7035,21 @@ app.post('/api/accessories/batch-update', (req, res) => {
         updatedCount++;
         const item = { ...a };
         if (updates.categoria !== undefined && updates.categoria !== '') item.categoria = String(updates.categoria).trim();
+        if (updates.marca !== undefined && updates.marca !== '') item.marca = String(updates.marca).trim();
         if (updates.prezzo !== undefined && updates.prezzo !== '' && !isNaN(Number(updates.prezzo))) item.prezzo = Number(updates.prezzo);
         if (updates.prezzo_fornitore !== undefined && updates.prezzo_fornitore !== '' && !isNaN(Number(updates.prezzo_fornitore))) item.prezzo_fornitore = Number(updates.prezzo_fornitore);
         if (updates.disponibile !== undefined && updates.disponibile !== '') item.disponibile = updates.disponibile === 'true' || updates.disponibile === true;
         if (updates.stato !== undefined && updates.stato !== '') item.stato = updates.stato === 'disattivato' ? 'disattivato' : 'attivo';
+        if (updates.supplier_shipping_enabled !== undefined && updates.supplier_shipping_enabled !== '') {
+          const val = updates.supplier_shipping_enabled === true || updates.supplier_shipping_enabled === 'true';
+          item.supplier_shipping_enabled = val;
+          item.spedizione_fornitore = val;
+        }
+        if (updates.spedizione_fornitore !== undefined && updates.spedizione_fornitore !== '') {
+          const val = updates.spedizione_fornitore === true || updates.spedizione_fornitore === 'true';
+          item.supplier_shipping_enabled = val;
+          item.spedizione_fornitore = val;
+        }
         if (updates.taglia !== undefined && updates.taglia !== '') item.taglia = String(updates.taglia).trim();
         item.updated_at = new Date().toISOString();
         return item;
@@ -6846,8 +8037,14 @@ function calculateLottoTotals(orders, settings, extraExpenses = []) {
     settings = getSettings();
   }
   let numero_totale_articoli = 0;
+  let numero_articoli_spedizione = 0;
   let costo_totale_prodotti_usd = 0.0;
   let costo_totale_personalizzazioni_usd = 0.0;
+
+  let localAccessories = [];
+  try {
+    localAccessories = getLocalAccessories();
+  } catch (e) {}
 
   orders.forEach(order => {
     if (!isOrderActiveForLotto(order)) return;
@@ -6858,25 +8055,30 @@ function calculateLottoTotals(orders, settings, extraExpenses = []) {
     }
 
     let order_items_count = 0;
+    let order_shipping_count = 0;
     cartItems.forEach(item => {
       const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
       if (isSpedizioneCliente) return;
 
       const q = parseInt(item.quantita) || 1;
       order_items_count += q;
+      if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+        order_shipping_count += q;
+      }
 
       const persCost = calcolaCostoFornitoreProdotto(0, item.infoPerso || item.personalizzazione);
       costo_totale_personalizzazioni_usd += persCost * q;
     });
 
     numero_totale_articoli += order_items_count;
+    numero_articoli_spedizione += order_shipping_count;
 
     const rawCost = order["Costo prodotti (USD)"] || order.costo_prodotti_usd || '0';
     costo_totale_prodotti_usd += parseItalianFloat(String(rawCost));
   });
 
-  const spedizione_unitaria = getShippingRateByQuantity(numero_totale_articoli, settings);
-  const spedizione_corrente_usd = Number((numero_totale_articoli * spedizione_unitaria).toFixed(2));
+  const spedizione_unitaria = getShippingRateByQuantity(numero_articoli_spedizione, settings);
+  const spedizione_corrente_usd = Number((numero_articoli_spedizione * spedizione_unitaria).toFixed(2));
   const costo_fornitore_usd = Number((costo_totale_prodotti_usd + spedizione_corrente_usd).toFixed(2));
   const costo_complessivo_lotto_usd = costo_fornitore_usd;
 
@@ -7011,6 +8213,10 @@ async function recalculateCurrentLottoInternal() {
   if (activeOrders.length > 0) {
     let hasOrderChanges = false;
     const supabase = getSupabaseClient();
+    let localAccessories = [];
+    try {
+      localAccessories = getLocalAccessories();
+    } catch (e) {}
 
     for (const ord of activeOrders) {
       let cartItems = ord.carrello;
@@ -7019,15 +8225,20 @@ async function recalculateCurrentLottoInternal() {
       }
 
       let orderItemCount = 0;
+      let orderShippingItemCount = 0;
       cartItems.forEach(item => {
         const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
         if (!isSpedizioneCliente) {
-          orderItemCount += parseInt(item.quantita) || 1;
+          const q = parseInt(item.quantita) || 1;
+          orderItemCount += q;
+          if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+            orderShippingItemCount += q;
+          }
         }
       });
 
       const rawProdCostUSD = parseItalianFloat(String(ord["Costo prodotti (USD)"] || ord.costo_prodotti_usd || '0'));
-      const newShippingUSD = Number((orderItemCount * currentUnitShippingRate).toFixed(2));
+      const newShippingUSD = Number((orderShippingItemCount * currentUnitShippingRate).toFixed(2));
       const newTotalCostUSD = Number((rawProdCostUSD + newShippingUSD).toFixed(2));
       const orderRate = getOrderEffectiveExchangeRate(ord, settings);
       const newTotalCostEUR = convertUsdToEur(newTotalCostUSD, orderRate, 'recalculateCurrentLottoInternal');
@@ -7963,17 +9174,27 @@ async function processReviewImages(images, reviewId = null) {
     const item = images[i];
     if (!item) continue;
 
-    // If item is already an object { thumb, full } or a plain URL string
-    let fullCandidate = typeof item === 'string' ? item : (item.full || item.thumb || '');
+    // Support: direct string, object { url, caption }, legacy object { full, thumb }
+    // Priority: url -> full -> thumb
+    let fullCandidate = '';
+    if (typeof item === 'string') {
+      fullCandidate = item.trim();
+    } else if (typeof item === 'object' && item !== null) {
+      const rawCandidate = item.url || item.full || item.thumb || '';
+      fullCandidate = typeof rawCandidate === 'string' ? rawCandidate.trim() : '';
+    }
+
+    // Ignore undefined, null, empty strings or whitespace
+    if (!fullCandidate) continue;
 
     // 1. If it's already a URL (HTTP, Supabase Storage, or legacy /uploads), preserve it
-    if (typeof fullCandidate === 'string' && (fullCandidate.startsWith('http://') || fullCandidate.startsWith('https://') || fullCandidate.startsWith('/uploads/'))) {
+    if (fullCandidate.startsWith('http://') || fullCandidate.startsWith('https://') || fullCandidate.startsWith('/uploads/')) {
       processedUrls.push(fullCandidate);
       continue;
     }
 
     // 2. If fullCandidate is a Base64 string that needs to be uploaded to Supabase Storage
-    if (typeof fullCandidate === 'string' && fullCandidate.startsWith('data:image/')) {
+    if (fullCandidate.startsWith('data:image/')) {
       if (!supabase) {
         throw new Error("Supabase non è configurato. Impossibile caricare le foto delle recensioni su Supabase Storage.");
       }
@@ -8008,8 +9229,8 @@ async function processReviewImages(images, reviewId = null) {
       continue;
     }
 
-    // If it's an unrecognized format, preserve it if string
-    if (typeof fullCandidate === 'string') {
+    // Only keep if it is a valid non-empty relative path starting with /
+    if (fullCandidate.startsWith('/')) {
       processedUrls.push(fullCandidate);
     }
   }
@@ -8397,7 +9618,13 @@ app.post('/api/reviews', async (req, res) => {
     const finalReviewType = review_type || ((order_id || order_number) ? 'verified_purchase' : 'shared_experience');
 
     // Process images: upload to Storage/uploads and store clean URLs instead of raw Base64
-    const processedImages = await processReviewImages(images);
+    let processedImages = [];
+    if (Array.isArray(images) && images.length > 0) {
+      processedImages = await processReviewImages(images);
+    }
+    const validImages = Array.isArray(processedImages)
+      ? processedImages.filter(img => typeof img === 'string' && img.trim() !== '')
+      : [];
 
     const review = {
       customer_id: customer_id || null,
@@ -8412,7 +9639,7 @@ app.post('/api/reviews', async (req, res) => {
       rating: Number(rating),
       title: title || null,
       comment: comment,
-      images: processedImages,
+      images: validImages,
       status: 'pending',
       review_type: finalReviewType,
       created_at: new Date().toISOString()
@@ -8443,7 +9670,10 @@ app.post('/api/reviews/moderate', async (req, res) => {
     if (email !== undefined) updateData.email = email;
     if (review_type !== undefined) updateData.review_type = review_type;
     if (images !== undefined) {
-      updateData.images = await processReviewImages(images, id);
+      const processedModImages = await processReviewImages(images, id);
+      updateData.images = Array.isArray(processedModImages)
+        ? processedModImages.filter(img => typeof img === 'string' && img.trim() !== '')
+        : [];
     }
 
     const success = await updateDbReview(id, updateData);
@@ -9206,6 +10436,11 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
   let costo_completini_usd = 0;
   let costo_personalizzazioni_usd = 0;
   let quant_total = 0;
+  let quant_spedizione = 0;
+  let localAccessories = [];
+  try {
+    localAccessories = getLocalAccessories();
+  } catch (e) {}
 
   carrello.forEach(item => {
     const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
@@ -9240,14 +10475,17 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
       costo_completini_usd += (baseKitUSD * q);
       costo_personalizzazioni_usd += (persUnitUSD * q);
       quant_total += q;
+      if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+        quant_spedizione += q;
+      }
     }
   });
 
   const settings = getSettings();
-  const spedizione_unitaria = getShippingRateByQuantity(quant_total, settings);
+  const spedizione_unitaria = getShippingRateByQuantity(quant_spedizione, settings);
 
   // Per il calcolo del codice coupon / prezzo fornitore, la spedizione è ESCLUSA dal totale prezzo fornitore.
-  const costo_spedizione_usd = includeShipping ? Number((quant_total * spedizione_unitaria).toFixed(2)) : 0;
+  const costo_spedizione_usd = includeShipping ? Number((quant_spedizione * spedizione_unitaria).toFixed(2)) : 0;
   const costo_totale_usd = Number((costo_completini_usd + costo_personalizzazioni_usd + costo_spedizione_usd).toFixed(2));
   const prezzo_finale_eur = Number((costo_totale_usd * exchangeRate).toFixed(2));
 
@@ -9365,6 +10603,106 @@ app.delete('/api/coupons/:id', async (req, res) => {
 // FUNZIONALITÀ FORNITURA TORNEI (ANAGRAFICA)
 // ==========================================
 const LOCAL_TORNEI_FILE = path.join(__dirname, 'tornei_local.json');
+const LOCAL_TORNEO_PAGAMENTI_FILE = path.join(__dirname, 'torneo_pagamenti_local.json');
+
+function getLocalTorneoPagamenti() {
+  if (!fs.existsSync(LOCAL_TORNEO_PAGAMENTI_FILE)) {
+    return [];
+  }
+  try {
+    const raw = fs.readFileSync(LOCAL_TORNEO_PAGAMENTI_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error("⚠️ Errore lettura torneo_pagamenti_local.json:", err.message);
+    return [];
+  }
+}
+
+function saveLocalTorneoPagamenti(list) {
+  try {
+    fs.writeFileSync(LOCAL_TORNEO_PAGAMENTI_FILE, JSON.stringify(list, null, 2), 'utf8');
+  } catch (err) {
+    console.error("⚠️ Errore scrittura torneo_pagamenti_local.json:", err.message);
+  }
+}
+
+async function getTorneoPagamenti() {
+  const localList = getLocalTorneoPagamenti();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('torneo_pagamenti')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        return data;
+      }
+    } catch (err) {
+      // Fallback locale
+    }
+  }
+  return localList.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+}
+
+async function getTorneoPagamentoById(id) {
+  if (!id) return null;
+  const list = await getTorneoPagamenti();
+  return list.find(p => String(p.id) === String(id)) || null;
+}
+
+async function saveTorneoPagamento(pagamentoData) {
+  if (!pagamentoData) return null;
+  const isUpdate = Boolean(pagamentoData.id);
+  const id = pagamentoData.id || (crypto.randomUUID ? crypto.randomUUID() : `torneo_pag_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`);
+  
+  const payload = {
+    ...pagamentoData,
+    id,
+    updated_at: new Date().toISOString()
+  };
+  if (!isUpdate && !payload.created_at) {
+    payload.created_at = new Date().toISOString();
+  }
+
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
+  let savedRecord = null;
+  if (supabase) {
+    try {
+      if (isUpdate) {
+        const { data, error } = await supabase
+          .from('torneo_pagamenti')
+          .update(payload)
+          .eq('id', id)
+          .select('*')
+          .single();
+        if (!error && data) savedRecord = data;
+      } else {
+        const { data, error } = await supabase
+          .from('torneo_pagamenti')
+          .insert([payload])
+          .select('*')
+          .single();
+        if (!error && data) savedRecord = data;
+      }
+    } catch (e) {
+      // Fallback
+    }
+  }
+
+  const localList = getLocalTorneoPagamenti();
+  const targetRecord = savedRecord || payload;
+  const idx = localList.findIndex(p => String(p.id) === String(id));
+  if (idx !== -1) {
+    localList[idx] = { ...localList[idx], ...targetRecord };
+  } else {
+    localList.unshift(targetRecord);
+  }
+  saveLocalTorneoPagamenti(localList);
+  return targetRecord;
+}
 
 function getLocalTornei() {
   if (!fs.existsSync(LOCAL_TORNEI_FILE)) {
@@ -9388,6 +10726,16 @@ function saveLocalTornei(torneiList) {
   }
 }
 
+function normalizzaTorneoFields(t) {
+  if (!t) return t;
+  const cfg = t.configurazione_personalizzazione || {};
+  return {
+    ...t,
+    quota_calzettoni: t.quota_calzettoni !== undefined && t.quota_calzettoni !== null && t.quota_calzettoni !== '' ? parseInt(t.quota_calzettoni, 10) : (cfg.quota_calzettoni !== undefined && cfg.quota_calzettoni !== null && cfg.quota_calzettoni !== '' ? parseInt(cfg.quota_calzettoni, 10) : null),
+    prezzo_calzettoni: t.prezzo_calzettoni !== undefined && t.prezzo_calzettoni !== null && t.prezzo_calzettoni !== '' ? parseFloat(t.prezzo_calzettoni) : (cfg.prezzo_calzettoni !== undefined && cfg.prezzo_calzettoni !== null && cfg.prezzo_calzettoni !== '' ? parseFloat(cfg.prezzo_calzettoni) : null)
+  };
+}
+
 async function getTornei() {
   const localList = getLocalTornei();
   const supabase = getSupabaseAdminClient() || getSupabaseClient();
@@ -9402,7 +10750,7 @@ async function getTornei() {
       if (!error && Array.isArray(data)) {
         console.log(`[TORNEI DEBUG] Supabase SELECT completata, trovati ${data.length} tornei`);
         // Se la query ha successo, restituiamo ESCLUSIVAMENTE i dati di Supabase (anche se vuoto)
-        return data;
+        return data.map(normalizzaTorneoFields);
       } else if (error) {
         console.warn(`[TORNEI DEBUG] Errore query Supabase, fallback locale: ${error.message || error}`);
       }
@@ -9411,12 +10759,32 @@ async function getTornei() {
     }
   }
 
-  return localList;
+  return localList.map(normalizzaTorneoFields);
 }
 
 async function saveTorneo(torneoData) {
   const supabase = getSupabaseAdminClient() || getSupabaseClient();
   let savedRecord = null;
+
+  const quotaCalze = (torneoData.quota_calzettoni !== undefined && torneoData.quota_calzettoni !== null && torneoData.quota_calzettoni !== '')
+    ? parseInt(torneoData.quota_calzettoni, 10)
+    : (torneoData.configurazione_personalizzazione?.quota_calzettoni !== undefined && torneoData.configurazione_personalizzazione?.quota_calzettoni !== null && torneoData.configurazione_personalizzazione?.quota_calzettoni !== ''
+      ? parseInt(torneoData.configurazione_personalizzazione.quota_calzettoni, 10)
+      : null);
+
+  const prezzoCalze = (torneoData.prezzo_calzettoni !== undefined && torneoData.prezzo_calzettoni !== null && torneoData.prezzo_calzettoni !== '')
+    ? parseFloat(torneoData.prezzo_calzettoni)
+    : (torneoData.configurazione_personalizzazione?.prezzo_calzettoni !== undefined && torneoData.configurazione_personalizzazione?.prezzo_calzettoni !== null && torneoData.configurazione_personalizzazione?.prezzo_calzettoni !== ''
+      ? parseFloat(torneoData.configurazione_personalizzazione.prezzo_calzettoni)
+      : null);
+
+  const configPersonalizzazione = {
+    permetti_nome: torneoData.configurazione_personalizzazione?.permetti_nome !== false,
+    permetti_numero: torneoData.configurazione_personalizzazione?.permetti_numero !== false,
+    permetti_patch: Boolean(torneoData.configurazione_personalizzazione?.permetti_patch),
+    quota_calzettoni: quotaCalze,
+    prezzo_calzettoni: prezzoCalze
+  };
 
   const payload = {
     nome: (torneoData.nome || '').trim(),
@@ -9424,7 +10792,7 @@ async function saveTorneo(torneoData) {
     organizzatore_contatto: torneoData.organizzatore_contatto ? torneoData.organizzatore_contatto.trim() : null,
     quantita_totale_autorizzata: torneoData.quantita_totale_autorizzata !== undefined && torneoData.quantita_totale_autorizzata !== null && torneoData.quantita_totale_autorizzata !== '' ? parseInt(torneoData.quantita_totale_autorizzata, 10) : 0,
     prezzo_concordato_unitario: torneoData.prezzo_concordato_unitario !== undefined && torneoData.prezzo_concordato_unitario !== null && torneoData.prezzo_concordato_unitario !== '' ? parseFloat(torneoData.prezzo_concordato_unitario) : 0,
-    configurazione_personalizzazione: torneoData.configurazione_personalizzazione || { permetti_nome: true, permetti_numero: true, permetti_patch: false },
+    configurazione_personalizzazione: configPersonalizzazione,
     is_active: torneoData.is_active !== false,
     note: torneoData.note ? torneoData.note.trim() : null,
     updated_at: new Date().toISOString()
@@ -9453,7 +10821,7 @@ async function saveTorneo(torneoData) {
           throw new Error(`Errore aggiornamento Supabase: ${error.message}`);
         }
         if (data) {
-          savedRecord = data;
+          savedRecord = normalizzaTorneoFields(data);
           console.log(`[TORNEI DEBUG] Supabase UPDATE riuscito con ID: ${data.id}`);
         }
       } else {
@@ -9471,7 +10839,7 @@ async function saveTorneo(torneoData) {
           throw new Error(`Errore inserimento Supabase: ${error.message}`);
         }
         if (data) {
-          savedRecord = data;
+          savedRecord = normalizzaTorneoFields(data);
           console.log(`[TORNEI DEBUG] Supabase INSERT riuscito con ID: ${data.id}`);
         }
       }
@@ -9497,18 +10865,18 @@ async function saveTorneo(torneoData) {
   if (isUpdate) {
     const idx = localList.findIndex(t => String(t.id) === String(torneoData.id));
     if (idx !== -1) {
-      savedRecord = { ...localList[idx], ...payload, id: torneoData.id };
+      savedRecord = normalizzaTorneoFields({ ...localList[idx], ...payload, id: torneoData.id });
       localList[idx] = savedRecord;
     } else {
-      savedRecord = { ...payload, id: torneoData.id };
+      savedRecord = normalizzaTorneoFields({ ...payload, id: torneoData.id });
       localList.push(savedRecord);
     }
   } else {
-    savedRecord = {
+    savedRecord = normalizzaTorneoFields({
       ...payload,
       id: crypto.randomUUID ? crypto.randomUUID() : `torneo_${Date.now()}`,
       created_at: payload.created_at || new Date().toISOString()
-    };
+    });
     localList.unshift(savedRecord);
   }
   saveLocalTornei(localList);
@@ -9967,6 +11335,253 @@ app.get('/api/tornei/:id/squadre', async (req, res) => {
     return res.json({ success: true, squadre: enrichedSquadre });
   } catch (err) {
     console.error("⚠️ Errore GET /api/tornei/:id/squadre:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// API Routes per Pagamenti Fornitura Tornei
+app.get('/api/tornei/pagamenti', async (req, res) => {
+  try {
+    const pagamenti = await getTorneoPagamenti();
+    return res.json({ success: true, pagamenti });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/tornei/pagamenti:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/tornei/pagamenti/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pagamento = await getTorneoPagamentoById(id);
+    if (!pagamento) {
+      return res.status(404).json({ success: false, error: "Pagamento non trovato." });
+    }
+    return res.json({ success: true, pagamento });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/tornei/pagamenti/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/tornei/pagamenti/:id/paga', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID pagamento mancante." });
+    }
+
+    const pagamento = await getTorneoPagamentoById(id);
+    if (!pagamento) {
+      return res.status(404).json({ success: false, error: "Pagamento torneo non trovato." });
+    }
+
+    // Protezione Idempotenza: Se già pagato o ha già order_id, non ricreare
+    if (pagamento.stato === 'PAGATO' || pagamento.order_id) {
+      console.log(`ℹ️ [IDEMPOTENZA PAGAMENTO] Il pagamento #${id} è già stato confermato (Ordine #${pagamento.order_id}). Nessuna duplicazione.`);
+      return res.json({
+        success: true,
+        already_paid: true,
+        order_id: pagamento.order_id,
+        pagamento
+      });
+    }
+
+    // Processa la creazione dell'ordine in ORDINI PRODOTTI e aggiornamento LOTTO atomico
+    const result = await runWithLottoLock(async () => {
+      // Controllo idempotenza concorrente all'interno del lock
+      const currentPagamento = await getTorneoPagamentoById(id);
+      if (!currentPagamento || currentPagamento.stato === 'PAGATO' || currentPagamento.order_id) {
+        return {
+          already_paid: true,
+          order_id: currentPagamento?.order_id,
+          pagamento: currentPagamento
+        };
+      }
+
+      const rawPayload = currentPagamento.raw_order_payload || {};
+      const carrello = rawPayload.carrello || [];
+      const calculatedRiga = rawPayload.calculated_rigaOrdine || {};
+
+      // 1. Cerca eventuale ordine convenzione aperto a cui aggregare
+      let targetExistingOrder = null;
+      let squadConv = null;
+      const codConv = currentPagamento.codice_fornitura || rawPayload.codice_fornitura || '';
+      const tutteSquadre = await getAllTorneoSquadre();
+      squadConv = tutteSquadre.find(s => String(s.id) === String(currentPagamento.squadra_id) || (codConv && s.codice_univoco && s.codice_univoco.toUpperCase() === codConv.toUpperCase()));
+
+      const allDbOrders = await getDbOrders();
+      targetExistingOrder = allDbOrders.find(o => {
+        if (!o || isOrderCanceled(o)) return false;
+        return isOrderMatchingConvenzione(o, codConv, squadConv?.id || currentPagamento.squadra_id);
+      });
+
+      let insertedAdminOrder = null;
+
+      if (targetExistingOrder) {
+        console.log(`🔄 [PAGATO -> AGGREGAZIONE CONVENZIONE] Aggrego all'ordine #${targetExistingOrder.id}...`);
+        const capitanoNome = targetExistingOrder.capitano_nome || currentPagamento.capitano_nome || 'Capitano';
+        const capitanoTelefono = targetExistingOrder.capitano_telefono || currentPagamento.capitano_telefono || '';
+
+        const invioTimestamp = currentPagamento.data || new Date().toLocaleString('it-IT');
+        const newItemsAnnotated = (carrello || []).map(item => {
+          const itCopy = { ...item };
+          itCopy.fornitura = (itCopy.fornitura && typeof itCopy.fornitura === 'object') ? { ...itCopy.fornitura } : {};
+          itCopy.fornitura.capitano_nome = capitanoNome;
+          itCopy.fornitura.capitano_telefono = capitanoTelefono;
+          itCopy.fornitura.torneo_nome = currentPagamento.torneo_nome || squadConv?.torneo_nome || 'Torneo';
+          itCopy.fornitura.nome_squadra = currentPagamento.nome_squadra || squadConv?.nome_squadra || 'Squadra';
+          itCopy.fornitura.codice_univoco = currentPagamento.codice_fornitura || squadConv?.codice_univoco || '';
+          itCopy.invio_nome = currentPagamento.cliente_nome || rawPayload.nome || 'Cliente';
+          itCopy.invio_telefono = currentPagamento.cliente_telefono || rawPayload.telefono || '';
+          itCopy.invio_data = invioTimestamp;
+          return itCopy;
+        });
+
+        const existingCarrello = Array.isArray(targetExistingOrder.carrello) ? targetExistingOrder.carrello : [];
+        const combinedCarrello = [...existingCarrello, ...newItemsAnnotated];
+
+        const squadSummary = combinedCarrello.map(it => `${it.quantita || 1}x ${it.squadra || 'Maglia'}`).join(' / ');
+        const persSummary = combinedCarrello.map(it => `${it.quantita || 1}x [${it.infoPerso || it.personalizzazione || 'Nessuna'}]`).join(' | ');
+        const tagliaSummary = combinedCarrello.map(it => `${it.quantita || 1}x [${it.taglia || 'M'}]`).join(' / ');
+
+        let subtotalEur = 0;
+        let costoProdottiUsdAgg = 0;
+        let totArticoliAgg = 0;
+        const formuleImmaginiAgg = [];
+
+        combinedCarrello.forEach(item => {
+          const q = Number(item.quantita) || 1;
+          const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+          if (!isSped) {
+            totArticoliAgg += q;
+            let itemPrice = Number(item.prezzo);
+            if (isNaN(itemPrice) || itemPrice <= 0) {
+              itemPrice = (item.fornitura && item.fornitura.prezzo_concordato_unitario) ? Number(item.fornitura.prezzo_concordato_unitario) : 20;
+            }
+            item.prezzo = itemPrice;
+            subtotalEur += (itemPrice * q);
+
+            let pUnit = (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0)
+              ? Number(item.prezzo_fornitore)
+              : 0;
+            costoProdottiUsdAgg += (pUnit * q);
+            if (item.imgUrl && formuleImmaginiAgg.length === 0) {
+              formuleImmaginiAgg.push(`=IMAGE("${item.imgUrl}")`);
+            }
+          }
+        });
+
+        const settings = getSettings();
+        const exRate = await getLiveOrSettingsExchangeRate(settings);
+        const spedUnitaria = getShippingRateByQuantity(totArticoliAgg, settings);
+        const orderShippingUsd = Number((totArticoliAgg * spedUnitaria).toFixed(2));
+        const costoTotaleUsd = Number((costoProdottiUsdAgg + orderShippingUsd).toFixed(2));
+        const costoTotaleEur = convertUsdToEur(costoTotaleUsd, exRate, 'Aggregazione Ordine Torneo Pagato');
+        const profittoEur = Number((subtotalEur - costoTotaleEur).toFixed(2));
+
+        const updatedFields = {
+          squadra: squadSummary,
+          personalizzazione: persSummary,
+          taglia: tagliaSummary,
+          totale: `${subtotalEur.toFixed(2).replace('.', ',')}€`,
+          carrello: combinedCarrello,
+          "Costo prodotti (USD)": costoProdottiUsdAgg.toFixed(2).replace('.', ','),
+          "Costo spedizione (USD)": orderShippingUsd.toFixed(2).replace('.', ','),
+          "osto spedizione (USD)": orderShippingUsd.toFixed(2).replace('.', ','),
+          "Costo totale (USD)": costoTotaleUsd.toFixed(2).replace('.', ','),
+          "Cambio USD/EUR": exRate.toFixed(4).replace('.', ','),
+          "Costo totale (EUR)": costoTotaleEur.toFixed(2).replace('.', ','),
+          "Profitto (EUR)": profittoEur.toFixed(2).replace('.', ','),
+          costo_prodotti_usd: costoProdottiUsdAgg.toFixed(2),
+          costo_spedizione_usd: orderShippingUsd.toFixed(2),
+          costo_totale_usd: costoTotaleUsd.toFixed(2),
+          cambio_usd_eur: exRate.toFixed(4),
+          costo_totale_eur: costoTotaleEur.toFixed(2),
+          profitto_eur: profittoEur.toFixed(2)
+        };
+        if (formuleImmaginiAgg.length > 0 && (!targetExistingOrder.foto || targetExistingOrder.foto === '')) {
+          updatedFields.foto = formuleImmaginiAgg[0];
+        }
+
+        const supabase = getSupabaseClient();
+        if (supabase && targetExistingOrder.id) {
+          try {
+            await supabase.from('orders').update(updatedFields).eq('id', targetExistingOrder.id);
+          } catch (e) {}
+        }
+        Object.assign(targetExistingOrder, updatedFields);
+        targetExistingOrder.capitano_nome = capitanoNome;
+        targetExistingOrder.capitano_telefono = capitanoTelefono;
+        targetExistingOrder.is_convenzione = true;
+        targetExistingOrder.torneo_nome = currentPagamento.torneo_nome || targetExistingOrder.torneo_nome;
+        targetExistingOrder.nome_squadra = currentPagamento.nome_squadra || targetExistingOrder.nome_squadra;
+        targetExistingOrder.codice_univoco = currentPagamento.codice_fornitura || targetExistingOrder.codice_univoco;
+        targetExistingOrder.totale_completini_convenzione = totArticoliAgg;
+        saveLocalOrder(targetExistingOrder);
+
+        insertedAdminOrder = targetExistingOrder;
+      } else {
+        console.log(`✨ [PAGATO -> NUOVO ORDINE CONVENZIONE] Creazione nuovo ordine in Ordini Prodotti per "${currentPagamento.nome_squadra}"...`);
+        const rigaOrdine = {
+          ...calculatedRiga,
+          data: currentPagamento.data || new Date().toLocaleString('it-IT'),
+          nome: currentPagamento.cliente_nome || rawPayload.nome || 'Cliente Torneo',
+          telefono: currentPagamento.cliente_telefono || rawPayload.telefono || '',
+          capitano_nome: currentPagamento.capitano_nome,
+          capitano_telefono: currentPagamento.capitano_telefono,
+          is_convenzione: true,
+          torneo_nome: currentPagamento.torneo_nome || 'Torneo',
+          nome_squadra: currentPagamento.nome_squadra || 'Squadra',
+          codice_univoco: currentPagamento.codice_fornitura || '',
+          lotto_id: getCurrentActiveLottoId()
+        };
+
+        const invioTimestamp = currentPagamento.data || new Date().toLocaleString('it-IT');
+        rigaOrdine.carrello = (carrello || []).map(item => {
+          const itCopy = { ...item };
+          itCopy.fornitura = (itCopy.fornitura && typeof itCopy.fornitura === 'object') ? { ...itCopy.fornitura } : {};
+          itCopy.fornitura.capitano_nome = currentPagamento.capitano_nome;
+          itCopy.fornitura.capitano_telefono = currentPagamento.capitano_telefono;
+          itCopy.fornitura.torneo_nome = rigaOrdine.torneo_nome;
+          itCopy.fornitura.nome_squadra = rigaOrdine.nome_squadra;
+          itCopy.fornitura.codice_univoco = rigaOrdine.codice_univoco;
+          itCopy.invio_nome = currentPagamento.cliente_nome;
+          itCopy.invio_telefono = currentPagamento.cliente_telefono;
+          itCopy.invio_data = invioTimestamp;
+          return itCopy;
+        });
+
+        insertedAdminOrder = await insertDbOrder(rigaOrdine);
+      }
+
+      await recalculateCurrentLottoInternal();
+
+      // Aggiorna lo stato del pagamento
+      const orderIdVal = insertedAdminOrder?.id || (insertedAdminOrder?.data ? insertedAdminOrder.data.id : null) || 'CREATO';
+      currentPagamento.stato = 'PAGATO';
+      currentPagamento.order_id = String(orderIdVal);
+      currentPagamento.data_pagamento = new Date().toLocaleString('it-IT');
+      currentPagamento.updated_at = new Date().toISOString();
+
+      await saveTorneoPagamento(currentPagamento);
+
+      return {
+        already_paid: false,
+        order_id: currentPagamento.order_id,
+        pagamento: currentPagamento
+      };
+    });
+
+    return res.json({
+      success: true,
+      order_id: result.order_id,
+      already_paid: Boolean(result.already_paid),
+      pagamento: result.pagamento,
+      message: "Pagamento confermato! Ordine inserito negli Ordini Prodotti e sincronizzato con il Lotto."
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/tornei/pagamenti/:id/paga:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -10530,6 +12145,10 @@ async function getAuthoritativeProduct(item) {
     const found = allProds.find(p => String(p.id) === String(item.id));
     if (found) return found;
   }
+  if (item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "" && String(item.accessory_id) !== "undefined") {
+    const found = allProds.find(p => String(p.id) === String(item.accessory_id) || (p.accessory_id && String(p.accessory_id) === String(item.accessory_id)));
+    if (found) return found;
+  }
   if (item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
     const found = allProds.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
     if (found) return found;
@@ -10834,6 +12453,24 @@ async function calcolaQuantitaOrdinataSquadra(squadraParam, optionalId = null, o
         }
       }
     }
+
+    // Aggiungi anche gli articoli in attesa di pagamento (non ancora inseriti in orders)
+    const pendingPayments = await getTorneoPagamenti();
+    for (const pay of pendingPayments) {
+      if (!pay || pay.stato !== 'IN ATTESA DI PAGAMENTO' || pay.order_id) continue;
+      const paySquadraId = String(pay.squadra_id || '');
+      const payCodice = (pay.codice_fornitura || '').toUpperCase();
+      if ((squadraIdStr && paySquadraId === squadraIdStr) || isCodMatch(payCodice)) {
+        if (Array.isArray(pay.articoli_snapshot) && pay.articoli_snapshot.length > 0) {
+          for (const it of pay.articoli_snapshot) {
+            quantitaTotale += (parseInt(it.quantita, 10) || 1);
+          }
+        } else if (pay.quantita_totale) {
+          quantitaTotale += (parseInt(pay.quantita_totale, 10) || 0);
+        }
+      }
+    }
+
     return quantitaTotale;
   } catch (err) {
     console.error("⚠️ Errore calcolo quantita_ordinata squadra:", err.message);
@@ -10906,6 +12543,18 @@ app.post('/api/tornei/verifica-codice', async (req, res) => {
       capitano_telefono = existingOrder.capitano_telefono || (Array.isArray(existingOrder.carrello) && existingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || existingOrder.telefono || null;
     }
 
+    const quotaCalzeResp = torneo.quota_calzettoni !== undefined && torneo.quota_calzettoni !== null && torneo.quota_calzettoni !== ''
+      ? Number(torneo.quota_calzettoni)
+      : (torneo.configurazione_personalizzazione?.quota_calzettoni !== undefined && torneo.configurazione_personalizzazione?.quota_calzettoni !== null && torneo.configurazione_personalizzazione?.quota_calzettoni !== ''
+        ? Number(torneo.configurazione_personalizzazione.quota_calzettoni)
+        : null);
+
+    const prezzoCalzeResp = torneo.prezzo_calzettoni !== undefined && torneo.prezzo_calzettoni !== null && torneo.prezzo_calzettoni !== ''
+      ? Number(torneo.prezzo_calzettoni)
+      : (torneo.configurazione_personalizzazione?.prezzo_calzettoni !== undefined && torneo.configurazione_personalizzazione?.prezzo_calzettoni !== null && torneo.configurazione_personalizzazione?.prezzo_calzettoni !== ''
+        ? Number(torneo.configurazione_personalizzazione.prezzo_calzettoni)
+        : null);
+
     return res.json({
       valid: true,
       torneo_id: torneo.id,
@@ -10917,6 +12566,8 @@ app.post('/api/tornei/verifica-codice', async (req, res) => {
       quantita_ordinata: quantita_ordinata,
       quantita_rimanente: quantita_rimanente,
       prezzo_concordato_unitario: (squadra.prezzo_concordato_unitario !== undefined && squadra.prezzo_concordato_unitario !== null && squadra.prezzo_concordato_unitario !== '') ? Number(squadra.prezzo_concordato_unitario) : (Number(torneo.prezzo_concordato_unitario) || 0),
+      quota_calzettoni: quotaCalzeResp,
+      prezzo_calzettoni: prezzoCalzeResp,
       categorie_autorizzate: Array.isArray(squadra.categorie_autorizzate) ? squadra.categorie_autorizzate : (Array.isArray(torneo.categorie_autorizzate) ? torneo.categorie_autorizzate : []),
       configurazione_personalizzazione: configurazione_personalizzazione,
       has_existing_order: has_existing_order,
@@ -11072,14 +12723,15 @@ function getLocalProfitShares() {
           movements: (parsed && Array.isArray(parsed.movements)) ? parsed.movements : [],
           modifications: (parsed && typeof parsed.modifications === 'object' && !Array.isArray(parsed.modifications)) ? parsed.modifications : {},
           lot_percentages: (parsed && typeof parsed.lot_percentages === 'object' && !Array.isArray(parsed.lot_percentages)) ? parsed.lot_percentages : {},
-          extra_expenses: (parsed && Array.isArray(parsed.extra_expenses)) ? parsed.extra_expenses : []
+          extra_expenses: (parsed && Array.isArray(parsed.extra_expenses)) ? parsed.extra_expenses : [],
+          accantonamenti: (parsed && Array.isArray(parsed.accantonamenti)) ? parsed.accantonamenti : []
         };
       }
     }
   } catch (err) {
     console.warn("⚠️ Errore lettura backup locale profit_shares_local.json:", err.message);
   }
-  return { shares: {}, movements: [], modifications: {}, lot_percentages: {}, extra_expenses: [] };
+  return { shares: {}, movements: [], modifications: {}, lot_percentages: {}, extra_expenses: [], accantonamenti: [] };
 }
 
 function saveLocalProfitShares(data) {
@@ -11089,7 +12741,8 @@ function saveLocalProfitShares(data) {
       movements: (data && Array.isArray(data.movements)) ? data.movements : [],
       modifications: (data && typeof data.modifications === 'object' && !Array.isArray(data.modifications)) ? data.modifications : {},
       lot_percentages: (data && typeof data.lot_percentages === 'object' && !Array.isArray(data.lot_percentages)) ? data.lot_percentages : {},
-      extra_expenses: (data && Array.isArray(data.extra_expenses)) ? data.extra_expenses : []
+      extra_expenses: (data && Array.isArray(data.extra_expenses)) ? data.extra_expenses : [],
+      accantonamenti: (data && Array.isArray(data.accantonamenti)) ? data.accantonamenti : []
     };
     fs.writeFileSync(LOCAL_PROFIT_SHARES_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (err) {
@@ -11114,7 +12767,8 @@ async function getDbProfitShares() {
           movements: (val && Array.isArray(val.movements)) ? val.movements : [],
           modifications: (val && typeof val.modifications === 'object' && !Array.isArray(val.modifications)) ? val.modifications : {},
           lot_percentages: (val && typeof val.lot_percentages === 'object' && !Array.isArray(val.lot_percentages)) ? val.lot_percentages : {},
-          extra_expenses: (val && Array.isArray(val.extra_expenses)) ? val.extra_expenses : []
+          extra_expenses: (val && Array.isArray(val.extra_expenses)) ? val.extra_expenses : [],
+          accantonamenti: (val && Array.isArray(val.accantonamenti)) ? val.accantonamenti : []
         };
         saveLocalProfitShares(result);
         return result;
@@ -11132,7 +12786,8 @@ async function saveDbProfitShares(data) {
     movements: (data && Array.isArray(data.movements)) ? data.movements : [],
     modifications: (data && typeof data.modifications === 'object' && !Array.isArray(data.modifications)) ? data.modifications : {},
     lot_percentages: (data && typeof data.lot_percentages === 'object' && !Array.isArray(data.lot_percentages)) ? data.lot_percentages : {},
-    extra_expenses: (data && Array.isArray(data.extra_expenses)) ? data.extra_expenses : []
+    extra_expenses: (data && Array.isArray(data.extra_expenses)) ? data.extra_expenses : [],
+    accantonamenti: (data && Array.isArray(data.accantonamenti)) ? data.accantonamenti : []
   };
 
   // Salva backup locale
@@ -11608,8 +13263,28 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     ? Number((costoProdottiPersonali - Math.max(0, profittoDisponibile)).toFixed(2))
     : 0;
 
-  // INCASSO CLIENTI: incassoBase - costoCoperto + deficit
-  const incassoEffettivo = Number((lotIncassoBase - costoCoperto + deficitTotale).toFixed(2));
+  // Accantonamenti (Somme da accantonare: Da anticipare + Articolo mio)
+  const allAccantonamenti = Array.isArray(profitData.accantonamenti) ? profitData.accantonamenti : [];
+  const lotAccantonamenti = allAccantonamenti.filter(a => a.lotto_id === undefined || a.lotto_id === null || Number(a.lotto_id) === lotIdNum);
+
+  let totaleDaAnticipare = 0;
+  let totaleArticoliMiei = 0;
+
+  for (const acc of lotAccantonamenti) {
+    const imp = Number(acc.importo) || 0;
+    if (acc.tipo === 'da_anticipare') {
+      totaleDaAnticipare += imp;
+    } else if (acc.tipo === 'articolo_mio') {
+      totaleArticoliMiei += imp;
+    }
+  }
+
+  totaleDaAnticipare = Number(totaleDaAnticipare.toFixed(2));
+  totaleArticoliMiei = Number(totaleArticoliMiei.toFixed(2));
+  const totaleDaAccantonare = Number((totaleDaAnticipare + totaleArticoliMiei).toFixed(2));
+  // Incasso Disponibile / Incasso Clienti Visualizzato = Incasso Base - Totale da accantonare (Da anticipare + Articolo mio)
+  const incassoDisponibile = Number((lotIncassoBase - totaleDaAccantonare).toFixed(2));
+  const incassoEffettivo = incassoDisponibile;
 
   return {
     lotto_id: lotIdNum,
@@ -11625,6 +13300,14 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     alibaba_fee_eur: alibabaFeeEur,
     incasso_base: lotIncassoBase,
     incasso_totale_base: lotIncassoBase,
+    incasso_clienti: incassoDisponibile,
+    incasso_clienti_base: lotIncassoBase,
+    totale_da_anticipare: totaleDaAnticipare,
+    totale_articoli_miei: totaleArticoliMiei,
+    totale_da_accantonare: totaleDaAccantonare,
+    incasso_disponibile: incassoDisponibile,
+    accantonamenti: lotAccantonamenti,
+    all_accantonamenti: allAccantonamenti,
     costo_prodotti_personali: costoProdottiPersonali,
     profitto_disponibile: profittoDisponibile,
     costo_coperto: costoCoperto,
@@ -11757,6 +13440,7 @@ app.get('/api/profit-splits', async (req, res) => {
     return res.json({
       success: true,
       summary: computed,
+      accantonamenti: computed.accantonamenti,
       modifications: computed.modifications,
       extra_expenses: computed.extra_expenses,
       lot_orders: computed.lot_orders
@@ -12296,6 +13980,135 @@ app.delete('/api/profit-splits/movement/:id', async (req, res) => {
   }
 });
 
+// GET /api/profit-splits/accantonamenti - Recupera tutti gli accantonamenti
+app.get(['/api/profit-splits/accantonamenti', '/api/accantonamenti'], async (req, res) => {
+  try {
+    const profitData = await getDbProfitShares();
+    const accantonamenti = Array.isArray(profitData.accantonamenti) ? profitData.accantonamenti : [];
+    return res.json({ success: true, accantonamenti });
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/profit-splits/accantonamenti:", err.message);
+    return res.status(500).json({ success: false, error: err.message, accantonamenti: [] });
+  }
+});
+
+// POST /api/profit-splits/accantonamento - Registra o modifica un movimento di accantonamento (Da anticipare / Articolo mio)
+app.post(['/api/profit-splits/accantonamento', '/api/accantonamenti'], async (req, res) => {
+  try {
+    const { id, data, tipo, descrizione, importo, note, lotto_id, order_ids } = req.body;
+
+    if (!tipo || (tipo !== 'da_anticipare' && tipo !== 'articolo_mio')) {
+      return res.status(400).json({ success: false, error: "Tipo non valido (deve essere 'da_anticipare' o 'articolo_mio')." });
+    }
+    if (!descrizione || String(descrizione).trim().length === 0) {
+      return res.status(400).json({ success: false, error: "Descrizione obbligatoria." });
+    }
+    const parsedImporto = parseFlexibleDecimal(importo);
+    if (isNaN(parsedImporto) || parsedImporto <= 0) {
+      return res.status(400).json({ success: false, error: "Importo non valido (deve essere maggiore di 0)." });
+    }
+
+    const profitData = await getDbProfitShares();
+    if (!Array.isArray(profitData.accantonamenti)) {
+      profitData.accantonamenti = [];
+    }
+
+    const movementId = id ? String(id) : `acc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const nowIso = new Date().toISOString();
+    const targetLottoId = (lotto_id !== undefined && lotto_id !== null && !isNaN(Number(lotto_id))) ? Number(lotto_id) : null;
+
+    // Normalizza e valida array order_ids
+    const cleanedOrderIds = Array.isArray(order_ids)
+      ? order_ids.map(oid => String(oid).trim()).filter(oid => oid.length > 0)
+      : [];
+
+    // Controllo anti-duplicazione ordini: verifica che nessun ordine sia già collegato a un altro movimento attivo del lotto
+    if (cleanedOrderIds.length > 0) {
+      for (const oid of cleanedOrderIds) {
+        const conflict = profitData.accantonamenti.find(a => 
+          String(a.id) !== String(movementId) &&
+          (targetLottoId === null || a.lotto_id === null || a.lotto_id === undefined || Number(a.lotto_id) === targetLottoId) &&
+          Array.isArray(a.order_ids) &&
+          a.order_ids.some(existingOid => String(existingOid).trim() === oid)
+        );
+        if (conflict) {
+          const conflictTipo = conflict.tipo === 'da_anticipare' ? 'DA ANTICIPARE' : 'ARTICOLO MIO';
+          return res.status(400).json({
+            success: false,
+            error: `L'ordine #${oid} è già collegato al movimento attivo "${conflict.descrizione || conflict.id}" (${conflictTipo}). Evita doppi inserimenti.`
+          });
+        }
+      }
+    }
+
+    // Formatta data (se non specificata, usa formato DD/MM/YYYY odierno)
+    let formattedDate = data ? String(data).trim() : '';
+    if (!formattedDate) {
+      const d = new Date();
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      formattedDate = `${day}/${month}/${year}`;
+    }
+
+    const item = {
+      id: movementId,
+      lotto_id: targetLottoId,
+      data: formattedDate,
+      tipo: tipo,
+      descrizione: String(descrizione).trim(),
+      importo: Number(parsedImporto.toFixed(2)),
+      order_ids: cleanedOrderIds,
+      note: note ? String(note).trim() : '',
+      created_at: nowIso,
+      updated_at: nowIso
+    };
+
+    const existingIndex = profitData.accantonamenti.findIndex(a => String(a.id) === movementId);
+    if (existingIndex >= 0) {
+      item.created_at = profitData.accantonamenti[existingIndex].created_at || nowIso;
+      profitData.accantonamenti[existingIndex] = item;
+    } else {
+      profitData.accantonamenti.unshift(item);
+    }
+
+    await saveDbProfitShares(profitData);
+    return res.json({ success: true, accantonamento: item, accantonamenti: profitData.accantonamenti });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/profit-splits/accantonamento:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/profit-splits/accantonamento/:id - Elimina un movimento di accantonamento
+app.delete(['/api/profit-splits/accantonamento/:id', '/api/accantonamenti/:id'], async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Identificativo accantonamento mancante." });
+    }
+
+    const profitData = await getDbProfitShares();
+    if (!Array.isArray(profitData.accantonamenti)) {
+      profitData.accantonamenti = [];
+    }
+
+    const initialLen = profitData.accantonamenti.length;
+    profitData.accantonamenti = profitData.accantonamenti.filter(a => String(a.id) !== String(id));
+    const removed = profitData.accantonamenti.length < initialLen;
+
+    if (removed) {
+      await saveDbProfitShares(profitData);
+      return res.json({ success: true, removed: true });
+    } else {
+      return res.status(404).json({ success: false, error: "Movimento di accantonamento non trovato." });
+    }
+  } catch (err) {
+    console.error("⚠️ Errore DELETE /api/profit-splits/accantonamento/:id:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/orders - Registra un ordine, aggiorna il lotto in tempo reale e salva su Supabase
 app.post('/api/orders', async (req, res) => {
   try {
@@ -12357,6 +14170,9 @@ app.post('/api/orders', async (req, res) => {
       if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
         matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
       }
+      if (!matchedProd && item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "" && String(item.accessory_id) !== "undefined") {
+        matchedProd = allDbProducts.find(p => String(p.id) === String(item.accessory_id) || (p.accessory_id && String(p.accessory_id) === String(item.accessory_id)));
+      }
       if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
         matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
       }
@@ -12399,15 +14215,26 @@ app.post('/api/orders', async (req, res) => {
         const torneo = tuttiTornei.find(t => String(t.id) === String(sq.torneo_id));
         const torneoNome = torneo ? (torneo.nome_torneo || torneo.nome || 'Torneo') : 'Torneo';
 
-        const prezzoConcordatoVal = (sq.prezzo_concordato_unitario !== undefined && sq.prezzo_concordato_unitario !== null)
-          ? Number(sq.prezzo_concordato_unitario)
-          : (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null
-            ? Number(item.prezzo_concordato)
-            : (item.prezzo !== undefined && !isNaN(Number(item.prezzo)) ? Number(item.prezzo) : 23.99));
+        const catNorm = normalizzaCategoria(item.categoria || (matchedProd ? matchedProd.categoria : ''));
+        const isCalzettoni = catNorm.toLowerCase() === 'calzettoni';
+        const torneoPrezzoCalzettoni = torneo ? (torneo.prezzo_calzettoni !== undefined && torneo.prezzo_calzettoni !== null && torneo.prezzo_calzettoni !== '' ? torneo.prezzo_calzettoni : torneo.configurazione_personalizzazione?.prezzo_calzettoni) : null;
+
+        let prezzoConcordatoVal;
+        if (isCalzettoni && torneoPrezzoCalzettoni !== undefined && torneoPrezzoCalzettoni !== null && torneoPrezzoCalzettoni !== '') {
+          prezzoConcordatoVal = Number(torneoPrezzoCalzettoni);
+        } else {
+          prezzoConcordatoVal = (sq.prezzo_concordato_unitario !== undefined && sq.prezzo_concordato_unitario !== null && sq.prezzo_concordato_unitario !== '')
+            ? Number(sq.prezzo_concordato_unitario)
+            : (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null
+              ? Number(item.prezzo_concordato)
+              : (torneo && torneo.prezzo_concordato_unitario !== undefined && torneo.prezzo_concordato_unitario !== null && torneo.prezzo_concordato_unitario !== ''
+                ? Number(torneo.prezzo_concordato_unitario)
+                : (item.prezzo !== undefined && !isNaN(Number(item.prezzo)) ? Number(item.prezzo) : 23.99)));
+        }
 
         const prezzoOrigVal = (item.prezzo_originale !== undefined && item.prezzo_originale !== null)
           ? Number(item.prezzo_originale)
-          : (matchedProd ? (Number(matchedProd.prezzo) || 23.99) : 23.99);
+          : (matchedProd ? (Number(matchedProd.prezzo) || (isCalzettoni ? 6.00 : 23.99)) : (isCalzettoni ? 6.00 : 23.99));
 
         item.fornitura = {
           torneo_id: sq.torneo_id,
@@ -12428,9 +14255,7 @@ app.post('/api/orders', async (req, res) => {
         item.ha_prezzo_concordato = true;
         item.prezzo_concordato = prezzoConcordatoVal;
         item.prezzo_originale = prezzoOrigVal;
-        if (item.prezzo === undefined || item.prezzo === null || isNaN(Number(item.prezzo))) {
-          item.prezzo = prezzoConcordatoVal;
-        }
+        item.prezzo = prezzoConcordatoVal;
       }
     }
 
@@ -12438,6 +14263,7 @@ app.post('/api/orders', async (req, res) => {
     let totale_pagato_cliente = 0;
     let costo_prodotti_usd = 0;
     let quantita_totale_articoli = 0;
+    let quantita_articoli_spedizione = 0;
     const stringaSquadre = [];
     const stringaPersonalizzazioni = [];
     const stringaTaglie = [];
@@ -12469,6 +14295,9 @@ app.post('/api/orders', async (req, res) => {
 
       totale_pagato_cliente += (prezzoUnitarioEuro * (Number(item.quantita) || 1));
       quantita_totale_articoli += q;
+      if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+        quantita_articoli_spedizione += q;
+      }
 
       // Cerca il prodotto per trovare il prezzo fornitore
       let matchedProd = null;
@@ -12529,7 +14358,10 @@ app.post('/api/orders', async (req, res) => {
       
       const persLabel = item.infoPerso && item.infoPerso.trim() !== "" ? item.infoPerso : "No";
       stringaPersonalizzazioni.push(`${qPrefix}x [${persLabel}]`);
-      stringaTaglie.push(`${qPrefix}x [${item.taglia}]`);
+      const tagliaVal = (item.taglia !== undefined && item.taglia !== null && String(item.taglia).trim() !== '')
+        ? String(item.taglia).trim()
+        : (item.tipo_catalogo === 'accessori' ? '-' : 'Unica');
+      stringaTaglie.push(`${qPrefix}x [${tagliaVal}]`);
 
       if (item.imgUrl) {
         formuleImmagini.push(`=IMAGE("${item.imgUrl}")`);
@@ -12633,7 +14465,7 @@ app.post('/api/orders', async (req, res) => {
     };
 
     // 3. Prepara riga ordine per foglio "Ordini"
-    const order_shipping_usd = Number((quantita_totale_articoli * spedizione_unitaria).toFixed(2));
+    const order_shipping_usd = Number((quantita_articoli_spedizione * spedizione_unitaria).toFixed(2));
     const costo_totale_usd = Number((costo_prodotti_usd + order_shipping_usd).toFixed(2));
     const costo_totale_eur = convertUsdToEur(costo_totale_usd, exchangeRate, 'POST /api/orders');
 
@@ -12728,7 +14560,7 @@ app.post('/api/orders', async (req, res) => {
       : getCurrentActiveLottoId();
 
     // Salva l'ordine e ricalcola il lotto in modo atomico (sincronizzato) per evitare race condition
-    const { insertedAdminOrder, finalLotto, isAggregated } = await runWithLottoLock(async () => {
+    const { insertedAdminOrder, finalLotto, isAggregated, isTournamentPayment, nuovoPagamento } = await runWithLottoLock(async () => {
       // =========================================================================
       // FASE 9: CONTROLLO ATOMICO DELLA QUOTA CONVENZIONE TORNEO
       // =========================================================================
@@ -12840,227 +14672,107 @@ app.post('/api/orders', async (req, res) => {
       }
 
       // =========================================================================
-      // FASE 10: GESTIONE AGGREGAZIONE ORDINE CONVENZIONE TORNEO & DATI CAPITANO
+      // FASE 10: ORDINI FORNITURA TORNEI -> STATO IN ATTESA DI PAGAMENTO
+      // (Non vanno subito in Ordini Prodotti; vanno in Fornitura Tornei -> Pagamenti)
       // =========================================================================
       let isConvenzioneTorneo = fornituraSquadreMap.size > 0;
-      let targetExistingOrder = null;
       let squadConv = null;
 
       if (isConvenzioneTorneo) {
         const sqEntry = Array.from(fornituraSquadreMap.values())[0];
         squadConv = sqEntry ? sqEntry.squadra : null;
-        const codConv = squadConv ? squadConv.codice_univoco : (req.body.codice_fornitura || '');
-
-        // Cerca l'ordine convenzione già aperto e non annullato per questo codice convenzione
-        const allDbOrders = await getDbOrders();
-        targetExistingOrder = allDbOrders.find(o => {
-          if (!o || isOrderCanceled(o)) return false;
-          return isOrderMatchingConvenzione(o, codConv, squadConv?.id);
-        });
-      }
-
-      if (isConvenzioneTorneo && targetExistingOrder) {
-        console.log(`🔄 [AGGREGAZIONE CONVENZIONE] Trovato ordine esistente #${targetExistingOrder.id} per convenzione "${squadConv?.nome_squadra}". Aggrego i nuovi completini...`);
         
-        // 1. Dati Capitano: NON sovrascrivere mai il Capitano esistente
-        const capitanoNome = targetExistingOrder.capitano_nome || 
-                             (Array.isArray(targetExistingOrder.carrello) && targetExistingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_nome)?.fornitura?.capitano_nome) || 
-                             targetExistingOrder.nome || 'N/D';
-        const capitanoTelefono = targetExistingOrder.capitano_telefono || 
-                                 (Array.isArray(targetExistingOrder.carrello) && targetExistingOrder.carrello.find(it => it && it.fornitura && it.fornitura.capitano_telefono)?.fornitura?.capitano_telefono) || 
-                                 targetExistingOrder.telefono || 'N/D';
-
-        // 2. Tagga i nuovi articoli con info di questo invio
-        const invioTimestamp = new Date().toLocaleString('it-IT');
-        const newItemsAnnotated = (carrello || []).map(item => {
-          const itCopy = { ...item };
-          itCopy.fornitura = (itCopy.fornitura && typeof itCopy.fornitura === 'object') ? { ...itCopy.fornitura } : {};
-          itCopy.fornitura.capitano_nome = capitanoNome;
-          itCopy.fornitura.capitano_telefono = capitanoTelefono;
-          itCopy.fornitura.torneo_nome = squadConv?.torneo_nome || itCopy.fornitura.torneo_nome || 'Torneo';
-          itCopy.fornitura.nome_squadra = squadConv?.nome_squadra || itCopy.fornitura.nome_squadra || 'Squadra';
-          itCopy.fornitura.codice_univoco = squadConv?.codice_univoco || itCopy.fornitura.codice_univoco || '';
-          itCopy.invio_nome = nome;
-          itCopy.invio_telefono = telefono;
-          itCopy.invio_data = invioTimestamp;
-          return itCopy;
-        });
-
-        // 3. Aggiungi SOLO i nuovi articoli al carrello esistente
-        const existingCarrello = Array.isArray(targetExistingOrder.carrello) ? targetExistingOrder.carrello : [];
-        const combinedCarrello = [...existingCarrello, ...newItemsAnnotated];
-
-        // 4. Ricalcola totali e descrizioni dell'ordine aggregato
-        const squadSummary = combinedCarrello.map(it => `${it.quantita || 1}x ${it.squadra || 'Maglia'}`).join(' / ');
-        const persSummary = combinedCarrello.map(it => `${it.quantita || 1}x [${it.infoPerso || it.personalizzazione || 'Nessuna'}]`).join(' | ');
-        const tagliaSummary = combinedCarrello.map(it => `${it.quantita || 1}x [${it.taglia || 'M'}]`).join(' / ');
+        console.log(`🏟️ [ORDINE FORNITURA TORNEO] Generazione richiesta pagamento per squadra "${squadConv?.nome_squadra}" (Codice: ${squadConv?.codice_univoco})...`);
         
-        let subtotalEur = 0;
-        let costoProdottiUsdAgg = 0;
-        let totArticoliAgg = 0;
-        const formuleImmaginiAgg = [];
+        const capNome = (req.body.capitano_nome || squadConv?.capitano_nome || req.body.nome || 'Capitano').trim();
+        const capTel = (req.body.capitano_telefono || squadConv?.capitano_telefono || req.body.telefono || '').trim();
 
-        combinedCarrello.forEach(item => {
-          const q = Number(item.quantita) || 1;
+        // Snapshot fedele di tutti gli articoli con prezzi congelati
+        const snapshotArticoli = (carrello || []).map(item => {
           const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-          if (!isSped) {
-            totArticoliAgg += q;
-            
-            // Prezzo cliente dell'articolo
-            let itemPrice = Number(item.prezzo);
-            if (item.fornitura && item.fornitura.prezzo_concordato_unitario !== undefined && item.fornitura.prezzo_concordato_unitario !== null) {
-              itemPrice = Number(item.fornitura.prezzo_concordato_unitario);
-            } else if (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null) {
-              itemPrice = Number(item.prezzo_concordato);
-            }
-            if (isNaN(itemPrice) || itemPrice <= 0) {
-              itemPrice = 20;
-            }
-            item.prezzo = itemPrice;
-            subtotalEur += (itemPrice * q);
+          if (isSped) return null;
+          const q = Number(item.quantita) || 1;
+          const p = Number(item.prezzo) || 0;
+          return {
+            prodotto: item.squadra || 'Prodotto',
+            squadra: item.squadra || 'Prodotto',
+            categoria: item.categoria || (normalizzaCategoria(item.categoria || '').toLowerCase() === 'calzettoni' ? 'Calzettoni' : 'Maglie'),
+            taglia: item.taglia || '-',
+            infoPerso: item.infoPerso || item.personalizzazione || 'Nessuna',
+            personalizzazione: item.infoPerso || item.personalizzazione || 'Nessuna',
+            quantita: q,
+            prezzo: p,
+            totale_riga: Number((p * q).toFixed(2)),
+            prezzo_fornitore: item.prezzo_fornitore !== undefined ? item.prezzo_fornitore : null,
+            imgUrl: item.imgUrl || '',
+            fornitura: item.fornitura || null
+          };
+        }).filter(Boolean);
 
-            // Costo fornitore dell'articolo in USD
-            let pUnit = (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0)
-              ? Number(item.prezzo_fornitore)
-              : 0;
-
-            if (pUnit <= 0) {
-              const matched = allDbProducts.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)) || (p.versione && p.versione.toLowerCase() === String(item.squadra || '').toLowerCase()));
-              const baseUSD = matched && matched.prezzo_fornitore !== undefined && matched.prezzo_fornitore !== null ? Number(matched.prezzo_fornitore) : 14.50;
-              pUnit = calcolaCostoFornitoreProdotto(baseUSD, item.infoPerso || item.personalizzazione, item);
-            }
-
-            item.prezzo_fornitore = pUnit;
-            costoProdottiUsdAgg += (pUnit * q);
-            if (item.imgUrl && formuleImmaginiAgg.length === 0) {
-              formuleImmaginiAgg.push(`=IMAGE("${item.imgUrl}")`);
-            }
-          }
-        });
-
-        const exRate = await getLiveOrSettingsExchangeRate(settings);
-        const spedUnitaria = getShippingRateByQuantity(totArticoliAgg, settings);
-        const orderShippingUsd = Number((totArticoliAgg * spedUnitaria).toFixed(2));
-        const costoTotaleUsd = Number((costoProdottiUsdAgg + orderShippingUsd).toFixed(2));
-        const costoTotaleEur = convertUsdToEur(costoTotaleUsd, exRate, 'Aggregazione Ordine Convenzione');
-        const profittoEur = Number((subtotalEur - costoTotaleEur).toFixed(2));
-
-        const updatedFields = {
-          squadra: squadSummary,
-          personalizzazione: persSummary,
-          taglia: tagliaSummary,
-          totale: `${subtotalEur.toFixed(2).replace('.', ',')}€`,
-          carrello: combinedCarrello,
-          "Costo prodotti (USD)": costoProdottiUsdAgg.toFixed(2).replace('.', ','),
-          "Costo spedizione (USD)": orderShippingUsd.toFixed(2).replace('.', ','),
-          "osto spedizione (USD)": orderShippingUsd.toFixed(2).replace('.', ','),
-          "Costo totale (USD)": costoTotaleUsd.toFixed(2).replace('.', ','),
-          "Cambio USD/EUR": exRate.toFixed(4).replace('.', ','),
-          "Costo totale (EUR)": costoTotaleEur.toFixed(2).replace('.', ','),
-          "Profitto (EUR)": profittoEur.toFixed(2).replace('.', ','),
-          costo_prodotti_usd: costoProdottiUsdAgg.toFixed(2),
-          costo_spedizione_usd: orderShippingUsd.toFixed(2),
-          costo_totale_usd: costoTotaleUsd.toFixed(2),
-          cambio_usd_eur: exRate.toFixed(4),
-          costo_totale_eur: costoTotaleEur.toFixed(2),
-          profitto_eur: profittoEur.toFixed(2)
+        const nuovoPagamento = {
+          id: `torneo_pag_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+          torneo_id: squadConv?.torneo_id || req.body.torneo_id || null,
+          torneo_nome: squadConv?.torneo_nome || 'Torneo',
+          squadra_id: squadConv?.id || req.body.torneo_squadra_id || null,
+          nome_squadra: squadConv?.nome_squadra || 'Squadra',
+          codice_fornitura: squadConv?.codice_univoco || req.body.codice_fornitura || '',
+          capitano_nome: capNome,
+          capitano_telefono: capTel,
+          cliente_nome: (nome || '').trim(),
+          cliente_telefono: (telefono || '').trim(),
+          data: new Date().toLocaleString('it-IT'),
+          created_at: new Date().toISOString(),
+          stato: 'IN ATTESA DI PAGAMENTO',
+          totale: totale_pagato_cliente,
+          totale_formattato: `${totale_pagato_cliente.toFixed(2).replace('.', ',')} €`,
+          quantita_totale: quantita_totale_articoli,
+          articoli_snapshot: snapshotArticoli,
+          raw_order_payload: {
+            ...req.body,
+            nome,
+            telefono,
+            carrello,
+            calculated_rigaOrdine: rigaOrdine
+          },
+          order_id: null,
+          data_pagamento: null
         };
 
-        if (formuleImmaginiAgg.length > 0 && (!targetExistingOrder.foto || targetExistingOrder.foto === '')) {
-          updatedFields.foto = formuleImmaginiAgg[0];
-        }
+        await saveTorneoPagamento(nuovoPagamento);
+        console.log(`✅ [PAGAMENTO TORNEO REGISTRATO] Salvato pagamento #${nuovoPagamento.id} come "IN ATTESA DI PAGAMENTO".`);
 
-        // Prepara payload pulito per Supabase (solo colonne supportate dallo schema orders)
-        const supabaseUpdateData = {
-          squadra: updatedFields.squadra,
-          personalizzazione: updatedFields.personalizzazione,
-          taglia: updatedFields.taglia,
-          totale: updatedFields.totale,
-          carrello: combinedCarrello,
-          costo_prodotti_usd: updatedFields.costo_prodotti_usd,
-          costo_spedizione_usd: updatedFields.costo_spedizione_usd,
-          costo_totale_usd: updatedFields.costo_totale_usd,
-          cambio_usd_eur: updatedFields.cambio_usd_eur,
-          costo_totale_eur: updatedFields.costo_totale_eur,
-          profitto_eur: updatedFields.profitto_eur
-        };
-        if (updatedFields.foto) {
-          supabaseUpdateData.foto = updatedFields.foto;
-        }
-
-        // Salva su Supabase
-        const supabase = getSupabaseClient();
-        if (supabase && targetExistingOrder.id) {
-          try {
-            const { error: updErr } = await supabase.from('orders').update(supabaseUpdateData).eq('id', targetExistingOrder.id);
-            if (updErr) {
-              console.warn("⚠️ Errore update ordine aggregato su Supabase:", updErr.message);
-            }
-          } catch (e) {
-            console.warn("⚠️ Eccezione update Supabase:", e.message);
-          }
-        }
-
-        // Aggiorna ordine locale
-        Object.assign(targetExistingOrder, updatedFields);
-        targetExistingOrder.capitano_nome = capitanoNome;
-        targetExistingOrder.capitano_telefono = capitanoTelefono;
-        targetExistingOrder.is_convenzione = true;
-        targetExistingOrder.torneo_nome = squadConv?.torneo_nome || targetExistingOrder.torneo_nome;
-        targetExistingOrder.nome_squadra = squadConv?.nome_squadra || targetExistingOrder.nome_squadra;
-        targetExistingOrder.codice_univoco = squadConv?.codice_univoco || targetExistingOrder.codice_univoco;
-        targetExistingOrder.totale_completini_convenzione = totArticoliAgg;
-        saveLocalOrder(targetExistingOrder);
-
-        const lotto = await recalculateCurrentLottoInternal();
         return {
-          insertedAdminOrder: targetExistingOrder,
+          isTournamentPayment: true,
+          nuovoPagamento,
+          insertedAdminOrder: null,
           finalLotto: lotto,
-          isAggregated: true
+          isAggregated: false
         };
-      }
-
-      // Se è un ordine Convenzione MA NON esiste ancora un ordine aperto (PRIMO INVIO):
-      if (isConvenzioneTorneo) {
-        console.log(`✨ [PRIMO INVIO CONVENZIONE] Creazione nuovo ordine aggregato per convenzione "${squadConv?.nome_squadra}"...`);
-        const capNome = (req.body.capitano_nome || '').trim();
-        const capTel = (req.body.capitano_telefono || '').trim();
-
-        if (!capNome || !capTel) {
-          const err = new Error("Nome e Cognome del Capitano e Numero di Telefono del Capitano sono obbligatori per il primo invio della Convenzione Torneo.");
-          err.statusCode = 400;
-          throw err;
-        }
-
-        rigaOrdine.capitano_nome = capNome;
-        rigaOrdine.capitano_telefono = capTel;
-        rigaOrdine.is_convenzione = true;
-        rigaOrdine.torneo_nome = squadConv?.torneo_nome || 'Torneo';
-        rigaOrdine.nome_squadra = squadConv?.nome_squadra || 'Squadra';
-        rigaOrdine.codice_univoco = squadConv?.codice_univoco || req.body.codice_fornitura || '';
-
-        const invioTimestamp = new Date().toLocaleString('it-IT');
-        rigaOrdine.carrello = (carrello || []).map(item => {
-          const itCopy = { ...item };
-          itCopy.fornitura = (itCopy.fornitura && typeof itCopy.fornitura === 'object') ? { ...itCopy.fornitura } : {};
-          itCopy.fornitura.capitano_nome = capNome;
-          itCopy.fornitura.capitano_telefono = capTel;
-          itCopy.fornitura.torneo_nome = rigaOrdine.torneo_nome;
-          itCopy.fornitura.nome_squadra = rigaOrdine.nome_squadra;
-          itCopy.fornitura.codice_univoco = rigaOrdine.codice_univoco;
-          itCopy.invio_nome = nome;
-          itCopy.invio_telefono = telefono;
-          itCopy.invio_data = invioTimestamp;
-          return itCopy;
-        });
       }
 
       console.log("📤 Registrazione dell'ordine nel database Supabase (atomica)...");
       const insertedOrder = await insertDbOrder(rigaOrdine);
       console.log("📤 Ricalcolo automatico del lotto corrente (atomico)...");
-      const lotto = await recalculateCurrentLottoInternal();
-      return { insertedAdminOrder: insertedOrder, finalLotto: lotto, isAggregated: false };
+      const finalLottoRecalc = await recalculateCurrentLottoInternal();
+      return { insertedAdminOrder: insertedOrder, finalLotto: finalLottoRecalc, isAggregated: false, isTournamentPayment: false, nuovoPagamento: null };
     });
+
+    // Se è un ordine torneo, rispondiamo con successo per lo stato in attesa di pagamento
+    if (isTournamentPayment && nuovoPagamento) {
+      return res.json({
+        success: true,
+        is_tournament_payment: true,
+        payment_id: nuovoPagamento.id,
+        stato: 'IN ATTESA DI PAGAMENTO',
+        totale: nuovoPagamento.totale,
+        totale_formattato: nuovoPagamento.totale_formattato,
+        nome_squadra: nuovoPagamento.nome_squadra,
+        torneo_nome: nuovoPagamento.torneo_nome,
+        capitano_nome: nuovoPagamento.capitano_nome,
+        capitano_telefono: nuovoPagamento.capitano_telefono,
+        message: 'Ordine torneo registrato con successo! È in attesa di conferma del pagamento nella sezione Fornitura Tornei.'
+      });
+    }
 
     if (insertedAdminOrder && insertedAdminOrder.id) {
       rigaOrdine.id = insertedAdminOrder.id;
@@ -13496,6 +15208,7 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
     let shipping = 0;
     let costo_prodotti_usd = 0;
     let quantita_totale_articoli = 0;
+    let quantita_articoli_spedizione = 0;
 
     const stringaSquadre = [];
     const stringaPersonalizzazioni = [];
@@ -13504,6 +15217,10 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
     const itemSupplierPrices = [];
 
     const settings = getSettings();
+    let localAccessories = [];
+    try {
+      localAccessories = getLocalAccessories();
+    } catch (e) {}
 
     // Ricalcoliamo il lotto
     const lottoFile = path.join(__dirname, 'lotto.json');
@@ -13539,6 +15256,9 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
       } else {
         subtotal += itemPrezzo;
         quantita_totale_articoli += q;
+        if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+          quantita_articoli_spedizione += q;
+        }
 
         let matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
         if (!matchedProd && item.legacy_id) {
@@ -13571,7 +15291,7 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
     // Cambio valuta
     const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
 
-    const order_shipping_usd = Number((quantita_totale_articoli * spedizione_unitaria).toFixed(2));
+    const order_shipping_usd = Number((quantita_articoli_spedizione * spedizione_unitaria).toFixed(2));
     const costo_totale_usd = Number((costo_prodotti_usd + order_shipping_usd).toFixed(2));
     const costo_totale_eur = convertUsdToEur(costo_totale_usd, exchangeRate, 'update-customer-order');
     const profitto_eur = Number((total - costo_totale_eur).toFixed(2));
@@ -15057,14 +16777,12 @@ app.post('/api/admin/store-image', async (req, res) => {
   try {
     const { productId, originalUrl, imageBase64 } = req.body || {};
 
-    if (!productId) {
-      return res.status(400).json({ success: false, error: "productId mancante." });
+    if (!productId && !originalUrl && !imageBase64) {
+      return res.status(400).json({ success: false, error: "Dati richiesta mancanti (richiesto productId, originalUrl o imageBase64)." });
     }
 
-    const isSupabaseStorage = (url) => typeof url === 'string' && (url.includes('.supabase.co/storage/') || url.includes('/storage/v1/object/public/prodotti/'));
-
     // 1. Se l'URL fornito è già un URL Supabase Storage valido, non rielaborare né sovrascrivere
-    if (originalUrl && isSupabaseStorage(originalUrl)) {
+    if (originalUrl && isSupabaseStorageProductUrl(originalUrl)) {
       return res.json({
         success: true,
         productId: productId,
@@ -15076,8 +16794,8 @@ app.post('/api/admin/store-image', async (req, res) => {
 
     const supabase = getSupabaseAdminClient() || getSupabaseClient();
 
-    // 2. Protezione regressione: se il prodotto nel DB ha già un URL Supabase Storage valido, non declassare
-    if (supabase) {
+    // 2. Protezione regressione: se il prodotto nel DB ha già un URL Supabase Storage valido, preservalo
+    if (supabase && productId) {
       try {
         const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
         const query = supabase.from('products').select('immagine');
@@ -15085,7 +16803,7 @@ app.post('/api/admin/store-image', async (req, res) => {
           ? await query.eq('legacy_id', Number(productId)).maybeSingle() 
           : await query.eq('id', String(productId)).maybeSingle();
 
-        if (curProd && curProd.immagine && isSupabaseStorage(curProd.immagine)) {
+        if (curProd && curProd.immagine && isSupabaseStorageProductUrl(curProd.immagine)) {
           console.log(`[PROTEZIONE] Prodotto ${productId} possiede già immagine su Supabase Storage: ${curProd.immagine}. Preservata.`);
           return res.json({
             success: true,
@@ -15100,87 +16818,25 @@ app.post('/api/admin/store-image', async (req, res) => {
       }
     }
 
-    let webpBuffer = null;
+    // 3. Processa e carica esclusivamente su Supabase Storage tramite il servizio centralizzato
+    const imageSource = (imageBase64 && typeof imageBase64 === 'string' && imageBase64.trim())
+      ? imageBase64
+      : originalUrl;
 
-    if (imageBase64 && typeof imageBase64 === 'string' && imageBase64.trim()) {
-      const base64Clean = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-      const rawBuffer = Buffer.from(base64Clean, 'base64');
-      webpBuffer = await sharp(rawBuffer)
-        .resize(300, 300, { fit: 'cover' })
-        .webp({ quality: 80 })
-        .toBuffer();
-    } else if (originalUrl && typeof originalUrl === 'string' && originalUrl.startsWith('http')) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      try {
-        const resp = await fetch(originalUrl, {
-          headers: {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-            'accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-            'referer': 'https://jerseys-catalog.com/'
-          },
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (!resp.ok) {
-          throw new Error(`Download fornitore fallito (HTTP ${resp.status})`);
-        }
-        const arrayBuf = await resp.arrayBuffer();
-        const rawBuffer = Buffer.from(arrayBuf);
-        webpBuffer = await sharp(rawBuffer)
-          .resize(300, 300, { fit: 'cover' })
-          .webp({ quality: 80 })
-          .toBuffer();
-      } catch (fetchErr) {
-        clearTimeout(timeoutId);
-        throw new Error(`Download server fallito: ${fetchErr.message}`);
-      }
-    } else {
-      return res.status(400).json({ success: false, error: "Dati immagine non forniti." });
+    if (!imageSource) {
+      return res.status(400).json({ success: false, error: "Nessuna sorgente immagine valida fornita." });
     }
 
-    const key = (originalUrl && originalUrl.trim()) ? originalUrl.trim() : `prod_${productId}`;
-    const hash = crypto.createHash('sha256').update(key).digest('hex').substring(0, 16);
-    const filename = `img_${hash}.webp`;
+    const persistResult = await processAndPersistProductImage({
+      imageSource: imageSource,
+      productId: productId,
+      originalUrl: originalUrl
+    });
 
-    let persistentUrl = null;
+    const persistentUrl = persistResult.publicUrl;
 
-    // 3. Destinazione persistente: SUPABASE STORAGE (bucket: 'prodotti')
-    if (supabase) {
-      try {
-        const { error: uploadError } = await supabase.storage
-          .from('prodotti')
-          .upload(filename, webpBuffer, {
-            contentType: 'image/webp',
-            upsert: true
-          });
-
-        if (!uploadError) {
-          const { data: pubData } = supabase.storage.from('prodotti').getPublicUrl(filename);
-          if (pubData && pubData.publicUrl) {
-            persistentUrl = pubData.publicUrl;
-          }
-        } else {
-          console.error("❌ Errore caricamento in Supabase Storage:", uploadError.message);
-        }
-      } catch (storageErr) {
-        console.error("❌ Eccezione caricamento Supabase Storage:", storageErr.message);
-      }
-    }
-
-    // Fallback locale offline solo se Supabase Storage non è raggiungibile
-    if (!persistentUrl) {
-      if (!fs.existsSync(PRODOTTI_UPLOADS_DIR)) {
-        fs.mkdirSync(PRODOTTI_UPLOADS_DIR, { recursive: true });
-      }
-      const filePath = path.join(PRODOTTI_UPLOADS_DIR, filename);
-      fs.writeFileSync(filePath, webpBuffer);
-      persistentUrl = `/uploads/prodotti/${filename}`;
-      console.warn("⚠️ Fallback temporaneo su filesystem locale:", persistentUrl);
-    }
-
-    // 4. Aggiorna riferimento persistente nel database (con URL Supabase Storage)
-    if (supabase && persistentUrl && !persistentUrl.startsWith('/uploads/')) {
+    // 4. Aggiorna riferimento persistente nel database (con URL Supabase Storage verificato)
+    if (supabase && productId) {
       try {
         const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
         if (isNum) {
@@ -15193,21 +16849,25 @@ app.post('/api/admin/store-image', async (req, res) => {
       }
     }
 
-    // Aggiorna anche file locale se presente
+    // Aggiorna anche file locale di cache/fallback se presente
     let updatedInLocal = false;
-    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
-      let localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
-      const idx = localProds.findIndex(p => 
-        String(p.id) === String(productId) || 
-        String(p.legacy_id) === String(productId)
-      );
-      if (idx !== -1) {
-        if (!localProds[idx].immagine_originale && localProds[idx].immagine && !localProds[idx].immagine.startsWith('/uploads/')) {
-          localProds[idx].immagine_originale = localProds[idx].immagine;
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE) && productId) {
+      try {
+        let localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        const idx = localProds.findIndex(p => 
+          String(p.id) === String(productId) || 
+          String(p.legacy_id) === String(productId)
+        );
+        if (idx !== -1) {
+          if (!localProds[idx].immagine_originale && localProds[idx].immagine && !localProds[idx].immagine.startsWith('/uploads/')) {
+            localProds[idx].immagine_originale = localProds[idx].immagine;
+          }
+          localProds[idx].immagine = persistentUrl;
+          fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+          updatedInLocal = true;
         }
-        localProds[idx].immagine = persistentUrl;
-        fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
-        updatedInLocal = true;
+      } catch (locErr) {
+        console.warn("⚠️ Avviso aggiornamento cache locale:", locErr.message);
       }
     }
 
@@ -15217,9 +16877,8 @@ app.post('/api/admin/store-image', async (req, res) => {
       success: true,
       productId: productId,
       internalUrl: persistentUrl,
-      filename: filename,
-      sizeBytes: webpBuffer.length,
-      storage: persistentUrl.startsWith('http') ? 'supabase' : 'local',
+      filename: persistResult.filename,
+      storage: 'supabase',
       updatedInLocal: updatedInLocal
     });
   } catch (err) {

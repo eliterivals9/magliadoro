@@ -60,6 +60,14 @@
                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Fase 4</span>
             </a>
 
+            <!-- Nav Item: Impostazioni Catalogo (Nuova Sezione Dinamica) -->
+            <a href="#" onclick="switchAccessoriTab('impostazioni')" id="nav-acc-impostazioni" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800/40 border-l-4 border-transparent">
+                <span class="flex items-center gap-3">
+                    <span>⚙️</span> Impostazioni Catalogo
+                </span>
+                <span id="badge-settings-count" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand-gold/15 text-brand-gold border border-brand-gold/30 font-mono">Live</span>
+            </a>
+
             <div class="pt-4 pb-2">
                 <div class="border-t border-slate-800/60 my-2"></div>
                 <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Navigazione Rapida</p>
@@ -110,6 +118,9 @@
             <div class="flex items-center gap-2 sm:gap-3">
                 <button onclick="esportaAccessori('json')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl border border-slate-200 shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer" title="Esporta l'intero catalogo accessori in formato JSON">
                     <span>📤</span> <span>Esporta JSON</span>
+                </button>
+                <button onclick="openBulkImportAccessoriModal()" id="btn-header-bulk-import" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-brand-gold border border-brand-gold/40 hover:border-brand-gold font-bold text-xs rounded-xl shadow-md transition-all duration-200 flex items-center gap-1.5 cursor-pointer" title="Importazione multipla rapida accessori da immagini">
+                    <span>📦</span> <span>Importazione Multipla</span>
                 </button>
                 <button onclick="openAddAccessoryModal()" class="px-3.5 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-md transition-all duration-200 flex items-center gap-1.5 cursor-pointer">
                     <span>➕</span> <span>Nuovo Accessorio</span>
@@ -276,9 +287,14 @@
                             <h4 class="text-sm font-extrabold text-slate-800">Nessun accessorio trovato</h4>
                             <p class="text-xs text-slate-400 max-w-sm mx-auto">Nessun prodotto corrisponde ai criteri di ricerca o filtro selezionati.</p>
                         </div>
-                        <button onclick="openAddAccessoryModal()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
-                            <span>➕</span> Crea Primo Accessorio
-                        </button>
+                        <div class="flex flex-wrap items-center justify-center gap-3">
+                            <button onclick="openAddAccessoryModal()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
+                                <span>➕</span> Crea Primo Accessorio
+                            </button>
+                            <button onclick="openBulkImportAccessoriModal()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-brand-gold border border-brand-gold/40 hover:border-brand-gold font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
+                                <span>📦</span> Importazione Multipla
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -301,7 +317,332 @@
                 </div>
             </section>
 
+            <!-- SEZIONE: IMPOSTAZIONI CATALOGO (CATEGORIE & MARCHE DINAMICHE) -->
+            <section id="section-impostazioni" class="hidden space-y-8">
+                
+                <!-- Header Sezione Impostazioni -->
+                <div class="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">⚙️</span>
+                            <h3 class="text-lg font-black text-slate-900">Impostazioni Catalogo Accessori</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Supabase Persistent</span>
+                        </div>
+                        <p class="text-xs text-slate-500 max-w-2xl">
+                            Configura le Categorie e le Marche degli accessori. I cambiamenti si riflettono istantaneamente sui menu a tendina, sulla sidebar pubblica e sui filtri dello Store.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="caricaImpostazioniCatalogo(true)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <span>🔄</span> <span>Ricarica</span>
+                        </button>
+                        <a href="/accessori" target="_blank" class="px-3.5 py-2 bg-slate-900 hover:bg-black text-brand-gold font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <span>🌐</span> <span>Vedi Store</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Griglia 2 Colonne: Categorie e Marche -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- COLONNA 1: GESTIONE CATEGORIE -->
+                    <div class="bg-white border border-slate-200/80 rounded-3xl shadow-sm flex flex-col overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-lg">🎒</span>
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-900">Categorie Accessori</h4>
+                                    <p class="text-[11px] text-slate-500">Mostrate nella sidebar e nei filtri catalogo</p>
+                                </div>
+                            </div>
+                            <button onclick="apriModalCategoria()" class="px-3 py-1.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
+                                <span>➕</span> <span>Aggiungi Categoria</span>
+                            </button>
+                        </div>
+
+                        <!-- Lista Categorie -->
+                        <div class="p-4 flex-grow">
+                            <div id="loading-categories-settings" class="py-12 text-center space-y-2">
+                                <div class="w-6 h-6 border-2 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                <p class="text-xs text-slate-400 font-medium">Caricamento categorie...</p>
+                            </div>
+
+                            <div id="container-categories-settings" class="space-y-2.5">
+                                <!-- Popolato dinamicamente da renderCategoriesSettings() -->
+                            </div>
+                        </div>
+
+                        <!-- Footer Guida Categorie -->
+                        <div class="p-3.5 bg-slate-50/70 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+                            <span>⚠️ Le categorie con prodotti associati non possono essere eliminate senza riassegnazione.</span>
+                        </div>
+                    </div>
+
+                    <!-- COLONNA 2: GESTIONE MARCHE -->
+                    <div class="bg-white border border-slate-200/80 rounded-3xl shadow-sm flex flex-col overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-lg">🏷️</span>
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-900">Marche Produttori</h4>
+                                    <p class="text-[11px] text-slate-500">Brand tecnici disponibili per la selezione</p>
+                                </div>
+                            </div>
+                            <button onclick="apriModalMarca()" class="px-3 py-1.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
+                                <span>➕</span> <span>Aggiungi Marca</span>
+                            </button>
+                        </div>
+
+                        <!-- Lista Marche -->
+                        <div class="p-4 flex-grow">
+                            <div id="loading-brands-settings" class="py-12 text-center space-y-2">
+                                <div class="w-6 h-6 border-2 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                <p class="text-xs text-slate-400 font-medium">Caricamento marche...</p>
+                            </div>
+
+                            <div id="container-brands-settings" class="space-y-2.5">
+                                <!-- Popolato dinamicamente da renderBrandsSettings() -->
+                            </div>
+                        </div>
+
+                        <!-- Footer Guida Marche -->
+                        <div class="p-3.5 bg-slate-50/70 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+                            <span>💡 Le marche attive compaiono nel menu a tendina durante la creazione accessorio.</span>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
         </main>
+    </div>
+
+    <!-- MODALE IMPORTAZIONE MULTIPLA ACCESSORI (BULK IMPORT) -->
+    <div id="modal-bulk-import-container" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl w-full max-w-7xl max-h-[96vh] flex flex-col shadow-2xl border border-slate-200 text-slate-900 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            <!-- Header Modale Bulk Import -->
+            <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0 text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-brand-gold/20 text-brand-gold border border-brand-gold/30 flex items-center justify-center text-xl shrink-0">
+                        📦
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base sm:text-lg font-black tracking-tight text-white">Importazione Multipla Accessori</h3>
+                            <span class="px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold text-[10px] font-mono font-bold uppercase tracking-wider border border-brand-gold/30">Bulk Import</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium">Carica più immagini, compila in massa e importa velocemente nel catalogo con persistenza su Supabase Storage</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="chiudiBulkImportAccessoriModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition-all cursor-pointer" title="Chiudi finestra">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- Corpo del Modale (Scrollabile) -->
+            <div class="flex-grow overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-50">
+                
+                <!-- 1. Area Caricamento / Drag & Drop Immagini -->
+                <div id="bulk-import-dropzone" ondragover="handleBulkDragOver(event)" ondragleave="handleBulkDragLeave(event)" ondrop="handleBulkDrop(event)" onclick="document.getElementById('bulk-import-file-input').click()" class="border-2 border-dashed border-slate-300 hover:border-brand-gold bg-white hover:bg-amber-50/20 rounded-2xl p-6 sm:p-8 text-center transition-all cursor-pointer group shadow-xs">
+                    <input type="file" id="bulk-import-file-input" multiple accept="image/jpeg,image/png,image/webp,image/jpg" class="hidden" onchange="handleBulkImportFilesSelected(this.files)">
+                    
+                    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-amber-500/10 text-brand-gold flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+                        🖼️
+                    </div>
+                    <h4 class="text-sm sm:text-base font-extrabold text-slate-800 mb-1">
+                        Trascina qui le immagini degli accessori oppure <span class="text-brand-gold underline decoration-brand-gold/40 hover:decoration-brand-gold">clicca per selezionarle</span>
+                    </h4>
+                    <p class="text-xs text-slate-500 max-w-xl mx-auto">
+                        Supporta formati <strong>JPG, JPEG, PNG, WEBP</strong>. Puoi selezionare contemporaneamente <strong>10, 20, 30, 50 o più immagini</strong>.
+                    </p>
+                    <div class="mt-3 flex items-center justify-center gap-2 text-[11px] text-slate-400 font-medium">
+                        <span>💡 Il nome del prodotto verrà ricavato automaticamente dal nome del file (es: calzettone-real-madrid.png → Calzettone Real Madrid)</span>
+                    </div>
+                </div>
+
+                <!-- 2. Pannello Valori da Applicare in Massa (visibile se ci sono righe) -->
+                <div id="bulk-apply-panel" class="hidden bg-slate-900 text-white rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-md space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-brand-gold text-base">⚡</span>
+                            <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-100">Valori da applicare in massa ai selezionati</h4>
+                        </div>
+                        <span class="text-[11px] text-slate-400 italic">I campi lasciati vuoti non modificheranno i valori già impostati</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                        <!-- Categoria -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Categoria</label>
+                            <select id="bulk-apply-categoria" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold outline-none cursor-pointer">
+                                <option value="">-- Non modificare --</option>
+                            </select>
+                        </div>
+
+                        <!-- Marca -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Marca</label>
+                            <select id="bulk-apply-marca" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold outline-none cursor-pointer">
+                                <option value="">-- Non modificare --</option>
+                            </select>
+                        </div>
+
+                        <!-- Prezzo Fornitore -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Prezzo Fornitore (€)</label>
+                            <input type="text" id="bulk-apply-costo" placeholder="Es. 3,20" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold outline-none">
+                        </div>
+
+                        <!-- Prezzo Vendita -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Prezzo Vendita (€)</label>
+                            <input type="text" id="bulk-apply-prezzo" placeholder="Es. 6,00" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold outline-none">
+                        </div>
+
+                        <!-- Stato -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Stato / Disponibilità</label>
+                            <select id="bulk-apply-stato" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:ring-2 focus:ring-brand-gold/40 focus:border-brand-gold outline-none cursor-pointer">
+                                <option value="">-- Non modificare --</option>
+                                <option value="attivo">Attivo</option>
+                                <option value="disattivato">Disattivato</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/80">
+                        <div class="flex items-center gap-3">
+                            <button type="button" onclick="applicaValoriBulkAiSelezionati()" class="px-4 py-2 bg-brand-gold hover:bg-brand-goldHover text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5">
+                                <span>⚡</span> <span>Applica ai Selezionati</span>
+                            </button>
+                            <button type="button" onclick="resetValoriBulkForm()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition-all cursor-pointer">
+                                Svuota Campi Globali
+                            </button>
+                        </div>
+                        <span id="bulk-apply-feedback" class="text-xs font-bold text-brand-gold hidden"></span>
+                    </div>
+                </div>
+
+                <!-- 3. Barra Controllo e Conteggi Tabella -->
+                <div id="bulk-table-controls" class="hidden flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+                    <div class="flex items-center flex-wrap gap-2 text-xs">
+                        <button type="button" onclick="selezionaTutteRigheBulk(true)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1">
+                            <span>☑️</span> <span>Seleziona tutti</span>
+                        </button>
+                        <button type="button" onclick="selezionaTutteRigheBulk(false)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1">
+                            <span>☐</span> <span>Deseleziona tutti</span>
+                        </button>
+                        <div class="h-4 w-px bg-slate-200 mx-1"></div>
+                        <span id="bulk-count-summary" class="font-bold text-slate-700 font-mono">0 articoli • 0 selezionati</span>
+                        <span id="bulk-ready-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">0 pronti</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="document.getElementById('bulk-import-file-input').click()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-1">
+                            <span>➕</span> <span>Aggiungi altre foto</span>
+                        </button>
+                        <button type="button" onclick="svuotaCodaBulkImport()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-1" title="Rimuovi tutti gli articoli non ancora importati">
+                            <span>🗑️</span> <span>Svuota Coda</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Tabella Righe Prodotti da Importare -->
+                <div id="bulk-table-container" class="hidden bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto max-h-[50vh]">
+                        <table class="w-full text-left border-collapse min-w-[980px]">
+                            <thead class="bg-slate-100/95 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-200 backdrop-blur-xs">
+                                <tr>
+                                    <th class="py-3 px-3 w-10 text-center">
+                                        <input type="checkbox" id="bulk-th-select-all" onchange="selezionaTutteRigheBulk(this.checked)" class="rounded border-slate-300 text-brand-gold focus:ring-brand-gold cursor-pointer" title="Seleziona / Deseleziona tutti">
+                                    </th>
+                                    <th class="py-3 px-2 w-16 text-center">Foto</th>
+                                    <th class="py-3 px-3 min-w-[220px]">Nome Prodotto *</th>
+                                    <th class="py-3 px-2 w-40">Categoria *</th>
+                                    <th class="py-3 px-2 w-32">Marca</th>
+                                    <th class="py-3 px-2 w-24">Costo (€)</th>
+                                    <th class="py-3 px-2 w-24">Vendita (€)</th>
+                                    <th class="py-3 px-2 w-28">Stato</th>
+                                    <th class="py-3 px-3 w-36 text-center">Stato Import</th>
+                                    <th class="py-3 px-2 w-24 text-center">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulk-import-tbody" class="divide-y divide-slate-100 text-xs text-slate-700">
+                                <!-- Righe generate dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5. Progress Bar Importazione -->
+                <div id="bulk-progress-container" class="hidden bg-slate-900 text-white rounded-2xl p-4 sm:p-5 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between text-xs font-bold">
+                        <span id="bulk-progress-text" class="flex items-center gap-2">
+                            <span class="w-4 h-4 border-2 border-brand-gold border-t-transparent rounded-full animate-spin"></span>
+                            <span>Importazione in corso...</span>
+                        </span>
+                        <span id="bulk-progress-percent" class="font-mono text-brand-gold">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div id="bulk-progress-bar" class="bg-brand-gold h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p id="bulk-progress-subtext" class="text-[11px] text-slate-400 truncate">Preparazione e caricamento su Supabase Storage...</p>
+                </div>
+
+                <!-- 6. Riepilogo Risultato Finale -->
+                <div id="bulk-result-summary" class="hidden p-4 rounded-2xl border text-xs font-semibold"></div>
+
+            </div>
+
+            <!-- Footer Modale -->
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="chiudiBulkImportAccessoriModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                        Chiudi
+                    </button>
+                    <span id="bulk-footer-info" class="text-xs text-slate-500 font-medium"></span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button type="button" id="btn-esegui-bulk-import" onclick="avviaImportazioneMassivaAccessori()" class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span>🚀</span> <span id="btn-bulk-import-label">IMPORTA 0 ACCESSORI</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODALE CONFERMA IMPORTAZIONE MASSIVA ACCESSORI -->
+    <div id="modal-bulk-import-confirm" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl shrink-0">
+                    📦
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900">Conferma Importazione</h3>
+                    <p class="text-xs text-slate-500 font-medium">Catalogo Accessori</p>
+                </div>
+            </div>
+            
+            <p id="bulk-import-confirm-msg" class="text-xs text-slate-600 leading-relaxed font-medium">
+                Stai per importare gli accessori selezionati nel catalogo. Continuare?
+            </p>
+
+            <div class="pt-2 flex items-center justify-end gap-3">
+                <button type="button" onclick="chiudiConfermaBulkImport()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="btn-conferma-bulk-import-action" onclick="confermaEdEseguiImportazioneMassivaAccessori()" class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-extrabold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center gap-1.5">
+                    <span>🚀</span> <span>Importa Ora</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- MODALE AGGIUNTA / MODIFICA ACCESSORIO -->
@@ -327,6 +668,32 @@
                     <div class="sm:col-span-2 space-y-1">
                         <label class="text-xs font-bold text-slate-700">Nome Accessorio *</label>
                         <input type="text" id="modal-acc-nome" required placeholder="Es. Calzettoni Gara Ufficiali" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+
+                    <!-- Marca Prodotto -->
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Marca</label>
+                        <div class="space-y-1.5">
+                            <select id="modal-acc-marca-select" onchange="gestisciCambioMarcaAdmin(this.value)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                                <option value="">Nessuna marca</option>
+                                <option value="Nike">Nike</option>
+                                <option value="Adidas">Adidas</option>
+                                <option value="Puma">Puma</option>
+                                <option value="Kappa">Kappa</option>
+                                <option value="Macron">Macron</option>
+                                <option value="Joma">Joma</option>
+                                <option value="New Balance">New Balance</option>
+                                <option value="Mizuno">Mizuno</option>
+                                <option value="Under Armour">Under Armour</option>
+                                <option value="Umbro">Umbro</option>
+                                <option value="Hummel">Hummel</option>
+                                <option value="Erreà">Erreà</option>
+                                <option value="Givova">Givova</option>
+                                <option value="Legea">Legea</option>
+                                <option value="__custom__">+ Altra marca (inserisci nome)...</option>
+                            </select>
+                            <input type="text" id="modal-acc-marca-custom" placeholder="Digita nome nuova marca..." class="hidden w-full px-3.5 py-2.5 bg-white border border-brand-gold/60 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                        </div>
                     </div>
 
                     <!-- Categoria -->
@@ -363,10 +730,20 @@
                         <input type="number" step="0.01" min="0" id="modal-acc-costo" required placeholder="Es. 3.00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
                     </div>
 
-                    <!-- Taglia / Formato -->
-                    <div class="space-y-1">
-                        <label class="text-xs font-bold text-slate-700">Taglia / Misura</label>
-                        <input type="text" id="modal-acc-taglia" placeholder="Es. Unica (38-45), Misura 5, etc." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    <!-- Gestione Taglia -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-slate-700 block">Gestione taglia</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                <input type="radio" name="modal-acc-gestione-taglia" id="modal-acc-taglia-nessuna" value="nessuna" checked class="w-4 h-4 text-amber-600 focus:ring-amber-500">
+                                <span class="text-xs font-semibold text-slate-800">Nessuna taglia</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+                                <input type="radio" name="modal-acc-gestione-taglia" id="modal-acc-taglia-manuale" value="manuale" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
+                                <span class="text-xs font-semibold text-slate-800">Taglia inserita dal cliente</span>
+                            </label>
+                        </div>
+                        <input type="hidden" id="modal-acc-taglia" value="">
                     </div>
 
                     <!-- Disponibilità -->
@@ -385,6 +762,22 @@
                             <option value="attivo">Attivo</option>
                             <option value="disattivato">Disattivato (Nascosto)</option>
                         </select>
+                    </div>
+
+                    <!-- Spedizione Fornitore (Switch ON/OFF) -->
+                    <div class="sm:col-span-2 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-4">
+                        <div class="space-y-0.5">
+                            <label for="modal-acc-spedizione-fornitore" class="text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-2">
+                                <span>🚚 Spedizione Fornitore</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500 font-medium leading-relaxed">
+                                Se <strong>ON</strong>, questo articolo partecipa al conteggio dei pezzi e al costo della spedizione fornitore. Se <strong>OFF</strong> (es. Calzettoni esenti), compare nell'Excel fornitore ma non aumenta la tariffa né il costo di spedizione.
+                            </p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="modal-acc-spedizione-fornitore" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                        </label>
                     </div>
 
                     <!-- Immagine Accessorio (Upload File) -->
@@ -522,6 +915,12 @@
                     </select>
                 </div>
 
+                <!-- Marca Batch -->
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Marca</label>
+                    <input type="text" id="batch-acc-marca" placeholder="-- Nessuna modifica (lascia vuoto) --" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Prezzo Vendita -->
                     <div class="space-y-1">
@@ -556,6 +955,16 @@
                             <option value="disattivato">Disattivato (Nascosto)</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Spedizione Fornitore Batch -->
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">🚚 Spedizione Fornitore</label>
+                    <select id="batch-acc-spedizione-fornitore" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold cursor-pointer">
+                        <option value="">-- Nessuna modifica --</option>
+                        <option value="true">ON - Applica spedizione fornitore</option>
+                        <option value="false">OFF - Esente da spedizione fornitore</option>
+                    </select>
                 </div>
 
                 <!-- Footer Azioni -->
@@ -599,6 +1008,136 @@
         </div>
     </div>
 
+    <!-- MODALE AGGIUNGI / MODIFICA CATEGORIA -->
+    <div id="modal-category-container" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 text-slate-900 animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🎒</span>
+                    <h3 id="modal-category-title" class="text-base font-extrabold text-slate-900">Nuova Categoria</h3>
+                </div>
+                <button type="button" onclick="chiudiModalCategoria()" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer">
+                    ✕
+                </button>
+            </div>
+            <form id="form-category-setting" onsubmit="salvaCategoriaSetting(event)" class="p-5 space-y-4">
+                <input type="hidden" id="setting-category-id" value="">
+                
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Nome Categoria *</label>
+                    <input type="text" id="setting-category-nome" required placeholder="Es. Calzettoni, Palloni, Borse..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Icona / Emoji</label>
+                        <input type="text" id="setting-category-icona" maxlength="4" placeholder="Es. 🧦, ⚽, 🎒" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold text-center text-base">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Ordine Visualizzazione</label>
+                        <input type="number" min="1" id="setting-category-ordine" placeholder="1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                    </div>
+                </div>
+
+                <div class="pt-1 flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">Categoria Attiva</p>
+                        <p class="text-[10px] text-slate-500">Mostra nella sidebar e nei filtri</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-category-attiva" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="chiudiModalCategoria()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" id="btn-save-category-setting" class="px-4 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-bold text-xs rounded-xl shadow transition-colors cursor-pointer flex items-center gap-1.5">
+                        <span>💾</span> <span>Salva Categoria</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE AGGIUNGI / MODIFICA MARCA -->
+    <div id="modal-brand-container" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 text-slate-900 animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏷️</span>
+                    <h3 id="modal-brand-title" class="text-base font-extrabold text-slate-900">Nuova Marca</h3>
+                </div>
+                <button type="button" onclick="chiudiModalMarca()" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors cursor-pointer">
+                    ✕
+                </button>
+            </div>
+            <form id="form-brand-setting" onsubmit="salvaMarcaSetting(event)" class="p-5 space-y-4">
+                <input type="hidden" id="setting-brand-id" value="">
+                
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Nome Marca *</label>
+                    <input type="text" id="setting-brand-nome" required placeholder="Es. Nike, Adidas, Puma, Kappa..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Ordine Visualizzazione</label>
+                    <input type="number" min="1" id="setting-brand-ordine" placeholder="1" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-gold/30 focus:border-brand-gold">
+                </div>
+
+                <div class="pt-1 flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+                    <div>
+                        <p class="text-xs font-bold text-slate-800">Marca Attiva</p>
+                        <p class="text-[10px] text-slate-500">Disponibile nella selezione del prodotto</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-brand-stato" checked class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="chiudiModalMarca()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                        Annulla
+                    </button>
+                    <button type="submit" id="btn-save-brand-setting" class="px-4 py-2.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition-colors cursor-pointer flex items-center gap-1.5">
+                        <span>💾</span> <span>Salva Marca</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE CONFERMA ELIMINAZIONE IMPOSTAZIONE (SICURA CON CONTROLLO PRODOTTI) -->
+    <div id="modal-delete-setting-container" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-slate-900 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center gap-3 text-red-600">
+                <div class="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center text-xl shrink-0">
+                    ⚠️
+                </div>
+                <div>
+                    <h3 id="delete-setting-title" class="text-sm font-extrabold text-slate-900">Elimina Elemento</h3>
+                    <p class="text-xs text-slate-500 font-medium">Controllo di sicurezza catalogo</p>
+                </div>
+            </div>
+            
+            <p id="delete-setting-msg" class="text-xs text-slate-600 leading-relaxed">
+                Sei sicuro di voler procedere con l'eliminazione?
+            </p>
+
+            <div class="pt-2 flex items-center justify-end gap-3">
+                <button type="button" onclick="chiudiModalDeleteSetting()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="btn-confirm-delete-setting" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition-colors cursor-pointer flex items-center gap-1.5">
+                    <span>🗑️</span> <span>Conferma Eliminazione</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts con riutilizzo del modulo di autenticazione e modulo accessori isolato -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/admin/auth.js"></script>
@@ -624,7 +1163,7 @@
 
         // Switch Tab Interni ad Admin Accessori
         function switchAccessoriTab(tabName) {
-            const tabs = ['elenco', 'prezzi'];
+            const tabs = ['elenco', 'prezzi', 'impostazioni'];
             tabs.forEach(t => {
                 const sec = document.getElementById('section-' + t);
                 const nav = document.getElementById('nav-acc-' + t);
@@ -645,6 +1184,18 @@
                     }
                 }
             });
+
+            const currentTitle = document.getElementById('current-section-title');
+            if (currentTitle) {
+                if (tabName === 'elenco') currentTitle.innerText = 'Gestione Accessori';
+                else if (tabName === 'prezzi') currentTitle.innerText = 'Prezzi & Categorie';
+                else if (tabName === 'impostazioni') currentTitle.innerText = 'Impostazioni Catalogo Accessori';
+            }
+
+            // Se passiamo a impostazioni, carichiamo le impostazioni aggiornate
+            if (tabName === 'impostazioni' && typeof window.caricaImpostazioniCatalogo === 'function') {
+                window.caricaImpostazioniCatalogo();
+            }
 
             // Chiude sidebar su mobile
             const overlay = document.getElementById('sidebar-overlay');

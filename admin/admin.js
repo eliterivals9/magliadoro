@@ -6,6 +6,7 @@
 // Stato globale dell'applicazione
 let prodotti = [];
 let squadreCatalogo = [];
+window.squadreCatalogo = squadreCatalogo;
 let ordini = [];
 let currentActiveTab = 'dashboard';
 let orderSelectionMode = null; // null | 'profitSplit'
@@ -549,6 +550,68 @@ function trovaSquadraInDatabase(candidateText, dbSquadre) {
 }
 
 /**
+ * Riconosce in modo rigoroso e autorizzato una squadra dal catalogo.
+ * Usa ESCLUSIVAMENTE:
+ * 1. Nome esatto case-insensitive
+ * 2. Alias ufficiale presente in ALIAS_SQUADRE_MAP
+ * 3. Normalizzazione sicura del nome (rimozione diacritici/accenti/punteggiatura) SOLO se produce corrispondenza univoca
+ * 
+ * NON USA MAI substring, regex parziali, includes o fuzzy matching.
+ * "Manchester United XYZ" -> NON corrisponde a Manchester United.
+ */
+function trovaSquadraAutorizzata(nomeInput, listaTeams) {
+    if (!nomeInput || typeof nomeInput !== 'string') return null;
+    const textRaw = nomeInput.trim();
+    if (!textRaw || textRaw === 'Sconosciuta' || textRaw === 'SQUADRA NON RICONOSCIUTA') return null;
+
+    const stopwords = ["fc", "cf", "ac", "as", "afc", "ss", "sc", "us", "asd", "fk", "club", "calcio"];
+    if (stopwords.includes(textRaw.toLowerCase())) return null;
+
+    const teams = Array.isArray(listaTeams) && listaTeams.length > 0 ? listaTeams : squadreCatalogo;
+    if (!Array.isArray(teams) || teams.length === 0) return null;
+
+    const tLower = textRaw.toLowerCase();
+
+    // 1. Nome esatto case-insensitive
+    for (const t of teams) {
+        if (t && t.name && t.name.trim().toLowerCase() === tLower) {
+            return t;
+        }
+    }
+
+    // 2. Alias ufficiale presente in ALIAS_SQUADRE_MAP
+    if (ALIAS_SQUADRE_MAP[tLower]) {
+        const officialName = ALIAS_SQUADRE_MAP[tLower].toLowerCase();
+        for (const t of teams) {
+            if (t && t.name && t.name.trim().toLowerCase() === officialName) {
+                return t;
+            }
+        }
+    }
+
+    // 3. Normalizzazione sicura del nome (senza substring / parziali)
+    const textClean = pulisciStringaSquadra(textRaw);
+    if (textClean && !stopwords.includes(textClean)) {
+        if (ALIAS_SQUADRE_MAP[textClean]) {
+            const officialName = ALIAS_SQUADRE_MAP[textClean].toLowerCase();
+            for (const t of teams) {
+                if (t && t.name && t.name.trim().toLowerCase() === officialName) {
+                    return t;
+                }
+            }
+        }
+        // Match univoco su nome normalizzato
+        const matches = teams.filter(t => t && t.name && pulisciStringaSquadra(t.name) === textClean);
+        if (matches.length === 1) {
+            return matches[0];
+        }
+    }
+
+    return null;
+}
+window.trovaSquadraAutorizzata = trovaSquadraAutorizzata;
+
+/**
  * Estrae una squadra candidata dal prodotto quando non è presente nel database.
  * Rimuove i token di prodotto per ottenere il nome squadra pulito (es. "Adult Kits Heart" -> "Heart").
  */
@@ -599,7 +662,8 @@ function estraiEIdentificaSquadra(p, dbSquadre) {
     // Priorità 1: Campo squadra esplicito
     const rawSquadra = p.squadra || p.team || p.product_team || p.club || p.squadra_nome || p.squadra_originale;
     if (rawSquadra && String(rawSquadra).trim() !== '') {
-        const found = trovaSquadraInDatabase(String(rawSquadra), listaTeams);
+        const rawStr = String(rawSquadra).trim();
+        const found = trovaSquadraAutorizzata(rawStr, listaTeams);
         if (found) {
             return {
                 dbTeam: found,
@@ -607,6 +671,16 @@ function estraiEIdentificaSquadra(p, dbSquadre) {
                 campionato: found.sezione || found.campionato || found.categoria || '',
                 trovata: true,
                 squadra_candidata: found.name
+            };
+        } else {
+            // Campo squadra esplicito presente nel JSON ma NON riconosciuto/autorizzato
+            // NON deve essere agganciato con matching parziale / regex
+            return {
+                dbTeam: null,
+                squadra: rawStr,
+                campionato: '',
+                trovata: false,
+                squadra_candidata: rawStr
             };
         }
     }
@@ -666,6 +740,7 @@ function estraiEIdentificaSquadra(p, dbSquadre) {
         squadra_candidata: candidate || 'Sconosciuta'
     };
 }
+window.estraiEIdentificaSquadra = estraiEIdentificaSquadra;
 
 function risolviAliasSquadra(nomeInput, listaSquadreEsistenti) {
     if (!nomeInput) return null;
@@ -706,6 +781,10 @@ function normalizzaCategoria(categoria) {
     
     if (lower === '__coupon__' || rawStr === '__coupon__' || lower.startsWith('__')) {
         return '__coupon__';
+    }
+
+    if (lower === 'calzettoni' || lower === 'calze' || lower.includes('calzetton') || lower.includes('calze') || lower.includes('socks')) {
+        return 'Calzettoni';
     }
 
     const rules = typeof getRegoleImportazioneJson === 'function' ? getRegoleImportazioneJson() : null;
@@ -885,6 +964,7 @@ function inizializzaFiltri() {
     const filterClub = document.getElementById('filter-club');
     const filterNazionale = document.getElementById('filter-nazionale');
     const filterCategoria = document.getElementById('filter-categoria');
+    const filterTarget = document.getElementById('filter-target');
     const filterStagione = document.getElementById('filter-stagione');
     const filterSenzaFornitore = document.getElementById('filter-senza-fornitore');
 
@@ -948,6 +1028,7 @@ function inizializzaFiltri() {
     if (filterClub) filterClub.addEventListener('change', applyFilters);
     if (filterNazionale) filterNazionale.addEventListener('change', applyFilters);
     if (filterCategoria) filterCategoria.addEventListener('change', applyFilters);
+    if (filterTarget) filterTarget.addEventListener('change', applyFilters);
     if (filterStagione) filterStagione.addEventListener('change', applyFilters);
     if (filterSenzaFornitore) filterSenzaFornitore.addEventListener('change', applyFilters);
 
@@ -1418,6 +1499,7 @@ async function caricaSquadre(force = false) {
                 const data = await res.json();
                 if (data && data.success) {
                     squadreCatalogo = data.teams || [];
+                    window.squadreCatalogo = squadreCatalogo;
                 }
             }
         } catch (e) {
@@ -2177,8 +2259,8 @@ window.apriDettaglioLotto = function(id) {
     const lottoCashflow = calcolaIncassoEffettivo(baseIncasso, lotto.profit_split_summary);
     if (incassoEl) {
         incassoEl.innerText = `€ ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
-        if (lottoCashflow.costo_prodotti_personali > 0 || lottoCashflow.deficit_totale > 0) {
-            incassoEl.title = `Incasso Base: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${lottoCashflow.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${lottoCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (lottoCashflow.totale_da_accantonare > 0) {
+            incassoEl.title = `Incasso Base: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')} | Da Anticipare: -€ ${lottoCashflow.totale_da_anticipare.toFixed(2).replace('.', ',')} | Articoli Miei: -€ ${lottoCashflow.totale_articoli_miei.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${lottoCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
         } else {
             incassoEl.title = `Incasso Totale Clienti: € ${lottoCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
         }
@@ -2192,8 +2274,8 @@ window.apriDettaglioLotto = function(id) {
                 const refreshedCashflow = calcolaIncassoEffettivo(baseIncasso, data.summary);
                 if (incassoEl) {
                     incassoEl.innerText = `€ ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
-                    if (refreshedCashflow.costo_prodotti_personali > 0 || refreshedCashflow.deficit_totale > 0) {
-                        incassoEl.title = `Incasso Base: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${refreshedCashflow.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${refreshedCashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+                    if (refreshedCashflow.totale_da_accantonare > 0) {
+                        incassoEl.title = `Incasso Base: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')} | Da Anticipare: -€ ${refreshedCashflow.totale_da_anticipare.toFixed(2).replace('.', ',')} | Articoli Miei: -€ ${refreshedCashflow.totale_articoli_miei.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${refreshedCashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
                     } else {
                         incassoEl.title = `Incasso Totale Clienti: € ${refreshedCashflow.incasso_base.toFixed(2).replace('.', ',')}`;
                     }
@@ -2563,61 +2645,62 @@ function isOrderActive(o) {
 }
 
 /**
- * Calcola l'incasso clienti in base ai prodotti personali assegnati nella Suddivisione Conti.
+ * Calcola l'incasso clienti netto del lotto, integrando la gestione
+ * degli accantonamenti cassa (Da anticipare + Articoli miei) provenienti da Suddivisione Conti.
  * 
- * FORMULA CONCETTUALE:
- * - incasso_base = totale degli ordini del lotto
- * - costo_prodotti_personali = somma dei costi dei prodotti assegnati a Sergio + Riccardo + 50/50
- * - profitto_disponibile = profitto del lotto prima degli acquisti personali
- * - costo_coperto = parte degli acquisti coperta dal profitto
- * - deficit = eventuale parte che porta il profitto sotto zero
+ * FORMULA:
+ * INCASSO CLIENTI VISUALIZZATO = INCASSO CLIENTI BASE - TOTALE "DA ANTICIPARE" - TOTALE "ARTICOLO MIO"
  * 
- * INCASSO CLIENTI = incasso_base - costo_coperto + deficit
+ * Coerente al 100% con "Incasso Disponibile" in Suddivisione Conti.
  */
 function calcolaIncassoEffettivo(incassoBase, profitDataOrSummary = profitSplitData) {
     const incasso_base = Number(incassoBase) || 0;
-    let costo_prodotti_personali = 0;
-    let profitto_disponibile = 0;
-    let costo_coperto = 0;
-    let deficit = 0;
+    let totaleDaAnticipare = 0;
+    let totaleArticoliMiei = 0;
+    let totaleDaAccantonare = 0;
 
     const summary = (profitDataOrSummary && profitDataOrSummary.summary) 
         ? profitDataOrSummary.summary 
         : (profitDataOrSummary || (typeof profitSplitData !== 'undefined' ? profitSplitData?.summary : null));
 
-    if (summary) {
-        if (summary.costo_prodotti_personali !== undefined) {
-            costo_prodotti_personali = Number(summary.costo_prodotti_personali) || 0;
-            profitto_disponibile = Number(summary.profitto_disponibile ?? summary.total_profit ?? summary.net_total_profit ?? 0) || 0;
-            costo_coperto = (summary.costo_coperto !== undefined) 
-                ? Number(summary.costo_coperto) 
-                : ((profitto_disponibile > 0) ? Math.min(profitto_disponibile, costo_prodotti_personali) : 0);
-            deficit = (summary.deficit !== undefined)
-                ? Number(summary.deficit)
-                : ((summary.deficit_totale !== undefined)
-                    ? Number(summary.deficit_totale)
-                    : ((costo_prodotti_personali > profitto_disponibile) ? Number((costo_prodotti_personali - Math.max(0, profitto_disponibile)).toFixed(2)) : 0));
-        } else {
-            const sCompletini = Number(summary.spese_completini_sergio || 0);
-            const rCompletini = Number(summary.spese_completini_riccardo || 0);
-            costo_prodotti_personali = Number((sCompletini + rCompletini).toFixed(2));
-            const netProfit = Number(summary.total_profit ?? summary.net_total_profit ?? 0);
-            const extraExp = Number(summary.extra_expenses_total_eur || 0);
-            profitto_disponibile = Number((netProfit - extraExp).toFixed(2));
-            costo_coperto = (profitto_disponibile > 0) ? Math.min(profitto_disponibile, costo_prodotti_personali) : 0;
-            deficit = (costo_prodotti_personali > profitto_disponibile) ? Number((costo_prodotti_personali - Math.max(0, profitto_disponibile)).toFixed(2)) : 0;
-        }
+    const accList = (profitDataOrSummary && Array.isArray(profitDataOrSummary.accantonamenti))
+        ? profitDataOrSummary.accantonamenti
+        : ((typeof profitSplitData !== 'undefined' && Array.isArray(profitSplitData?.accantonamenti)) ? profitSplitData.accantonamenti : []);
+
+    if (accList && accList.length > 0) {
+        const currentLotId = (summary && summary.lotto_id !== undefined && summary.lotto_id !== null)
+            ? Number(summary.lotto_id)
+            : (typeof currentProfitSplitLottoId !== 'undefined' ? Number(currentProfitSplitLottoId) : 1);
+
+        accList.forEach(a => {
+            if (!a) return;
+            if (a.lotto_id !== undefined && a.lotto_id !== null && Number(a.lotto_id) !== currentLotId) return;
+            
+            const imp = Number(a.importo) || 0;
+            if (a.tipo === 'da_anticipare') {
+                totaleDaAnticipare += imp;
+            } else if (a.tipo === 'articolo_mio') {
+                totaleArticoliMiei += imp;
+            }
+        });
+        totaleDaAnticipare = Number(totaleDaAnticipare.toFixed(2));
+        totaleArticoliMiei = Number(totaleArticoliMiei.toFixed(2));
+        totaleDaAccantonare = Number((totaleDaAnticipare + totaleArticoliMiei).toFixed(2));
+    } else if (summary && summary.totale_da_accantonare !== undefined) {
+        totaleDaAnticipare = Number(summary.totale_da_anticipare) || 0;
+        totaleArticoliMiei = Number(summary.totale_articoli_miei) || 0;
+        totaleDaAccantonare = Number(summary.totale_da_accantonare) || (totaleDaAnticipare + totaleArticoliMiei);
     }
 
-    const incasso_effettivo = Number((incasso_base - costo_coperto + deficit).toFixed(2));
+    const incasso_effettivo = Number((incasso_base - totaleDaAccantonare).toFixed(2));
 
     return {
         incasso_base,
-        costo_prodotti_personali,
-        profitto_disponibile,
-        costo_coperto,
-        deficit,
-        deficit_totale: deficit,
+        totale_da_anticipare: totaleDaAnticipare,
+        totale_articoli_miei: totaleArticoliMiei,
+        totale_da_accantonare: totaleDaAccantonare,
+        totale_accantonato: totaleDaAccantonare,
+        incasso_disponibile: incasso_effettivo,
         incasso_effettivo
     };
 }
@@ -2738,8 +2821,8 @@ function aggiornaStatisticheDashboard(force = false) {
     const incassoTotaleEl = document.getElementById('stats-incasso-totale');
     if (incassoTotaleEl) {
         incassoTotaleEl.innerText = `€ ${incassoDaMostrare.toFixed(2).replace('.', ',')}`;
-        if (cashflow.costo_prodotti_personali > 0 || cashflow.deficit_totale > 0) {
-            incassoTotaleEl.title = `Incasso Base: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${cashflow.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflow.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${cashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (cashflow.totale_da_accantonare > 0) {
+            incassoTotaleEl.title = `Incasso Base: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')} | Da Anticipare: -€ ${cashflow.totale_da_anticipare.toFixed(2).replace('.', ',')} | Articoli Miei: -€ ${cashflow.totale_articoli_miei.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${cashflow.incasso_effettivo.toFixed(2).replace('.', ',')}`;
         } else {
             incassoTotaleEl.title = `Incasso Totale Clienti: € ${cashflow.incasso_base.toFixed(2).replace('.', ',')}`;
         }
@@ -2855,8 +2938,8 @@ function aggiornaStatisticheLottoCorrente() {
     const incassoPrevistoEl = document.getElementById('lotto-incasso-previsto');
     if (incassoPrevistoEl) {
         incassoPrevistoEl.innerText = `€ ${incassoPrevistoEffettivo.toFixed(2).replace('.', ',')}`;
-        if (cashflowLotto.costo_prodotti_personali > 0 || cashflowLotto.deficit_totale > 0) {
-            incassoPrevistoEl.title = `Incasso Base: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')} | Prodotti Personali Coperti: -€ ${cashflowLotto.costo_coperto.toFixed(2).replace('.', ',')} | Deficit: +€ ${cashflowLotto.deficit_totale.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${cashflowLotto.incasso_effettivo.toFixed(2).replace('.', ',')}`;
+        if (cashflowLotto.totale_da_accantonare > 0) {
+            incassoPrevistoEl.title = `Incasso Base: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')} | Da Anticipare: -€ ${cashflowLotto.totale_da_anticipare.toFixed(2).replace('.', ',')} | Articoli Miei: -€ ${cashflowLotto.totale_articoli_miei.toFixed(2).replace('.', ',')} = Incasso Clienti: € ${cashflowLotto.incasso_effettivo.toFixed(2).replace('.', ',')}`;
         } else {
             incassoPrevistoEl.title = `Incasso Previsto dai clienti: € ${cashflowLotto.incasso_base.toFixed(2).replace('.', ',')}`;
         }
@@ -2932,37 +3015,17 @@ function generaOpzioniFiltri() {
 
     const stagioni = [...new Set(prodotti.map(p => p.stagione).filter(Boolean))].sort().reverse();
     
-    const prodCategorie = prodotti.map(p => p.categoria).filter(Boolean);
-    const filtriConfigurati = (window.appSettings?.filtriCatalogo || [])
-        .filter(f => f.stato === 'attivo' || f.attivo !== false)
-        .map(f => f.nome.trim())
-        .filter(Boolean);
-
-    const categoryMapping = {
-        'versione fan': 'Fan',
-        'fan': 'Fan',
-        'kit': 'Kit',
-        'kit allenamento': 'Kit Allenamento',
-        'smanicati': 'Smanicato',
-        'smanicato': 'Smanicato',
-        'retro': 'Retro',
-        'versione player': 'Player',
-        'player': 'Player'
-    };
-
-    function toCanonical(cat) {
-        const normKey = normalizeTextForSearch(cat);
-        return categoryMapping[normKey] || cat.trim();
+    // Categorie tecniche da Impostazioni -> Prezzi & Categorie (Source of Truth univoca)
+    if (typeof assicuratiCategorieDinamiche === 'function') {
+        assicuratiCategorieDinamiche();
     }
+    const categorieAttive = (window.appSettings?.categorie || [])
+        .filter(c => c && (c.stato === 'attivo' || c.attivo !== false))
+        .sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0));
 
-    const canonicalSet = new Set();
-    [...filtriConfigurati, ...prodCategorie].forEach(cat => {
-        canonicalSet.add(toCanonical(cat));
-    });
-
-    const categorie = [...canonicalSet]
-        .filter(c => normalizeTextForSearch(c) !== 'tutti' && normalizeTextForSearch(c) !== 'tutto')
-        .sort();
+    const categorie = categorieAttive
+        .map(c => (c.nome || '').trim())
+        .filter(Boolean);
 
     // Aggiorna select squadra se presente
     if (filterSquadra) {
@@ -3003,6 +3066,37 @@ function normalizeTextForSearch(text) {
         .replace(/[\u0300-\u036f]/g, "") // Rimuove gli accenti
         .replace(/\s+/g, ' ')            // Rimpiazza spazi multipli con un singolo spazio
         .trim();
+}
+
+/**
+ * Verifica la corrispondenza della categoria tecnica per il filtro della tabella prodotti Admin.
+ * Mantiene la fedeltà alle categorie tecniche configurate in Prezzi & Categorie,
+ * gestendo in modo mirato e isolato i casi storici/morfologici senza intaccare i dati salvati:
+ * 1. "Smanicati" (configurazione) <-> "Smanicato" (valore storico DB)
+ * 2. "Kit Bambino" (categoria prezzi per kit bimbo) <-> "Kit" con target "Bambino" + legacy "Kit Bambino" con target "Bambino"
+ * 3. Tutte le altre categorie: confronto tecnico diretto case-insensitive e trim-safe.
+ */
+function prodottoCorrispondeCategoriaAdmin(p, queryCategoria) {
+    if (!queryCategoria) return true;
+    if (!p) return false;
+
+    const normFiltro = (queryCategoria || '').trim().toLowerCase();
+    const normCat = (p.categoria || '').trim().toLowerCase();
+    const normTarget = (p.target || '').trim().toLowerCase();
+
+    // Caso 1: Smanicati (configurazione) <-> Smanicato (valore storico DB)
+    if (normFiltro === 'smanicati' || normFiltro === 'smanicato') {
+        return normCat === 'smanicato' || normCat === 'smanicati';
+    }
+
+    // Caso 2: Kit Bambino (Kit destinati ai bambini)
+    if (normFiltro === 'kit bambino') {
+        return (normCat === 'kit' && normTarget === 'bambino') ||
+               (normCat === 'kit bambino' && normTarget === 'bambino');
+    }
+
+    // Caso 3: Tutte le altre categorie tecniche (Kit, Fan, Player, Retro, Tuta, Portiere, Kit Allenamento, Polo, Maniche Lunghe, Antivento, Pantaloncini)
+    return normCat === normFiltro;
 }
 
 let activeSearchQuery = "";
@@ -3150,6 +3244,9 @@ function resetTuttiFiltriEOrdinamento() {
 
     const filterCategoria = document.getElementById('filter-categoria');
     if (filterCategoria) filterCategoria.value = "";
+
+    const filterTarget = document.getElementById('filter-target');
+    if (filterTarget) filterTarget.value = "";
 
     const filterStagione = document.getElementById('filter-stagione');
     if (filterStagione) filterStagione.value = "";
@@ -3506,6 +3603,7 @@ function renderProdotti() {
     const queryClub = document.getElementById('filter-club')?.value || "";
     const queryNazionale = document.getElementById('filter-nazionale')?.value || "";
     const queryCategoria = document.getElementById('filter-categoria')?.value || "";
+    const queryTarget = document.getElementById('filter-target')?.value || "";
     const queryStagione = document.getElementById('filter-stagione')?.value || "";
     const querySenzaFornitore = document.getElementById('filter-senza-fornitore')?.checked || false;
 
@@ -3571,7 +3669,14 @@ function renderProdotti() {
         if (queryNazionale && p.squadra !== queryNazionale) return false;
 
         // 3. Filtro Categoria
-        if (queryCategoria && p.categoria !== queryCategoria) return false;
+        if (queryCategoria && !prodottoCorrispondeCategoriaAdmin(p, queryCategoria)) return false;
+
+        // 3b. Filtro Target (Adulto / Bambino)
+        if (queryTarget) {
+            const normQueryTarget = queryTarget.trim().toLowerCase();
+            const normProductTarget = (p.target || "").trim().toLowerCase();
+            if (normProductTarget !== normQueryTarget) return false;
+        }
 
         // 4. Filtro Stagione
         if (queryStagione && p.stagione !== queryStagione) return false;
@@ -4555,7 +4660,42 @@ async function salvaProdotto() {
     const zoom = parseFloat(document.getElementById('editor-zoom')?.value) || 1.05;
     const x = parseFloat(document.getElementById('editor-x')?.value) || 0;
     const y = parseFloat(document.getElementById('editor-y')?.value) || 0;
-    const immagine = buildImageUrlWithTransform(rawImmagine, zoom, x, y);
+
+    // Controllo e persistenza preliminare su Supabase Storage
+    let finalStorageImg = rawImmagine;
+    if (rawImmagine) {
+        if (rawImmagine.startsWith('/uploads/') || rawImmagine.startsWith('uploads/')) {
+            showToast("I percorsi locali effimeri (/uploads/prodotti/) non sono ammessi. L'immagine deve risiedere su Supabase Storage.", "error");
+            return;
+        }
+
+        const cleanBase = rawImmagine.split('#')[0].trim();
+        if (cleanBase && !isSupabaseStorageUrl(cleanBase)) {
+            showToast("Persistenza immagine su Supabase Storage in corso...", "info");
+            try {
+                const storeRes = await fetch('/api/admin/store-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: isModifica ? id : null,
+                        originalUrl: cleanBase.startsWith('data:') ? null : cleanBase,
+                        imageBase64: cleanBase.startsWith('data:') ? cleanBase : null
+                    })
+                });
+                const storeData = await storeRes.json();
+                if (!storeRes.ok || !storeData.success || !storeData.internalUrl) {
+                    throw new Error(storeData.error || "Impossibile persistere l'immagine su Supabase Storage.");
+                }
+                finalStorageImg = storeData.internalUrl;
+                document.getElementById('form-immagine').value = finalStorageImg;
+            } catch (storeErr) {
+                showToast("Errore immagine: " + storeErr.message, "error");
+                return;
+            }
+        }
+    }
+
+    const immagine = buildImageUrlWithTransform(finalStorageImg, zoom, x, y);
 
     const target = document.getElementById('form-target').value;
 
@@ -7166,35 +7306,29 @@ function aggiornaMenuCategorieForm() {
         });
     }
 
-    // Override fetch per aggiungere automaticamente l'Authorization header
-const originalFetch = window.fetch;
-window.fetch = async (url, options = {}) => {
-    options.headers = options.headers || {};
-    try {
-        const client = await window.getSupabaseClient();
-        const { data: { session } } = await client.auth.getSession();
-        if (session && session.access_token) {
-            options.headers['Authorization'] = `Bearer ${session.access_token}`;
-        }
-    } catch (err) {
-        console.error("Errore durante l'aggiunta dell'Authorization header:", err);
+    // Sincronizza il filtro categoria della tabella prodotti tramite l'unico writer centralizzato
+    if (typeof generaOpzioniFiltri === 'function') {
+        generaOpzioniFiltri();
     }
-    return originalFetch(url, options);
-};
-    const selectFilter = document.getElementById('filter-categoria');
-    if (selectFilter) {
-        const currentVal = selectFilter.value;
-        selectFilter.innerHTML = '<option value="">Tutte le categorie</option>';
-        nomiCategorie.forEach(catNome => {
-            const opt = document.createElement('option');
-            opt.value = catNome;
-            opt.textContent = catNome;
-            if (currentVal && currentVal.toLowerCase() === catNome.toLowerCase()) {
-                opt.selected = true;
+}
+
+// Override fetch per aggiungere automaticamente l'Authorization header se non già applicato
+if (!window.__supabaseFetchInjected) {
+    window.__supabaseFetchInjected = true;
+    const originalFetch = window.fetch;
+    window.fetch = async (url, options = {}) => {
+        options.headers = options.headers || {};
+        try {
+            const client = await window.getSupabaseClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (session && session.access_token) {
+                options.headers['Authorization'] = `Bearer ${session.access_token}`;
             }
-            selectFilter.appendChild(opt);
-        });
-    }
+        } catch (err) {
+            console.error("Errore durante l'aggiunta dell'Authorization header:", err);
+        }
+        return originalFetch(url, options);
+    };
 }
 
 function aggiornaMenuFiltriCatalogoForm() {
@@ -9940,18 +10074,17 @@ function validaProdotto(p) {
         errori.push("Nome prodotto mancante");
     }
 
-    const isTeamInDb = squadreCatalogo.some(t => t.name && (
-        t.name.toLowerCase() === (p.squadra || '').trim().toLowerCase() ||
-        pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
-    )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
+    const teamMatch = trovaSquadraAutorizzata(p.squadra, squadreCatalogo);
+    const isTeamInDb = teamMatch !== null;
 
     p.squadra_nuova_auto = false;
 
     if (!p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA') {
-        errori.push("Squadra mancante o non riconosciuta");
+        errori.push("Squadra mancante");
     } else if (!isTeamInDb) {
-        // La squadra verrà creata e collegata automaticamente durante l'importazione
-        p.squadra_nuova_auto = true;
+        errori.push(`Squadra non riconosciuta: '${p.squadra.trim()}'`);
+    } else if (teamMatch && teamMatch.name) {
+        p.squadra = teamMatch.name;
     }
     const catsPrezzi = getListaCategorieRegolePrezzi();
     const rulesImport = typeof getRegoleImportazioneJson === 'function' ? getRegoleImportazioneJson() : [];
@@ -10012,6 +10145,7 @@ function validaProdotto(p) {
     
     return errori;
 }
+window.validaProdotto = validaProdotto;
 
 function findProdIndex(id_anteprima) {
     return prodottiInAnteprima.findIndex(p => p.id_anteprima === id_anteprima);
@@ -10270,8 +10404,6 @@ function renderAnteprimaTabella() {
             statoBadge = `<span class="px-3 py-1.5 bg-amber-100 text-amber-950 border border-amber-300 rounded-full font-extrabold text-xs uppercase tracking-wider block text-center shadow-sm">🔁 Duplicato</span>`;
         } else if (p.id_autogenerato) {
             statoBadge = `<span class="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full font-extrabold text-xs uppercase tracking-wider block text-center">ID Auto ⚡</span>`;
-        } else if (isNewTeam) {
-            statoBadge = `<span class="px-3 py-1.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full font-extrabold text-xs uppercase tracking-wider block text-center">Club Nuovo 🆕</span>`;
         } else {
             statoBadge = `<span class="px-3 py-1.5 bg-green-100 text-green-800 border border-green-300 rounded-full font-extrabold text-xs uppercase tracking-wider block text-center shadow-sm">Pronto 🟢</span>`;
         }
@@ -10293,14 +10425,10 @@ function renderAnteprimaTabella() {
         const borderError = 'border-red-300 focus:border-red-500 bg-red-50/50';
         const borderNormal = 'border-slate-200 focus:border-brand-gold bg-slate-50/50';
 
-        const isTeamInDb = squadreCatalogo.some(t => t.name && (
-            t.name.toLowerCase() === (p.squadra || '').trim().toLowerCase() ||
-            pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
-        )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
-
+        const teamMatch = trovaSquadraAutorizzata(p.squadra, squadreCatalogo);
+        const isTeamInDb = teamMatch !== null;
         const teamEmpty = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA';
-        const isNewTeamAuto = !teamEmpty && !isTeamInDb;
-        const teamErr = teamEmpty;
+        const teamErr = teamEmpty || !isTeamInDb;
         const campErr = !p.campionato || p.campionato.trim() === '' || !listCampionati.some(l => l.toLowerCase() === p.campionato.trim().toLowerCase());
         const idErr = !p.legacy_id || p.legacy_id === '';
 
@@ -10344,22 +10472,15 @@ function renderAnteprimaTabella() {
                     <div class="space-y-1.5 min-w-[210px]">
                         <input type="text" list="datalist-squadre" value="${escapeHtml(p.squadra || '')}" 
                             onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'squadra', this.value)"
-                            class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2 border ${teamErr ? borderError : (isNewTeamAuto ? 'border-emerald-300 bg-emerald-50/30' : borderNormal)} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. Real Madrid">
-                        ${isNewTeamAuto ? `
-                            <div class="flex items-center justify-between gap-1.5 p-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-                                <span class="text-[10px] font-bold text-emerald-800 whitespace-nowrap">✨ Nuova (auto-creazione)</span>
-                                <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(p.squadra || p.squadra_candidata || '')}')" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[9px] rounded-md transition-all shadow-xs whitespace-nowrap cursor-pointer">
-                                    Modifica
-                                </button>
-                            </div>
-                        ` : (teamErr ? `
+                            class="w-full text-xs font-bold text-slate-800 rounded-xl px-3 py-2 border ${teamErr ? borderError : borderNormal} outline-none focus:bg-white focus:ring-2 focus:ring-brand-gold/10 transition-all" placeholder="Es. Real Madrid">
+                        ${teamErr ? `
                             <div class="flex items-center justify-between gap-1.5 p-1.5 bg-rose-50 border border-rose-200 rounded-lg">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 whitespace-nowrap">⚠️ SQUADRA MANCANTE</span>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 whitespace-nowrap">🔴 SQUADRA NON RICONOSCIUTA</span>
                                 <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(p.squadra || p.squadra_candidata || '')}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all shadow-xs whitespace-nowrap cursor-pointer flex items-center gap-1">
-                                    <span>➕</span> AGGIUNGI
+                                    <span>➕</span> AGGIUNGI SQUADRA
                                 </button>
                             </div>
-                        ` : '')}
+                        ` : ''}
                     </div>
                 </td>
 
@@ -10566,7 +10687,7 @@ function aggiornaCampoAnteprima(id_anteprima, field, value) {
 
     if (field === 'squadra') {
         const valClean = (value || '').trim();
-        const dbMatch = trovaSquadraInDatabase(valClean, squadreCatalogo);
+        const dbMatch = trovaSquadraAutorizzata(valClean, squadreCatalogo);
         if (dbMatch) {
             prodottiInAnteprima[pIndex]['squadra'] = dbMatch.name;
             prodottiInAnteprima[pIndex]['squadra_candidata'] = dbMatch.name;
@@ -11489,10 +11610,8 @@ function ottieniSquadreMancantiRaggruppate() {
     }
     const map = new Map();
     prodottiInAnteprima.forEach(p => {
-        const isTeamInDb = squadreCatalogo.some(t => t.name && (
-            t.name.toLowerCase() === (p.squadra || '').trim().toLowerCase() ||
-            pulisciStringaSquadra(t.name) === pulisciStringaSquadra(p.squadra || '')
-        )) || (p.squadra && trovaSquadraInDatabase(p.squadra, squadreCatalogo) !== null);
+        const teamMatch = trovaSquadraAutorizzata(p.squadra, squadreCatalogo);
+        const isTeamInDb = teamMatch !== null;
 
         const isMissing = !p.squadra || p.squadra.trim() === '' || p.squadra === 'Sconosciuta' || p.squadra === 'SQUADRA NON RICONOSCIUTA' || !isTeamInDb || p.squadra_non_presente;
 
@@ -11530,28 +11649,27 @@ function aggiornaAvvisoSquadreMancanti() {
 
     const totalProdottiMancanti = mancanti.reduce((acc, m) => acc + m.count, 0);
     alertBox.innerHTML = `
-        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
             <div class="flex items-start justify-between gap-3">
                 <div class="flex items-start gap-3">
-                    <span class="text-2xl">✨</span>
+                    <span class="text-2xl">🔴</span>
                     <div>
-                        <h4 class="text-xs font-black text-emerald-900 uppercase tracking-wider">
-                            Nuove Squadre Rilevate (${mancanti.length} ${mancanti.length === 1 ? 'squadra' : 'squadre'}, ${totalProdottiMancanti} ${totalProdottiMancanti === 1 ? 'prodotto' : 'prodotti'})
+                        <h4 class="text-xs font-black text-rose-900 uppercase tracking-wider">
+                            Squadre non riconosciute (${mancanti.length} ${mancanti.length === 1 ? 'squadra' : 'squadre'}, ${totalProdottiMancanti} ${totalProdottiMancanti === 1 ? 'prodotto bloccato' : 'prodotti bloccati'})
                         </h4>
-                        <p class="text-xs text-emerald-800 mt-0.5">
-                            Queste squadre non sono ancora presenti nel catalogo ma <strong>verranno create e collegate automaticamente</strong> durante l'importazione.
-                            Se desideri personalizzare la lega o la categoria di una squadra prima di importare, clicca su <strong>Modifica</strong>.
+                        <p class="text-xs text-rose-800 mt-0.5">
+                            Le squadre indicate di seguito non sono presenti nel catalogo. I prodotti corrispondenti sono bloccati e non verranno importati finché la squadra non viene aggiunta manualmente.
                         </p>
                     </div>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-1">
                 ${mancanti.map(m => `
-                    <div class="inline-flex items-center gap-2 bg-white border border-emerald-200 rounded-xl px-3 py-1.5 shadow-2xs">
+                    <div class="inline-flex items-center gap-2 bg-white border border-rose-200 rounded-xl px-3 py-1.5 shadow-2xs">
                         <span class="text-xs font-bold text-slate-800">${escapeHtml(m.nome)}</span>
-                        <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-md">${m.count} ${m.count === 1 ? 'art' : 'art'}</span>
-                        <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(m.nome)}')" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] rounded-md transition-all cursor-pointer">
-                            ✏️ Modifica
+                        <span class="px-1.5 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-black rounded-md">${m.count} ${m.count === 1 ? 'art' : 'art'}</span>
+                        <button type="button" onclick="apriModalAggiungiSquadra('${escapeHtml(m.nome)}')" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white font-black text-[10px] rounded-md transition-all cursor-pointer flex items-center gap-1 shadow-xs">
+                            <span>➕</span> Aggiungi squadra
                         </button>
                     </div>
                 `).join('')}
@@ -11766,7 +11884,7 @@ async function rimappaProdottiPerNuovaSquadra(nomeSquadraAggiunta) {
         return;
     }
 
-    const teamDb = trovaSquadraInDatabase(nomeSquadraAggiunta, squadreCatalogo);
+    const teamDb = trovaSquadraAutorizzata(nomeSquadraAggiunta, squadreCatalogo) || trovaSquadraInDatabase(nomeSquadraAggiunta, squadreCatalogo);
     if (!teamDb) return;
 
     let modificatiCount = 0;
@@ -11781,7 +11899,9 @@ async function rimappaProdottiPerNuovaSquadra(nomeSquadraAggiunta) {
         const matchTitle = (p.nome_finale && trovaSquadraInDatabase(p.nome_finale, [teamDb]) !== null);
 
         if (p.squadra_non_presente || p.squadra === 'SQUADRA NON RICONOSCIUTA' || p.squadra === 'Sconosciuta' || matchCandidate || matchTitle) {
-            const match = trovaSquadraInDatabase(p.squadra_candidata || p.squadra || p.nome_finale, squadreCatalogo);
+            const match = trovaSquadraAutorizzata(p.squadra_candidata || p.squadra, [teamDb]) ||
+                          (p.nome_finale && trovaSquadraInDatabase(p.nome_finale, [teamDb])) ||
+                          trovaSquadraInDatabase(p.squadra_candidata || p.squadra, [teamDb]);
             if (match && match.name === teamDb.name) {
                 p.squadra = match.name;
                 p.squadra_candidata = match.name;
@@ -14201,6 +14321,18 @@ async function saveMarketingPromo() {
         if (data.success) {
             showToast("Promozione salvata con successo!", "success");
             if (data.promo && data.promo.id) window.currentPromoId = data.promo.id;
+            if (data.promo && data.promo.immagine) {
+                const imgInput = document.getElementById('promo-immagine');
+                if (imgInput) imgInput.value = data.promo.immagine;
+                const thumb = document.getElementById('promo-form-img-thumb');
+                const thumbContainer = document.getElementById('promo-form-img-preview-container');
+                const nameEl = document.getElementById('promo-form-img-name');
+                if (thumb && thumbContainer) {
+                    thumb.src = data.promo.immagine;
+                    if (nameEl) nameEl.textContent = "Immagine Ottimizzata WebP";
+                    thumbContainer.classList.remove('hidden');
+                }
+            }
             updateLivePromoPreview();
         } else {
             showToast("Errore durante il salvataggio della promo: " + (data.error || ""), "error");
@@ -14418,22 +14550,42 @@ function renderRecensioniAdmin(reviews) {
         
         // Render photos if present
         let photosHtml = '';
-        if (rec.images && rec.images.length > 0) {
-            const imgs = rec.images.map(imgUrl => {
-                const src = typeof imgUrl === 'string' ? imgUrl : (imgUrl.thumb || imgUrl.full || '');
-                const fullSrc = typeof imgUrl === 'string' ? imgUrl : (imgUrl.full || imgUrl.thumb || '');
-                return `
-                    <a href="${fullSrc}" target="_blank" class="block w-12 h-12 rounded-lg border border-slate-200 overflow-hidden hover:opacity-80 transition-all bg-slate-50">
-                        <img src="${src}" class="w-full h-full object-cover">
+        if (Array.isArray(rec.images) && rec.images.length > 0) {
+            const validImages = rec.images.map(imgItem => {
+                if (!imgItem) return null;
+                let src = '';
+                let fullSrc = '';
+                if (typeof imgItem === 'string') {
+                    const trimmed = imgItem.trim();
+                    if (trimmed) {
+                        src = trimmed;
+                        fullSrc = trimmed;
+                    }
+                } else if (typeof imgItem === 'object' && imgItem !== null) {
+                    const candidateUrl = typeof imgItem.url === 'string' ? imgItem.url.trim() : '';
+                    const candidateThumb = typeof imgItem.thumb === 'string' ? imgItem.thumb.trim() : '';
+                    const candidateFull = typeof imgItem.full === 'string' ? imgItem.full.trim() : '';
+                    
+                    src = candidateUrl || candidateThumb || candidateFull || '';
+                    fullSrc = candidateUrl || candidateFull || candidateThumb || '';
+                }
+                if (!src || !fullSrc) return null;
+                return { src, fullSrc };
+            }).filter(Boolean);
+
+            if (validImages.length > 0) {
+                const imgs = validImages.map(item => `
+                    <a href="${item.fullSrc}" target="_blank" class="block w-12 h-12 rounded-lg border border-slate-200 overflow-hidden hover:opacity-80 transition-all bg-slate-50">
+                        <img src="${item.src}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'">
                     </a>
+                `).join('');
+                photosHtml = `
+                    <div class="space-y-1.5">
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Foto del cliente</p>
+                        <div class="flex flex-wrap gap-2">${imgs}</div>
+                    </div>
                 `;
-            }).join('');
-            photosHtml = `
-                <div class="space-y-1.5">
-                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Foto del cliente</p>
-                    <div class="flex flex-wrap gap-2">${imgs}</div>
-                </div>
-            `;
+            }
         }
         
         // Date formatting
@@ -14600,16 +14752,27 @@ function renderEditReviewImages() {
     if (!container) return;
     container.innerHTML = '';
     
-    if (editRecSelectedImages.length === 0) {
+    const validEditImages = editRecSelectedImages.map((img, index) => {
+        let displaySrc = '';
+        if (typeof img === 'string') {
+            displaySrc = img.trim();
+        } else if (typeof img === 'object' && img !== null) {
+            displaySrc = (img.url || img.thumb || img.full || '').trim();
+        }
+        if (!displaySrc) return null;
+        return { displaySrc, index };
+    }).filter(Boolean);
+
+    if (validEditImages.length === 0) {
         container.innerHTML = '<p class="text-[10px] text-slate-400 font-semibold italic">Nessuna fotografia allegata.</p>';
         return;
     }
     
-    editRecSelectedImages.forEach((img, index) => {
+    validEditImages.forEach(({ displaySrc, index }) => {
         const div = document.createElement('div');
         div.className = 'relative w-16 h-16 rounded-lg border border-slate-200 overflow-hidden group shadow-sm bg-slate-50';
         div.innerHTML = `
-            <img src="${img}" class="w-full h-full object-cover">
+            <img src="${displaySrc}" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'">
             <button type="button" onclick="rimuoviFotoDettaglioRecensione(${index})" class="absolute top-1 right-1 w-4 h-4 bg-red-600 hover:bg-red-700 text-white font-bold text-[8px] rounded-full flex items-center justify-center shadow-md transition-all">
                 ✕
             </button>
@@ -16056,20 +16219,27 @@ window.apriPreviewImmagineOrdine = apriPreviewImmagineOrdine;
 window.chiudiPreviewImmagineOrdine = chiudiPreviewImmagineOrdine;
 
 // ============================================================================
-// MODULO JAVASCRIPT: SUDDIVISIONE CONTI & MODIFICHE PROFITTO (SERGIO & RICCARDO)
-// CONTABILITÀ INTERNA DEL PROFITTO — GESTIONE ECCEZIONI E ACQUISTI PERSONALI
+// MODULO JAVASCRIPT: SUDDIVISIONE CONTI & CASSA ACCANTONAMENTI
+// GESTIONE INCASSO CLIENTI, ACCANTONAMENTI E DISPONIBILE (CON ARCHIVIO SOCI)
 // ============================================================================
 let profitSplitData = {
     summary: {
         total_orders: 0,
         total_profit: 0,
+        incasso_clienti: 0,
+        totale_da_anticipare: 0,
+        totale_articoli_miei: 0,
+        totale_da_accantonare: 0,
+        incasso_disponibile: 0,
         sergio: { total_initial: 0, total_withdrawals: 0, total_net: 0 },
         riccardo: { total_initial: 0, total_withdrawals: 0, total_net: 0 },
         total_movements_count: 0
     },
+    accantonamenti: [],
     modifications: [],
     lot_orders: []
 };
+let filtroTipoAccantonamento = 'tutti'; // 'tutti' | 'da_anticipare' | 'articolo_mio'
 let selectedModificaOrder = null;
 let profitSplitMode = 'manual'; // 'manual' | 'by_expenses'
 let lotProfitPercentageSergio = 50;
@@ -16113,6 +16283,69 @@ function cambiaModalitaSuddivisione(newMode) {
 function aggiornaSuddivisioneProfittoLive() {
     const summary = (profitSplitData && profitSplitData.summary) ? profitSplitData.summary : {};
 
+    // 0. AGGIORNA KPI CARD E FORMULA CASSA ACCANTONAMENTI
+    const incassoClienti = Number(summary.incasso_clienti !== undefined ? summary.incasso_clienti : summary.incasso_totale) || 0;
+    const daAnticipare = Number(summary.totale_da_anticipare) || 0;
+    const articoliMiei = Number(summary.totale_articoli_miei) || 0;
+    const daAccantonare = Number(summary.totale_da_accantonare) || (daAnticipare + articoliMiei);
+    const incassoDisponibile = Number(summary.incasso_disponibile !== undefined ? summary.incasso_disponibile : (incassoClienti - daAccantonare));
+
+    const accList = Array.isArray(profitSplitData && profitSplitData.accantonamenti) ? profitSplitData.accantonamenti : [];
+    const countAnticipi = accList.filter(a => a.tipo === 'da_anticipare').length;
+    const countArticoli = accList.filter(a => a.tipo === 'articolo_mio').length;
+
+    const accIncassoClientiEl = document.getElementById('acc-incasso-clienti');
+    const accOrdiniCountEl = document.getElementById('acc-ordini-count');
+    const accDaAnticipareEl = document.getElementById('acc-da-anticipare');
+    const accDaAnticipareCountEl = document.getElementById('acc-da-anticipare-count');
+    const accArticoliMieiEl = document.getElementById('acc-articoli-miei');
+    const accArticoliMieiCountEl = document.getElementById('acc-articoli-miei-count');
+    const accTotaleAccantonareEl = document.getElementById('acc-totale-accantonare');
+    const accTotaleCountEl = document.getElementById('acc-totale-count');
+    const accIncassoDisponibileEl = document.getElementById('acc-incasso-disponibile');
+    const accDisponibileStatusEl = document.getElementById('acc-disponibile-status');
+
+    if (accIncassoClientiEl) accIncassoClientiEl.textContent = `€ ${formatValutaEuro(incassoClienti)}`;
+    if (accOrdiniCountEl) accOrdiniCountEl.textContent = `${summary.total_orders || 0} ${summary.total_orders === 1 ? 'ordine' : 'ordini'}`;
+    if (accDaAnticipareEl) accDaAnticipareEl.textContent = `€ ${formatValutaEuro(daAnticipare)}`;
+    if (accDaAnticipareCountEl) accDaAnticipareCountEl.textContent = `${countAnticipi} ${countAnticipi === 1 ? 'voce' : 'voci'}`;
+    if (accArticoliMieiEl) accArticoliMieiEl.textContent = `€ ${formatValutaEuro(articoliMiei)}`;
+    if (accArticoliMieiCountEl) accArticoliMieiCountEl.textContent = `${countArticoli} ${countArticoli === 1 ? 'voce' : 'voci'}`;
+    if (accTotaleAccantonareEl) accTotaleAccantonareEl.textContent = `€ ${formatValutaEuro(daAccantonare)}`;
+    if (accTotaleCountEl) accTotaleCountEl.textContent = `${accList.length} ${accList.length === 1 ? 'movimento' : 'movimenti'}`;
+
+    if (accIncassoDisponibileEl) {
+        if (incassoDisponibile < 0) {
+            accIncassoDisponibileEl.textContent = `-€ ${formatValutaEuro(Math.abs(incassoDisponibile))}`;
+            accIncassoDisponibileEl.className = 'text-2xl font-black text-rose-400 font-mono';
+        } else {
+            accIncassoDisponibileEl.textContent = `€ ${formatValutaEuro(incassoDisponibile)}`;
+            accIncassoDisponibileEl.className = 'text-2xl font-black text-emerald-400 font-mono';
+        }
+    }
+    if (accDisponibileStatusEl) {
+        if (incassoClienti > 0) {
+            const pct = Math.max(0, Math.round((incassoDisponibile / incassoClienti) * 100));
+            accDisponibileStatusEl.textContent = `${pct}% libero`;
+        } else {
+            accDisponibileStatusEl.textContent = `€ 0,00`;
+        }
+    }
+
+    // Banner Formula
+    const bannerIncasso = document.getElementById('acc-banner-incasso');
+    const bannerAccantonato = document.getElementById('acc-banner-accantonato');
+    const bannerAnticipare = document.getElementById('acc-banner-anticipare');
+    const bannerArticoli = document.getElementById('acc-banner-articoli');
+    const bannerDisponibile = document.getElementById('acc-banner-disponibile');
+
+    if (bannerIncasso) bannerIncasso.textContent = formatValutaEuro(incassoClienti);
+    if (bannerAccantonato) bannerAccantonato.textContent = formatValutaEuro(daAccantonare);
+    if (bannerAnticipare) bannerAnticipare.textContent = formatValutaEuro(daAnticipare);
+    if (bannerArticoli) bannerArticoli.textContent = formatValutaEuro(articoliMiei);
+    if (bannerDisponibile) bannerDisponibile.textContent = formatValutaEuro(incassoDisponibile);
+
+    // Dati Storici Soci (Legacy)
     const netTotalProfit = Number(summary.total_profit !== undefined ? summary.total_profit : summary.profitto_lotto) || 0;
     const ordersProfit = Number(summary.orders_profit_total !== undefined ? summary.orders_profit_total : netTotalProfit) || 0;
     const alibabaFeeEur = Number(summary.alibaba_fee_eur) || 0;
@@ -16708,6 +16941,9 @@ async function caricaSuddivisioneConti(targetLottoId) {
 
             // Aggiorna l'intera interfaccia
             aggiornaSuddivisioneProfittoLive();
+
+            // Renderizza l'elenco dei movimenti di accantonamento cassa
+            renderTabellaAccantonamenti(data.accantonamenti || []);
 
             // Renderizza l'elenco delle modifiche registrate
             renderTabellaModifiche(data.modifications || []);
@@ -17541,6 +17777,793 @@ window.chiudiModalModificaSuddivisione = chiudiModalModificaSuddivisione;
 window.onSelectOrdineModifica = onSelectOrdineModifica;
 window.salvaModificaSuddivisione = salvaModificaSuddivisione;
 window.eliminaModificaSuddivisione = eliminaModificaSuddivisione;
+
+// =========================================================================
+// GESTIONE ACCANTONAMENTI CASSA (INCASSO CLIENTI VS DISPONIBILE)
+// =========================================================================
+
+let selectedAccOrderIds = [];
+let accOrdersSearchFilter = '';
+let expandedAccOrderRows = new Set();
+
+/**
+ * Calcola in modo affidabile e sicuro il costo fornitore reale in EUR di un ordine
+ */
+function calcolaCostoFornitoreOrdine(order) {
+    if (!order) return 0;
+    
+    // 1. Se presente da lot_orders (backend ha già calcolato con tassi cambio e spese lotto)
+    if (order.cost_eur !== undefined && order.cost_eur !== null && !isNaN(Number(order.cost_eur))) {
+        return Number(Number(order.cost_eur).toFixed(2));
+    }
+    
+    // 2. Campo diretto costo_totale_eur / "Costo totale (EUR)" / costo_eur
+    const directEur = parseFlexibleDecimal(order["Costo totale (EUR)"] || order.costo_totale_eur || order.costo_eur || '');
+    if (directEur > 0) {
+        return Number(directEur.toFixed(2));
+    }
+    
+    // 3. Calcolo USD -> EUR da componenti prodotti + spedizione
+    const cambio = parseFlexibleDecimal(order["Cambio USD/EUR"] || order.cambio_usd_eur || '') || 0.92;
+    const prodUsd = parseFlexibleDecimal(order["Costo prodotti (USD)"] || order.costo_prodotti_usd || '');
+    const spedUsd = parseFlexibleDecimal(order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd || '');
+    const totUsd = parseFlexibleDecimal(order["Costo totale (USD)"] || order.costo_totale_usd || '');
+    
+    const sumUsd = (prodUsd + spedUsd > 0) ? (prodUsd + spedUsd) : totUsd;
+    if (sumUsd > 0) {
+        return Number((sumUsd * cambio).toFixed(2));
+    }
+    
+    return 0;
+}
+
+/**
+ * Ritorna l'elenco unificato di tutti gli ordini reali disponibili nel sistema (da ordini e lot_orders)
+ */
+function ottieniTuttiGliOrdiniDisponibili() {
+    const list = [];
+    const seenIds = new Set();
+
+    // 1. Dagli ordini globali (ordini)
+    if (Array.isArray(ordini)) {
+        ordini.forEach((raw, idx) => {
+            const id = String(raw.id || raw.data || (idx + 1));
+            if (seenIds.has(id)) return;
+            seenIds.add(id);
+
+            const displayIndex = raw.id || (idx + 1);
+            const orderCode = `#ORD-${displayIndex}`;
+            const customerName = raw.nome || raw.cliente || raw.nome_cliente || 'Cliente';
+            const phone = raw.telefono || raw.telefono_cliente || '';
+            const dataOrdine = raw.data ? (String(raw.data).includes('T') ? String(raw.data).split('T')[0] : String(raw.data)) : '';
+            
+            // Estrai sommario prodotti
+            let productsSummary = '';
+            if (Array.isArray(raw.carrello) && raw.carrello.length > 0) {
+                productsSummary = raw.carrello.map(c => {
+                    const sq = c.squadra || c.nome || c.titolo || 'Articolo';
+                    const tg = c.taglia ? `(${c.taglia})` : '';
+                    const q = c.quantita ? `x${c.quantita}` : '';
+                    return `${sq} ${tg} ${q}`.trim();
+                }).join(', ');
+            } else if (raw.squadra) {
+                const sq = raw.squadra;
+                const tg = raw.taglia ? `(${raw.taglia})` : '';
+                productsSummary = `${sq} ${tg}`.trim();
+            } else {
+                productsSummary = 'Articolo Ordine';
+            }
+
+            const supplierCost = calcolaCostoFornitoreOrdine(raw);
+            const customerTotal = raw.totale || 0;
+
+            list.push({
+                id: id,
+                orderCode: orderCode,
+                customerName: customerName,
+                phone: phone,
+                orderDate: dataOrdine,
+                productsSummary: productsSummary,
+                supplierCost: supplierCost,
+                customerTotal: customerTotal,
+                raw: raw
+            });
+        });
+    }
+
+    // 2. Integra con lot_orders se presenti
+    if (profitSplitData && Array.isArray(profitSplitData.lot_orders)) {
+        profitSplitData.lot_orders.forEach((lo, idx) => {
+            const id = String(lo.order_id || lo.order_data_key || (idx + 1));
+            const existing = list.find(item => item.id === id);
+            if (existing) {
+                if (lo.cost_eur !== undefined && lo.cost_eur !== null && !isNaN(Number(lo.cost_eur))) {
+                    existing.supplierCost = Number(Number(lo.cost_eur).toFixed(2));
+                }
+            } else {
+                seenIds.add(id);
+                list.push({
+                    id: id,
+                    orderCode: String(lo.order_number || `#ORD-${id}`),
+                    customerName: lo.customer_name || 'Cliente',
+                    phone: '',
+                    orderDate: lo.order_date || '',
+                    productsSummary: lo.products_summary || 'Articoli Lotto',
+                    supplierCost: Number(lo.cost_eur) || 0,
+                    customerTotal: lo.customer_total || 0,
+                    raw: lo
+                });
+            }
+        });
+    }
+
+    return list;
+}
+
+/**
+ * Renderizza il selettore degli ordini prodotti nel modal di accantonamento
+ */
+function renderSelettoreOrdiniAccantonamento() {
+    const container = document.getElementById('modal-acc-orders-list');
+    if (!container) return;
+
+    const availableOrders = ottieniTuttiGliOrdiniDisponibili();
+    const activeAccantonamenti = (profitSplitData && profitSplitData.accantonamenti) || [];
+    const currentAccId = (document.getElementById('modal-acc-id') && document.getElementById('modal-acc-id').value) || '';
+
+    // Mappa ordini già occupati in altri movimenti attivi
+    const usedOrdersMap = {};
+    activeAccantonamenti.forEach(acc => {
+        if (String(acc.id) === String(currentAccId)) return; // Se stiamo modificando questo movimento, permetti la selezione
+        if (Array.isArray(acc.order_ids)) {
+            acc.order_ids.forEach(oid => {
+                usedOrdersMap[String(oid)] = {
+                    tipo: acc.tipo === 'da_anticipare' ? 'DA ANTICIPARE' : 'ARTICOLO MIO',
+                    descrizione: acc.descrizione || ''
+                };
+            });
+        }
+    });
+
+    // Filtra ordini per testo di ricerca
+    const query = (accOrdersSearchFilter || '').trim().toLowerCase();
+    const filteredOrders = availableOrders.filter(o => {
+        if (!query) return true;
+        const text = `${o.orderCode} ${o.customerName} ${o.phone} ${o.productsSummary} ${o.squadra || ''} ${o.id}`.toLowerCase();
+        return text.includes(query);
+    });
+
+    const badgeCount = document.getElementById('modal-acc-orders-count-badge');
+    if (badgeCount) {
+        badgeCount.textContent = `${filteredOrders.length} ${filteredOrders.length === 1 ? 'ordine' : 'ordini'}`;
+    }
+
+    if (filteredOrders.length === 0) {
+        container.innerHTML = `
+            <div class="py-6 text-center text-xs text-slate-400">
+                <span>Nessun ordine trovato per "${escapeHtml(accOrdersSearchFilter)}".</span>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filteredOrders.map(o => {
+        const orderIdStr = String(o.id);
+        const isSelected = selectedAccOrderIds.includes(orderIdStr);
+        const alreadyUsed = usedOrdersMap[orderIdStr];
+        const isConflict = Boolean(alreadyUsed && !isSelected);
+
+        const supplierCostFormatted = formatValutaEuro(o.supplierCost);
+        const customerTotalFormatted = (typeof o.customerTotal === 'number')
+            ? formatValutaEuro(o.customerTotal)
+            : String(o.customerTotal || '0,00').replace('€', '').trim();
+
+        return `
+            <div class="p-2.5 rounded-xl transition-all flex items-start gap-3 ${isSelected ? 'bg-amber-50/70 border border-amber-300' : isConflict ? 'bg-slate-50 opacity-60' : 'hover:bg-slate-50 border border-transparent'}">
+                <div class="pt-0.5 shrink-0">
+                    <input type="checkbox" 
+                        id="acc-order-chk-${escapeHtml(orderIdStr)}"
+                        ${isSelected ? 'checked' : ''}
+                        ${isConflict ? 'disabled' : ''}
+                        onchange="toggleSelezioneOrdineAccantonamento('${escapeHtml(orderIdStr)}')"
+                        class="w-4 h-4 rounded text-brand-gold border-slate-300 focus:ring-brand-gold cursor-pointer disabled:cursor-not-allowed">
+                </div>
+                <label for="acc-order-chk-${escapeHtml(orderIdStr)}" class="flex-grow cursor-pointer ${isConflict ? 'cursor-not-allowed' : ''}">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-bold text-xs text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${escapeHtml(o.orderCode)}</span>
+                            <span class="font-bold text-xs text-slate-800">${escapeHtml(o.customerName)}</span>
+                            ${o.orderDate ? `<span class="text-[10px] text-slate-400 font-mono">(${escapeHtml(o.orderDate)})</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="font-mono font-bold text-xs text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200/60" title="Costo fornitore reale">
+                                Costo: € ${supplierCostFormatted}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-1 flex items-center justify-between gap-2 text-[11px] text-slate-600">
+                        <span class="truncate max-w-sm" title="${escapeHtml(o.productsSummary)}">
+                            📦 ${escapeHtml(o.productsSummary)}
+                        </span>
+                        <span class="text-[10px] text-slate-400 shrink-0 font-mono">
+                            Incasso cliente: € ${customerTotalFormatted}
+                        </span>
+                    </div>
+                    ${alreadyUsed ? `
+                        <div class="mt-1">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-100/90 text-amber-900 font-bold text-[10px] border border-amber-300">
+                                <span>⚠️</span> GIÀ INSERITO: ${alreadyUsed.tipo} (${escapeHtml(alreadyUsed.descrizione || '')})
+                            </span>
+                        </div>
+                    ` : ''}
+                </label>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Toggle della selezione di un ordine nel modal di accantonamento
+ */
+function toggleSelezioneOrdineAccantonamento(orderId) {
+    const orderIdStr = String(orderId);
+    const index = selectedAccOrderIds.indexOf(orderIdStr);
+    if (index >= 0) {
+        selectedAccOrderIds.splice(index, 1);
+    } else {
+        selectedAccOrderIds.push(orderIdStr);
+    }
+    aggiornaRiepilogoOrdiniAccantonamento(true);
+    renderSelettoreOrdiniAccantonamento();
+}
+
+/**
+ * Deseleziona tutti gli ordini selezionati
+ */
+function deselezionaTuttiOrdiniAccantonamento() {
+    selectedAccOrderIds = [];
+    aggiornaRiepilogoOrdiniAccantonamento(true);
+    renderSelettoreOrdiniAccantonamento();
+}
+
+/**
+ * Filtra gli ordini visualizzati nel modal
+ */
+function filtraOrdiniPerAccantonamento(query) {
+    accOrdersSearchFilter = (query || '').trim();
+    const btnClear = document.getElementById('btn-clear-search-acc-orders');
+    if (btnClear) {
+        if (accOrdersSearchFilter.length > 0) {
+            btnClear.classList.remove('hidden');
+        } else {
+            btnClear.classList.add('hidden');
+        }
+    }
+    renderSelettoreOrdiniAccantonamento();
+}
+
+/**
+ * Pulisce la ricerca ordini nel modal
+ */
+function pulisciRicercaOrdiniAccantonamento() {
+    const searchInput = document.getElementById('modal-acc-orders-search');
+    if (searchInput) searchInput.value = '';
+    filtraOrdiniPerAccantonamento('');
+}
+
+/**
+ * Aggiorna il box di riepilogo ordini selezionati e calcola la somma dei costi fornitore
+ */
+function aggiornaRiepilogoOrdiniAccantonamento(aggiornaImporto = true) {
+    const summaryBox = document.getElementById('modal-acc-orders-summary');
+    const countEl = document.getElementById('modal-acc-summary-count');
+    const calcEl = document.getElementById('modal-acc-summary-calc');
+    const totalEl = document.getElementById('modal-acc-summary-total');
+    const importoInput = document.getElementById('modal-acc-importo');
+    const descInput = document.getElementById('modal-acc-descrizione');
+
+    const availableOrders = ottieniTuttiGliOrdiniDisponibili();
+    const selectedOrders = availableOrders.filter(o => selectedAccOrderIds.includes(String(o.id)));
+
+    if (selectedOrders.length === 0) {
+        if (summaryBox) summaryBox.classList.add('hidden');
+        return;
+    }
+
+    if (summaryBox) summaryBox.classList.remove('hidden');
+
+    let totalSupplierCost = 0;
+    const costBreakdownParts = [];
+
+    selectedOrders.forEach(o => {
+        totalSupplierCost += o.supplierCost;
+        costBreakdownParts.push(`€ ${formatValutaEuro(o.supplierCost)}`);
+    });
+
+    if (countEl) {
+        countEl.textContent = `${selectedOrders.length} ${selectedOrders.length === 1 ? 'ordine selezionato' : 'ordini selezionati'}`;
+    }
+
+    if (calcEl) {
+        if (selectedOrders.length === 1) {
+            calcEl.textContent = `Costo fornitore: ${costBreakdownParts[0]}`;
+        } else {
+            calcEl.textContent = `Costo: ${costBreakdownParts.slice(0, 4).join(' + ')}${costBreakdownParts.length > 4 ? ` + altri ${costBreakdownParts.length - 4}` : ''} =`;
+        }
+    }
+
+    if (totalEl) {
+        totalEl.textContent = `€ ${formatValutaEuro(totalSupplierCost)}`;
+    }
+
+    if (aggiornaImporto && importoInput) {
+        importoInput.value = totalSupplierCost.toFixed(2);
+    }
+
+    // Suggerisci una descrizione automatica se vuota o auto-generata
+    if (descInput && (descInput.value.trim() === '' || descInput.value.startsWith('Ordine #') || descInput.value.includes(' ordini (#') || descInput.value.includes('Ordini (#'))) {
+        if (selectedOrders.length === 1) {
+            const first = selectedOrders[0];
+            descInput.value = `${first.orderCode} - ${first.customerName} (${first.productsSummary})`;
+        } else {
+            const codes = selectedOrders.map(o => o.orderCode).slice(0, 3).join(', ');
+            const suffix = selectedOrders.length > 3 ? `, +${selectedOrders.length - 3}` : '';
+            descInput.value = `${selectedOrders.length} Ordini (${codes}${suffix})`;
+        }
+    }
+}
+
+/**
+ * Passa alla tab Ordini Prodotti e cerca un ordine specifico
+ */
+function vaiAOrdineInTabOrdini(orderId) {
+    if (!orderId) return;
+    const cleanId = String(orderId).trim();
+    switchTab('ordini');
+    const searchInput = document.getElementById('search-ordini') || document.getElementById('ordini-search-input');
+    if (searchInput) {
+        searchInput.value = cleanId;
+    }
+    ordiniSearchQuery = cleanId.toLowerCase();
+    if (typeof renderOrdini === 'function') {
+        renderOrdini();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * Toggle per visualizzare i dettagli degli ordini collegati in una riga della tabella
+ */
+function toggleDettaglioOrdiniAccantonamento(accId) {
+    const accIdStr = String(accId);
+    if (expandedAccOrderRows.has(accIdStr)) {
+        expandedAccOrderRows.delete(accIdStr);
+    } else {
+        expandedAccOrderRows.add(accIdStr);
+    }
+    renderTabellaAccantonamenti();
+}
+
+/**
+ * Renderizza la tabella dei movimenti di accantonamento cassa
+ */
+function renderTabellaAccantonamenti(accList) {
+    const rawList = Array.isArray(accList) ? accList : (profitSplitData && profitSplitData.accantonamenti) || [];
+    const emptyState = document.getElementById('acc-empty-state');
+    const tableContainer = document.getElementById('acc-table-container');
+    const tbody = document.getElementById('acc-tbody');
+    const countBadge = document.getElementById('acc-count-badge');
+
+    // Filtra per tipo selezionato
+    const filteredList = rawList.filter(item => {
+        if (!item) return false;
+        if (filtroTipoAccantonamento === 'da_anticipare') return item.tipo === 'da_anticipare';
+        if (filtroTipoAccantonamento === 'articolo_mio') return item.tipo === 'articolo_mio';
+        return true;
+    });
+
+    if (countBadge) {
+        countBadge.textContent = `${filteredList.length} ${filteredList.length === 1 ? 'movimento' : 'movimenti'}`;
+    }
+
+    // Aggiorna pulsanti filtro attivi
+    aggiornaStatoPulsantiFiltroAcc();
+
+    if (filteredList.length === 0) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        if (tableContainer) tableContainer.classList.add('hidden');
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+    if (tableContainer) tableContainer.classList.remove('hidden');
+
+    if (!tbody) return;
+
+    const availableOrders = ottieniTuttiGliOrdiniDisponibili();
+
+    tbody.innerHTML = filteredList.map(item => {
+        const idStr = escapeHtml(String(item.id || ''));
+        const tipo = item.tipo || 'da_anticipare';
+        const desc = escapeHtml(String(item.descrizione || 'Movimento'));
+        const importo = Number(item.importo) || 0;
+        const dataStr = escapeHtml(String(item.data || ''));
+        const note = escapeHtml(String(item.note || ''));
+        const orderIds = Array.isArray(item.order_ids) ? item.order_ids : [];
+        const isExpanded = expandedAccOrderRows.has(String(item.id));
+
+        let tipoBadge = '';
+        if (tipo === 'da_anticipare') {
+            tipoBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300"><span>⏳</span> Da Anticipare</span>`;
+        } else {
+            tipoBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-900 font-bold text-[11px] border border-indigo-300"><span>👕</span> Articolo Mio</span>`;
+        }
+
+        // Formatta data in formato italiano leggibile se YYYY-MM-DD
+        let dataVisualizzata = dataStr;
+        if (dataStr && dataStr.includes('-')) {
+            const parts = dataStr.split('-');
+            if (parts.length === 3) {
+                dataVisualizzata = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+        }
+
+        // Recupera i dettagli degli ordini collegati
+        const linkedOrders = orderIds.map(oid => {
+            const found = availableOrders.find(o => String(o.id) === String(oid));
+            return found || {
+                id: oid,
+                orderCode: `#ORD-${oid}`,
+                customerName: 'Ordine collegato',
+                productsSummary: 'Dettagli ordine',
+                supplierCost: 0
+            };
+        });
+
+        let linkedOrdersHtml = '';
+        if (orderIds.length > 0) {
+            linkedOrdersHtml = `
+                <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+                    <button type="button" onclick="toggleDettaglioOrdiniAccantonamento('${idStr}')" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-mono text-[10px] font-bold border border-slate-300/80 transition-all cursor-pointer">
+                        <span>📦</span> ${orderIds.length} ${orderIds.length === 1 ? 'ordine collegato' : 'ordini collegati'}
+                        <span class="text-[9px] text-slate-500">${isExpanded ? '▲ nascondi' : '▼ vedi dettagli'}</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Se espanso, genera lista dettagliata degli ordini con pulsanti per andare direttamente in Ordini Prodotti
+        let expandedDetailsHtml = '';
+        if (isExpanded && linkedOrders.length > 0) {
+            expandedDetailsHtml = `
+                <tr class="bg-slate-50/90 border-b border-slate-200/80">
+                    <td colspan="6" class="px-5 py-3">
+                        <div class="bg-white rounded-xl border border-slate-200 p-3 space-y-2">
+                            <div class="text-[11px] font-black text-slate-800 uppercase tracking-wider flex items-center justify-between">
+                                <span>📦 Ordini Prodotti Collegati (${linkedOrders.length})</span>
+                                <span class="text-slate-400 font-normal lowercase">costo fornitore reale accantonato</span>
+                            </div>
+                            <div class="divide-y divide-slate-100">
+                                ${linkedOrders.map(lo => `
+                                    <div class="py-1.5 flex items-center justify-between gap-3 text-xs">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <span class="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[11px]">${escapeHtml(lo.orderCode)}</span>
+                                            <strong class="text-slate-800 truncate">${escapeHtml(lo.customerName)}</strong>
+                                            <span class="text-slate-500 text-[11px] truncate max-w-xs">(${escapeHtml(lo.productsSummary)})</span>
+                                        </div>
+                                        <div class="flex items-center gap-2.5 shrink-0">
+                                            <span class="font-mono font-bold text-rose-600 text-xs">€ ${formatValutaEuro(lo.supplierCost)}</span>
+                                            <button type="button" onclick="vaiAOrdineInTabOrdini('${escapeHtml(lo.id)}')" title="Visualizza in Ordini Prodotti" class="px-2 py-0.5 bg-slate-100 hover:bg-brand-gold hover:text-slate-950 text-slate-700 font-bold text-[10px] rounded transition-all cursor-pointer">
+                                                🔍 Ordini Prodotti
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        return `
+            <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100">
+                <td class="px-5 py-3.5 whitespace-nowrap font-mono text-xs font-semibold text-slate-700">
+                    ${dataVisualizzata || '—'}
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                    ${tipoBadge}
+                </td>
+                <td class="px-5 py-3.5">
+                    <div class="font-bold text-slate-900 text-xs">${desc}</div>
+                    ${linkedOrdersHtml}
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap text-right font-mono font-black text-rose-600 text-xs">
+                    -€ ${formatValutaEuro(importo)}
+                </td>
+                <td class="px-5 py-3.5 text-xs text-slate-500 max-w-xs truncate" title="${note}">
+                    ${note || '<span class="text-slate-300">—</span>'}
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap text-right space-x-1.5">
+                    <button onclick="apriModalAccantonamento('${idStr}')" title="Modifica movimento" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer">
+                        <span>✏️</span> Modifica
+                    </button>
+                    <button onclick="eliminaMovimentoAccantonamento('${idStr}')" title="Elimina movimento" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer">
+                        <span>🗑️</span>
+                    </button>
+                </td>
+            </tr>
+            ${expandedDetailsHtml}
+        `;
+    }).join('');
+}
+
+/**
+ * Aggiorna lo stato visivo dei pulsanti filtro tipologia
+ */
+function aggiornaStatoPulsantiFiltroAcc() {
+    const btnTutti = document.getElementById('btn-filtro-acc-tutti');
+    const btnAnticipare = document.getElementById('btn-filtro-acc-anticipare');
+    const btnArticoli = document.getElementById('btn-filtro-acc-articoli');
+
+    const activeClass = "px-3 py-1.5 rounded-lg text-xs font-black shadow-xs transition-all cursor-pointer bg-brand-gold text-white";
+    const inactiveClass = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer";
+
+    if (btnTutti) btnTutti.className = filtroTipoAccantonamento === 'tutti' ? activeClass : inactiveClass;
+    if (btnAnticipare) btnAnticipare.className = filtroTipoAccantonamento === 'da_anticipare' ? activeClass : inactiveClass;
+    if (btnArticoli) btnArticoli.className = filtroTipoAccantonamento === 'articolo_mio' ? activeClass : inactiveClass;
+}
+
+/**
+ * Filtra la tabella per tipologia di movimento
+ */
+function filtraMovimentiAccantonamento(tipo) {
+    filtroTipoAccantonamento = tipo || 'tutti';
+    renderTabellaAccantonamenti();
+}
+
+/**
+ * Aggiorna il testo helper nel modal in base alla tipologia selezionata
+ */
+function aggiornaFormAccantonamentoHelper() {
+    const radios = document.getElementsByName('acc_tipo');
+    let selectedTipo = 'da_anticipare';
+    radios.forEach(r => {
+        if (r.checked) selectedTipo = r.value;
+    });
+
+    const helperText = document.getElementById('modal-acc-helper-text');
+    if (helperText) {
+        if (selectedTipo === 'da_anticipare') {
+            helperText.textContent = "⏳ Da Anticipare: Somma che deve essere pagata/anticipata in futuro per ordini o fornitori. Viene sottratta dall'Incasso Clienti.";
+        } else {
+            helperText.textContent = "👕 Articolo Mio: Spesa personale per capi o articoli personali. Viene accantonata e sottratta dall'Incasso Clienti disponibile.";
+        }
+    }
+}
+
+/**
+ * Apre il modal per aggiungere o modificare un movimento di accantonamento
+ */
+async function apriModalAccantonamento(accId) {
+    const modal = document.getElementById('modal-accantonamento');
+    const idInput = document.getElementById('modal-acc-id');
+    const titleEl = document.getElementById('modal-acc-title');
+    const descInput = document.getElementById('modal-acc-descrizione');
+    const importoInput = document.getElementById('modal-acc-importo');
+    const dataInput = document.getElementById('modal-acc-data');
+    const noteInput = document.getElementById('modal-acc-note');
+    const radios = document.getElementsByName('acc_tipo');
+    const searchInput = document.getElementById('modal-acc-orders-search');
+
+    if (!modal) return;
+
+    // Assicurati che gli ordini siano caricati
+    if (!Array.isArray(ordini) || ordini.length === 0) {
+        if (typeof caricaOrdini === 'function') {
+            try {
+                await caricaOrdini(1);
+            } catch (e) {
+                console.warn("Errore caricamento ordini:", e);
+            }
+        }
+    }
+
+    // Reset ricerca
+    accOrdersSearchFilter = '';
+    if (searchInput) searchInput.value = '';
+    const btnClear = document.getElementById('btn-clear-search-acc-orders');
+    if (btnClear) btnClear.classList.add('hidden');
+
+    if (accId) {
+        const list = (profitSplitData && profitSplitData.accantonamenti) ? profitSplitData.accantonamenti : [];
+        const existing = list.find(a => String(a.id) === String(accId));
+        if (existing) {
+            if (idInput) idInput.value = existing.id;
+            if (titleEl) titleEl.textContent = "Modifica Movimento Cassa";
+            if (descInput) descInput.value = existing.descrizione || '';
+            if (importoInput) importoInput.value = existing.importo !== undefined ? existing.importo : '';
+            if (dataInput) dataInput.value = existing.data || new Date().toISOString().split('T')[0];
+            if (noteInput) noteInput.value = existing.note || '';
+
+            const chosenTipo = existing.tipo || 'da_anticipare';
+            radios.forEach(r => {
+                r.checked = (r.value === chosenTipo);
+            });
+
+            selectedAccOrderIds = Array.isArray(existing.order_ids) ? existing.order_ids.map(oid => String(oid)) : [];
+        }
+    } else {
+        if (idInput) idInput.value = '';
+        if (titleEl) titleEl.textContent = "Aggiungi Movimento Cassa";
+        if (descInput) descInput.value = '';
+        if (importoInput) importoInput.value = '';
+        if (dataInput) dataInput.value = new Date().toISOString().split('T')[0];
+        if (noteInput) noteInput.value = '';
+        radios.forEach(r => {
+            r.checked = (r.value === 'da_anticipare');
+        });
+
+        selectedAccOrderIds = [];
+    }
+
+    renderSelettoreOrdiniAccantonamento();
+    aggiornaRiepilogoOrdiniAccantonamento(false);
+    aggiornaFormAccantonamentoHelper();
+    modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude il modal accantonamento
+ */
+function chiudiModalAccantonamento() {
+    const modal = document.getElementById('modal-accantonamento');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+/**
+ * Salva il movimento di accantonamento (creazione o aggiornamento) sul server
+ */
+async function salvaMovimentoAccantonamento(e) {
+    if (e && e.preventDefault) e.preventDefault();
+
+    const idInput = document.getElementById('modal-acc-id');
+    const descInput = document.getElementById('modal-acc-descrizione');
+    const importoInput = document.getElementById('modal-acc-importo');
+    const dataInput = document.getElementById('modal-acc-data');
+    const noteInput = document.getElementById('modal-acc-note');
+    const radios = document.getElementsByName('acc_tipo');
+    const btn = document.getElementById('modal-acc-btn-submit');
+
+    const desc = descInput ? descInput.value.trim() : '';
+    if (!desc) {
+        showToast("Inserisci una descrizione per il movimento.", "error");
+        if (descInput) descInput.focus();
+        return;
+    }
+
+    const importo = parseFloat(importoInput ? importoInput.value.replace(',', '.') : '');
+    if (isNaN(importo) || importo <= 0) {
+        showToast("Inserisci un importo valido superiore a 0.", "error");
+        if (importoInput) importoInput.focus();
+        return;
+    }
+
+    const data = dataInput ? dataInput.value : new Date().toISOString().split('T')[0];
+    if (!data) {
+        showToast("Seleziona una data valida.", "error");
+        if (dataInput) dataInput.focus();
+        return;
+    }
+
+    let tipo = 'da_anticipare';
+    radios.forEach(r => {
+        if (r.checked) tipo = r.value;
+    });
+
+    const accId = idInput ? idInput.value.trim() : '';
+    const lotId = Number((profitSplitData && profitSplitData.summary && profitSplitData.summary.lotto_id) || currentProfitSplitLottoId || (window.currentLottoData && window.currentLottoData.id) || 1);
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="animate-spin">⏳</span> Salvataggio...`;
+    }
+
+    try {
+        const response = await fetch('/api/profit-splits/accantonamento', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: accId || undefined,
+                lotto_id: lotId,
+                tipo: tipo,
+                descrizione: desc,
+                importo: importo,
+                data: data,
+                order_ids: selectedAccOrderIds,
+                note: noteInput ? noteInput.value.trim() : ''
+            })
+        });
+
+        const resData = await response.json();
+        if (resData && resData.success) {
+            showToast("✅ Movimento salvato con successo.", "success");
+            chiudiModalAccantonamento();
+            await caricaSuddivisioneConti(currentProfitSplitLottoId);
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard(true);
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
+        } else {
+            showToast("⚠️ " + (resData.error || "Impossibile salvare il movimento."), "error");
+        }
+    } catch (err) {
+        console.error("Errore salvataggio movimento accantonamento:", err);
+        showToast("Errore di connessione al server.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span>💾</span> Salva Movimento`;
+        }
+    }
+}
+
+/**
+ * Elimina un movimento di accantonamento
+ */
+async function eliminaMovimentoAccantonamento(accId) {
+    if (!accId) return;
+
+    if (!confirm("Sei sicuro di voler eliminare questo movimento? L'importo tornerà automaticamente disponibile nell'Incasso Clienti.")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/profit-splits/accantonamento/${encodeURIComponent(accId)}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (data && data.success) {
+            showToast("✅ Movimento eliminato.", "success");
+            await caricaSuddivisioneConti(currentProfitSplitLottoId);
+            if (typeof aggiornaStatisticheDashboard === 'function') {
+                aggiornaStatisticheDashboard(true);
+            }
+            if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+                aggiornaStatisticheLottoCorrente();
+            }
+        } else {
+            showToast("Errore durante l'eliminazione: " + (data.error || "Errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("Errore eliminazione movimento accantonamento:", err);
+        showToast("Errore di connessione al server.", "error");
+    }
+}
+
+window.calcolaCostoFornitoreOrdine = calcolaCostoFornitoreOrdine;
+window.ottieniTuttiGliOrdiniDisponibili = ottieniTuttiGliOrdiniDisponibili;
+window.renderSelettoreOrdiniAccantonamento = renderSelettoreOrdiniAccantonamento;
+window.toggleSelezioneOrdineAccantonamento = toggleSelezioneOrdineAccantonamento;
+window.deselezionaTuttiOrdiniAccantonamento = deselezionaTuttiOrdiniAccantonamento;
+window.filtraOrdiniPerAccantonamento = filtraOrdiniPerAccantonamento;
+window.pulisciRicercaOrdiniAccantonamento = pulisciRicercaOrdiniAccantonamento;
+window.aggiornaRiepilogoOrdiniAccantonamento = aggiornaRiepilogoOrdiniAccantonamento;
+window.vaiAOrdineInTabOrdini = vaiAOrdineInTabOrdini;
+window.toggleDettaglioOrdiniAccantonamento = toggleDettaglioOrdiniAccantonamento;
+window.renderTabellaAccantonamenti = renderTabellaAccantonamenti;
+window.aggiornaStatoPulsantiFiltroAcc = aggiornaStatoPulsantiFiltroAcc;
+window.filtraMovimentiAccantonamento = filtraMovimentiAccantonamento;
+window.aggiornaFormAccantonamentoHelper = aggiornaFormAccantonamentoHelper;
+window.apriModalAccantonamento = apriModalAccantonamento;
+window.chiudiModalAccantonamento = chiudiModalAccantonamento;
+window.salvaMovimentoAccantonamento = salvaMovimentoAccantonamento;
+window.eliminaMovimentoAccantonamento = eliminaMovimentoAccantonamento;
 
 // =========================================================================
 // MODULO REVISIONE E RICLASSIFICAZIONE PRODOTTI (FASE 1)
@@ -20844,6 +21867,22 @@ async function caricaTorneiAdmin() {
                 quotaEl.innerText = totalQuota;
             }
 
+            // Aggiorna silenziosamente il badge delle notifiche pagamenti in attesa
+            fetch('/api/tornei/pagamenti').then(r => r.json()).then(d => {
+                if (d && d.success && Array.isArray(d.pagamenti)) {
+                    const pendingCount = d.pagamenti.filter(p => p.stato === 'IN ATTESA DI PAGAMENTO').length;
+                    const badgePending = document.getElementById('tornei-badge-pagamenti-attesa');
+                    if (badgePending) {
+                        if (pendingCount > 0) {
+                            badgePending.innerText = pendingCount;
+                            badgePending.classList.remove('hidden');
+                        } else {
+                            badgePending.classList.add('hidden');
+                        }
+                    }
+                }
+            }).catch(() => {});
+
             if (torneiList.length === 0) {
                 tbody.innerHTML = `
                     <tr>
@@ -20962,6 +22001,10 @@ function apriModalNuovoTorneo() {
     document.getElementById('torneo-form-contatto').value = "";
     document.getElementById('torneo-form-quantita').value = "";
     document.getElementById('torneo-form-prezzo').value = "";
+    const inpQuotaCalze = document.getElementById('torneo-form-quota-calzettoni');
+    if (inpQuotaCalze) inpQuotaCalze.value = "";
+    const inpPrezzoCalze = document.getElementById('torneo-form-prezzo-calzettoni');
+    if (inpPrezzoCalze) inpPrezzoCalze.value = "";
     document.getElementById('torneo-form-perso-nome').checked = true;
     document.getElementById('torneo-form-perso-numero').checked = true;
     document.getElementById('torneo-form-perso-patch').checked = false;
@@ -21000,6 +22043,10 @@ async function salvaTorneo() {
     const organizzatore_contatto = document.getElementById('torneo-form-contatto').value.trim();
     const quantita_totale_autorizzata = document.getElementById('torneo-form-quantita').value;
     const prezzo_concordato_unitario = document.getElementById('torneo-form-prezzo').value;
+    const inpQuotaCalze = document.getElementById('torneo-form-quota-calzettoni');
+    const inpPrezzoCalze = document.getElementById('torneo-form-prezzo-calzettoni');
+    const quota_calzettoni = inpQuotaCalze ? inpQuotaCalze.value.trim() : "";
+    const prezzo_calzettoni = inpPrezzoCalze ? inpPrezzoCalze.value.trim() : "";
     const permetti_nome = document.getElementById('torneo-form-perso-nome').checked;
     const permetti_numero = document.getElementById('torneo-form-perso-numero').checked;
     const permetti_patch = document.getElementById('torneo-form-perso-patch').checked;
@@ -21011,16 +22058,23 @@ async function salvaTorneo() {
         return;
     }
 
+    const quotaCalzeVal = quota_calzettoni !== '' ? parseInt(quota_calzettoni, 10) : null;
+    const prezzoCalzeVal = prezzo_calzettoni !== '' ? parseFloat(prezzo_calzettoni) : null;
+
     const payload = {
         nome,
         organizzatore_nome: organizzatore_nome || null,
         organizzatore_contatto: organizzatore_contatto || null,
         quantita_totale_autorizzata: quantita_totale_autorizzata ? parseInt(quantita_totale_autorizzata, 10) : 0,
         prezzo_concordato_unitario: prezzo_concordato_unitario ? parseFloat(prezzo_concordato_unitario) : 0,
+        quota_calzettoni: quotaCalzeVal,
+        prezzo_calzettoni: prezzoCalzeVal,
         configurazione_personalizzazione: {
             permetti_nome,
             permetti_numero,
-            permetti_patch
+            permetti_patch,
+            quota_calzettoni: quotaCalzeVal,
+            prezzo_calzettoni: prezzoCalzeVal
         },
         note: note || null,
         is_active
@@ -21096,6 +22150,18 @@ function modificaTorneo(id) {
     document.getElementById('torneo-form-contatto').value = t.organizzatore_contatto || "";
     document.getElementById('torneo-form-quantita').value = t.quantita_totale_autorizzata !== undefined ? t.quantita_totale_autorizzata : "";
     document.getElementById('torneo-form-prezzo').value = t.prezzo_concordato_unitario !== undefined ? t.prezzo_concordato_unitario : "";
+
+    const quotaCalzeVal = t.quota_calzettoni !== undefined && t.quota_calzettoni !== null
+        ? t.quota_calzettoni
+        : (t.configurazione_personalizzazione && t.configurazione_personalizzazione.quota_calzettoni !== undefined ? t.configurazione_personalizzazione.quota_calzettoni : "");
+    const prezzoCalzeVal = t.prezzo_calzettoni !== undefined && t.prezzo_calzettoni !== null
+        ? t.prezzo_calzettoni
+        : (t.configurazione_personalizzazione && t.configurazione_personalizzazione.prezzo_calzettoni !== undefined ? t.configurazione_personalizzazione.prezzo_calzettoni : "");
+
+    const inpQuotaCalze = document.getElementById('torneo-form-quota-calzettoni');
+    if (inpQuotaCalze) inpQuotaCalze.value = quotaCalzeVal !== null && quotaCalzeVal !== undefined ? quotaCalzeVal : "";
+    const inpPrezzoCalze = document.getElementById('torneo-form-prezzo-calzettoni');
+    if (inpPrezzoCalze) inpPrezzoCalze.value = prezzoCalzeVal !== null && prezzoCalzeVal !== undefined ? prezzoCalzeVal : "";
 
     const cfg = t.configurazione_personalizzazione || {};
     document.getElementById('torneo-form-perso-nome').checked = cfg.permetti_nome !== false;
@@ -21212,7 +22278,11 @@ async function mostraDettaglioTorneo(torneoId) {
     if (contEl) contEl.innerText = `📞 Contatto: ${torneo.organizzatore_contatto || 'Non specificato'}`;
     if (prezzoEl) {
         const pUnit = torneo.prezzo_concordato_unitario !== undefined ? `${parseFloat(torneo.prezzo_concordato_unitario).toFixed(2)} €` : '0.00 €';
-        prezzoEl.innerText = `💰 Prezzo Concordato: ${pUnit} / completino`;
+        const pCalzeVal = torneo.prezzo_calzettoni !== undefined && torneo.prezzo_calzettoni !== null && torneo.prezzo_calzettoni !== ''
+            ? torneo.prezzo_calzettoni
+            : (torneo.configurazione_personalizzazione && torneo.configurazione_personalizzazione.prezzo_calzettoni !== undefined ? torneo.configurazione_personalizzazione.prezzo_calzettoni : null);
+        const pCalze = (pCalzeVal !== null && pCalzeVal !== undefined && pCalzeVal !== '') ? ` • 🧦 Prezzo Calzettoni: ${parseFloat(pCalzeVal).toFixed(2)} €/pz` : '';
+        prezzoEl.innerText = `💰 Prezzo Concordato: ${pUnit} / completino${pCalze}`;
     }
 
     if (badgeStatoEl) {
@@ -21856,6 +22926,357 @@ window.salvaSquadra = salvaSquadra;
 window.eliminaSquadra = eliminaSquadra;
 window.copiaCodiceFornitura = copiaCodiceFornitura;
 window.impostaCategorieSquadraQuick = impostaCategorieSquadraQuick;
+
+// -------------------------------------------------------------
+// GESTIONE SUB-TAB & PAGAMENTI FORNITURA TORNEI
+// -------------------------------------------------------------
+window.torneoPagamentiList = [];
+window.currentTorneoSubTab = 'anagrafica';
+
+function switchTorneiSubTab(tab) {
+    window.currentTorneoSubTab = tab;
+    const btnAnagrafica = document.getElementById('tornei-tab-btn-anagrafica');
+    const btnPagamenti = document.getElementById('tornei-tab-btn-pagamenti');
+    const subtabAnagrafica = document.getElementById('tornei-subtab-anagrafica');
+    const viewPagamenti = document.getElementById('tornei-view-pagamenti');
+
+    if (tab === 'pagamenti') {
+        if (btnAnagrafica) {
+            btnAnagrafica.className = "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm transition-all flex items-center gap-2 cursor-pointer";
+        }
+        if (btnPagamenti) {
+            btnPagamenti.className = "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-900 text-white shadow transition-all flex items-center gap-2 cursor-pointer relative";
+        }
+        if (subtabAnagrafica) subtabAnagrafica.classList.add('hidden');
+        if (viewPagamenti) viewPagamenti.classList.remove('hidden');
+        caricaPagamentiTorneiAdmin();
+    } else {
+        if (btnAnagrafica) {
+            btnAnagrafica.className = "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-slate-900 text-white shadow transition-all flex items-center gap-2 cursor-pointer";
+        }
+        if (btnPagamenti) {
+            btnPagamenti.className = "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm transition-all flex items-center gap-2 cursor-pointer relative";
+        }
+        if (subtabAnagrafica) subtabAnagrafica.classList.remove('hidden');
+        if (viewPagamenti) viewPagamenti.classList.add('hidden');
+        caricaTorneiAdmin();
+    }
+}
+
+async function caricaPagamentiTorneiAdmin() {
+    const tbody = document.getElementById('pagamenti-tabella-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="8" class="px-6 py-8 text-center text-slate-400 font-medium">
+                Caricamento pagamenti in corso...
+            </td>
+        </tr>
+    `;
+
+    try {
+        const res = await fetch('/api/tornei/pagamenti');
+        const data = await res.json();
+
+        if (data && data.success && Array.isArray(data.pagamenti)) {
+            window.torneoPagamentiList = data.pagamenti;
+            const pagList = data.pagamenti;
+
+            // Stats
+            const statTotali = document.getElementById('pagamenti-stat-totali');
+            const statAttesaCount = document.getElementById('pagamenti-stat-attesa-count');
+            const statAttesaTotale = document.getElementById('pagamenti-stat-attesa-totale');
+            const statPagatiCount = document.getElementById('pagamenti-stat-pagati-count');
+            const statPagatiTotale = document.getElementById('pagamenti-stat-pagati-totale');
+            const badgePending = document.getElementById('tornei-badge-pagamenti-attesa');
+
+            const inAttesa = pagList.filter(p => p.stato === 'IN ATTESA DI PAGAMENTO');
+            const pagati = pagList.filter(p => p.stato === 'PAGATO');
+
+            const totAttesaEur = inAttesa.reduce((sum, p) => sum + (parseFloat(p.totale) || 0), 0);
+            const totPagatiEur = pagati.reduce((sum, p) => sum + (parseFloat(p.totale) || 0), 0);
+
+            if (statTotali) statTotali.innerText = pagList.length;
+            if (statAttesaCount) statAttesaCount.innerText = inAttesa.length;
+            if (statAttesaTotale) statAttesaTotale.innerText = `(${totAttesaEur.toFixed(2).replace('.', ',')} €)`;
+            if (statPagatiCount) statPagatiCount.innerText = pagati.length;
+            if (statPagatiTotale) statPagatiTotale.innerText = `(${totPagatiEur.toFixed(2).replace('.', ',')} €)`;
+
+            if (badgePending) {
+                if (inAttesa.length > 0) {
+                    badgePending.innerText = inAttesa.length;
+                    badgePending.classList.remove('hidden');
+                } else {
+                    badgePending.classList.add('hidden');
+                }
+            }
+
+            if (pagList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-slate-400 font-medium">
+                            <div class="max-w-sm mx-auto space-y-3">
+                                <span class="text-4xl block">💳</span>
+                                <p class="text-slate-600 font-bold text-sm">Nessun ordine torneo registrato</p>
+                                <p class="text-xs text-slate-400">Gli ordini inoltrati dai capitani o amministratori compariranno qui in attesa di pagamento.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = pagList.map(p => {
+                const isPending = p.stato === 'IN ATTESA DI PAGAMENTO';
+                const statusBadge = isPending
+                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-700 border border-amber-500/30"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> IN ATTESA</span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PAGATO</span>`;
+
+                const totVal = typeof p.totale === 'number' ? `${p.totale.toFixed(2).replace('.', ',')} €` : (p.totale_formattato || `${p.totale} €`);
+                const quantita = p.quantita_totale !== undefined ? `${p.quantita_totale} pz` : `${(p.articoli_snapshot || []).reduce((acc, it) => acc + (it.quantita || 1), 0)} pz`;
+                const dataInvio = p.data || (p.created_at ? new Date(p.created_at).toLocaleString('it-IT') : '-');
+                const codFornitura = p.codice_fornitura ? `<span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-mono text-[10px] border border-amber-200">${escapeHtml(p.codice_fornitura)}</span>` : '';
+
+                const actionButtons = `
+                    <div class="flex items-center justify-end gap-2">
+                        <button onclick="mostraDettaglioPagamentoTorneo('${p.id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Visualizza Dettaglio Articoli">
+                            <span>👁️</span> Dettaglio
+                        </button>
+                        ${isPending ? `
+                            <button onclick="confermaPagamentoTorneoUI('${p.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black tracking-wide shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer" title="Conferma Pagamento e Crea Ordine">
+                                <span>💰</span> PAGATO
+                            </button>
+                        ` : `
+                            <span class="text-[10px] font-bold text-emerald-600 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-200 font-mono">
+                                Inserito #${p.order_id || 'OK'}
+                            </span>
+                        `}
+                    </div>
+                `;
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-black text-slate-900 text-sm tracking-tight flex items-center gap-2">
+                                <span class="text-base">👕</span>
+                                <span>${escapeHtml(p.nome_squadra || 'Squadra')}</span>
+                            </div>
+                            <div class="mt-1 flex items-center gap-1.5">
+                                ${codFornitura}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs font-bold text-slate-800">${escapeHtml(p.torneo_nome || 'Torneo')}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-xs font-semibold text-slate-900">${escapeHtml(p.capitano_nome || p.cliente_nome || 'Capitano')}</div>
+                            ${p.capitano_telefono ? `<div class="text-[10px] text-slate-500 font-mono flex items-center gap-1 mt-0.5"><span>📞</span> ${escapeHtml(p.capitano_telefono)}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 text-center text-slate-500 text-[11px] font-mono">
+                            ${escapeHtml(dataInvio)}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-2 py-1 bg-blue-50 text-blue-800 font-bold font-mono text-xs rounded-lg border border-blue-100">
+                                ${quantita}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="font-black text-slate-900 font-mono text-sm">
+                                ${totVal}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            ${statusBadge}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            ${actionButtons}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
+                        Impossibile caricare i pagamenti: ${data.error || 'Errore sconosciuto'}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (err) {
+        console.error("Errore caricaPagamentiTorneiAdmin:", err);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
+                    Errore di connessione al server durante il caricamento dei pagamenti.
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function mostraDettaglioPagamentoTorneo(id) {
+    const p = (window.torneoPagamentiList || []).find(item => String(item.id) === String(id));
+    if (!p) {
+        showToast("Dati del pagamento non trovati.", "error");
+        return;
+    }
+
+    const modal = document.getElementById('modal-dettaglio-pagamento-torneo');
+    const container = document.getElementById('modal-dettaglio-pagamento-container');
+    if (!modal || !container) return;
+
+    // Popola campi testuali
+    document.getElementById('pagamento-modal-squadra').innerText = p.nome_squadra || '-';
+    document.getElementById('pagamento-modal-codice').innerText = p.codice_fornitura || '-';
+    document.getElementById('pagamento-modal-torneo').innerText = p.torneo_nome || '-';
+    
+    const statoEl = document.getElementById('pagamento-modal-stato');
+    if (statoEl) {
+        if (p.stato === 'IN ATTESA DI PAGAMENTO') {
+            statoEl.className = 'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-200';
+            statoEl.innerText = 'IN ATTESA DI PAGAMENTO';
+        } else {
+            statoEl.className = 'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-100 text-emerald-800 border border-emerald-200';
+            statoEl.innerText = 'PAGATO';
+        }
+    }
+
+    const refEl = document.getElementById('pagamento-modal-referente');
+    if (refEl) {
+        const cap = p.capitano_nome || p.cliente_nome || '-';
+        const tel = p.capitano_telefono || p.cliente_telefono || '';
+        refEl.innerText = tel ? `${cap} (${tel})` : cap;
+    }
+
+    document.getElementById('pagamento-modal-data').innerText = p.data || (p.created_at ? new Date(p.created_at).toLocaleString('it-IT') : '-');
+
+    // Articoli Snapshot
+    const articoli = Array.isArray(p.articoli_snapshot) && p.articoli_snapshot.length > 0 
+        ? p.articoli_snapshot 
+        : (Array.isArray(p.raw_order_payload?.carrello) ? p.raw_order_payload.carrello : []);
+
+    const totPezzi = articoli.reduce((acc, it) => acc + (parseInt(it.quantita, 10) || 1), 0);
+    document.getElementById('pagamento-modal-tot-pezzi').innerText = `${totPezzi} articoli`;
+
+    const totVal = typeof p.totale === 'number' ? `${p.totale.toFixed(2).replace('.', ',')} €` : (p.totale_formattato || `${p.totale} €`);
+    document.getElementById('pagamento-modal-totale-valore').innerText = totVal;
+
+    const tbody = document.getElementById('pagamento-modal-articoli-body');
+    if (tbody) {
+        if (articoli.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-4 text-center text-slate-400">Nessun articolo registrato nello snapshot.</td></tr>`;
+        } else {
+            tbody.innerHTML = articoli.map(it => {
+                const q = parseInt(it.quantita, 10) || 1;
+                const pr = parseFloat(it.prezzo) || 0;
+                const totRiga = parseFloat(it.totale_riga) || (pr * q);
+                const perso = it.infoPerso || it.personalizzazione || 'Nessuna';
+                const taglia = it.taglia || '-';
+                const nomeProdotto = it.prodotto || it.squadra || 'Articolo Torneo';
+                const catBadge = it.categoria ? `<span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">${escapeHtml(it.categoria)}</span>` : '';
+
+                return `
+                    <tr class="hover:bg-slate-50/60">
+                        <td class="px-4 py-3">
+                            <span class="font-bold text-slate-900 block">${escapeHtml(nomeProdotto)}</span>
+                            ${catBadge}
+                        </td>
+                        <td class="px-3 py-3 text-center font-mono font-bold text-slate-700">${escapeHtml(taglia)}</td>
+                        <td class="px-3 py-3 text-slate-600 font-mono text-[11px]">${escapeHtml(perso)}</td>
+                        <td class="px-3 py-3 text-center font-mono font-bold text-slate-900">${q}</td>
+                        <td class="px-3 py-3 text-right font-mono text-slate-700">${pr.toFixed(2).replace('.', ',')} €</td>
+                        <td class="px-4 py-3 text-right font-mono font-black text-slate-900">${totRiga.toFixed(2).replace('.', ',')} €</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    }
+
+    // Actions
+    const actionsContainer = document.getElementById('pagamento-modal-actions');
+    if (actionsContainer) {
+        if (p.stato === 'IN ATTESA DI PAGAMENTO') {
+            actionsContainer.innerHTML = `
+                <button type="button" onclick="confermaPagamentoTorneoUI('${p.id}')" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2 cursor-pointer">
+                    <span>💰</span> Segna come PAGATO
+                </button>
+            `;
+        } else {
+            actionsContainer.innerHTML = `
+                <span class="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs rounded-xl flex items-center gap-1.5 font-mono">
+                    <span>✅</span> Pagamento Confermato (${p.order_id ? `Ordine #${p.order_id}` : 'Inserito'})
+                </span>
+            `;
+        }
+    }
+
+    // Mostra modale con animazione
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        container.classList.remove('scale-95', 'opacity-0');
+        container.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function chiudiDettaglioPagamentoTorneo() {
+    const modal = document.getElementById('modal-dettaglio-pagamento-torneo');
+    const container = document.getElementById('modal-dettaglio-pagamento-container');
+    if (container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+    }
+    setTimeout(() => {
+        if (modal) modal.classList.add('hidden');
+    }, 300);
+}
+
+async function confermaPagamentoTorneoUI(id) {
+    const p = (window.torneoPagamentiList || []).find(item => String(item.id) === String(id));
+    const nomeSquadra = p ? p.nome_squadra : 'questa squadra';
+    const totaleEur = p ? (typeof p.totale === 'number' ? `${p.totale.toFixed(2).replace('.', ',')} €` : p.totale_formattato) : '';
+
+    const msg = `Sei sicuro di voler contrassegnare come PAGATO l'ordine torneo di "${nomeSquadra}" (${totaleEur})?\n\nL'ordine verrà creato ufficialmente in ORDINI PRODOTTI e inserito nel Lotto in corso.`;
+    if (!confirm(msg)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/tornei/pagamenti/${id}/paga`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+
+        if (data && data.success) {
+            showToast("Pagamento confermato! Ordine creato e aggiunto al lotto con successo.", "success");
+            chiudiDettaglioPagamentoTorneo();
+            await caricaPagamentiTorneiAdmin();
+            
+            // Aggiorna anche gli ordini se la funzione è presente
+            if (typeof caricaOrdini === 'function') {
+                caricaOrdini();
+            }
+            if (typeof caricaLotto === 'function') {
+                caricaLotto();
+            }
+        } else {
+            showToast(data.error || "Errore durante la conferma del pagamento.", "error");
+        }
+    } catch (err) {
+        console.error("Errore confermaPagamentoTorneoUI:", err);
+        showToast("Errore di connessione al server durante la conferma.", "error");
+    }
+}
+
+// Registrazione funzioni globali Pagamenti Tornei
+window.switchTorneiSubTab = switchTorneiSubTab;
+window.caricaPagamentiTorneiAdmin = caricaPagamentiTorneiAdmin;
+window.mostraDettaglioPagamentoTorneo = mostraDettaglioPagamentoTorneo;
+window.chiudiDettaglioPagamentoTorneo = chiudiDettaglioPagamentoTorneo;
+window.confermaPagamentoTorneoUI = confermaPagamentoTorneoUI;
 
 // -------------------------------------------------------------
 // GESTIONE ASSEGNAZIONE ACCOUNT ORDINE (FASE 15)
