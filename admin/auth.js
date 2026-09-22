@@ -94,57 +94,71 @@ async function adminLogin(email, password) {
     }
 }
 
-// Controlla se l'utente è loggato ed è autorizzato
-async function checkAuth() {
-    const pathname = window.location.pathname.toLowerCase();
-    const isLoginPage = pathname.includes('admin-login');
-    
-    try {
-        const client = await getSupabase();
-        if (!client) {
-            if (!isLoginPage) {
-                window.location.replace('/admin-login');
-            }
-            return null;
-        }
+let currentAuthPromise = null;
 
-        const { data: { session }, error } = await client.auth.getSession();
+// Controlla se l'utente è loggato ed è autorizzato (riutilizza l'unica Promise di verifica condivisa)
+async function checkAuth(force = false) {
+    if (!force && currentAuthPromise) return currentAuthPromise;
+
+    currentAuthPromise = (async () => {
+        const pathname = window.location.pathname.toLowerCase();
+        const isLoginPage = pathname.includes('admin-login');
         
-        if (error || !session || !session.user || !session.user.email) {
-            if (!isLoginPage) {
-                window.location.replace('/admin-login');
+        try {
+            const client = await getSupabase();
+            if (!client) {
+                if (!isLoginPage) {
+                    window.location.replace('/admin-login');
+                }
+                return null;
             }
-            return null;
-        }
-        
-        const userEmail = session.user.email.trim().toLowerCase();
-        const isAuthorized = ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === userEmail);
-        
-        if (!isAuthorized) {
-            await client.auth.signOut({ scope: 'local' });
-            if (!isLoginPage) {
-                window.location.replace('/admin-login');
+
+            const { data: { session }, error } = await client.auth.getSession();
+            
+            if (error || !session || !session.user || !session.user.email) {
+                if (!isLoginPage) {
+                    window.location.replace('/admin-login');
+                }
+                return null;
             }
-            return null;
-        }
-        
-        // Se è autorizzato ed è nella pagina di login, lo mandiamo alla dashboard
-        if (isLoginPage) {
-            window.location.replace('/admin');
+            
+            const userEmail = session.user.email.trim().toLowerCase();
+            const isAuthorized = ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === userEmail);
+            
+            if (!isAuthorized) {
+                await client.auth.signOut({ scope: 'local' });
+                if (!isLoginPage) {
+                    window.location.replace('/admin-login');
+                }
+                return null;
+            }
+            
+            // Se è autorizzato ed è nella pagina di login, lo mandiamo alla dashboard
+            if (isLoginPage) {
+                window.location.replace('/admin');
+                return session.user;
+            }
+            
+            const authLoader = document.getElementById('admin-auth-loader');
+            if (authLoader) {
+                authLoader.style.display = 'none';
+            }
+            const adminRoot = document.getElementById('admin-root');
+            if (adminRoot) {
+                adminRoot.style.display = 'flex';
+            }
             return session.user;
+        } catch (err) {
+            console.error("Errore di verifica autenticazione:", err);
+            if (!isLoginPage) {
+                window.location.replace('/admin-login');
+            }
+            return null;
         }
-        
-        document.body.style.display = 'block';
-        return session.user;
-    } catch (err) {
-        console.error("Errore di verifica autenticazione:", err);
-        if (!isLoginPage) {
-            window.location.replace('/admin-login');
-        } else {
-            document.body.style.display = 'block';
-        }
-        return null;
-    }
+    })();
+
+    window.adminAuthPromise = currentAuthPromise;
+    return currentAuthPromise;
 }
 
 // Effettua il login generico
@@ -181,10 +195,16 @@ async function logout() {
     }
 }
 
-// Espone le funzioni a livello globale
+// Espone le funzioni e la promessa a livello globale
 window.getSupabaseClient = getSupabase;
 window.checkAuth = checkAuth;
 window.signIn = signIn;
 window.signUp = signUp;
 window.logout = logout;
 window.adminLogin = adminLogin;
+
+// Avvia immediatamente l'unica verifica auth non appena auth.js viene eseguito
+if (typeof window !== 'undefined' && !window.adminAuthPromise) {
+    window.adminAuthPromise = checkAuth();
+}
+

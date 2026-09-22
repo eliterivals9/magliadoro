@@ -354,5 +354,20 @@
     }
   },
   "extra_expenses": [],
-  "accantonamenti": []
+  "accantonamenti": [
+    {
+      "id": "acc_1790018105042_3ry5ha",
+      "data": "2026-09-21",
+      "note": "",
+      "tipo": "da_anticipare",
+      "importo": 146.64,
+      "lotto_id": 4,
+      "order_ids": [
+        "324"
+      ],
+      "created_at": "2026-09-21T19:15:05.042Z",
+      "updated_at": "2026-09-21T19:15:05.042Z",
+      "descrizione": "#ORD-324 - Riccardo Giovanni Torrisi (Kit Manchester United Blu (XL) x1, Kit Manchester United Blu (L) x1, Kit Manchester United Blu (L) x1, Kit Manchester United Blu (S) x1, Kit Manchester United Blu (XL) x1, Kit Manchester United Blu (L) x1, Kit Manchester United Blu (M) x1, Kit Manchester United Blu (M) x1, Kit Manchester United Blu (M) x1, Kit Manchester United Blu (XXL) x1, Kit Portiere Manchester United Nero (XXL) x1, Kit Casa AC Milan (S) x1)"
+    }
+  ]
 }

@@ -888,15 +888,18 @@ function normalizzaNomeSquadra(nomeInput, listaSquadreEsistenti) {
     return cleanInput;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Verifica autenticazione tramite auth.js
+let adminBootstrapped = false;
+async function bootstrapAdminApp() {
+    if (adminBootstrapped) return;
+    adminBootstrapped = true;
+
+    // 1. Verifica autenticazione riutilizzando l'unica promessa già avviata da auth.js
     try {
-        if (typeof window.checkAuth === 'function') {
-            const user = await window.checkAuth();
-            if (!user) return; // Non autenticato: checkAuth() gestisce il redirect
-            const emailEl = document.getElementById('user-email-display');
-            if (emailEl) emailEl.innerText = user.email;
-        }
+        const authPromise = window.adminAuthPromise || (typeof window.checkAuth === 'function' ? window.checkAuth() : null);
+        const user = authPromise ? await authPromise : null;
+        if (!user) return; // Non autenticato: checkAuth() gestisce il redirect
+        const emailEl = document.getElementById('user-email-display');
+        if (emailEl) emailEl.innerText = user.email;
     } catch (error) {
         console.error("Errore verifica autenticazione:", error);
         return;
@@ -907,7 +910,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     inizializzaFormProdotto();
     inizializzaLottoAction();
 
-    // 3. Caricamento essenziale per mostrare immediatamente la Dashboard (FASE 1 - IMMEDIATA)
+    // 3. Avvia polling badge amministrativi solo dopo autenticazione accertata
+    if (typeof avviaPollingGlobaleBadgeAdmin === 'function') {
+        avviaPollingGlobaleBadgeAdmin();
+    }
+
+    // 4. Caricamento essenziale per mostrare immediatamente la Dashboard (FASE 1 - IMMEDIATA)
     try {
         await Promise.all([
             typeof caricaSquadre === 'function' ? caricaSquadre() : Promise.resolve(),
@@ -927,7 +935,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
         console.error("Errore caricamento essenziale Dashboard:", e);
     }
-});
+}
+
+// Avvio bootstrap: supporta sia esecuzione differita (defer) sia caricamento standard senza race condition
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapAdminApp);
+} else {
+    setTimeout(bootstrapAdminApp, 0);
+}
 
 /**
  * Gestisce l'inizializzazione degli event listeners per i filtri e la ricerca
@@ -15475,8 +15490,8 @@ function avviaPollingGlobaleBadgeAdmin() {
     }, 10000);
 }
 
-// Avvia immediatamente all'avvio
-avviaPollingGlobaleBadgeAdmin();
+// Polling avviato in bootstrapAdminApp solo dopo avvenuta verifica di autenticazione
+// avviaPollingGlobaleBadgeAdmin();
 
 // ==========================================
 // FUNZIONALITÀ GESTIONE COUPON SCONTO (ADMIN)

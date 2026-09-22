@@ -137,8 +137,24 @@ app.use((req, res, next) => {
 // Serve custom uploaded files
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Rotte dirette e middleware per le aree amministrative (No-Cache aggressivo + Auto-Versioning automatico)
+// Rotte dirette e middleware per le aree amministrative (Gestione mirata della cache: versioned admin.js cachabile, HTML sempre fresco)
 app.use('/admin', (req, res, next) => {
+  const reqPath = req.path;
+
+  // 1. Asset JavaScript principale versionato tramite query param (?v=<mtime>)
+  if (reqPath === '/admin.js' && req.query && req.query.v) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return next();
+  }
+
+  // 2. Asset statici secondari non versionati (auth.js, admin.css, admin.js senza v, ecc.)
+  // Strategia conservativa: no-cache, must-revalidate (permette 304 Not Modified con ETag senza rischiare codice vecchio)
+  if (/\.(js|css|png|jpg|jpeg|svg|ico|woff2?)$/i.test(reqPath)) {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    return next();
+  }
+
+  // 3. Pagine HTML e rotte di navigazione Admin (no-cache e no-store per garantire sempre HTML fresco con versione aggiornata di admin.js)
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
@@ -1057,7 +1073,32 @@ function getEnglishTitleAndStyle(item) {
   return { titleEng, titleCh, styleEng };
 }
 
+function isAccessoryOrSocks(item) {
+  if (!item) return false;
+  if (item.tipo_catalogo === 'accessori') return true;
+  if (item.matchedProd && item.matchedProd.tipo_catalogo === 'accessori') return true;
+  const rawCat = String(item.categoria || (item.matchedProd ? item.matchedProd.categoria : "") || "").trim();
+  const catNorm = (typeof normalizzaCategoria === 'function' ? normalizzaCategoria(rawCat) : rawCat).toLowerCase();
+  const squadra = String(item.squadra || (item.matchedProd ? item.matchedProd.squadra : "") || "").trim();
+  const titleItalian = String(item.titleItalian || item.nome || item.versione || (item.matchedProd ? (item.matchedProd.versione || item.matchedProd.nome) : "") || squadra).trim();
+  const nameNorm = (titleItalian + " " + squadra).toLowerCase();
+
+  return catNorm === 'calzettoni' || catNorm.includes('calzet') || catNorm.includes('sock') ||
+         catNorm === 'accessori' || catNorm.includes('accessori') ||
+         nameNorm.includes('calzet') || nameNorm.includes('sock');
+}
+
 function parseCustomizationDetails(infoPerso, item = {}) {
+  if (isAccessoryOrSocks(item)) {
+    return {
+      nome: "",
+      numero: "",
+      patches: [],
+      patchStr: "",
+      customizationCostUSD: 0.00
+    };
+  }
+
   let nome = "";
   let numero = "";
   let patches = [];
@@ -1065,7 +1106,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
 
   // 1. Controlla campi diretti dell'oggetto item
   if (item && typeof item === "object") {
-    if (item.customName || item.nome_personalizzazione || (item.nome && typeof item.nome === "string" && !["nessuno", "nessuna", "no", ""].includes(item.nome.trim().toLowerCase()) && item.nome !== item.versione && item.nome !== item.squadra)) {
+    if (item.customName || item.nome_personalizzazione || (item.nome && typeof item.nome === "string" && !["nessuno", "nessuna", "no", "", "accessorio ufficiale", "accessorio", "accessori"].includes(item.nome.trim().toLowerCase()) && item.nome !== item.versione && item.nome !== item.squadra)) {
       nome = (item.customName || item.nome_personalizzazione || item.nome).trim();
     }
     if (item.customNumber || item.numero_personalizzazione || (item.numero && typeof item.numero === "string" && !["nessuno", "nessuna", "no", ""].includes(item.numero.trim().toLowerCase()))) {
@@ -1117,7 +1158,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
   if (rawText) {
     let cleanText = rawText.replace(/^(\d+)x\s+\[|\]$/g, "").replace(/^\[|\]$/g, "").trim();
     const lower = cleanText.toLowerCase();
-    const isNone = ["nessuna", "nessuno", "no", "false", "", "1x [nessuna]", "[nessuna]"].includes(lower);
+    const isNone = ["nessuna", "nessuno", "no", "false", "", "1x [nessuna]", "[nessuna]", "accessorio ufficiale", "1x [accessorio ufficiale]"].includes(lower);
 
     if (!isNone) {
       // Estrai Patches / Badges
@@ -1137,7 +1178,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
       const nMatch = cleanText.match(nomeRegex);
       if (nMatch && !nome) {
         const val = nMatch[1].trim();
-        if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase())) {
+        if (val && !["nessuna", "nessuno", "no", "false", "none", "accessorio ufficiale", ""].includes(val.toLowerCase())) {
           nome = val;
         }
       }
@@ -1157,7 +1198,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
         let textWithoutPatches = cleanText.replace(/(?:Patch|Badge|Patches|Badges):\s*[^|\n\/-]+/gi, "").trim();
         textWithoutPatches = textWithoutPatches.replace(/^[-|/,\s]+|[-|/,\s]+$/g, "");
 
-        if (textWithoutPatches && !["nessuna", "nessuno", "no", "false", "none", ""].includes(textWithoutPatches.toLowerCase())) {
+        if (textWithoutPatches && !["nessuna", "nessuno", "no", "false", "none", "accessorio ufficiale", ""].includes(textWithoutPatches.toLowerCase())) {
           const parts = textWithoutPatches.split(/[-|\/]/).map(s => s.trim()).filter(Boolean);
           if (parts.length >= 2) {
             nome = parts[0].replace(/Nome:\s*/i, "").trim();
@@ -1185,7 +1226,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
   }
 
   // Pulizia finale
-  if (nome && ["nessuna", "nessuno", "no", "false", "none"].includes(nome.toLowerCase())) nome = "";
+  if (nome && ["nessuna", "nessuno", "no", "false", "none", "accessorio ufficiale"].includes(nome.toLowerCase())) nome = "";
   if (numero && ["nessuna", "nessuno", "no", "false", "none"].includes(numero.toLowerCase())) numero = "";
 
   // Calcolo costo fornitore personalizzazioni (Formula ufficiale del gestionale: $1 Nome, $1 Numero, $1 per Patch)
@@ -1213,6 +1254,7 @@ function parseCustomizationDetails(infoPerso, item = {}) {
  * Esempio: "Nome: MARIO / Numero: 10 / Patch: Serie A" o "Nome: LUCA / Numero: 7" o "Patch: Champions" o ""
  */
 function formatCustomizationForSummaryExcel(infoPerso, item = {}) {
+  if (isAccessoryOrSocks(item)) return "";
   const details = parseCustomizationDetails(infoPerso, item);
   const parts = [];
   if (details.nome && details.nome.trim()) {
@@ -1235,6 +1277,14 @@ function formatCustomizationForSummaryExcel(infoPerso, item = {}) {
 }
 
 function parserPersonalizzazione(infoPerso, taglia, item = {}) {
+  if (isAccessoryOrSocks(item)) {
+    return {
+      nameNumberStr: "",
+      patch: "",
+      customizationCostUSD: 0.00
+    };
+  }
+
   const details = parseCustomizationDetails(infoPerso, item);
   let nameNumberStr = "";
   if (details.nome || details.numero) {
@@ -1258,6 +1308,7 @@ function parserPersonalizzazione(infoPerso, taglia, item = {}) {
 }
 
 function getColumnIndexForSize(size, isCalz = false) {
+  if (isCalz) return -1; // Per Calzettoni / Accessori la zona taglie è unita orizzontalmente: nessuna quantità nelle colonne taglia
   const s = String(size || '').toUpperCase().replace(/^1x\s+\[|\]$/g, '').replace(/^\[|\]$/g, '').trim();
   if (s === 'S') return 5;
   if (s === 'M') return 6;
@@ -1276,22 +1327,13 @@ function getColumnIndexForSize(size, isCalz = false) {
   if (s === '26') return 19;
   if (s === '28') return 20;
 
-  // Gestione taglie numeriche calzature / calzettoni EU (es. 42, 40-44, 39-42, 35-38, 43-46)
+  // Gestione taglie numeriche kit bambino (es. 10, 12, 14, 16, 18, 20, 22, 24, 26, 28)
   const numMatch = s.match(/\b(\d{2})\b/);
   if (numMatch) {
     const num = parseInt(numMatch[1], 10);
-    if (num >= 10 && num <= 28 && num % 2 === 0 && !isCalz) {
+    if (num >= 10 && num <= 28 && num % 2 === 0) {
       return 11 + Math.floor((num - 10) / 2);
     }
-    // Taglie calzettoni EU:
-    // 35-38 -> S (col 5)
-    // 39-41 -> M (col 6)
-    // 42-44 -> L (col 7)
-    // 45-48 -> XL (col 8)
-    if (num >= 30 && num <= 38) return 5; // S
-    if (num >= 39 && num <= 41) return 6; // M
-    if (num >= 42 && num <= 44) return 7; // L
-    if (num >= 45 && num <= 49) return 8; // XL
   }
 
   if (s.includes('ADULT') || s.includes('UNICA') || s.includes('ONE') || s.includes('STANDARD')) {
@@ -1301,7 +1343,7 @@ function getColumnIndexForSize(size, isCalz = false) {
     return 16; // 20
   }
 
-  return isCalz ? 7 : -1;
+  return -1;
 }
 
 function calcolaCostoFornitoreProdotto(prezzoBaseUSD, infoPerso, item = {}) {
@@ -1623,6 +1665,7 @@ function ricostruisciCarrelloDaStringhe(order) {
   const squadre = (order.squadra || "").split(' / ');
   const taglie = (order.taglia || "").split(' / ');
   const personalizzazioni = (order.personalizzazione || "").split(' | ');
+  const prezziFornitore = (order["Prezzo fornitore"] || order.prezzo_fornitore || "").split(' / ');
 
   squadre.forEach((sq, idx) => {
     if (!sq.trim()) return;
@@ -1648,14 +1691,26 @@ function ricostruisciCarrelloDaStringhe(order) {
       persStr = personalizzazioni[idx].replace(/^(\d+)x\s+\[|\]$/g, '').replace(/^\[|\]$/g, '').trim();
     }
 
+    let itemPrezzoFornitore = undefined;
+    if (prezziFornitore[idx]) {
+      const matchForn = prezziFornitore[idx].match(/\$?\s*([\d\.,]+)/);
+      if (matchForn) {
+        const parsedVal = parseFlexibleDecimal(matchForn[1]);
+        if (parsedVal > 0) {
+          itemPrezzoFornitore = parsedVal;
+        }
+      }
+    }
+
     items.push({
       squadra: nomeProdotto,
-      categoria: nomeProdotto.toLowerCase().includes('bambino') || nomeProdotto.toLowerCase().includes('kid') ? "Kit Bambino" : "Kit",
+      categoria: nomeProdotto.toLowerCase().includes('bambino') || nomeProdotto.toLowerCase().includes('kid') ? "Kit Bambino" : (nomeProdotto.toLowerCase().includes('calzet') || nomeProdotto.toLowerCase().includes('sock') ? "Calzettoni" : "Kit"),
       versione: nomeProdotto,
       taglia: tagliaStr,
       infoPerso: persStr,
       quantita: quantita,
       prezzo: parseItalianFloat(order.totale) / squadre.length,
+      prezzo_fornitore: itemPrezzoFornitore,
       imgUrl: order.foto ? order.foto.replace(/^=IMAGE\("|"\)$/g, '') : ""
     });
   });
@@ -1930,18 +1985,17 @@ function getExcelProductTitle(item, matchedProd) {
 
 function compileProductFieldsForExcel(normalizedItem) {
   const prod = normalizedItem.matchedProd;
-  const rawCat = String(normalizedItem.categoria || (prod ? prod.categoria : "") || "").trim();
-  const catNorm = normalizzaCategoria(rawCat).toLowerCase();
-  const squadra = (normalizedItem.squadra || "").trim();
-  const titleItalian = (normalizedItem.titleItalian || (prod ? (prod.versione || prod.nome) : "") || squadra).trim();
-  const nameNorm = (titleItalian + " " + squadra).toLowerCase();
-
-  const isCalz = catNorm === 'calzettoni' || catNorm.includes('calzet') || catNorm.includes('sock') ||
-                 nameNorm.includes('calzet') || nameNorm.includes('sock') ||
-                 (normalizedItem.tipo_catalogo === 'accessori' && (catNorm.includes('calz') || nameNorm.includes('calz') || nameNorm.includes('sock')));
+  const isCalz = isAccessoryOrSocks(normalizedItem);
 
   if (isCalz) {
-    const isBambino = nameNorm.includes('bambino') || nameNorm.includes('kids') || nameNorm.includes('kid') || nameNorm.includes('junior');
+    const rawCat = String(normalizedItem.categoria || (prod ? prod.categoria : "") || "").trim();
+    const catNorm = (typeof normalizzaCategoria === 'function' ? normalizzaCategoria(rawCat) : rawCat).toLowerCase();
+    const squadra = (normalizedItem.squadra || "").trim();
+    const titleItalian = (normalizedItem.titleItalian || (prod ? (prod.versione || prod.nome) : "") || squadra).trim();
+    const nameNorm = (titleItalian + " " + squadra).toLowerCase();
+
+    const isBambino = nameNorm.includes('bambino') || nameNorm.includes('kids') || nameNorm.includes('kid') || nameNorm.includes('junior') ||
+                      catNorm.includes('bambin') || catNorm.includes('kid');
     const targetCh = isBambino ? "儿童" : "成人";
     return {
       titleEng: "Socks",
@@ -1954,6 +2008,7 @@ function compileProductFieldsForExcel(normalizedItem) {
   const styleEng = normalizedItem.style || getExcelProductStyle(normalizedItem, normalizedItem.matchedProd);
   const titleEng = normalizedItem.titleItalian || getExcelProductTitle(normalizedItem, normalizedItem.matchedProd);
 
+  const squadra = (normalizedItem.squadra || "").trim();
   const versione = (normalizedItem.titleItalian || squadra).toLowerCase();
   const stagione = (normalizedItem.season || "25/26").trim();
 
@@ -2097,10 +2152,7 @@ async function generaExcelLotto(lottoId, orders) {
         });
       }
 
-      const catNormTmp = normalizzaCategoria(item.categoria || (matchedProd ? matchedProd.categoria : '') || '').toLowerCase();
-      const isCalzTmp = catNormTmp === 'calzettoni' || catNormTmp.includes('calzet') || catNormTmp.includes('sock') ||
-                        String(item.squadra || item.versione || item.nome || '').toLowerCase().includes('calzet') || String(item.squadra || item.versione || item.nome || '').toLowerCase().includes('sock') ||
-                        (item.tipo_catalogo === 'accessori' && (catNormTmp.includes('calz') || String(item.squadra || '').toLowerCase().includes('calz')));
+      const isCalzTmp = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
 
       // PREZZO FORNITORE BASE IN USD
       let basePriceUSD = 0;
@@ -2111,12 +2163,12 @@ async function generaExcelLotto(lottoId, orders) {
       } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && Number(item.Prezzo_fornitore) > 0) {
         basePriceUSD = Number(item.Prezzo_fornitore);
       } else {
-        basePriceUSD = isCalzTmp ? 3.00 : 10.00;
+        basePriceUSD = isCalzTmp ? 4.00 : 10.00;
       }
 
       // Calcolo personalizzazioni fornitore in USD (Formula ufficiale: $1 Nome, $1 Numero, $1 Patch)
       const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
-      const customDetails = parseCustomizationDetails(rawInfoPerso, item);
+      const customDetails = isCalzTmp ? { customizationCostUSD: 0.00 } : parseCustomizationDetails(rawInfoPerso, item);
       const supplierCustomizationPriceUSD = customDetails.customizationCostUSD;
       const supplierUnitPriceUSD = Number((basePriceUSD + supplierCustomizationPriceUSD).toFixed(2));
       const supplierTotalPriceUSD = Number((supplierUnitPriceUSD * q).toFixed(2));
@@ -2197,13 +2249,29 @@ async function generaExcelLotto(lottoId, orders) {
   // Forziamo la larghezza della colonna immagine (colonna A/1) a 16 per contenere l'immagine ridotta del 20%
   worksheet.getColumn(1).width = 16;
 
+  // SEPARAZIONE STABILE: PRODOTTI STANDARD (A) + ACCESSORI/SOCKS (B) ALLA FINE
+  const standardItems = [];
+  const socksItems = [];
+
+  normalizedItems.forEach(item => {
+    if (isAccessoryOrSocks(item)) {
+      socksItems.push(item);
+    } else {
+      standardItems.push(item);
+    }
+  });
+
+  const orderedNormalizedItems = [...standardItems, ...socksItems];
+
   let currentRowNum = 4;
-  for (let idx = 0; idx < normalizedItems.length; idx++) {
-    const item = normalizedItems[idx];
+  for (let idx = 0; idx < orderedNormalizedItems.length; idx++) {
+    const item = orderedNormalizedItems[idx];
     const row = worksheet.getRow(currentRowNum);
 
     const { titleEng, titleCh, styleEng, isCalz } = compileProductFieldsForExcel(item);
-    const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
+    const { nameNumberStr, patch } = isCalz
+      ? { nameNumberStr: "", patch: "" }
+      : parserPersonalizzazione(item.infoPerso, item.taglia, item);
 
     // Col A (1): Immagine incorporata realmente nel workbook (104x104px)
     row.height = 88;
@@ -2249,15 +2317,23 @@ async function generaExcelLotto(lottoId, orders) {
       row.getCell(c).value = "";
     }
 
-    // Imposta la quantità corretta nella colonna della taglia
-    const colIdx = getColumnIndexForSize(item.taglia, isCalz);
-    if (colIdx !== -1) {
-      row.getCell(colIdx).value = item.quantity;
+    if (isCalz) {
+      // PER ACCESSORI / SOCKS:
+      // Merge orizzontale ESCLUSIVO per questa specifica riga da Colonna E (5) a Colonna T (20)
+      worksheet.mergeCells(`E${currentRowNum}:T${currentRowNum}`);
+      row.getCell(5).value = "";
+    } else {
+      // PER MAGLIE / KIT:
+      // Imposta la quantità corretta nella colonna della taglia
+      const colIdx = getColumnIndexForSize(item.taglia, false);
+      if (colIdx !== -1) {
+        row.getCell(colIdx).value = item.quantity;
+      }
     }
 
     row.getCell(21).value = item.quantity;                // Col U (21): 数量(quantity)
-    row.getCell(22).value = nameNumberStr;                // Col V (22): 名字 号码(name number)
-    row.getCell(23).value = patch || "";                  // Col W (23): 臂章(patches)
+    row.getCell(22).value = isCalz ? "" : nameNumberStr;  // Col V (22): 名字 号码(name number)
+    row.getCell(23).value = isCalz ? "" : (patch || "");  // Col W (23): 臂章(patches)
     
     // Col X (24): Unit USD (PREZZO FORNITORE REALE UNITARIO IN USD)
     row.getCell(24).value = item.supplierUnitPriceUSD;
@@ -2276,7 +2352,7 @@ async function generaExcelLotto(lottoId, orders) {
         left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
         right: { style: 'thin', color: { argb: 'FFE0E0E0' } }
       };
-      if (c >= 5 && c <= 21) {
+      if (c >= 4 && c <= 21) {
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
       }
     }
@@ -10428,19 +10504,22 @@ async function incrementCouponUsage(code) {
 }
 
 function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, includeShipping = false) {
+  let localAccessories = [];
+  try {
+    localAccessories = getLocalAccessories();
+  } catch (e) {}
+
   let allProducts = dbProducts;
   if (!allProducts || !Array.isArray(allProducts) || allProducts.length === 0) {
-    allProducts = getLocalProducts();
+    allProducts = [...getLocalProducts(), ...(Array.isArray(localAccessories) ? localAccessories : [])];
+  } else if (Array.isArray(localAccessories) && localAccessories.length > 0) {
+    allProducts = [...allProducts, ...localAccessories];
   }
 
   let costo_completini_usd = 0;
   let costo_personalizzazioni_usd = 0;
   let quant_total = 0;
   let quant_spedizione = 0;
-  let localAccessories = [];
-  try {
-    localAccessories = getLocalAccessories();
-  } catch (e) {}
 
   carrello.forEach(item => {
     const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
@@ -10451,25 +10530,32 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
       if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
         matchedProd = allProducts.find(p => String(p.id) === String(item.id));
       }
+      if (!matchedProd && item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "" && String(item.accessory_id) !== "undefined") {
+        matchedProd = allProducts.find(p => String(p.id) === String(item.accessory_id));
+      }
       if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
         matchedProd = allProducts.find(p => p.legacy_id !== undefined && String(p.legacy_id) === String(item.legacy_id));
       }
       if (!matchedProd) {
-        matchedProd = allProducts.find(p => p.versione === item.squadra || p.squadra === item.squadra);
+        matchedProd = allProducts.find(p => p.versione === item.squadra || p.squadra === item.squadra || p.nome === item.squadra);
       }
+
+      const isCalzTmp = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
 
       let baseKitUSD = 0;
       if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && Number(matchedProd.prezzo_fornitore) > 0) {
         baseKitUSD = Number(matchedProd.prezzo_fornitore);
-      } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && Number(item.prezzo_fornitore) > 0) {
+      } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
         baseKitUSD = Number(item.prezzo_fornitore);
-      } else if (item.prezzo && Number(item.prezzo) > 0) {
+      } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
+        baseKitUSD = Number(item.Prezzo_fornitore);
+      } else if (item.prezzo && Number(item.prezzo) > 0 && !isCalzTmp) {
         baseKitUSD = Number(item.prezzo) * 0.4;
       } else {
-        baseKitUSD = 10.00;
+        baseKitUSD = isCalzTmp ? 4.00 : 10.00;
       }
 
-      const totalItemUSD = calcolaCostoFornitoreProdotto(baseKitUSD, item.infoPerso || item.personalizzazione || "");
+      const totalItemUSD = calcolaCostoFornitoreProdotto(baseKitUSD, item.infoPerso || item.personalizzazione || "", item);
       const persUnitUSD = totalItemUSD - baseKitUSD;
 
       costo_completini_usd += (baseKitUSD * q);
@@ -12862,6 +12948,10 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
     try {
       localProducts = getLocalProducts();
     } catch (e) {}
+    let localAccessories = [];
+    try {
+      localAccessories = getLocalAccessories();
+    } catch (e) {}
     let supabaseProducts = [];
     try {
       const supabase = getSupabaseClient();
@@ -12869,7 +12959,10 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
         supabaseProducts = await getAllProductsFromSupabase(supabase);
       }
     } catch (e) {}
-    allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+    allDbProducts = [
+      ...(supabaseProducts.length > 0 ? supabaseProducts : localProducts),
+      ...(Array.isArray(localAccessories) ? localAccessories : [])
+    ];
   }
 
   const prodByIdMap = new Map();
@@ -12880,11 +12973,15 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
     if (p.id !== undefined && p.id !== null && String(p.id).trim() !== "") {
       prodByIdMap.set(String(p.id).trim(), p);
     }
+    if (p.codice !== undefined && p.codice !== null && String(p.codice).trim() !== "") {
+      prodByIdMap.set(String(p.codice).trim(), p);
+    }
     if (p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id).trim() !== "") {
       prodByLegacyIdMap.set(String(p.legacy_id).trim(), p);
     }
-    if (p.versione) {
-      prodByExactVersioneMap.set(String(p.versione).trim().toLowerCase(), p);
+    const ver = p.versione || p.nome || p.titolo;
+    if (ver) {
+      prodByExactVersioneMap.set(String(ver).trim().toLowerCase(), p);
     }
   });
 
@@ -12912,6 +13009,9 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
     if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined") {
       matchedProd = prodByIdMap.get(String(item.id).trim());
     }
+    if (!matchedProd && item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "") {
+      matchedProd = prodByIdMap.get(String(item.accessory_id).trim());
+    }
     if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
       const cand = prodByLegacyIdMap.get(String(item.legacy_id).trim());
       if (cand) {
@@ -12928,16 +13028,18 @@ async function getOrderItemsDetailedSupplierCosts(order, allDbProducts = null, c
       matchedProd = prodByExactVersioneMap.get(sqKey);
     }
 
+    const isCalzTmp = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
+
     // PREZZO FORNITORE BASE IN USD
     let basePriceUSD = 0;
     if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && Number(matchedProd.prezzo_fornitore) > 0) {
       basePriceUSD = Number(matchedProd.prezzo_fornitore);
-    } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && Number(item.prezzo_fornitore) > 0) {
+    } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
       basePriceUSD = Number(item.prezzo_fornitore);
-    } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && Number(item.Prezzo_fornitore) > 0) {
+    } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
       basePriceUSD = Number(item.Prezzo_fornitore);
     } else {
-      basePriceUSD = 10.00;
+      basePriceUSD = isCalzTmp ? 4.00 : 10.00;
     }
 
     // Calcolo personalizzazioni fornitore in USD (Formula ufficiale: $1 Nome, $1 Numero, $1 Patch)
@@ -14314,6 +14416,14 @@ app.post('/api/orders', async (req, res) => {
         }
       }
 
+      // 1b. Prova tramite accessory_id (se disponibile nel carrello)
+      if (!matchedProd && item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "" && String(item.accessory_id) !== "undefined") {
+        matchedProd = allDbProducts.find(p => String(p.id) === String(item.accessory_id));
+        if (matchedProd) {
+          matchMethod = `accessory_id (${item.accessory_id})`;
+        }
+      }
+
       // 2. Prova tramite legacy_id (se disponibile nel carrello e se non abbiamo ancora trovato il prodotto)
       if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined") {
         matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
@@ -14322,15 +14432,21 @@ app.post('/api/orders', async (req, res) => {
         }
       }
 
+      let prezzoFornUnitarioUSD = 0;
+      if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && Number(matchedProd.prezzo_fornitore) > 0) {
+        prezzoFornUnitarioUSD = Number(matchedProd.prezzo_fornitore);
+      } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
+        prezzoFornUnitarioUSD = Number(item.prezzo_fornitore);
+      } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
+        prezzoFornUnitarioUSD = Number(item.Prezzo_fornitore);
+      }
+
       if (matchedProd) {
         matchLog.push(`Prodotto trovato nel catalogo: "${matchedProd.versione || matchedProd.nome || 'Articolo'}" (id: ${matchedProd.id}, legacy_id: ${matchedProd.legacy_id}) tramite ${matchMethod}`);
-        const prezzoFornUnitarioUSD = matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null
-          ? Number(matchedProd.prezzo_fornitore)
-          : 0;
         matchLog.push(`Prezzo fornitore recuperato: $${prezzoFornUnitarioUSD.toFixed(2)}`);
       } else if (!isSpedizioneCliente) {
-        matchLog.push(`Prodotto trovato su Supabase: Nessuna corrispondenza trovata.`);
-        matchLog.push(`Prezzo fornitore recuperato: $0.00`);
+        matchLog.push(`Prodotto trovato su Supabase: ${prezzoFornUnitarioUSD > 0 ? 'Risolto da carrello/snapshot' : 'Nessuna corrispondenza trovata'}.`);
+        matchLog.push(`Prezzo fornitore recuperato: $${prezzoFornUnitarioUSD.toFixed(2)}`);
       }
 
       // Stampa il log formattato come richiesto
@@ -14338,12 +14454,8 @@ app.post('/api/orders', async (req, res) => {
       console.log(matchLog.join("\n↓\n"));
       console.log("=================================================\n");
 
-      let prezzoFornUnitarioUSD = matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null
-        ? Number(matchedProd.prezzo_fornitore)
-        : 0; // Default a 0 se non specificato
-
       if (!isSpedizioneCliente) {
-        prezzoFornUnitarioUSD = calcolaCostoFornitoreProdotto(prezzoFornUnitarioUSD, item.infoPerso);
+        prezzoFornUnitarioUSD = calcolaCostoFornitoreProdotto(prezzoFornUnitarioUSD, item.infoPerso, item);
       }
 
       item.prezzo_fornitore = prezzoFornUnitarioUSD;
@@ -17643,116 +17755,137 @@ function saveReclassificationState(state) {
   }
 }
 
+let isReclassInitialized = false;
+let reclassInitPromise = null;
+
 async function initReclassificationState() {
-  try {
-    let currentState = getReclassificationState();
-    const existingIds = new Set(currentState.map(item => String(item.product_id || item.legacy_id)));
+  let currentState = getReclassificationState();
+  const existingIds = new Set(currentState.map(item => String(item.product_id || item.legacy_id)));
 
-    const supabase = getSupabaseClient();
-    let allProducts = [];
-    if (supabase) {
-      try {
-        allProducts = await getAllProductsFromSupabase(supabase);
-      } catch (err) {
-        console.warn("⚠️ [RECLASS] Errore fetch prodotti Supabase:", err.message);
-      }
+  const supabase = getSupabaseClient();
+  let allProducts = [];
+  if (supabase) {
+    try {
+      allProducts = await getAllProductsFromSupabase(supabase);
+    } catch (err) {
+      console.warn("⚠️ [RECLASS] Errore fetch prodotti Supabase:", err.message);
+      throw err;
     }
-    if (allProducts.length === 0 && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
-      allProducts = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
-    }
-
-    const nbaTeamNames = [
-      "los angeles clippers", "boston celtics", "milwaukee bucks", "philadelphia 76ers",
-      "miami heat", "new york knicks", "cleveland cavaliers", "los angeles lakers",
-      "golden state warriors", "phoenix suns", "denver nuggets", "dallas mavericks"
-    ];
-
-    const nbaProducts = allProducts.filter(p => {
-      const sqLower = (p.squadra || "").toLowerCase().trim();
-      const catLower = (p.categoria || "").toLowerCase().trim();
-      return catLower === "nba" || nbaTeamNames.includes(sqLower);
-    });
-
-    let stateUpdated = false;
-    for (const prod of nbaProducts) {
-      const prodId = String(prod.id || prod.legacy_id);
-      if (!existingIds.has(prodId)) {
-        const v = (prod.versione || "").trim();
-        const s = (prod.squadra || "").trim();
-        let proposedTeam = s;
-        let proposedCategory = "Club";
-        let proposedSection = "USA MLS";
-        let proposedCountry = "USA";
-        let proposedLeague = "MLS";
-        let reasoning = "";
-
-        if (/los angeles fc|lafc/i.test(v)) {
-          proposedTeam = "Los Angeles FC (LAFC)";
-          proposedSection = "USA MLS";
-          proposedCategory = "Club";
-          proposedCountry = "USA";
-          proposedLeague = "MLS";
-          reasoning = "Versione prodotto specifica espressamente 'Los Angeles FC'. Squadra corrispondente individuata nel catalogo: Los Angeles FC (LAFC).";
-        } else if (/los angeles/i.test(v) && /clippers/i.test(s)) {
-          proposedTeam = "Los Angeles FC (LAFC)";
-          proposedSection = "USA MLS";
-          proposedCategory = "Club";
-          proposedCountry = "USA";
-          proposedLeague = "MLS";
-          reasoning = "Dicitura 'Los Angeles Casa' su kit MLS. Proposta associazione a 'Los Angeles FC (LAFC)'.";
-        } else {
-          reasoning = "Prodotto con associazione squadra NBA. Da verificare manualmente.";
-        }
-
-        currentState.push({
-          product_id: prod.id,
-          legacy_id: prod.legacy_id,
-          nome: prod.nome || null,
-          nome_finale: prod.nome_finale || `${prod.squadra} - ${prod.versione || ''}`,
-          squadra_originale: prod.squadra,
-          categoria_originale: prod.categoria,
-          versione: prod.versione || "",
-          stagione: prod.stagione || "",
-          target: prod.target || "Adulto",
-          prezzo: prod.prezzo || 0,
-          immagine: prod.immagine || "",
-          paese_originale: "USA",
-          lega_originale: "NBA",
-          sezione_originale: "Western Conference (NBA)",
-          status: "pending_reclassification",
-          note_verifica: "",
-          proposta: {
-            squadra_proposta: proposedTeam,
-            categoria_proposta: proposedCategory,
-            sezione_proposta: proposedSection,
-            paese_proposto: proposedCountry,
-            campionato_proposto: proposedLeague,
-            motivo: reasoning
-          },
-          creato_il: new Date().toISOString(),
-          ultimo_aggiornamento: new Date().toISOString()
-        });
-        stateUpdated = true;
-      }
-    }
-
-    if (stateUpdated || !fs.existsSync(RECLASSIFICATION_STATE_FILE)) {
-      saveReclassificationState(currentState);
-      console.log(`✅ [RECLASS] Stato revisione inizializzato con ${currentState.length} prodotti.`);
-    }
-  } catch (err) {
-    console.error("⚠️ [RECLASS] Errore inizializzazione stato revisione:", err.message);
   }
+  if (allProducts.length === 0 && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+    allProducts = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+  }
+
+  const nbaTeamNames = [
+    "los angeles clippers", "boston celtics", "milwaukee bucks", "philadelphia 76ers",
+    "miami heat", "new york knicks", "cleveland cavaliers", "los angeles lakers",
+    "golden state warriors", "phoenix suns", "denver nuggets", "dallas mavericks"
+  ];
+
+  const nbaProducts = allProducts.filter(p => {
+    const sqLower = (p.squadra || "").toLowerCase().trim();
+    const catLower = (p.categoria || "").toLowerCase().trim();
+    return catLower === "nba" || nbaTeamNames.includes(sqLower);
+  });
+
+  let stateUpdated = false;
+  for (const prod of nbaProducts) {
+    const prodId = String(prod.id || prod.legacy_id);
+    if (!existingIds.has(prodId)) {
+      const v = (prod.versione || "").trim();
+      const s = (prod.squadra || "").trim();
+      let proposedTeam = s;
+      let proposedCategory = "Club";
+      let proposedSection = "USA MLS";
+      let proposedCountry = "USA";
+      let proposedLeague = "MLS";
+      let reasoning = "";
+
+      if (/los angeles fc|lafc/i.test(v)) {
+        proposedTeam = "Los Angeles FC (LAFC)";
+        proposedSection = "USA MLS";
+        proposedCategory = "Club";
+        proposedCountry = "USA";
+        proposedLeague = "MLS";
+        reasoning = "Versione prodotto specifica espressamente 'Los Angeles FC'. Squadra corrispondente individuata nel catalogo: Los Angeles FC (LAFC).";
+      } else if (/los angeles/i.test(v) && /clippers/i.test(s)) {
+        proposedTeam = "Los Angeles FC (LAFC)";
+        proposedSection = "USA MLS";
+        proposedCategory = "Club";
+        proposedCountry = "USA";
+        proposedLeague = "MLS";
+        reasoning = "Dicitura 'Los Angeles Casa' su kit MLS. Proposta associazione a 'Los Angeles FC (LAFC)'.";
+      } else {
+        reasoning = "Prodotto con associazione squadra NBA. Da verificare manualmente.";
+      }
+
+      currentState.push({
+        product_id: prod.id,
+        legacy_id: prod.legacy_id,
+        nome: prod.nome || null,
+        nome_finale: prod.nome_finale || `${prod.squadra} - ${prod.versione || ''}`,
+        squadra_originale: prod.squadra,
+        categoria_originale: prod.categoria,
+        versione: prod.versione || "",
+        stagione: prod.stagione || "",
+        target: prod.target || "Adulto",
+        prezzo: prod.prezzo || 0,
+        immagine: prod.immagine || "",
+        paese_originale: "USA",
+        lega_originale: "NBA",
+        sezione_originale: "Western Conference (NBA)",
+        status: "pending_reclassification",
+        note_verifica: "",
+        proposta: {
+          squadra_proposta: proposedTeam,
+          categoria_proposta: proposedCategory,
+          sezione_proposta: proposedSection,
+          paese_proposto: proposedCountry,
+          campionato_proposto: proposedLeague,
+          motivo: reasoning
+        },
+        creato_il: new Date().toISOString(),
+        ultimo_aggiornamento: new Date().toISOString()
+      });
+      stateUpdated = true;
+    }
+  }
+
+  if (stateUpdated || !fs.existsSync(RECLASSIFICATION_STATE_FILE)) {
+    saveReclassificationState(currentState);
+    console.log(`✅ [RECLASS] Stato revisione inizializzato con ${currentState.length} prodotti.`);
+  }
+  return currentState;
+}
+
+async function ensureReclassificationInitialized() {
+  if (isReclassInitialized) {
+    return getReclassificationState();
+  }
+  if (reclassInitPromise) {
+    return reclassInitPromise;
+  }
+
+  reclassInitPromise = (async () => {
+    try {
+      await initReclassificationState();
+      isReclassInitialized = true;
+      return getReclassificationState();
+    } catch (err) {
+      isReclassInitialized = false;
+      throw err;
+    } finally {
+      reclassInitPromise = null;
+    }
+  })();
+
+  return reclassInitPromise;
 }
 
 // GET /api/reclassification/items - Ottieni tutti gli elementi in revisione con metadati e squadre catalogo
 app.get('/api/reclassification/items', async (req, res) => {
   try {
-    let state = getReclassificationState();
-    if (state.length === 0) {
-      await initReclassificationState();
-      state = getReclassificationState();
-    }
+    const state = await ensureReclassificationInitialized();
 
     // Carica squadre dal catalogo teams per dropdown controllato senza duplicati
     const supabase = getSupabaseClient();
@@ -18257,70 +18390,13 @@ app.listen(PORT, '0.0.0.0', () => {
     console.error("⚠️ Errore pulizia lotti all'avvio:", err.message);
   }
   
-  // Standardizzazione automatica dei dati all'avvio
+  // Inizializzazioni asincrone all'avvio
   setTimeout(async () => {
     try {
       console.log("=== CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===");
       await loadSettingsFromSupabase();
     } catch (e) {
       console.error("⚠️ Errore caricamento impostazioni all'avvio:", e.message);
-    }
-
-    const supabase = getSupabaseClient();
-    if (!supabase) return;
-    try {
-      console.log("=== INIZIO STANDARDIZZAZIONE DATABASE SUPABASE ===");
-      
-      // 1. Leggiamo tutti i prodotti da Supabase
-      let products = [];
-      try {
-        products = await getAllProductsFromSupabase(supabase);
-      } catch (pError) {
-        console.error("⚠️ [STDB] Errore caricamento prodotti via helper:", pError.message);
-      }
-      if (products.length > 0) {
-        for (const p of products) {
-          if (p.categoria === '__coupon__' || (p.categoria && p.categoria.startsWith('__'))) {
-            continue;
-          }
-          const catNorm = normalizzaCategoria(p.categoria);
-          if (p.categoria !== catNorm) {
-            console.log(`[STDB] Aggiorno prodotto #${p.id} (${p.squadra || 'Senza Nome'}): '${p.categoria}' -> '${catNorm}'`);
-            await supabase.from('products').update({ categoria: catNorm }).eq('id', p.id);
-          }
-        }
-      }
-
-      // 2. Leggiamo tutte le price_rules
-      try {
-        await supabase.from('price_rules').delete().like('categoria', '__%');
-      } catch (e) {}
-
-      const { data: rules, error: rError } = await supabase.from('price_rules').select('*');
-      if (!rError && Array.isArray(rules)) {
-        for (const r of rules) {
-          if (r.categoria && r.categoria.startsWith('__')) {
-            continue;
-          }
-          const catNorm = normalizzaCategoria(r.categoria);
-          if (r.categoria !== catNorm) {
-            console.log(`[STDB] Aggiorno regola: '${r.categoria}_${r.target}' -> '${catNorm}_${r.target}'`);
-            await supabase.from('price_rules').delete().eq('categoria', r.categoria).eq('target', r.target);
-            await supabase.from('price_rules').upsert({ categoria: catNorm, target: r.target, prezzo: r.prezzo });
-          }
-        }
-      }
-      
-      console.log("=== COMPLETATO STANDARDIZZAZIONE DATABASE SUPABASE ===");
-    } catch (err) {
-      console.error("⚠️ Errore durante la standardizzazione automatica del database:", err.message);
-    }
-
-    // Inizializza il sistema di revisione e riclassificazione prodotti (FASE 1)
-    try {
-      await initReclassificationState();
-    } catch (rErr) {
-      console.error("⚠️ Errore inizializzazione modulo revisione riclassificazione:", rErr.message);
     }
   }, 3000);
 });

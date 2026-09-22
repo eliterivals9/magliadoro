@@ -29,7 +29,28 @@
     </script>
     <link rel="stylesheet" href="/admin/admin.css">
 </head>
-<body class="bg-brand-bgLight text-white font-sans min-h-screen flex flex-col md:flex-row" style="display:none;">
+<body class="bg-brand-bgLight text-white font-sans min-h-screen flex flex-col md:flex-row">
+
+    <!-- Schermata di Caricamento Auth (Visibile immediatamente, solo HTML/CSS locale) -->
+    <div id="admin-auth-loader" style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b0b0b; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        <div style="text-align: center; max-width: 320px; padding: 24px;">
+            <div style="font-size: 18px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #d6a43a; margin-bottom: 8px;">
+                MAGLIA D'ORO
+            </div>
+            <div style="font-size: 13px; color: #94a3b8; margin-bottom: 24px; font-weight: 500; letter-spacing: 0.5px;">
+                Caricamento pannello...
+            </div>
+            <div style="width: 36px; height: 36px; margin: 0 auto; border: 3px solid rgba(214, 164, 58, 0.2); border-top-color: #d6a43a; border-radius: 50%; animation: spinAuthLoader 0.8s linear infinite;"></div>
+        </div>
+        <style>
+            @keyframes spinAuthLoader {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+    </div>
+
+    <!-- Contenitore Principale Admin (Nascosto fino a verifica completata di checkAuth) -->
+    <div id="admin-root" style="display:none;" class="w-full min-h-screen flex flex-col md:flex-row">
 
     <!-- Sidebar Laterale (Sleek Dark Theme per creare contrasto) -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-brand-dark text-slate-300 flex flex-col border-r border-slate-800/60 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
@@ -7317,9 +7338,11 @@
         </div>
     </div>
 
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/admin/auth.js"></script>
-    <script src="/admin/admin.js?v=2.0.7"></script>
+    <script src="/admin/admin.js?v=2.0.7" defer></script>
 </body>
 </html>
