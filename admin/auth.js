@@ -7,22 +7,48 @@ const ADMIN_EMAILS = [
     "sergiottocatania@gmail.com"
 ];
 
-// Ritorna l'istanza del client di Supabase prelevando la config in modo asincrono
+// Helper per eseguire una Promise con timeout di sicurezza e pulizia immediata del timer
+function withTimeout(promise, ms, timeoutMessage = "Timeout operazione") {
+    let timerId = null;
+    const timeoutPromise = new Promise((_, reject) => {
+        timerId = setTimeout(() => {
+            reject(new Error(timeoutMessage));
+        }, ms);
+    });
+
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+        if (timerId) {
+            clearTimeout(timerId);
+            timerId = null;
+        }
+    });
+}
+
+// Ritorna l'istanza del client di Supabase prelevando la config in modo asincrono con timeout
 async function getSupabase() {
     if (supabaseInstance) return supabaseInstance;
     if (supabasePromise) return supabasePromise;
     
     supabasePromise = (async () => {
         try {
-            const config = (typeof window.fetchAppConfig === 'function')
-                ? await window.fetchAppConfig()
-                : await (async () => {
-                    const res = await fetch('/api/config');
+            const fetchConfigPromise = (async () => {
+                if (typeof window.fetchAppConfig === 'function') {
+                    return await window.fetchAppConfig();
+                }
+                const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                const fetchTimer = controller ? setTimeout(() => controller.abort(), 7000) : null;
+                try {
+                    const res = await fetch('/api/config', controller ? { signal: controller.signal } : {});
                     if (!res.ok) throw new Error("Impossibile recuperare i dati dal server (/api/config).");
                     return await res.json();
-                  })();
+                } finally {
+                    if (fetchTimer) clearTimeout(fetchTimer);
+                }
+            })();
+
+            const config = await withTimeout(fetchConfigPromise, 7000, "Timeout recupero configurazione (/api/config)");
             
-            if (!config.supabaseUrl || !config.supabaseAnonKey) {
+            if (!config || !config.supabaseUrl || !config.supabaseAnonKey) {
                 const errorMsg = "Configurazione di Supabase mancante! Assicurati di impostare SUPABASE_URL e SUPABASE_ANON_KEY nel file .env.";
                 console.error("❌ " + errorMsg);
                 throw new Error(errorMsg);
@@ -53,16 +79,20 @@ async function adminLogin(email, password) {
         throw new Error("Inserisci sia l'indirizzo email che la password.");
     }
 
-    const client = await getSupabase();
+    const client = await withTimeout(getSupabase(), 7000, "Timeout connessione Supabase");
     if (!client) {
         throw new Error("Servizio di autenticazione non disponibile.");
     }
     
-    // 1. Esegui il login
-    const { data, error } = await client.auth.signInWithPassword({ 
-        email: email.trim(), 
-        password 
-    });
+    // 1. Esegui il login con timeout di salvaguardia
+    const { data, error } = await withTimeout(
+        client.auth.signInWithPassword({ 
+            email: email.trim(), 
+            password 
+        }),
+        7000,
+        "Timeout autenticazione Supabase"
+    );
     
     if (error) {
         const msg = error.message ? error.message.toLowerCase() : '';
@@ -96,16 +126,16 @@ async function adminLogin(email, password) {
 
 let currentAuthPromise = null;
 
-// Controlla se l'utente è loggato ed è autorizzato (riutilizza l'unica Promise di verifica condivisa)
+// Controlla se l'utente è loggato ed è autorizzato (riutilizza l'unica Promise di verifica condivisa con timeout)
 async function checkAuth(force = false) {
     if (!force && currentAuthPromise) return currentAuthPromise;
 
     currentAuthPromise = (async () => {
-        const pathname = window.location.pathname.toLowerCase();
+        const pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
         const isLoginPage = pathname.includes('admin-login');
         
         try {
-            const client = await getSupabase();
+            const client = await withTimeout(getSupabase(), 7000, "Timeout inizializzazione client Supabase");
             if (!client) {
                 if (!isLoginPage) {
                     window.location.replace('/admin-login');
@@ -113,7 +143,11 @@ async function checkAuth(force = false) {
                 return null;
             }
 
-            const { data: { session }, error } = await client.auth.getSession();
+            const { data: { session } = {}, error } = await withTimeout(
+                client.auth.getSession(),
+                7000,
+                "Timeout recupero sessione Supabase"
+            );
             
             if (error || !session || !session.user || !session.user.email) {
                 if (!isLoginPage) {
@@ -126,7 +160,9 @@ async function checkAuth(force = false) {
             const isAuthorized = ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === userEmail);
             
             if (!isAuthorized) {
-                await client.auth.signOut({ scope: 'local' });
+                try {
+                    await client.auth.signOut({ scope: 'local' });
+                } catch (e) {}
                 if (!isLoginPage) {
                     window.location.replace('/admin-login');
                 }
@@ -149,7 +185,7 @@ async function checkAuth(force = false) {
             }
             return session.user;
         } catch (err) {
-            console.error("Errore di verifica autenticazione:", err);
+            console.warn("Autenticazione Admin non completata o scaduta:", err?.message || err);
             if (!isLoginPage) {
                 window.location.replace('/admin-login');
             }
@@ -163,16 +199,24 @@ async function checkAuth(force = false) {
 
 // Effettua il login generico
 async function signIn(email, password) {
-    const client = await getSupabase();
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    const client = await withTimeout(getSupabase(), 7000, "Timeout connessione Supabase");
+    const { data, error } = await withTimeout(
+        client.auth.signInWithPassword({ email, password }),
+        7000,
+        "Timeout autenticazione Supabase"
+    );
     if (error) throw error;
     return data;
 }
 
 // Registra un nuovo utente
 async function signUp(email, password) {
-    const client = await getSupabase();
-    const { data, error } = await client.auth.signUp({ email, password });
+    const client = await withTimeout(getSupabase(), 7000, "Timeout connessione Supabase");
+    const { data, error } = await withTimeout(
+        client.auth.signUp({ email, password }),
+        7000,
+        "Timeout registrazione Supabase"
+    );
     if (error) throw error;
     return data;
 }
@@ -180,7 +224,7 @@ async function signUp(email, password) {
 // Effettua il logout dell'utente
 async function logout() {
     try {
-        const client = await getSupabase();
+        const client = await withTimeout(getSupabase(), 3000, "Timeout client logout");
         if (client) {
             await client.auth.signOut({ scope: 'local' });
         }
@@ -207,4 +251,5 @@ window.adminLogin = adminLogin;
 if (typeof window !== 'undefined' && !window.adminAuthPromise) {
     window.adminAuthPromise = checkAuth();
 }
+
 
