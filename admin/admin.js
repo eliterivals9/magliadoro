@@ -1898,7 +1898,7 @@ async function caricaLotto() {
                 if (elArticoli) elArticoli.innerText = lotto.numero_totale_articoli || 0;
                 const costPers = Number(lotto.costo_totale_personalizzazioni_usd || 0);
                 const costProdCombined = Number(lotto.costo_totale_prodotti_usd || 0);
-                const costCompletiniOnly = Math.max(0, costProdCombined - costPers);
+                const costCompletiniOnly = lotto.costo_base_prodotti_usd !== undefined ? Number(lotto.costo_base_prodotti_usd) : Math.max(0, costProdCombined - costPers);
                 const costoFornitoreUsd = Number(lotto.costo_fornitore_usd || lotto.costo_complessivo_lotto_usd || 0);
                 const alibabaFeeUsd = Number(lotto.alibaba_fee_usd !== undefined ? lotto.alibaba_fee_usd : (costoFornitoreUsd * 0.03));
                 const costoTotaleRealeUsd = Number(lotto.costo_totale_reale_lotto_usd || (costoFornitoreUsd + alibabaFeeUsd));
@@ -2402,7 +2402,7 @@ window.apriDettaglioLotto = function(id) {
             ordersContainer.innerHTML = lottoOrders.map((order, idx) => {
                 const nomeCliente = order.nome || 'N/D';
                 const telefonoCliente = order.telefono || 'N/D';
-                const dataOrdine = order.data || 'N/D';
+                const dataOrdine = formattaDataOraOrdine(order);
                 const totaleOrdine = order.totale || '0,00€';
                 const prodottiOrdinati = order.squadra || '';
                 const tagliaOrdinata = order.taglia || '';
@@ -2471,142 +2471,67 @@ window.apriDettaglioLotto = function(id) {
                                 <div class="text-[10px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wider">Riepilogo Finanziario</div>
                                 
                                 <div class="space-y-1.5 text-xs text-[rgba(255,255,255,0.88)]">
-                                    <!-- Subtotale prodotti -->
-                                    <div class="flex justify-between items-center py-0.5">
-                                        <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
-                                        <span class="font-mono font-semibold text-white">
-                                            € ${(() => {
-                                                const spedInfo = calcolaSpedizioneClienteOrdine(order);
-                                                if (spedInfo.subtotale && spedInfo.subtotale > 0) {
-                                                    return spedInfo.subtotale.toFixed(2).replace('.', ',');
-                                                }
-                                                const totIncassato = parseFlexibleDecimal(totaleOrdine);
-                                                const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
-                                                return Math.max(0, totIncassato + couponDiscount - spedInfo.costo).toFixed(2).replace('.', ',');
-                                             })()}
-                                        </span>
-                                    </div>
-                                    <!-- Coupon (se presente) -->
                                     ${(() => {
-                                        const cCode = order.coupon_code || '';
-                                        const cDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
-                                        if (cCode || cDiscount > 0) {
-                                            return `
-                                            <div class="flex justify-between items-center py-0.5 text-emerald-400 font-medium">
-                                                <span class="flex items-center gap-1">
-                                                    <span>🎟️</span> Coupon: <strong class="font-bold uppercase">${cCode || 'SCONTO'}</strong>
-                                                </span>
-                                                <span class="font-mono font-bold">-€ ${cDiscount.toFixed(2).replace('.', ',')}</span>
-                                            </div>
-                                            `;
-                                        }
-                                        return '';
+                                        const fin = calcolaRiepilogoFinanziarioOrdine(order);
+                                        const sign = fin.profittoEur >= 0 ? '+' : '';
+                                        return `
+                                        <!-- Subtotale prodotti -->
+                                        <div class="flex justify-between items-center py-0.5">
+                                            <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
+                                            <span class="font-mono font-semibold text-white">€ ${fin.subtotaleProdotti.toFixed(2).replace('.', ',')}</span>
+                                        </div>
+                                        <!-- Coupon (se presente) -->
+                                        ${fin.couponDiscount > 0 || fin.couponCode ? `
+                                        <div class="flex justify-between items-center py-0.5 text-emerald-400 font-medium">
+                                            <span class="flex items-center gap-1">
+                                                <span>🎟️</span> Coupon: <strong class="font-bold uppercase">${fin.couponCode || 'SCONTO'}</strong>
+                                            </span>
+                                            <span class="font-mono font-bold">-€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}</span>
+                                        </div>
+                                        ` : ''}
+                                        <!-- Spedizione cliente -->
+                                        <div class="flex justify-between items-center py-0.5">
+                                            <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
+                                            <span class="font-mono font-bold text-white">${fin.spedInfo.labelHtml}</span>
+                                        </div>
+                                        <!-- Totale Incassato -->
+                                        <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
+                                            <span class="text-white font-bold">Totale Incassato:</span>
+                                            <span class="font-extrabold text-white font-mono text-sm">€ ${fin.totaleIncassato.toFixed(2).replace('.', ',')}</span>
+                                        </div>
+                                        <!-- Costo Prodotti -->
+                                        <div class="flex justify-between items-center py-0.5">
+                                            <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
+                                            <span class="font-mono font-semibold text-white">
+                                                € ${(fin.costoProdottiUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
+                                                <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoProdottiUsd.toFixed(2).replace('.', ',')})</span>
+                                            </span>
+                                        </div>
+                                        <!-- Spedizione Fornitore -->
+                                        <div class="flex justify-between items-center py-0.5">
+                                            <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
+                                            <span class="font-mono font-semibold text-white">
+                                                € ${(fin.costoSpedizioneUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
+                                                <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoSpedizioneUsd.toFixed(2).replace('.', ',')})</span>
+                                            </span>
+                                        </div>
+                                        <!-- Costo Totale Reale -->
+                                        <div class="flex justify-between items-center py-1.5 border-t border-[rgba(255,255,255,0.08)] mt-1 font-bold">
+                                            <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
+                                            <span class="font-mono font-black text-white text-sm">
+                                                € ${fin.costoTotaleEur.toFixed(2).replace('.', ',')} 
+                                                <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${fin.costoTotaleUsd.toFixed(2).replace('.', ',')})</span>
+                                            </span>
+                                        </div>
+                                        <!-- Margine Reale (Profitto) -->
+                                        <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
+                                            <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
+                                            <span class="font-mono font-black text-emerald-400 text-sm">
+                                                ${sign}€ ${fin.profittoEur.toFixed(2).replace('.', ',')}
+                                            </span>
+                                        </div>
+                                        `;
                                     })()}
-                                    <!-- Spedizione cliente -->
-                                    <div class="flex justify-between items-center py-0.5">
-                                        <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
-                                        <span class="font-mono font-bold text-white">
-                                            ${calcolaSpedizioneClienteOrdine(order).labelHtml}
-                                        </span>
-                                    </div>
-                                    <!-- Totale Incassato -->
-                                    <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
-                                        <span class="text-white font-bold">Totale Incassato:</span>
-                                        <span class="font-extrabold text-white font-mono text-sm">${(() => {
-                                            const isFornitore = Boolean(
-                                                order.coupon_type === 'fornitore' ||
-                                                order.coupon_type === 'supplier_price' ||
-                                                (order.coupon_code && String(order.coupon_code).toUpperCase() === 'MIAKHALIFA')
-                                            );
-                                            if (isFornitore) {
-                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                                const p = parseFlexibleDecimal(costoProdottiUsd);
-                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                                const rawEur = parseFlexibleDecimal(costoFornitoreEur);
-                                                const val = rawEur > 0 ? rawEur : ((p + s) * r);
-                                                return `€ ${val.toFixed(2).replace('.', ',')}`;
-                                            }
-                                            return typeof totaleOrdine === 'number' ? `€ ${totaleOrdine.toFixed(2).replace('.', ',')}` : (String(totaleOrdine).includes('€') ? String(totaleOrdine) : `€ ${String(totaleOrdine)}`);
-                                        })()}</span>
-                                    </div>
-                                    <!-- Costo Prodotti -->
-                                    <div class="flex justify-between items-center py-0.5">
-                                        <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
-                                        <span class="font-mono font-semibold text-white">
-                                            € ${(() => {
-                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                                const p = parseFlexibleDecimal(costoProdottiUsd);
-                                                return (p * r).toFixed(2).replace('.', ',');
-                                            })()} 
-                                            <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                                const p = parseFlexibleDecimal(costoProdottiUsd);
-                                                return p.toFixed(2).replace('.', ',');
-                                            })()})</span>
-                                        </span>
-                                    </div>
-                                    <!-- Spedizione Fornitore -->
-                                    <div class="flex justify-between items-center py-0.5">
-                                        <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
-                                        <span class="font-mono font-semibold text-white">
-                                            € ${(() => {
-                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                                return (s * r).toFixed(2).replace('.', ',');
-                                            })()} 
-                                            <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                                return s.toFixed(2).replace('.', ',');
-                                            })()})</span>
-                                        </span>
-                                    </div>
-                                    <!-- Costo Totale Reale -->
-                                    <div class="flex justify-between items-center py-1.5 border-t border-[rgba(255,255,255,0.08)] mt-1 font-bold">
-                                        <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
-                                        <span class="font-mono font-black text-white text-sm">
-                                            € ${(() => {
-                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                                const p = parseFlexibleDecimal(costoProdottiUsd);
-                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                                const rawEur = parseFlexibleDecimal(costoFornitoreEur);
-                                                const val = rawEur > 0 ? rawEur : ((p + s) * r);
-                                                return val.toFixed(2).replace('.', ',');
-                                            })()} 
-                                            <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${(() => {
-                                                const p = parseFlexibleDecimal(costoProdottiUsd);
-                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                                const rawUsd = parseFlexibleDecimal(costoFornitoreUsd);
-                                                const val = rawUsd > 0 ? rawUsd : (p + s);
-                                                return val.toFixed(2).replace('.', ',');
-                                            })()})</span>
-                                        </span>
-                                    </div>
-                                    <!-- Margine Reale (Profitto) -->
-                                    <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
-                                        <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
-                                        <span class="font-mono font-black text-emerald-400 text-sm">
-                                            ${(() => {
-                                                const isFornitore = Boolean(
-                                                    order.coupon_type === 'fornitore' ||
-                                                    order.coupon_type === 'supplier_price' ||
-                                                    (order.coupon_code && String(order.coupon_code).toUpperCase() === 'MIAKHALIFA')
-                                                );
-                                                if (isFornitore) {
-                                                    return `+€ 0,00`;
-                                                }
-                                                const totInc = parseFlexibleDecimal(totaleOrdine);
-                                                const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                                const p = parseFlexibleDecimal(costoProdottiUsd);
-                                                const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                                const rawEur = parseFlexibleDecimal(costoFornitoreEur);
-                                                const cTot = rawEur > 0 ? rawEur : ((p + s) * r);
-                                                let prof = (order.profitto_eur !== undefined && order.profitto_eur !== null && !isNaN(Number(order.profitto_eur)))
-                                                    ? parseFlexibleDecimal(order.profitto_eur)
-                                                    : (order["Profitto (EUR)"] !== undefined ? parseFlexibleDecimal(order["Profitto (EUR)"]) : (totInc - cTot));
-                                                const sign = prof >= 0 ? '+' : '';
-                                                return `${sign}€ ${prof.toFixed(2).replace('.', ',')}`;
-                                            })()}
-                                        </span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4760,6 +4685,11 @@ async function salvaProdotto() {
             sincronizzaReportDuplicati();
             if (typeof sincronizzaReportSenzaFiltro === 'function') sincronizzaReportSenzaFiltro();
 
+            // Sincronizzazione automatica con Controllo Sicurezza Articoli se presente
+            if (typeof aggiornaControlloSicurezzaDopoModifica === 'function') {
+                aggiornaControlloSicurezzaDopoModifica(id || (payload && payload.legacy_id));
+            }
+
             // Sincronizzazione automatica disattivata: Supabase Storage è la sorgente persistente
             // Le immagini sono già gestite direttamente senza sincronizzazione locale su filesystem effimero.
         } else {
@@ -5623,6 +5553,37 @@ function estraiNumeroArticoli(param) {
     return totale || 0;
 }
 
+/**
+ * Formatta data e ora di un ordine in formato standard italiano (GG/MM/AAAA, HH:MM)
+ * Rispetta rigorosamente created_at (con timezone locale) o data string
+ * Condiviso tra Gestione Ordini, Ordini Prodotti e Dettaglio Lotti per garantire coerenza al 100%
+ */
+function formattaDataOraOrdine(ord) {
+    if (!ord) return 'N/D';
+    let dateObj = null;
+    if (ord.created_at) {
+        dateObj = new Date(ord.created_at);
+    } else if (ord.data) {
+        const parts = String(ord.data).split('/');
+        if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const yearParts = parts[2].split(',');
+            const year = parseInt(yearParts[0], 10);
+            dateObj = new Date(year, month, day);
+        } else {
+            dateObj = new Date(ord.data);
+        }
+    }
+    if (!dateObj || isNaN(dateObj.getTime())) {
+        return ord.data || 'N/D';
+    }
+
+    return dateObj.toLocaleDateString('it-IT', {
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+}
+
 function getOrderTimestampForSorting(o) {
     if (!o) return 0;
     if (o.created_at) {
@@ -5708,6 +5669,8 @@ function estraiArticoliOrdineConImmagini(order) {
                 prezzo_concordato: (c.prezzo_concordato !== undefined && c.prezzo_concordato !== null) ? parseFloat(c.prezzo_concordato) : null,
                 fasce_prezzo: Array.isArray(c.fasce_prezzo) ? c.fasce_prezzo : null,
                 ha_prezzo_concordato: !!c.ha_prezzo_concordato,
+                is_prezzo_fornitore: Boolean(c.is_prezzo_fornitore || c.origine_prezzo === 'fornitore'),
+                origine_prezzo: c.origine_prezzo || (c.is_prezzo_fornitore ? 'fornitore' : null),
                 totale_concordato: (c.totale_concordato !== undefined && c.totale_concordato !== null) ? parseFloat(c.totale_concordato) : null,
                 infoPerso: pers,
                 imgUrl: imgUrl
@@ -5778,24 +5741,63 @@ function estraiArticoliOrdineConImmagini(order) {
  * Se l'ordine contiene un coupon, la soglia dei 50€ viene determinata
  * sul subtotale dei prodotti al lordo del coupon, esattamente come nel checkout pubblico.
  */
+function isOrderFreeShippingOverrideActive(order) {
+    if (!order) return false;
+    if (order.free_shipping_override === true || order.is_free_shipping_override === true) return true;
+    if (order.free_shipping_discount !== undefined && order.free_shipping_discount !== null && Number(order.free_shipping_discount) > 0 && !order.coupon_code) return true;
+    
+    let cart = order.carrello;
+    if (typeof cart === 'string' && cart.trim()) {
+        try { cart = JSON.parse(cart); } catch(e) {}
+    }
+    if (Array.isArray(cart) && cart.length > 0 && cart[0] && cart[0].free_shipping_override === true) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Calcola la spedizione per il cliente per uno specifico ordine.
+ * 
+ * Regola ufficiale:
+ * 0. Se è attivo un override amministrativo -> 0.00€ (Omaggio Admin)
+ * 1. Se convenzione torneo -> Spedizione Inclusa
+ * 2. Se tutti gli articoli sono a Prezzo Fornitore o coupon fornitore -> 0.00€
+ * 3. Altrimenti: standard (>= 50€ gratis, < 50€ costa 2.00€)
+ */
 function calcolaSpedizioneClienteOrdine(order) {
     if (!order) {
         return { costo: 0, gratis: true, subtotale: 0, labelHtml: '<span class="text-brand-gold font-bold">GRATIS</span>' };
     }
 
-    // 0. Ordini con Coupon Prezzo Fornitore: spedizione cliente non applicata
-    const isFornitore = Boolean(
+    // 0. OVERRIDE ADMIN ESPLICITO: Spedizione Cliente azzerata da Gestione Ordini
+    const hasAdminOverride = isOrderFreeShippingOverrideActive(order);
+
+    // 0b. Ordini con Coupon Prezzo Fornitore o con TUTTI gli articoli impostati a Prezzo Fornitore:
+    const isFornitoreCoupon = Boolean(
         order.coupon_type === 'fornitore' ||
         order.coupon_type === 'supplier_price' ||
         (order.coupon_code && String(order.coupon_code).toUpperCase() === 'MIAKHALIFA')
     );
-    if (isFornitore) {
+
+    let rawCart = [];
+    if (Array.isArray(order.carrello)) {
+        rawCart = order.carrello;
+    } else if (typeof order.carrello === 'string' && order.carrello.trim()) {
+        try { rawCart = JSON.parse(order.carrello); } catch(e) { rawCart = []; }
+    }
+
+    const nonTechItems = rawCart.filter(ci => ci && !(ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra)));
+    const isAllPrezzoFornitore = nonTechItems.length > 0 && nonTechItems.every(ci => ci.is_prezzo_fornitore === true || ci.origine_prezzo === 'fornitore');
+
+    if (isFornitoreCoupon || isAllPrezzoFornitore) {
         return {
             costo: 0.00,
             gratis: true,
             isFornitore: true,
+            isAllPrezzoFornitore: true,
             subtotale: 0,
-            labelHtml: '<span class="text-brand-gold font-bold">NON APPLICABILE</span>'
+            labelHtml: '<span class="text-brand-gold font-bold">€ 0,00</span>'
         };
     }
 
@@ -5825,20 +5827,8 @@ function calcolaSpedizioneClienteOrdine(order) {
     let subtotaleProdotti = 0;
     let haArticoliStrutturati = false;
 
-    // A. Prova dal carrello strutturato (array o JSON string)
-    let cart = [];
-    if (Array.isArray(order.carrello)) {
-        cart = order.carrello;
-    } else if (typeof order.carrello === 'string' && order.carrello.trim()) {
-        try {
-            cart = JSON.parse(order.carrello);
-        } catch(e) {
-            cart = [];
-        }
-    }
-
-    if (Array.isArray(cart) && cart.length > 0) {
-        cart.forEach(item => {
+    if (Array.isArray(rawCart) && rawCart.length > 0) {
+        rawCart.forEach(item => {
             if (!item) return;
             const nome = item.squadra || item.nome || '';
             if (isTechnicalShippingOrServiceLine(nome)) return;
@@ -5899,6 +5889,16 @@ function calcolaSpedizioneClienteOrdine(order) {
         const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? parseFlexibleDecimal(order.coupon_discount) : 0;
         const baseTotale = totIncassato + couponDiscount;
 
+        if (hasAdminOverride) {
+            return {
+                costo: 0.00,
+                gratis: true,
+                isOverride: true,
+                subtotale: baseTotale,
+                labelHtml: '<span class="text-brand-gold font-bold">€ 0,00</span> <span class="text-[10px] text-amber-400 font-normal ml-0.5">(Omaggio Admin)</span>'
+            };
+        }
+
         if (baseTotale >= SOGLIA_SPEDIZIONE_GRATIS) {
             return {
                 costo: 0.00,
@@ -5923,6 +5923,16 @@ function calcolaSpedizioneClienteOrdine(order) {
         }
     }
 
+    if (hasAdminOverride) {
+        return {
+            costo: 0.00,
+            gratis: true,
+            isOverride: true,
+            subtotale: subtotaleProdotti,
+            labelHtml: '<span class="text-brand-gold font-bold">€ 0,00</span> <span class="text-[10px] text-amber-400 font-normal ml-0.5">(Omaggio Admin)</span>'
+        };
+    }
+
     // 3. Regola pubblica standard (uguale al checkout pubblico):
     // - Subtotale >= 50.00€: spedizione GRATIS (0.00€)
     // - Subtotale < 50.00€: spedizione standard di 2.00€
@@ -5934,6 +5944,94 @@ function calcolaSpedizioneClienteOrdine(order) {
         gratis: gratis,
         subtotale: subtotaleProdotti,
         labelHtml: gratis ? '<span class="text-brand-gold font-bold">GRATIS</span>' : '€ 2,00'
+    };
+}
+
+/**
+ * Calcola in modo centralizzato e matematicamente coerente il riepilogo economico dell'ordine:
+ * Subtotale Prodotti + Spedizione Cliente - Sconti Coupon = Totale Incassato Reale
+ */
+function calcolaRiepilogoFinanziarioOrdine(order) {
+    if (!order) {
+        return {
+            subtotaleProdotti: 0,
+            spedizioneCliente: 0,
+            couponDiscount: 0,
+            couponCode: '',
+            totaleIncassato: 0,
+            costoProdottiUsd: 0,
+            costoSpedizioneUsd: 0,
+            costoTotaleUsd: 0,
+            cambioValuta: 0.92,
+            costoTotaleEur: 0,
+            profittoEur: 0,
+            spedInfo: { costo: 0, gratis: true, labelHtml: '<span class="text-brand-gold font-bold">GRATIS</span>' }
+        };
+    }
+
+    const spedInfo = calcolaSpedizioneClienteOrdine(order);
+    const subtotaleProdotti = spedInfo.subtotale > 0 
+        ? spedInfo.subtotale 
+        : (() => {
+            const rawTot = (order.totale !== undefined && order.totale !== null && order.totale !== '')
+                ? order.totale
+                : (order.totale_ordine ?? order.totale_eur ?? order.total ?? order.importo ?? 0);
+            return parseFlexibleDecimal(rawTot);
+        })();
+
+    const spedizioneCliente = spedInfo.costo || 0;
+    const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) 
+        ? parseFlexibleDecimal(order.coupon_discount) 
+        : 0;
+    const couponCode = order.coupon_code || '';
+
+    // Gestione coupon fornitore o ordine interamente a prezzo fornitore
+    const isFornitoreCoupon = Boolean(
+        order.coupon_type === 'fornitore' ||
+        order.coupon_type === 'supplier_price' ||
+        (couponCode && String(couponCode).toUpperCase() === 'MIAKHALIFA')
+    );
+
+    let rawCartList = [];
+    if (Array.isArray(order.carrello)) {
+        rawCartList = order.carrello;
+    } else if (typeof order.carrello === 'string' && order.carrello.trim()) {
+        try { rawCartList = JSON.parse(order.carrello); } catch(e) { rawCartList = []; }
+    }
+
+    const nonTechList = rawCartList.filter(ci => ci && !(ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra)));
+    const isAllPrezzoFornitore = nonTechList.length > 0 && nonTechList.every(ci => ci.is_prezzo_fornitore === true || ci.origine_prezzo === 'fornitore');
+
+    const cambioValuta = parseFlexibleDecimal(order["Cambio USD/EUR"] || order.cambio_usd_eur) || 0.92;
+    const costoProdottiUsd = parseFlexibleDecimal(order["Costo prodotti (USD)"] || order.costo_prodotti_usd);
+    const costoSpedizioneUsd = parseFlexibleDecimal(order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd);
+    const costoTotaleUsd = parseFlexibleDecimal(order["Costo totale (USD)"] || order.costo_totale_usd) || (costoProdottiUsd + costoSpedizioneUsd);
+    const rawCostoEur = parseFlexibleDecimal(order["Costo totale (EUR)"] || order.costo_totale_eur || order["Costo Fornitore (EUR)"]);
+    const costoTotaleEur = rawCostoEur > 0 ? rawCostoEur : Number((costoTotaleUsd * cambioValuta).toFixed(2));
+
+    let totaleIncassato = 0;
+    if (isFornitoreCoupon || isAllPrezzoFornitore) {
+        totaleIncassato = subtotaleProdotti; // Spedizione cliente = €0,00
+    } else {
+        // Formula coerente: Subtotale Prodotti + Spedizione Cliente - Sconti Coupon
+        totaleIncassato = Math.max(0, subtotaleProdotti + spedizioneCliente - couponDiscount);
+    }
+
+    const profittoEur = (isFornitoreCoupon || (isAllPrezzoFornitore && Math.abs(totaleIncassato - costoTotaleEur) < 0.02)) ? 0.00 : Number((totaleIncassato - costoTotaleEur).toFixed(2));
+
+    return {
+        subtotaleProdotti,
+        spedizioneCliente,
+        couponDiscount,
+        couponCode,
+        totaleIncassato,
+        costoProdottiUsd,
+        costoSpedizioneUsd,
+        costoTotaleUsd,
+        cambioValuta,
+        costoTotaleEur,
+        profittoEur,
+        spedInfo
     };
 }
 
@@ -5954,15 +6052,24 @@ function renderOrderItemsHTML(order) {
         const safeName = (item.nome || 'Prodotto').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         const safeImgUrl = (item.imgUrl || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-        const hasCustomPrice = item.ha_prezzo_concordato || (item.prezzo_concordato !== null && item.prezzo_concordato !== undefined) || (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 0);
-        const origUnit = item.prezzo_originale || item.prezzo || 0;
-        const origTot = origUnit * item.quantita;
+        const rawOrigUnit = (item.prezzo_originale !== undefined && item.prezzo_originale !== null && !isNaN(Number(item.prezzo_originale)) && Number(item.prezzo_originale) > 0)
+            ? Number(item.prezzo_originale)
+            : (Number(item.prezzo) || 0);
+        const origTot = Number((rawOrigUnit * item.quantita).toFixed(2));
 
-        let itemTot = (item.totale_concordato !== null && item.totale_concordato !== undefined) ? item.totale_concordato : (item.prezzo * item.quantita);
+        let itemTot = (item.totale_concordato !== null && item.totale_concordato !== undefined && !isNaN(Number(item.totale_concordato)))
+            ? Number(Number(item.totale_concordato).toFixed(2))
+            : Number(((Number(item.prezzo) || 0) * item.quantita).toFixed(2));
+
         let tiersSummary = '';
-        if (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 1) {
-            tiersSummary = item.fasce_prezzo.map(f => `${f.quantita}x€${Number(f.prezzo_unitario).toFixed(0)}`).join(', ');
+        const hasMultipleTiers = Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 1;
+        if (hasMultipleTiers) {
+            tiersSummary = item.fasce_prezzo.map(f => `${f.quantita}x€${Number(f.prezzo_unitario).toFixed(2).replace('.', ',')}`).join(', ');
         }
+
+        // Differenza reale a 2 decimali tra totale concordato/finale e totale listino originale
+        const hasRealPriceDiff = Math.abs(itemTot - origTot) >= 0.009 || hasMultipleTiers;
+        const hasCustomPrice = (item.ha_prezzo_concordato || item.prezzo_concordato !== null || hasMultipleTiers) && hasRealPriceDiff;
 
         return `
             <div class="flex items-center gap-3 py-2.5 border-b border-[rgba(255,255,255,0.08)] last:border-0">
@@ -5994,14 +6101,14 @@ function renderOrderItemsHTML(order) {
                         ${item.categoria ? `<span class="inline-flex items-center gap-1">Categoria: <strong class="text-slate-200 font-semibold">${item.categoria}</strong></span>` : ''}
                         <span class="inline-flex items-center gap-1">Quantità: <strong class="text-white font-mono font-bold">${item.quantita}</strong></span>
                         ${hasCustomPrice ? `
-                            <span class="inline-flex items-center gap-1">
-                                Prezzo:
+                            <span class="inline-flex items-center gap-1.5 flex-wrap">
+                                <span>Prezzo:</span>
                                 <span class="line-through text-slate-500 font-mono text-[9px]">€${origTot.toFixed(2).replace('.', ',')}</span>
-                                <strong class="text-brand-gold font-mono font-bold">€${itemTot.toFixed(2).replace('.', ',')}</strong>
-                                <span class="px-1 py-0.2 bg-brand-gold/15 text-brand-gold rounded text-[8px] font-bold">CONCORDATO</span>
-                                ${tiersSummary ? `<span class="text-[9px] text-slate-400 font-mono">(${tiersSummary})</span>` : ''}
+                                <strong class="text-amber-400 font-mono font-bold text-[10px]">€${itemTot.toFixed(2).replace('.', ',')}</strong>
+                                <span class="px-1.5 py-0.5 bg-amber-950/40 text-amber-300 border border-amber-500/30 rounded text-[8px] font-bold font-mono tracking-wider shadow-xs">CONCORDATO</span>
+                                ${tiersSummary ? `<span class="text-[9px] text-[rgba(255,255,255,0.6)] font-mono">(${tiersSummary})</span>` : ''}
                             </span>
-                        ` : (item.prezzo > 0 ? `<span class="inline-flex items-center gap-1">Prezzo: <strong class="text-white font-mono font-semibold">€${(item.prezzo * item.quantita).toFixed(2).replace('.', ',')}</strong></span>` : '')}
+                        ` : (itemTot > 0 ? `<span class="inline-flex items-center gap-1">Prezzo: <strong class="text-white font-mono font-semibold">€${itemTot.toFixed(2).replace('.', ',')}</strong></span>` : '')}
                     </div>
 
                     <div class="text-[10px] text-[rgba(255,255,255,0.65)] flex items-center gap-1 font-sans">
@@ -6204,7 +6311,7 @@ function renderOrdini() {
     cardsContainer.innerHTML = ordiniConDettagli.map(({ order, displayIndex }) => {
         const nomeCliente = order.nome || 'N/D';
         const telefonoCliente = order.telefono || 'N/D';
-        const dataOrdine = order.data || 'N/D';
+        const dataOrdine = formattaDataOraOrdine(order);
         const totaleOrdine = order.totale || '0,00€';
         const prodottiOrdinati = order.squadra || '';
         const tagliaOrdinata = order.taglia || '';
@@ -6376,142 +6483,78 @@ function renderOrdini() {
                         <div class="text-[10px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wider">Riepilogo Finanziario</div>
                         
                         <div class="space-y-1.5 text-xs text-[rgba(255,255,255,0.88)]">
-                            <!-- Subtotale prodotti -->
-                            <div class="flex justify-between items-center py-0.5">
-                                <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
-                                <span class="font-mono font-semibold text-white">
-                                    € ${(() => {
-                                        const spedInfo = calcolaSpedizioneClienteOrdine(order);
-                                        if (spedInfo.subtotale && spedInfo.subtotale > 0) {
-                                            return spedInfo.subtotale.toFixed(2).replace('.', ',');
-                                        }
-                                        const totIncassato = parseFlexibleDecimal(totaleOrdine);
-                                        const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
-                                        return Math.max(0, totIncassato + couponDiscount - spedInfo.costo).toFixed(2).replace('.', ',');
-                                    })()}
-                                </span>
-                            </div>
-                            <!-- Coupon (se presente) -->
                             ${(() => {
-                                const cCode = order.coupon_code || '';
-                                const cDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
-                                if (cCode || cDiscount > 0) {
-                                    return `
-                                    <div class="flex justify-between items-center py-0.5 text-emerald-400 font-medium">
-                                        <span class="flex items-center gap-1">
-                                            <span>🎟️</span> Coupon: <strong class="font-bold uppercase">${cCode || 'SCONTO'}</strong>
-                                        </span>
-                                        <span class="font-mono font-bold">-€ ${cDiscount.toFixed(2).replace('.', ',')}</span>
+                                const fin = calcolaRiepilogoFinanziarioOrdine(order);
+                                const sign = fin.profittoEur >= 0 ? '+' : '';
+                                return `
+                                <!-- Subtotale prodotti -->
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
+                                    <span class="font-mono font-semibold text-white">€ ${fin.subtotaleProdotti.toFixed(2).replace('.', ',')}</span>
+                                </div>
+                                <!-- Coupon (se presente) -->
+                                ${fin.couponDiscount > 0 || fin.couponCode ? `
+                                <div class="flex justify-between items-center py-0.5 text-emerald-400 font-medium">
+                                    <span class="flex items-center gap-1">
+                                        <span>🎟️</span> Coupon: <strong class="font-bold uppercase">${fin.couponCode || 'SCONTO'}</strong>
+                                    </span>
+                                    <span class="font-mono font-bold">-€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}</span>
+                                </div>
+                                ` : ''}
+                                <!-- Spedizione cliente -->
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-mono font-bold text-white">${fin.spedInfo.labelHtml}</span>
+                                        ${fin.spedInfo.isOverride ? `
+                                        <button type="button" onclick="event.stopPropagation(); window.toggleSpedizioneClienteAdmin('${safeOrderId}', false)" class="text-[10px] text-amber-300 hover:text-white bg-amber-950/70 hover:bg-amber-900 px-1.5 py-0.5 rounded border border-amber-800/80 font-bold transition cursor-pointer" title="Ripristina spedizione cliente calcolata">
+                                            Ripristina
+                                        </button>
+                                        ` : (fin.spedizioneCliente > 0 ? `
+                                        <button type="button" onclick="event.stopPropagation(); window.toggleSpedizioneClienteAdmin('${safeOrderId}', true)" class="text-[10px] text-rose-300 hover:text-white bg-rose-950/70 hover:bg-rose-900 px-1.5 py-0.5 rounded border border-rose-800/80 font-bold transition cursor-pointer" title="Azzera spedizione cliente per questo ordine">
+                                            Rimuovi
+                                        </button>
+                                        ` : '')}
                                     </div>
-                                    `;
-                                }
-                                return '';
+                                </div>
+                                <!-- Totale Incassato -->
+                                <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
+                                    <span class="text-white font-bold">Totale Incassato:</span>
+                                    <span class="font-extrabold text-white font-mono text-sm">€ ${fin.totaleIncassato.toFixed(2).replace('.', ',')}</span>
+                                </div>
+                                <!-- Costo Prodotti -->
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
+                                    <span class="font-mono font-semibold text-white">
+                                        € ${(fin.costoProdottiUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
+                                        <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoProdottiUsd.toFixed(2).replace('.', ',')})</span>
+                                    </span>
+                                </div>
+                                <!-- Spedizione Fornitore -->
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
+                                    <span class="font-mono font-semibold text-white">
+                                        € ${(fin.costoSpedizioneUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
+                                        <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoSpedizioneUsd.toFixed(2).replace('.', ',')})</span>
+                                    </span>
+                                </div>
+                                <!-- Costo Totale Reale -->
+                                <div class="flex justify-between items-center py-1.5 border-t border-[rgba(255,255,255,0.08)] mt-1 font-bold">
+                                    <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
+                                    <span class="font-mono font-black text-white text-sm">
+                                        € ${fin.costoTotaleEur.toFixed(2).replace('.', ',')} 
+                                        <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${fin.costoTotaleUsd.toFixed(2).replace('.', ',')})</span>
+                                    </span>
+                                </div>
+                                <!-- Margine Reale (Profitto) -->
+                                <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
+                                    <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
+                                    <span class="font-mono font-black text-emerald-400 text-sm">
+                                        ${sign}€ ${fin.profittoEur.toFixed(2).replace('.', ',')}
+                                    </span>
+                                </div>
+                                `;
                             })()}
-                            <!-- Spedizione cliente -->
-                            <div class="flex justify-between items-center py-0.5">
-                                <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
-                                <span class="font-mono font-bold text-white">
-                                    ${calcolaSpedizioneClienteOrdine(order).labelHtml}
-                                </span>
-                            </div>
-                            <!-- Totale Incassato -->
-                            <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
-                                <span class="text-white font-bold">Totale Incassato:</span>
-                                <span class="font-extrabold text-white font-mono text-sm">${(() => {
-                                    const isFornitore = Boolean(
-                                        order.coupon_type === 'fornitore' ||
-                                        order.coupon_type === 'supplier_price' ||
-                                        (order.coupon_code && String(order.coupon_code).toUpperCase() === 'MIAKHALIFA')
-                                    );
-                                    if (isFornitore) {
-                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                        const p = parseFlexibleDecimal(costoProdottiUsd);
-                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                        const rawEur = parseFlexibleDecimal(costoFornitoreEur);
-                                        const val = rawEur > 0 ? rawEur : ((p + s) * r);
-                                        return `€ ${val.toFixed(2).replace('.', ',')}`;
-                                    }
-                                    return typeof totaleOrdine === 'number' ? `€ ${totaleOrdine.toFixed(2).replace('.', ',')}` : (String(totaleOrdine).includes('€') ? String(totaleOrdine) : `€ ${String(totaleOrdine)}`);
-                                })()}</span>
-                            </div>
-                            <!-- Costo Prodotti -->
-                            <div class="flex justify-between items-center py-0.5">
-                                <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
-                                <span class="font-mono font-semibold text-white">
-                                    € ${(() => {
-                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                        const p = parseFlexibleDecimal(costoProdottiUsd);
-                                        return (p * r).toFixed(2).replace('.', ',');
-                                    })()} 
-                                    <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                        const p = parseFlexibleDecimal(costoProdottiUsd);
-                                        return p.toFixed(2).replace('.', ',');
-                                    })()})</span>
-                                </span>
-                            </div>
-                            <!-- Spedizione Fornitore -->
-                            <div class="flex justify-between items-center py-0.5">
-                                <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
-                                <span class="font-mono font-semibold text-white">
-                                    € ${(() => {
-                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                        return (s * r).toFixed(2).replace('.', ',');
-                                    })()} 
-                                    <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${(() => {
-                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                        return s.toFixed(2).replace('.', ',');
-                                    })()})</span>
-                                </span>
-                            </div>
-                            <!-- Costo Totale Reale -->
-                            <div class="flex justify-between items-center py-1.5 border-t border-[rgba(255,255,255,0.08)] mt-1 font-bold">
-                                <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
-                                <span class="font-mono font-black text-white text-sm">
-                                    € ${(() => {
-                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                        const p = parseFlexibleDecimal(costoProdottiUsd);
-                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                        const rawEur = parseFlexibleDecimal(costoFornitoreEur);
-                                        const val = rawEur > 0 ? rawEur : ((p + s) * r);
-                                        return val.toFixed(2).replace('.', ',');
-                                    })()} 
-                                    <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${(() => {
-                                        const p = parseFlexibleDecimal(costoProdottiUsd);
-                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                        const rawUsd = parseFlexibleDecimal(costoFornitoreUsd);
-                                        const val = rawUsd > 0 ? rawUsd : (p + s);
-                                        return val.toFixed(2).replace('.', ',');
-                                    })()})</span>
-                                </span>
-                            </div>
-                            <!-- Margine Reale (Profitto) -->
-                            <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
-                                <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
-                                <span class="font-mono font-black text-emerald-400 text-sm">
-                                    ${(() => {
-                                        const isFornitore = Boolean(
-                                            order.coupon_type === 'fornitore' ||
-                                            order.coupon_type === 'supplier_price' ||
-                                            (order.coupon_code && String(order.coupon_code).toUpperCase() === 'MIAKHALIFA')
-                                        );
-                                        if (isFornitore) {
-                                            return `+€ 0,00`;
-                                        }
-                                        const totInc = parseFlexibleDecimal(totaleOrdine);
-                                        const r = parseFlexibleDecimal(cambioValuta) || 0.92;
-                                        const p = parseFlexibleDecimal(costoProdottiUsd);
-                                        const s = parseFlexibleDecimal(costoSpedizioneUsd);
-                                        const rawEur = parseFlexibleDecimal(costoFornitoreEur);
-                                        const cTot = rawEur > 0 ? rawEur : ((p + s) * r);
-                                        let prof = (order.profitto_eur !== undefined && order.profitto_eur !== null && !isNaN(Number(order.profitto_eur)))
-                                            ? parseFlexibleDecimal(order.profitto_eur)
-                                            : (order["Profitto (EUR)"] !== undefined ? parseFlexibleDecimal(order["Profitto (EUR)"]) : (totInc - cTot));
-                                        const sign = prof >= 0 ? '+' : '';
-                                        return `${sign}€ ${prof.toFixed(2).replace('.', ',')}`;
-                                    })()}
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -12731,28 +12774,7 @@ function renderGestioneOrdini() {
         if (ord.payment_status === 'Pagato') pagClass = "bg-emerald-50 text-emerald-700 border-emerald-200/50";
         else if (ord.payment_status === 'Rimborso') pagClass = "bg-amber-50 text-amber-700 border-amber-200/50";
 
-        let dateObj = null;
-        if (ord.created_at) {
-            dateObj = new Date(ord.created_at);
-        } else if (ord.data) {
-            const parts = ord.data.split('/');
-            if (parts.length === 3) {
-                const day = parseInt(parts[0], 10);
-                const month = parseInt(parts[1], 10) - 1;
-                const yearParts = parts[2].split(',');
-                const year = parseInt(yearParts[0], 10);
-                dateObj = new Date(year, month, day);
-            } else {
-                dateObj = new Date(ord.data);
-            }
-        }
-        if (!dateObj || isNaN(dateObj.getTime())) {
-            dateObj = new Date();
-        }
-
-        const formattedDate = dateObj.toLocaleDateString('it-IT', {
-            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
+        const formattedDate = formattaDataOraOrdine(ord);
 
         const isRegistrato = !!ord.user_id;
         const displayName = ord.registered_name || ord.nome || 'N/D';
@@ -12769,28 +12791,9 @@ function renderGestioneOrdini() {
         const hasConvenzione = Boolean(ord.is_convenzione || ord.torneo_id || codiceConv || (Array.isArray(ord.carrello) && ord.carrello.some(it => it && (it.fornitura || it.torneo_id))));
         const totCompletini = estraiNumeroArticoli(ord);
 
-        // Calcolo sicuro del totale dovuto ("Totale che mi deve")
-        const rawTotale = (ord.totale !== undefined && ord.totale !== null && ord.totale !== '')
-            ? ord.totale
-            : (ord.totale_ordine ?? ord.totale_eur ?? ord.total ?? ord.importo ?? 0);
-        const totaleOrdine = parseFlexibleDecimal(rawTotale);
-
-        const statusPagamento = String(ord.payment_status || '').trim().toLowerCase();
-        const isPagato = statusPagamento === 'pagato' || statusPagamento === 'paid';
-
-        let totalePagato = 0;
-        if (ord.importo_pagato !== undefined && ord.importo_pagato !== null && ord.importo_pagato !== '') {
-            totalePagato = parseFlexibleDecimal(ord.importo_pagato);
-        } else if (ord.totale_pagato !== undefined && ord.totale_pagato !== null && ord.totale_pagato !== '') {
-            totalePagato = parseFlexibleDecimal(ord.totale_pagato);
-        } else if (ord.pagato !== undefined && ord.pagato !== null && ord.pagato !== '') {
-            totalePagato = parseFlexibleDecimal(ord.pagato);
-        } else if (isPagato) {
-            totalePagato = totaleOrdine;
-        }
-
-        const totaleCheMiDeve = Math.max(0, totaleOrdine - totalePagato);
-        const totaleCheMiDeveFormatted = `€${totaleCheMiDeve.toFixed(2).replace('.', ',')}`;
+        // Calcolo sicuro e coerente dell'importo economico dell'ordine ("Mi deve")
+        const finSummary = calcolaRiepilogoFinanziarioOrdine(ord);
+        const totaleCheMiDeveFormatted = `€${finSummary.totaleIncassato.toFixed(2).replace('.', ',')}`;
 
         return `
             <tr class="hover:bg-slate-50/50 transition-colors ${isAnnullato ? 'bg-rose-50/30' : ''}">
@@ -12934,6 +12937,10 @@ async function apriGestioneOrdineModal(id) {
     const ord = window.gestioneOrdiniList.find(o => Number(o.id) === Number(id));
     if (!ord) return;
 
+    if (!window.prodotti || window.prodotti.length === 0) {
+        if (typeof caricaProdotti === 'function') caricaProdotti().catch(() => {});
+    }
+
     // Valorizza campi form nel modal
     const inputEmail = document.getElementById('gestione-ordine-cliente-email');
     const selectPagamento = document.getElementById('gestione-ordine-payment-status');
@@ -13014,7 +13021,6 @@ async function apriGestioneOrdineModal(id) {
     const ordIdEl = document.getElementById('gestione-ordine-id');
     const cliEl = document.getElementById('gestione-ordine-cliente-nome');
     const telEl = document.getElementById('gestione-ordine-cliente-telefono');
-    const indEl = document.getElementById('gestione-ordine-cliente-indirizzo');
     
     if (ordIdEl) ordIdEl.innerText = `#${ord.id}`;
     
@@ -13030,7 +13036,6 @@ async function apriGestioneOrdineModal(id) {
     const displayName = ord.registered_name || ord.nome || 'N/D';
     if (cliEl) cliEl.innerText = displayName;
     if (telEl) telEl.innerText = ord.telefono || 'N/D';
-    if (indEl) indEl.innerText = ord.indirizzo || 'Indirizzo di Spedizione Premium registrato';
 
     // Carica lista account registrati e aggiorna box
     await caricaRegisteredAccounts();
@@ -13156,29 +13161,172 @@ function chiudiGestioneOrdineModal() {
     }
 }
 
+function parseCustomizationDetailsClient(infoPerso, item = {}) {
+    let nome = "";
+    let numero = "";
+    let patches = [];
+
+    if (item && typeof item === "object") {
+        if (item.customName || item.nome_personalizzazione || (item.nome && typeof item.nome === "string" && !["nessuno", "nessuna", "no", ""].includes(item.nome.trim().toLowerCase()) && item.nome !== item.versione && item.nome !== item.squadra)) {
+            nome = (item.customName || item.nome_personalizzazione || item.nome).trim();
+        }
+        if (item.customNumber || item.numero_personalizzazione || (item.numero && typeof item.numero === "string" && !["nessuno", "nessuna", "no", ""].includes(item.numero.trim().toLowerCase()))) {
+            numero = String(item.customNumber || item.numero_personalizzazione || item.numero).trim();
+        }
+        if (item.customPatch || item.patch || item.patches) {
+            if (Array.isArray(item.patches)) {
+                item.patches.forEach(p => { if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim()); });
+            } else {
+                const p = String(item.customPatch || item.patch).trim();
+                if (p && !["nessuna", "nessuno", "no", "false", ""].includes(p.toLowerCase())) patches.push(p);
+            }
+        }
+    }
+
+    let rawText = "";
+    if (typeof infoPerso === "string") {
+        rawText = infoPerso.trim();
+    } else if (infoPerso && typeof infoPerso === "object") {
+        if (infoPerso.nome && !nome) nome = String(infoPerso.nome).trim();
+        if (infoPerso.numero && !numero) numero = String(infoPerso.numero).trim();
+        if (Array.isArray(infoPerso.patches)) {
+            infoPerso.patches.forEach(p => { if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim()); });
+        } else if (infoPerso.patch) {
+            patches.push(String(infoPerso.patch).trim());
+        }
+    }
+
+    if (rawText) {
+        let cleanText = rawText.replace(/^(\d+)x\s+\[|\]$/g, "").replace(/^\[|\]$/g, "").trim();
+        const patchRegex = /(?:Patch|Patches|Badge|Badges):\s*([^|\n\/-]+)/gi;
+        let pMatch;
+        while ((pMatch = patchRegex.exec(cleanText)) !== null) {
+            const val = pMatch[1].trim();
+            if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase()) && !patches.includes(val)) {
+                patches.push(val);
+            }
+        }
+
+        const nomeRegex = /Nome:\s*([^|\n\/,-]+)/i;
+        const nMatch = cleanText.match(nomeRegex);
+        if (nMatch && !nome) {
+            const val = nMatch[1].trim();
+            if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase())) nome = val;
+        }
+
+        const numRegex = /Num(?:ero)?:\s*([^|\n\/,\s-]+)/i;
+        const numMatch = cleanText.match(numRegex);
+        if (numMatch && !numero) {
+            const val = numMatch[1].trim();
+            if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase())) numero = val;
+        }
+
+        if (!nome && !numero) {
+            let textWithoutPatches = cleanText.replace(/(?:Patch|Badge|Patches|Badges):\s*[^|\n\/-]+/gi, "").trim();
+            textWithoutPatches = textWithoutPatches.replace(/^[-|\/,\s]+|[-|\/,\s]+$/g, "");
+            if (textWithoutPatches && !["nessuna", "nessuno", "no", "false", "none", ""].includes(textWithoutPatches.toLowerCase())) {
+                const parts = textWithoutPatches.split(/[-|\/]/).map(s => s.trim()).filter(Boolean);
+                if (parts.length >= 2) {
+                    nome = parts[0].replace(/Nome:\s*/i, "").trim();
+                    numero = parts[1].replace(/Num(?:ero)?:\s*/i, "").trim();
+                } else {
+                    const hasDigits = /\d+/.test(textWithoutPatches);
+                    const hasLetters = /[A-Za-z]+/.test(textWithoutPatches);
+                    if (hasDigits && hasLetters) {
+                        const numPart = textWithoutPatches.match(/\b\d+\b/);
+                        if (numPart) {
+                            numero = numPart[0];
+                            nome = textWithoutPatches.replace(numPart[0], "").replace(/[-#\/]/g, "").trim();
+                        } else {
+                            nome = textWithoutPatches;
+                        }
+                    } else if (hasDigits) {
+                        numero = textWithoutPatches;
+                    } else if (hasLetters) {
+                        nome = textWithoutPatches;
+                    }
+                }
+            }
+        }
+    }
+
+    if (nome && ["nessuna", "nessuno", "no", "false", "none"].includes(nome.toLowerCase())) nome = "";
+    if (numero && ["nessuna", "nessuno", "no", "false", "none"].includes(numero.toLowerCase())) numero = "";
+
+    return {
+        nome,
+        numero,
+        patches,
+        patchStr: patches.join(", ")
+    };
+}
+
+/**
+ * Recupera l'immagine reale dell'articolo dell'ordine secondo le priorità autoritative:
+ * 1. URL immagine valido salvato nello snapshot/riga dell'ordine (imgUrl, immagine, image, foto);
+ * 2. Stable product ID (id UUID o legacy_id numerico/stringa) -> lookup su catalogo prodotti -> immagine;
+ * 3. Eventuale fallback da foto principale dell'ordine (ord.foto formula =IMAGE o URL);
+ * 4. Fallback pulito se l'immagine non è recuperabile.
+ */
+function resolveArticoloImageUrl(item, ord) {
+    if (!item) return '';
+
+    // 1. Priorità 1: Immagine valida già salvata nello snapshot/riga ordine
+    const rawItemImg = item.imgUrl || item.immagine || item.image || item.foto;
+    const cleanItemImg = estraiUrlImmaginePulito(rawItemImg);
+    if (cleanItemImg) {
+        return cleanItemImg;
+    }
+
+    // 2. Priorità 2: Lookup tramite identificatore stabile nel catalogo prodotti
+    const prodList = (Array.isArray(window.prodotti) && window.prodotti.length > 0)
+        ? window.prodotti
+        : (Array.isArray(window.catalogoProdotti) ? window.catalogoProdotti : []);
+
+    if (prodList.length > 0) {
+        let matched = null;
+        if (item.id) {
+            matched = prodList.find(p => String(p.id) === String(item.id));
+        }
+        if (!matched && item.legacy_id) {
+            matched = prodList.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+        }
+        if (matched && matched.immagine) {
+            const cleanProdImg = estraiUrlImmaginePulito(matched.immagine);
+            if (cleanProdImg) return cleanProdImg;
+        }
+    }
+
+    // 3. Priorità 3: Eventuale lookup già esistente nel progetto / foto ordine
+    if (ord && ord.foto) {
+        const orderImg = estraiUrlImmaginePulito(ord.foto);
+        if (orderImg) return orderImg;
+    }
+
+    return '';
+}
+
 function renderProdottiModificabili() {
     const container = document.getElementById('gestione-ordine-prodotti-list');
     if (!container) return;
 
-    if (window.currentOrdineProdotti.length === 0) {
+    if (!window.currentOrdineProdotti || window.currentOrdineProdotti.length === 0) {
         container.innerHTML = `
             <div class="text-center py-6 bg-[#0B0B0B] border border-dashed border-[rgba(255,255,255,0.08)] rounded-2xl text-xs text-[rgba(255,255,255,0.65)] font-medium">
-                Nessun articolo presente in questo ordine. Aggiungine uno usando il pannello qui sotto.
+                Nessun articolo presente in questo ordine.
             </div>
         `;
         calcolaESituazioneEconomica();
         return;
     }
 
+    const currentOrd = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(window.currentGestioneOrderId)) || null;
+
     container.innerHTML = window.currentOrdineProdotti.map((item, idx) => {
-        const squadra = item.squadra || item.nome || '';
-        const categoria = item.categoria || 'Casa';
-        const stagione = item.stagione || '2026/2027';
-        const versione = item.versione || '';
-        const target = item.target || 'Adulto';
+        const squadra = item.squadra || item.nome || 'Prodotto';
         const taglia = item.taglia || 'M';
-        const quantita = item.quantita || 1;
-        const infoPerso = item.infoPerso || item.personalizzazione || 'No';
+        const quantita = parseInt(item.quantita, 10) || 1;
+        const rawPers = item.infoPerso || item.personalizzazione || 'Nessuna';
         const prezzo = parseFloat(item.prezzo) || 23.99;
         const prezzoForn = parseFloat(item.prezzo_fornitore) || 14.50;
 
@@ -13187,84 +13335,120 @@ function renderProdottiModificabili() {
         const torneoNome = fObj.torneo_nome || item.torneo_nome || 'Torneo';
         const squadraNome = fObj.nome_squadra || item.nome_squadra || squadra;
         const codiceUnivoco = fObj.codice_univoco || item.codice_univoco || item.codice_fornitura || '';
-        const prezzoConcordato = (item.prezzo_concordato !== undefined && item.prezzo_concordato !== null)
-            ? Number(item.prezzo_concordato)
-            : ((fObj.prezzo_concordato_unitario !== undefined && fObj.prezzo_concordato_unitario !== null)
-                ? Number(fObj.prezzo_concordato_unitario)
-                : prezzo);
+
+        const rawPrezzo = parseFloat(item.prezzo) || 23.99;
+        const rawOrig = (item.prezzo_originale !== undefined && item.prezzo_originale !== null && !isNaN(Number(item.prezzo_originale)) && Number(item.prezzo_originale) > 0) ? Number(item.prezzo_originale) : rawPrezzo;
+        const hasDiffModal = Math.abs(rawPrezzo - rawOrig) >= 0.009 || (Array.isArray(item.fasce_prezzo) && item.fasce_prezzo.length > 1);
+        const isConcordatoModal = (item.ha_prezzo_concordato || (item.prezzo_concordato !== null && item.prezzo_concordato !== undefined)) && hasDiffModal;
+
+        const custom = parseCustomizationDetailsClient(rawPers, item);
+        const hasCustom = Boolean(custom.nome || custom.numero || (custom.patches && custom.patches.length > 0));
+
+        // Risoluzione immagine reale dell'articolo
+        const imgUrl = resolveArticoloImageUrl(item, currentOrd);
 
         return `
-            <div class="bg-[#111111] border border-[rgba(255,255,255,0.08)] p-4 rounded-xl space-y-3 relative shadow-sm">
-                <!-- Delete Button -->
-                <button onclick="gestioneEliminaProdotto(${idx})" class="absolute top-3 right-3 text-red-400 hover:text-red-300 font-black text-xs transition-colors p-1 bg-red-950/20 hover:bg-red-900/40 border border-red-900/30 rounded-lg" title="Elimina prodotto">
-                    🗑 Elimina Prodotto
-                </button>
-
+            <div class="bg-[#0B0B0B] border border-[rgba(255,255,255,0.08)] p-3.5 rounded-xl space-y-2.5 relative shadow-sm hover:border-[rgba(255,255,255,0.15)] transition-all">
                 ${isFornitura ? `
-                    <div class="bg-amber-950/20 border border-amber-500/30 rounded-lg p-2.5 text-xs text-amber-200 flex flex-wrap items-center gap-x-4 gap-y-1 mb-2">
+                    <div class="bg-amber-950/20 border border-amber-500/30 rounded-lg p-2 text-[11px] text-amber-200 flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span class="font-bold flex items-center gap-1">🏆 <span>Convenzione:</span> <strong class="text-white">${escapeHtml(torneoNome)}</strong></span>
                         <span>Squadra: <strong class="text-white">${escapeHtml(squadraNome)}</strong></span>
-                        ${codiceUnivoco ? `<span>Codice: <code class="bg-black/60 px-1.5 py-0.5 rounded font-mono text-amber-300 text-[11px]">${escapeHtml(codiceUnivoco)}</code></span>` : ''}
-                        <span>Prezzo concordato interno: <strong class="text-emerald-400">€${prezzoConcordato.toFixed(2).replace('.', ',')}</strong></span>
+                        ${codiceUnivoco ? `<span>Codice: <code class="bg-black/60 px-1 py-0.5 rounded font-mono text-amber-300 text-[10px]">${escapeHtml(codiceUnivoco)}</code></span>` : ''}
                     </div>
                 ` : ''}
 
-                <!-- Righe del Prodotto -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-                    <div class="md:col-span-2">
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Nome Prodotto / Squadra</label>
-                        <input type="text" value="${squadra}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'squadra', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
+                <div class="flex items-start gap-3.5">
+                    <!-- FOTO ARTICOLO -->
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-[#161616] rounded-xl border border-[rgba(255,255,255,0.08)] flex items-center justify-center p-1.5 overflow-hidden relative shadow-inner">
+                        ${imgUrl ? `
+                            <img src="${imgUrl}" alt="${escapeHtml(squadra)}" class="w-full h-full object-contain drop-shadow-sm" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-full h-full flex flex-col items-center justify-center text-[rgba(255,255,255,0.25)]\\'><span class=\\'text-2xl\\'>👕</span><span class=\\'text-[8px] mt-0.5 font-medium\\'>No foto</span></div>';">
+                        ` : `
+                            <div class="w-full h-full flex flex-col items-center justify-center text-[rgba(255,255,255,0.25)]">
+                                <span class="text-2xl">👕</span>
+                                <span class="text-[8px] mt-0.5 font-medium">No foto</span>
+                            </div>
+                        `}
                     </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Categoria</label>
-                        <select onchange="aggiornaDatoProdottoSingolo(${idx}, 'categoria', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
-                            <option value="Casa" ${categoria === 'Casa' ? 'selected' : ''}>Casa</option>
-                            <option value="Trasferta" ${categoria === 'Trasferta' ? 'selected' : ''}>Trasferta</option>
-                            <option value="Terza" ${categoria === 'Terza' ? 'selected' : ''}>Terza</option>
-                            <option value="Special" ${categoria === 'Special' ? 'selected' : ''}>Special</option>
-                            <option value="Retro" ${categoria === 'Retro' ? 'selected' : ''}>Retro</option>
-                            <option value="Kit" ${categoria === 'Kit' ? 'selected' : ''}>Kit</option>
-                            <option value="Tuta" ${categoria === 'Tuta' ? 'selected' : ''}>Tuta</option>
-                            <option value="Giacca" ${categoria === 'Giacca' ? 'selected' : ''}>Giacca</option>
-                            <option value="Allenamento" ${categoria === 'Allenamento' ? 'selected' : ''}>Allenamento</option>
-                            <option value="Accessori" ${categoria === 'Accessori' ? 'selected' : ''}>Accessori</option>
-                            <option value="Altro" ${categoria === 'Altro' ? 'selected' : ''}>Altro</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Stagione</label>
-                        <input type="text" value="${stagione}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'stagione', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Versione</label>
-                        <input type="text" value="${versione}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'versione', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Target</label>
-                        <select onchange="aggiornaDatoProdottoSingolo(${idx}, 'target', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
-                            <option value="Adulto" ${target === 'Adulto' ? 'selected' : ''}>Adulto</option>
-                            <option value="Bambino" ${target === 'Bambino' ? 'selected' : ''}>Bambino</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Taglia</label>
-                        <input type="text" value="${taglia}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'taglia', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Quantità</label>
-                        <input type="number" min="1" value="${quantita}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'quantita', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B] font-mono">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Personalizzazione</label>
-                        <input type="text" value="${infoPerso}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'infoPerso', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B]">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Prezzo (€)</label>
-                        <input type="number" step="0.01" value="${prezzo}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'prezzo', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B] font-mono">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wide block mb-0.5">Prezzo Fornitore ($)</label>
-                        <input type="number" step="0.01" value="${prezzoForn}" oninput="aggiornaDatoProdottoSingolo(${idx}, 'prezzo_fornitore', this.value)" class="w-full p-2 border border-[rgba(255,255,255,0.08)] rounded-lg focus:outline-none focus:border-brand-gold font-bold text-white bg-[#0B0B0B] font-mono">
+
+                    <!-- CONTENUTO ARTICOLO -->
+                    <div class="flex-1 min-w-0 space-y-2">
+                        <!-- Intestazione riga articolo con azioni [✏️ MODIFICA] [🗑️ ELIMINA] -->
+                        <div class="flex flex-wrap items-start justify-between gap-2 border-b border-[rgba(255,255,255,0.06)] pb-2">
+                            <div class="flex-1 min-w-[140px]">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-1.5 py-0.5 bg-[#1a1a1a] border border-[rgba(255,255,255,0.1)] text-brand-gold text-[10px] font-mono font-bold rounded flex-shrink-0">
+                                        #${idx + 1}
+                                    </span>
+                                    <h5 class="text-xs sm:text-sm font-extrabold text-white leading-tight">
+                                        ${escapeHtml(squadra)}
+                                    </h5>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[11px] text-[rgba(255,255,255,0.65)]">
+                                    <span>Quantità: <strong class="text-white font-mono">${quantita}</strong></span>
+                                    <span>•</span>
+                                    ${isConcordatoModal ? `
+                                        <span>Prezzo: <span class="line-through text-slate-500 font-mono text-[9px] mr-1">€${rawOrig.toFixed(2).replace('.', ',')}</span><strong class="text-amber-400 font-mono">€${rawPrezzo.toFixed(2).replace('.', ',')}</strong> <span class="px-1.5 py-0.5 bg-amber-950/40 text-amber-300 border border-amber-500/30 rounded text-[8px] font-bold font-mono tracking-wider ml-1">CONCORDATO</span></span>
+                                    ` : `
+                                        <span>Prezzo: <strong class="text-white font-mono">€${rawPrezzo.toFixed(2).replace('.', ',')}</strong></span>
+                                    `}
+                                    <span>•</span>
+                                    <span>Fornitore: <strong class="text-white font-mono">$${prezzoForn.toFixed(2)}</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Pulsanti Azione per singolo articolo -->
+                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                                <button type="button" onclick="apriModalModificaArticolo(${idx})" class="px-2.5 py-1.5 bg-[#1a1a1a] hover:bg-brand-gold hover:text-slate-950 text-white border border-[rgba(255,255,255,0.12)] text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
+                                    <span>✏️</span> Modifica
+                                </button>
+                                <button type="button" onclick="apriModalEliminaArticolo(${idx})" class="px-2.5 py-1.5 bg-rose-950/20 hover:bg-rose-600 hover:text-white text-rose-400 border border-rose-900/30 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
+                                    <span>🗑️</span> Elimina
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dettagli Articolo: Taglia, Personalizzazione e Patch (Senza troncamenti) -->
+                        <div class="pt-2 border-t border-[rgba(255,255,255,0.06)] space-y-2 text-xs">
+                            <!-- Riga Taglia & Badge -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] border border-[rgba(255,255,255,0.1)] rounded-lg">
+                                    <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Taglia:</span>
+                                    <span class="font-mono font-black text-brand-gold text-xs px-1.5 py-0.5 bg-black/40 rounded border border-brand-gold/30">${escapeHtml(taglia)}</span>
+                                </div>
+
+                                ${(!hasCustom && (!item.patch || item.patch === '')) ? `
+                                    <span class="text-[10px] text-[rgba(255,255,255,0.4)] px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                        Nessuna personalizzazione
+                                    </span>
+                                ` : ''}
+                            </div>
+
+                            <!-- Box Personalizzazione Nome / Numero (se presenti) -->
+                            ${(custom.nome || custom.numero || (hasCustom && !custom.patchStr)) ? `
+                                <div class="p-2.5 bg-[#141414] border border-[rgba(255,255,255,0.08)] rounded-xl space-y-1">
+                                    <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                                        <span>✍️</span> Personalizzazione
+                                    </div>
+                                    <div class="text-xs text-white/90 break-words font-medium leading-relaxed pl-3 border-l-2 border-amber-500/40 space-y-0.5">
+                                        ${custom.nome ? `<div>Nome: <strong class="text-white font-bold">${escapeHtml(custom.nome)}</strong></div>` : ''}
+                                        ${custom.numero ? `<div>Numero: <strong class="text-amber-400 font-mono font-bold">${escapeHtml(custom.numero)}</strong></div>` : ''}
+                                        ${(!custom.nome && !custom.numero && hasCustom) ? `<div class="text-emerald-400 font-mono">${escapeHtml(rawPers)}</div>` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Box Patch (se presente) -->
+                            ${(custom.patchStr || item.patch) ? `
+                                <div class="p-2.5 bg-[#141414] border border-[rgba(255,255,255,0.08)] rounded-xl space-y-1">
+                                    <div class="text-[10px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                                        <span>🏆</span> Patch Competizione
+                                    </div>
+                                    <div class="text-xs text-amber-200 font-semibold break-words leading-relaxed pl-3 border-l-2 border-amber-400/40">
+                                        ${escapeHtml(custom.patchStr || item.patch)}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -13274,25 +13458,321 @@ function renderProdottiModificabili() {
     calcolaESituazioneEconomica();
 }
 
-window.aggiornaDatoProdottoSingolo = function(idx, key, value) {
-    if (!window.currentOrdineProdotti[idx]) return;
-    
-    if (key === 'quantita') {
-        window.currentOrdineProdotti[idx][key] = parseInt(value, 10) || 1;
-    } else if (key === 'prezzo' || key === 'prezzo_fornitore') {
-        window.currentOrdineProdotti[idx][key] = parseFloat(value) || 0;
+/**
+ * Restituisce le opzioni di taglia ufficiali per un prodotto in base a target, categoria e nome
+ * (Stessa identica logica della source of truth del configuratore pubblico di index.html)
+ */
+function ottieniTaglieUfficialiProdotto(prodotto) {
+    const nomeLower = (prodotto?.squadra || prodotto?.nome || '').toLowerCase();
+    const catLower = (prodotto?.categoria || '').toLowerCase();
+    const tgtLower = (prodotto?.target || '').toLowerCase();
+
+    const isBambino = tgtLower === 'bambino' || catLower === 'kit bambino' || catLower.includes('bambino') || nomeLower.includes('bambino') || nomeLower.includes('kids') || nomeLower.includes('kid') || nomeLower.includes('bambina');
+    const isTuta = catLower === 'tuta' || catLower === 'tute' || nomeLower.includes('tuta') || nomeLower.includes('tracksuit');
+
+    if (isBambino) {
+        if (isTuta) {
+            // TUTE BAMBINO (Taglie: 10, 12, 14, 16, 18)
+            return [
+                { value: '10', label: 'Taglia 10 (5-7 Anni)' },
+                { value: '12', label: 'Taglia 12 (7-9 Anni)' },
+                { value: '14', label: 'Taglia 14 (9-11 Anni)' },
+                { value: '16', label: 'Taglia 16 (11-13 Anni)' },
+                { value: '18', label: 'Taglia 18 (13-15 Anni)' }
+            ];
+        } else {
+            // KIT BAMBINO (Taglie: 16, 18, 20, 22, 24, 26, 28)
+            return [
+                { value: '16', label: 'Taglia 16 (2-3 Anni)' },
+                { value: '18', label: 'Taglia 18 (3-4 Anni)' },
+                { value: '20', label: 'Taglia 20 (4-5 Anni)' },
+                { value: '22', label: 'Taglia 22 (6-7 Anni)' },
+                { value: '24', label: 'Taglia 24 (8-9 Anni)' },
+                { value: '26', label: 'Taglia 26 (10-11 Anni)' },
+                { value: '28', label: 'Taglia 28 (12-13 Anni)' }
+            ];
+        }
     } else {
-        window.currentOrdineProdotti[idx][key] = value;
+        // TARGET ADULTO (Taglie: S, M, L, XL, XXL)
+        return [
+            { value: 'S', label: 'Taglia S' },
+            { value: 'M', label: 'Taglia M' },
+            { value: 'L', label: 'Taglia L' },
+            { value: 'XL', label: 'Taglia XL' },
+            { value: 'XXL', label: 'Taglia XXL' }
+        ];
+    }
+}
+window.ottieniTaglieUfficialiProdotto = ottieniTaglieUfficialiProdotto;
+
+// =========================================================================
+// GESTIONE MODIFICA SINGOLO ARTICOLO (PREFILL & SALVATAGGIO AUTORITATIVO)
+// =========================================================================
+window.targetArticoloIdxModifica = null;
+
+window.apriModalModificaArticolo = function(idx) {
+    if (!window.currentOrdineProdotti || !window.currentOrdineProdotti[idx]) return;
+    const item = window.currentOrdineProdotti[idx];
+    window.targetArticoloIdxModifica = idx;
+
+    const modal = document.getElementById('modal-modifica-articolo');
+    const container = document.getElementById('modal-modifica-articolo-container');
+    const titleEl = document.getElementById('edit-art-squadra-title');
+    const idxInput = document.getElementById('edit-art-idx');
+    const tagliaSelect = document.getElementById('edit-art-taglia');
+    const nomeInput = document.getElementById('edit-art-nome');
+    const numeroInput = document.getElementById('edit-art-numero');
+    const patchInput = document.getElementById('edit-art-patch');
+
+    if (titleEl) titleEl.innerText = item.squadra || item.nome || 'Articolo #' + (idx + 1);
+    if (idxInput) idxInput.value = idx;
+
+    // Recupera prodotto correlato per determinare target/categoria corretta
+    let matchedProd = null;
+    if (item.id) {
+        matchedProd = (window.prodotti || []).find(p => String(p.id) === String(item.id));
+    }
+    if (!matchedProd && item.legacy_id) {
+        matchedProd = (window.prodotti || []).find(p => p.legacy_id !== undefined && String(p.legacy_id) === String(item.legacy_id));
+    }
+    if (!matchedProd) {
+        matchedProd = item;
     }
 
-    calcolaESituazioneEconomica();
+    // PREFILL OBBLIGATORIO: estrai valori correnti e genera taglie ufficiali
+    const currentTaglia = (item.taglia || 'M').trim();
+    const currentTagliaUpper = currentTaglia.toUpperCase();
+
+    if (tagliaSelect) {
+        const officialSizes = ottieniTaglieUfficialiProdotto(matchedProd);
+        let html = officialSizes.map(opt => {
+            const isSel = (opt.value.toUpperCase() === currentTagliaUpper);
+            return `<option value="${escapeHtml(opt.value)}" ${isSel ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`;
+        }).join('');
+
+        // Se il valore già salvato nell'ordine è legacy (es. "2XL", "XS", "Unica") e non è nella lista ufficiale,
+        // mantienilo visibile e selezionabile senza perdere o alterare dati storici!
+        const isFound = officialSizes.some(opt => opt.value.toUpperCase() === currentTagliaUpper);
+        if (!isFound && currentTaglia) {
+            html = `<option value="${escapeHtml(currentTaglia)}" selected>${escapeHtml(currentTaglia)} (Valore attuale)</option>` + html;
+        }
+
+        tagliaSelect.innerHTML = html;
+    }
+
+    const details = parseCustomizationDetailsClient(item.infoPerso || item.personalizzazione, item);
+    if (nomeInput) nomeInput.value = details.nome || '';
+    if (numeroInput) numeroInput.value = details.numero || '';
+    if (patchInput) patchInput.value = details.patchStr || (details.patches && details.patches.join(', ')) || '';
+
+    if (modal && container) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
 };
 
-window.gestioneEliminaProdotto = function(idx) {
-    if (confirm("Sei sicuro di voler eliminare questo prodotto dall'ordine?")) {
-        window.currentOrdineProdotti.splice(idx, 1);
-        showToast("Prodotto rimosso.", "info");
-        renderProdottiModificabili();
+window.chiudiModalModificaArticolo = function() {
+    const modal = document.getElementById('modal-modifica-articolo');
+    const container = document.getElementById('modal-modifica-articolo-container');
+    if (modal && container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            window.targetArticoloIdxModifica = null;
+        }, 150);
+    }
+};
+
+window.confermaSalvaModificaArticolo = async function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const idx = window.targetArticoloIdxModifica;
+    const orderId = window.currentGestioneOrderId;
+
+    if (idx === null || idx === undefined || !orderId) return;
+
+    const taglia = document.getElementById('edit-art-taglia')?.value || 'M';
+    const nome = document.getElementById('edit-art-nome')?.value.trim() || '';
+    const numero = document.getElementById('edit-art-numero')?.value.trim() || '';
+    const patch = document.getElementById('edit-art-patch')?.value.trim() || '';
+
+    const btn = document.getElementById('btn-salva-modifica-art');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Salvataggio...";
+    }
+
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}/items/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                item_index: idx,
+                taglia: taglia,
+                nome: nome,
+                numero: numero,
+                patch: patch
+            })
+        });
+
+        const resData = await response.json();
+        if (response.ok && resData.success && resData.order) {
+            showToast("Articolo aggiornato con successo!", "success");
+            chiudiModalModificaArticolo();
+
+            const updatedOrd = resData.order;
+            const ordIdx = (window.gestioneOrdiniList || []).findIndex(o => Number(o.id) === Number(orderId));
+            if (ordIdx !== -1) {
+                window.gestioneOrdiniList[ordIdx] = { ...window.gestioneOrdiniList[ordIdx], ...updatedOrd };
+            }
+
+            if (Array.isArray(window.ordini)) {
+                const gIdx = window.ordini.findIndex(o => Number(o.id) === Number(orderId));
+                if (gIdx !== -1) {
+                    window.ordini[gIdx] = { ...window.ordini[gIdx], ...updatedOrd };
+                }
+            }
+
+            if (Array.isArray(updatedOrd.carrello)) {
+                window.currentOrdineProdotti = JSON.parse(JSON.stringify(updatedOrd.carrello));
+            }
+            renderProdottiModificabili();
+
+            if (typeof renderGestioneOrdini === 'function') {
+                renderGestioneOrdini();
+            }
+            if (typeof caricaLotto === 'function') {
+                caricaLotto();
+            }
+        } else {
+            showToast("Errore: " + (resData.error || "Impossibile aggiornare l'articolo"), "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore salvataggio modifica articolo:", err);
+        showToast("Errore di connessione durante il salvataggio.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = "<span>💾</span> Salva Modifiche";
+        }
+    }
+};
+
+// =========================================================================
+// GESTIONE ELIMINAZIONE SINGOLO ARTICOLO (CONFERMA & BLOCCO ULTIMO ARTICOLO)
+// =========================================================================
+window.targetArticoloIdxElimina = null;
+
+window.apriModalEliminaArticolo = function(idx) {
+    if (!window.currentOrdineProdotti || !window.currentOrdineProdotti[idx]) return;
+
+    // Regola 7: BLOCCA se è l'ultimo articolo dell'ordine
+    const realItems = (window.currentOrdineProdotti || []).filter(it => !(it.squadra && (it.squadra.toLowerCase().includes('spedizione') || it.squadra.toLowerCase().includes('servizio'))));
+    if (realItems.length <= 1) {
+        showToast("Non puoi eliminare l'ultimo articolo da qui. Se vuoi rimuovere completamente l'ordine utilizza Elimina Ordine.", "error");
+        return;
+    }
+
+    const item = window.currentOrdineProdotti[idx];
+    window.targetArticoloIdxElimina = idx;
+
+    const modal = document.getElementById('modal-elimina-articolo');
+    const container = document.getElementById('modal-elimina-articolo-container');
+
+    const prodEl = document.getElementById('del-art-prodotto');
+    const tagliaEl = document.getElementById('del-art-taglia');
+    const persEl = document.getElementById('del-art-personalizzazione');
+    const qtyEl = document.getElementById('del-art-quantita');
+
+    if (prodEl) prodEl.innerText = item.squadra || item.nome || 'Prodotto #' + (idx + 1);
+    if (tagliaEl) tagliaEl.innerText = item.taglia || '-';
+    if (persEl) persEl.innerText = item.infoPerso || item.personalizzazione || 'Nessuna';
+    if (qtyEl) qtyEl.innerText = item.quantita || 1;
+
+    if (modal && container) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+};
+
+window.chiudiModalEliminaArticolo = function() {
+    const modal = document.getElementById('modal-elimina-articolo');
+    const container = document.getElementById('modal-elimina-articolo-container');
+    if (modal && container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            window.targetArticoloIdxElimina = null;
+        }, 150);
+    }
+};
+
+window.eseguiEliminaArticoloConfermato = async function() {
+    const idx = window.targetArticoloIdxElimina;
+    const orderId = window.currentGestioneOrderId;
+
+    if (idx === null || idx === undefined || !orderId) return;
+
+    const btn = document.getElementById('btn-conferma-elimina-art');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Eliminazione...";
+    }
+
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}/items/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_index: idx })
+        });
+
+        const resData = await response.json();
+        if (response.ok && resData.success && resData.order) {
+            showToast("Articolo rimosso con successo dall'ordine!", "success");
+            chiudiModalEliminaArticolo();
+
+            const updatedOrd = resData.order;
+            const ordIdx = (window.gestioneOrdiniList || []).findIndex(o => Number(o.id) === Number(orderId));
+            if (ordIdx !== -1) {
+                window.gestioneOrdiniList[ordIdx] = { ...window.gestioneOrdiniList[ordIdx], ...updatedOrd };
+            }
+
+            if (Array.isArray(window.ordini)) {
+                const gIdx = window.ordini.findIndex(o => Number(o.id) === Number(orderId));
+                if (gIdx !== -1) {
+                    window.ordini[gIdx] = { ...window.ordini[gIdx], ...updatedOrd };
+                }
+            }
+
+            if (Array.isArray(updatedOrd.carrello)) {
+                window.currentOrdineProdotti = JSON.parse(JSON.stringify(updatedOrd.carrello));
+            }
+            renderProdottiModificabili();
+
+            if (typeof renderGestioneOrdini === 'function') {
+                renderGestioneOrdini();
+            }
+            if (typeof caricaLotto === 'function') {
+                caricaLotto();
+            }
+        } else {
+            showToast("Errore: " + (resData.error || "Impossibile eliminare l'articolo"), "error");
+        }
+    } catch (err) {
+        console.error("⚠️ Errore eliminazione articolo:", err);
+        showToast("Errore di connessione durante l'eliminazione.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = "<span>🗑️</span> Elimina Articolo";
+        }
     }
 };
 
@@ -13417,6 +13897,28 @@ function getShippingRateByQuantityClient(quantity, settings) {
     return Number(lastTier.cost);
 }
 
+/**
+ * Helper client per determinare il moltiplicatore spedizione fornitore:
+ * 0 = escluso
+ * 2 = Tuta (quota doppia)
+ * 1 = standard
+ */
+function getItemShippingMultiplierClient(item, matchedProd = null) {
+    if (!item) return 0;
+    const name = item.squadra || item.nome || '';
+    if (typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(name)) {
+        return 0;
+    }
+    if (item.supplier_shipping_enabled === false || item.spedizione_fornitore === false || item.applica_spedizione_fornitore === false) {
+        return 0;
+    }
+    const cat = String(matchedProd?.categoria || item?.categoria || '').trim().toLowerCase();
+    if (cat === 'tuta' || cat === 'tute') {
+        return 2;
+    }
+    return 1;
+}
+
 async function calcolaESituazioneEconomica() {
     let totArticoli = 0;
     let costoProdUSD = 0;
@@ -13523,22 +14025,29 @@ async function calcolaESituazioneEconomica() {
     }
 
     if (!usaDatiOriginali) {
+        let physicalItemCount = 0;
+        let shippingUnits = 0;
         window.currentOrdineProdotti.forEach(prod => {
+            const isSped = prod.squadra && typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(prod.squadra);
+            if (isSped) return;
             const q = parseInt(prod.quantita, 10) || 1;
             totArticoli += q;
+            physicalItemCount += q;
+            const mult = getItemShippingMultiplierClient(prod);
+            shippingUnits += (q * mult);
             const pUSD = parseFloat(prod.prezzo_fornitore) || 14.50;
             costoProdUSD += (pUSD * q);
             const pEUR = parseFloat(prod.prezzo) || 23.99;
             totaleOrdineEUR += (pEUR * q);
         });
 
-        // Calcolo spedizione unitaria dinamica per articolo basata sulla quantità totale del lotto corrente
+        // Calcolo spedizione unitaria dinamica per articolo basata sulla quantità totale di pezzi fisici del lotto corrente
         const activeOrders = Array.isArray(ordini) ? ordini.filter(isOrderActive) : [];
         let totalLotArticles = activeOrders.reduce((sum, o) => sum + estraiNumeroArticoli(o), 0);
-        if (totalLotArticles <= 0) totalLotArticles = totArticoli;
+        if (totalLotArticles <= 0) totalLotArticles = physicalItemCount;
         const spedizioneUnitaria = getShippingRateByQuantityClient(totalLotArticles, appSettings);
 
-        costoSpedizioneUSD = Number((totArticoli * spedizioneUnitaria).toFixed(2));
+        costoSpedizioneUSD = Number((shippingUnits * spedizioneUnitaria).toFixed(2));
         costoTotaleUSD = Number((costoProdUSD + costoSpedizioneUSD).toFixed(2));
         costoTotaleEUR = Number((costoTotaleUSD * exchangeRate).toFixed(2));
         profittoEUR = Number((totaleOrdineEUR - costoTotaleEUR).toFixed(2));
@@ -13647,6 +14156,765 @@ window.gestioneSelezionaProdottoCatalogo = function(id) {
     window.lastSelectedCatalogProductLegacyId = prod.legacy_id || prod.id;
 
     showToast(`Caricato: ${prod.squadra}`, "info");
+};
+
+// ==========================================
+// PICKER CATALOGO NATIVO ADMIN (STEP 1)
+// ==========================================
+
+let pickerFilteredProducts = [];
+let pickerCurrentPage = 1;
+const pickerPageSize = 40;
+let pickerTipoFiltro = 'tutti'; // 'tutti' | 'club' | 'nazionali'
+window.selectedCatalogProductId = null;
+window.selectedCatalogProduct = null;
+
+window.apriCatalogoPubblicoPerOrdine = async function() {
+    const orderId = window.currentGestioneOrderId;
+    if (!orderId) {
+        showToast("Nessun ordine selezionato.", "error");
+        return;
+    }
+    const modal = document.getElementById('modal-catalogo-ordine-overlay');
+    const orderIdSpan = document.getElementById('catalogo-picker-order-id');
+    const loadingState = document.getElementById('picker-loading-state');
+    const gridEl = document.getElementById('picker-prodotti-grid');
+
+    if (orderIdSpan) orderIdSpan.innerText = `#${orderId}`;
+    if (modal) modal.classList.remove('hidden');
+
+    // Mostra stato di caricamento se i dati non sono ancora pronti
+    const needProd = !window.prodotti || !Array.isArray(window.prodotti) || window.prodotti.length === 0;
+    const needAcc = !window.accessori || !Array.isArray(window.accessori) || window.accessori.length === 0;
+
+    if (needProd || needAcc) {
+        if (loadingState) loadingState.classList.remove('hidden');
+        if (gridEl) gridEl.innerHTML = '';
+        try {
+            const promises = [];
+            if (needProd) promises.push(caricaProdotti());
+            if (needAcc) {
+                promises.push(
+                    fetch('/api/accessories')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.success && Array.isArray(data.accessories)) {
+                                window.accessori = data.accessories.filter(a => a && a.stato !== 'disattivato' && a.disponibile !== false);
+                            } else {
+                                window.accessori = [];
+                            }
+                        })
+                        .catch(e => {
+                            console.error("Errore caricamento accessori picker admin:", e);
+                            window.accessori = [];
+                        })
+                );
+            }
+            if (typeof caricaSquadreCatalogo === 'function' && needProd) {
+                promises.push(caricaSquadreCatalogo());
+            }
+            await Promise.all(promises);
+        } catch (e) {
+            console.error("Errore caricamento dati nel picker admin:", e);
+        } finally {
+            if (loadingState) loadingState.classList.add('hidden');
+        }
+    }
+
+    // Popola le opzioni dinamiche dei filtri
+    popolaFiltriPickerAdmin();
+
+    // Inizializza o aggiorna la vista filtrata
+    pickerCurrentPage = 1;
+    filtraPickerProdottiAdmin();
+};
+
+window.chiudiCatalogoPubblicoPerOrdine = function() {
+    const modal = document.getElementById('modal-catalogo-ordine-overlay');
+    if (modal) modal.classList.add('hidden');
+};
+
+function popolaFiltriPickerAdmin() {
+    const catSelect = document.getElementById('picker-select-categoria');
+    const sqSelect = document.getElementById('picker-select-squadra');
+    const stagSelect = document.getElementById('picker-select-stagione');
+
+    const prodList = Array.isArray(window.prodotti) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
+    const accList = Array.isArray(window.accessori) ? window.accessori : [];
+
+    const allCats = [
+        ...prodList.map(p => (p.categoria || '').trim()),
+        ...accList.map(a => (a.categoria || 'Accessori').trim())
+    ].filter(Boolean);
+
+    const allTeams = [
+        ...prodList.map(p => (p.squadra || '').trim()),
+        ...accList.map(a => (a.nome || a.marca || '').trim())
+    ].filter(Boolean);
+
+    if (catSelect && catSelect.options.length <= 1) {
+        const cats = [...new Set(allCats)].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+        catSelect.innerHTML = '<option value="">Tutte le categorie</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    }
+
+    if (sqSelect && sqSelect.options.length <= 1) {
+        const teams = [...new Set(allTeams)].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+        sqSelect.innerHTML = '<option value="">Tutte le squadre / marchi</option>' + teams.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+    }
+
+    if (stagSelect && stagSelect.options.length <= 1) {
+        const seasons = [...new Set(prodList.map(p => (p.stagione || '').trim()).filter(Boolean))].sort().reverse();
+        stagSelect.innerHTML = '<option value="">Tutte le stagioni</option>' + seasons.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+    }
+}
+window.popolaFiltriPickerAdmin = popolaFiltriPickerAdmin;
+
+function impostaTipoPickerAdmin(tipo) {
+    pickerTipoFiltro = tipo || 'tutti';
+    const btnTutti = document.getElementById('picker-btn-tipo-tutti');
+    const btnClub = document.getElementById('picker-btn-tipo-club');
+    const btnNaz = document.getElementById('picker-btn-tipo-nazionali');
+    const btnAcc = document.getElementById('picker-btn-tipo-accessori');
+
+    const baseClass = "px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all cursor-pointer";
+    const activeClass = "bg-amber-500 text-black shadow-xs";
+    const inactiveClass = "text-white/70 hover:text-white";
+
+    if (btnTutti) btnTutti.className = `${baseClass} ${pickerTipoFiltro === 'tutti' ? activeClass : inactiveClass}`;
+    if (btnClub) btnClub.className = `${baseClass} ${pickerTipoFiltro === 'club' ? activeClass : inactiveClass}`;
+    if (btnNaz) btnNaz.className = `${baseClass} ${pickerTipoFiltro === 'nazionali' ? activeClass : inactiveClass}`;
+    if (btnAcc) btnAcc.className = `${baseClass} ${pickerTipoFiltro === 'accessori' ? activeClass : inactiveClass}`;
+
+    filtraPickerProdottiAdmin();
+}
+window.impostaTipoPickerAdmin = impostaTipoPickerAdmin;
+
+function resetRicercaPickerAdmin() {
+    const input = document.getElementById('picker-search-input');
+    const clearBtn = document.getElementById('picker-search-clear-btn');
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    filtraPickerProdottiAdmin();
+}
+window.resetRicercaPickerAdmin = resetRicercaPickerAdmin;
+
+function resetFiltriPickerAdmin() {
+    const input = document.getElementById('picker-search-input');
+    const clearBtn = document.getElementById('picker-search-clear-btn');
+    const catSelect = document.getElementById('picker-select-categoria');
+    const sqSelect = document.getElementById('picker-select-squadra');
+    const stagSelect = document.getElementById('picker-select-stagione');
+    const ordSelect = document.getElementById('picker-select-ordinamento');
+
+    if (input) input.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    if (catSelect) catSelect.value = '';
+    if (sqSelect) sqSelect.value = '';
+    if (stagSelect) stagSelect.value = '';
+    if (ordSelect) ordSelect.value = 'recenti';
+
+    impostaTipoPickerAdmin('tutti');
+}
+window.resetFiltriPickerAdmin = resetFiltriPickerAdmin;
+
+function filtraPickerProdottiAdmin() {
+    const searchInput = document.getElementById('picker-search-input');
+    const clearBtn = document.getElementById('picker-search-clear-btn');
+    const catSelect = document.getElementById('picker-select-categoria');
+    const sqSelect = document.getElementById('picker-select-squadra');
+    const stagSelect = document.getElementById('picker-select-stagione');
+    const ordSelect = document.getElementById('picker-select-ordinamento');
+
+    const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+    if (clearBtn) {
+        if (query.length > 0) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+    }
+
+    const selCat = (catSelect ? catSelect.value : '').toLowerCase().trim();
+    const selSq = (sqSelect ? sqSelect.value : '').toLowerCase().trim();
+    const selStag = (stagSelect ? stagSelect.value : '').toLowerCase().trim();
+    const selOrd = ordSelect ? ordSelect.value : 'recenti';
+
+    const prodList = Array.isArray(window.prodotti) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
+    const accRawList = Array.isArray(window.accessori) ? window.accessori : [];
+
+    const accList = accRawList.map(a => ({
+        id: a.id,
+        accessory_id: a.id,
+        tipo_catalogo: 'accessori',
+        squadra: a.nome || a.marca || 'Accessorio',
+        nome: a.nome,
+        categoria: a.categoria || 'Accessori',
+        stagione: '',
+        versione: a.nome,
+        prezzo: Number(a.prezzo) || 6.00,
+        prezzo_fornitore: a.prezzo_fornitore !== undefined && a.prezzo_fornitore !== null ? Number(a.prezzo_fornitore) : 3.00,
+        immagine: a.immagine || a.imgUrl || '',
+        gestione_taglia: a.gestione_taglia || 'unica',
+        richiede_taglia: a.richiede_taglia,
+        opzioni: a.opzioni,
+        taglia: a.taglia,
+        marca: a.marca,
+        supplier_shipping_enabled: a.supplier_shipping_enabled
+    }));
+
+    let listaBase = [];
+    if (pickerTipoFiltro === 'club') {
+        listaBase = prodList.filter(p => p && !isProdottoNazionale(p));
+    } else if (pickerTipoFiltro === 'nazionali') {
+        listaBase = prodList.filter(p => p && isProdottoNazionale(p));
+    } else if (pickerTipoFiltro === 'accessori') {
+        listaBase = accList;
+    } else {
+        // tutti
+        listaBase = [...prodList, ...accList];
+    }
+
+    let filtrati = listaBase.filter(p => {
+        if (!p) return false;
+
+        // Filtro Categoria
+        if (selCat) {
+            const pCat = (p.categoria || '').toLowerCase().trim();
+            if (pCat !== selCat) return false;
+        }
+
+        // Filtro Squadra / Marchi
+        if (selSq) {
+            const pSq = (p.squadra || p.nome || p.marca || '').toLowerCase().trim();
+            if (pSq !== selSq) return false;
+        }
+
+        // Filtro Stagione (se presente)
+        if (selStag) {
+            const pStag = (p.stagione || '').toLowerCase().trim();
+            if (pStag !== selStag) return false;
+        }
+
+        // Filtro Testuale
+        if (query) {
+            const matchNome = (p.nome || '').toLowerCase().includes(query);
+            const matchSq = (p.squadra || '').toLowerCase().includes(query);
+            const matchCat = (p.categoria || '').toLowerCase().includes(query);
+            const matchStag = (p.stagione || '').toLowerCase().includes(query);
+            const matchVer = (p.versione || '').toLowerCase().includes(query);
+            const matchTag = (p.tag || '').toLowerCase().includes(query);
+            const matchMarca = (p.marca || '').toLowerCase().includes(query);
+            const matchCodice = (p.codice || p.id || '').toLowerCase().includes(query);
+
+            if (!matchNome && !matchSq && !matchCat && !matchStag && !matchVer && !matchTag && !matchMarca && !matchCodice) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    // Ordinamento
+    if (selOrd === 'nome_az') {
+        filtrati.sort((a, b) => (a.squadra || a.nome || '').localeCompare(b.squadra || b.nome || '', 'it', { sensitivity: 'base' }));
+    } else if (selOrd === 'nome_za') {
+        filtrati.sort((a, b) => (b.squadra || b.nome || '').localeCompare(a.squadra || a.nome || '', 'it', { sensitivity: 'base' }));
+    } else if (selOrd === 'prezzo_asc') {
+        filtrati.sort((a, b) => (Number(a.prezzo) || 0) - (Number(b.prezzo) || 0));
+    } else if (selOrd === 'prezzo_desc') {
+        filtrati.sort((a, b) => (Number(b.prezzo) || 0) - (Number(a.prezzo) || 0));
+    } else {
+        // recenti
+        filtrati.sort((a, b) => String(b.id || '').localeCompare(String(a.id || '')));
+    }
+
+    pickerFilteredProducts = filtrati;
+    pickerCurrentPage = 1;
+    renderPickerProdottiAdmin();
+}
+window.filtraPickerProdottiAdmin = filtraPickerProdottiAdmin;
+
+function renderPickerProdottiAdmin() {
+    const gridEl = document.getElementById('picker-prodotti-grid');
+    const emptyState = document.getElementById('picker-empty-state');
+    const totalCountEl = document.getElementById('picker-total-count');
+    const showingRangeEl = document.getElementById('picker-showing-range');
+    const pageIndicatorEl = document.getElementById('picker-page-indicator');
+    const btnPrev = document.getElementById('picker-btn-prev');
+    const btnNext = document.getElementById('picker-btn-next');
+
+    if (!gridEl) return;
+
+    const total = pickerFilteredProducts.length;
+    const totalPages = Math.max(1, Math.ceil(total / pickerPageSize));
+    if (pickerCurrentPage > totalPages) pickerCurrentPage = totalPages;
+    if (pickerCurrentPage < 1) pickerCurrentPage = 1;
+
+    const startIndex = (pickerCurrentPage - 1) * pickerPageSize;
+    const endIndex = Math.min(total, startIndex + pickerPageSize);
+    const pageProducts = pickerFilteredProducts.slice(startIndex, endIndex);
+
+    if (totalCountEl) totalCountEl.innerText = total.toLocaleString('it-IT');
+    if (showingRangeEl) {
+        showingRangeEl.innerText = total > 0 ? `Mostrando ${startIndex + 1}-${endIndex} di ${total}` : 'Mostrando 0-0';
+    }
+    if (pageIndicatorEl) {
+        pageIndicatorEl.innerText = `Pagina ${pickerCurrentPage} di ${totalPages}`;
+    }
+
+    if (btnPrev) btnPrev.disabled = pickerCurrentPage <= 1;
+    if (btnNext) btnNext.disabled = pickerCurrentPage >= totalPages;
+
+    if (total === 0) {
+        gridEl.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    gridEl.innerHTML = pageProducts.map(p => {
+        const isAccessorio = p.tipo_catalogo === 'accessori' || Boolean(p.accessory_id);
+        const rawImg = p.immagine || p.imgUrl || p.image || p.foto;
+        const imgUrl = (typeof estraiUrlImmaginePulito === 'function')
+            ? (estraiUrlImmaginePulito(rawImg) || rawImg)
+            : rawImg;
+
+        const cleanImg = imgUrl || 'https://placehold.co/240x240/1a1a1a/eab308?text=Maglia';
+        const displaySquadra = escapeHtml(p.squadra || p.nome || 'Articolo');
+        const displayVersione = escapeHtml(p.versione || p.nome || '');
+        const displayCat = escapeHtml(p.categoria || 'Accessori');
+        const displayStag = escapeHtml(p.stagione || '');
+        const displayTarget = escapeHtml(p.target || 'Adulto');
+        const displayPrezzo = (Number(p.prezzo) || (isAccessorio ? 6.00 : 23.99)).toFixed(2).replace('.', ',');
+
+        let tipoBadge = '';
+        if (isAccessorio) {
+            tipoBadge = `<span class="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[9px] font-black rounded-md uppercase">Accessorio</span>`;
+        } else if (isProdottoNazionale(p)) {
+            tipoBadge = `<span class="px-1.5 py-0.5 bg-blue-500/15 border border-blue-500/30 text-blue-400 text-[9px] font-bold rounded-md uppercase">Nazionale</span>`;
+        } else {
+            tipoBadge = `<span class="px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[9px] font-bold rounded-md uppercase">Club</span>`;
+        }
+
+        return `
+            <div class="bg-[#141414] hover:bg-[#181818] border border-white/10 hover:border-amber-400/50 rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between transition-all duration-200 group shadow-sm hover:shadow-md">
+                <!-- Immagine Maglia / Accessorio -->
+                <div class="relative w-full aspect-square bg-[#0b0b0b] rounded-xl overflow-hidden mb-2.5 flex items-center justify-center p-2 border border-white/5">
+                    <img 
+                        src="${cleanImg}" 
+                        alt="${displaySquadra}" 
+                        loading="lazy"
+                        class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        onerror="this.onerror=null;this.src='https://placehold.co/240x240/1a1a1a/eab308?text=Prodotto';"
+                    />
+                    <div class="absolute top-2 left-2 flex flex-wrap gap-1">
+                        ${tipoBadge}
+                    </div>
+                    ${!isAccessorio && displayTarget.toLowerCase() === 'bambino' ? `
+                        <div class="absolute top-2 right-2">
+                            <span class="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[9px] font-black rounded-md uppercase">Kids</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Info Prodotto -->
+                <div class="space-y-1 flex-1 mb-3">
+                    <h4 class="text-xs sm:text-sm font-black text-white line-clamp-1 leading-snug group-hover:text-amber-400 transition-colors" title="${displaySquadra}">
+                        ${displaySquadra}
+                    </h4>
+                    ${displayVersione && displayVersione !== displaySquadra ? `
+                        <p class="text-[10px] sm:text-[11px] text-white/50 line-clamp-1" title="${displayVersione}">
+                            ${displayVersione}
+                        </p>
+                    ` : ''}
+                    
+                    <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[10px] text-white/60">
+                        <span class="px-1.5 py-0.5 bg-white/5 rounded border border-white/5 font-medium">${displayCat}</span>
+                        ${displayStag ? `<span class="px-1.5 py-0.5 bg-white/5 rounded border border-white/5 font-mono">${displayStag}</span>` : ''}
+                    </div>
+                </div>
+
+                <!-- Footer Card: Prezzo & Pulsante SELEZIONA -->
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                    <div>
+                        <span class="text-[9px] uppercase tracking-wider text-white/40 block font-semibold">Prezzo</span>
+                        <span class="text-xs sm:text-sm font-black text-amber-400 font-mono">€ ${displayPrezzo}</span>
+                    </div>
+                    <button 
+                        type="button" 
+                        onclick="selezionaProdottoPickerAdmin('${p.id}')" 
+                        class="px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-black font-black text-[11px] sm:text-xs rounded-xl shadow transition-all cursor-pointer flex items-center gap-1">
+                        <span>✓</span> SELEZIONA
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+window.renderPickerProdottiAdmin = renderPickerProdottiAdmin;
+
+function cambiaPaginaPickerAdmin(delta) {
+    const total = pickerFilteredProducts.length;
+    const totalPages = Math.max(1, Math.ceil(total / pickerPageSize));
+    const newPage = pickerCurrentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+        pickerCurrentPage = newPage;
+        renderPickerProdottiAdmin();
+        const container = document.getElementById('picker-prodotti-container');
+        if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+window.cambiaPaginaPickerAdmin = cambiaPaginaPickerAdmin;
+
+let currentPickerConfigProduct = null;
+
+function selezionaProdottoPickerAdmin(productId) {
+    apriConfigurazioneProdottoPickerAdmin(productId);
+}
+window.selezionaProdottoPickerAdmin = selezionaProdottoPickerAdmin;
+
+function apriConfigurazioneProdottoPickerAdmin(productId) {
+    // Cerca nell'elenco filtrato del picker oppure in window.prodotti / window.accessori
+    let prod = (pickerFilteredProducts || []).find(p => String(p.id) === String(productId) || String(p.accessory_id) === String(productId));
+    if (!prod) {
+        const prodList = Array.isArray(window.prodotti) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
+        prod = prodList.find(p => String(p.id) === String(productId) || (p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(productId)));
+    }
+    if (!prod && Array.isArray(window.accessori)) {
+        const acc = window.accessori.find(a => String(a.id) === String(productId));
+        if (acc) {
+            prod = {
+                id: acc.id,
+                accessory_id: acc.id,
+                tipo_catalogo: 'accessori',
+                squadra: acc.nome || acc.marca || 'Accessorio',
+                nome: acc.nome,
+                categoria: acc.categoria || 'Accessori',
+                stagione: '',
+                versione: acc.nome,
+                prezzo: Number(acc.prezzo) || 6.00,
+                prezzo_fornitore: acc.prezzo_fornitore !== undefined && acc.prezzo_fornitore !== null ? Number(acc.prezzo_fornitore) : 3.00,
+                immagine: acc.immagine || acc.imgUrl || '',
+                gestione_taglia: acc.gestione_taglia || 'unica',
+                richiede_taglia: acc.richiede_taglia,
+                opzioni: acc.opzioni,
+                taglia: acc.taglia,
+                supplier_shipping_enabled: acc.supplier_shipping_enabled
+            };
+        }
+    }
+    
+    if (!prod) {
+        showToast("Articolo non trovato nel catalogo.", "error");
+        return;
+    }
+
+    const isAccessorio = prod.tipo_catalogo === 'accessori' || Boolean(prod.accessory_id);
+
+    currentPickerConfigProduct = prod;
+    window.selectedCatalogProductId = prod.id;
+    window.selectedCatalogProduct = prod;
+
+    const modal = document.getElementById('modal-configura-articolo-picker');
+    const orderIdSpan = document.getElementById('config-picker-order-id');
+    const btnConferma = document.getElementById('btn-conferma-aggiungi-art-picker');
+    const customizationSection = document.getElementById('config-picker-customization-section');
+
+    const orderId = window.currentGestioneOrderId || '';
+    if (orderIdSpan) orderIdSpan.innerText = `#${orderId}`;
+    if (btnConferma) btnConferma.innerHTML = `<span>➕</span> Aggiungi all'Ordine #${orderId}`;
+
+    // Popola dettagli prodotto
+    const imgEl = document.getElementById('config-picker-img');
+    const titleEl = document.getElementById('config-picker-title');
+    const versEl = document.getElementById('config-picker-versione');
+    const catEl = document.getElementById('config-picker-cat');
+    const stagEl = document.getElementById('config-picker-stag');
+    const targetEl = document.getElementById('config-picker-target');
+    const basePriceEl = document.getElementById('config-picker-base-price');
+
+    const rawImg = prod.immagine || prod.imgUrl || prod.image || prod.foto;
+    const cleanImg = (typeof estraiUrlImmaginePulito === 'function') ? (estraiUrlImmaginePulito(rawImg) || rawImg) : rawImg;
+
+    if (imgEl) imgEl.src = cleanImg || 'https://placehold.co/240x240/1a1a1a/eab308?text=Prodotto';
+    if (titleEl) titleEl.innerText = prod.squadra || prod.nome || 'Articolo';
+    if (versEl) versEl.innerText = prod.versione || prod.nome || '';
+    if (catEl) catEl.innerText = prod.categoria || 'Accessori';
+    if (stagEl) stagEl.innerText = prod.stagione || (isAccessorio ? '' : '2026/2027');
+    if (targetEl) targetEl.innerText = isAccessorio ? 'Accessorio' : (prod.target || 'Adulto');
+    if (basePriceEl) basePriceEl.innerText = `€ ${(Number(prod.prezzo) || (isAccessorio ? 6.00 : 23.99)).toFixed(2).replace('.', ',')}`;
+
+    // Gestione visualizzazione personalizzazione
+    if (customizationSection) {
+        if (isAccessorio) {
+            customizationSection.classList.add('hidden');
+        } else {
+            customizationSection.classList.remove('hidden');
+        }
+    }
+
+    // Popola taglie
+    const selectTaglia = document.getElementById('config-picker-taglia');
+    if (selectTaglia) {
+        if (isAccessorio) {
+            let tagliaOptions = [];
+            if (prod.gestione_taglia === 'scelta' && Array.isArray(prod.opzioni) && prod.opzioni.length > 0) {
+                tagliaOptions = prod.opzioni.map(o => ({ value: String(o).trim(), label: String(o).trim() }));
+            } else if (prod.gestione_taglia === 'manuale' && typeof prod.taglia === 'string' && prod.taglia.trim()) {
+                tagliaOptions = prod.taglia.split(/[,/]/).map(t => ({ value: t.trim(), label: t.trim() })).filter(t => t.value);
+            }
+            if (tagliaOptions.length === 0) {
+                tagliaOptions = [{ value: 'Unica', label: 'Taglia Unica' }];
+            }
+            selectTaglia.innerHTML = tagliaOptions.map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`).join('');
+        } else {
+            const officialSizes = ottieniTaglieUfficialiProdotto(prod);
+            selectTaglia.innerHTML = officialSizes.map(opt => {
+                const isDefault = (opt.value === 'M' || opt.value === '22' || opt.value === '14');
+                return `<option value="${escapeHtml(opt.value)}" ${isDefault ? 'selected' : ''}>${escapeHtml(opt.label)}</option>`;
+            }).join('');
+        }
+    }
+
+    // Reset campi configurazione
+    const qInput = document.getElementById('config-picker-quantita');
+    const nomeInput = document.getElementById('config-picker-nome');
+    const numInput = document.getElementById('config-picker-numero');
+    const patchInput = document.getElementById('config-picker-patch');
+
+    if (qInput) qInput.value = 1;
+    if (nomeInput) nomeInput.value = '';
+    if (numInput) numInput.value = '';
+    if (patchInput) patchInput.value = '';
+
+    ricalcolaPrezzoConfigPickerAdmin();
+
+    if (modal) modal.classList.remove('hidden');
+}
+window.apriConfigurazioneProdottoPickerAdmin = apriConfigurazioneProdottoPickerAdmin;
+
+function chiudiModalConfigurazionePickerAdmin() {
+    const modal = document.getElementById('modal-configura-articolo-picker');
+    if (modal) modal.classList.add('hidden');
+    currentPickerConfigProduct = null;
+}
+window.chiudiModalConfigurazionePickerAdmin = chiudiModalConfigurazionePickerAdmin;
+
+function cambiaQuantitaConfigPickerAdmin(delta) {
+    const qInput = document.getElementById('config-picker-quantita');
+    if (!qInput) return;
+    let val = parseInt(qInput.value, 10) || 1;
+    val = Math.max(1, val + delta);
+    qInput.value = val;
+    ricalcolaPrezzoConfigPickerAdmin();
+}
+window.cambiaQuantitaConfigPickerAdmin = cambiaQuantitaConfigPickerAdmin;
+
+function ricalcolaPrezzoConfigPickerAdmin() {
+    if (!currentPickerConfigProduct) return;
+
+    const isAccessorio = currentPickerConfigProduct.tipo_catalogo === 'accessori' || Boolean(currentPickerConfigProduct.accessory_id);
+
+    const qInput = document.getElementById('config-picker-quantita');
+    const nomeInput = document.getElementById('config-picker-nome');
+    const numInput = document.getElementById('config-picker-numero');
+    const patchInput = document.getElementById('config-picker-patch');
+
+    const quantita = Math.max(1, parseInt(qInput ? qInput.value : 1, 10) || 1);
+    const nome = isAccessorio ? '' : (nomeInput ? nomeInput.value : '').trim();
+    const numero = isAccessorio ? '' : (numInput ? numInput.value : '').trim();
+    const patch = isAccessorio ? '' : (patchInput ? patchInput.value : '').trim();
+
+    const baseUnit = Number(currentPickerConfigProduct.prezzo) || (isAccessorio ? 6.00 : 23.99);
+    let extraUnit = 0;
+    if (!isAccessorio) {
+        if (nome) extraUnit += 1.50;
+        if (numero) extraUnit += 1.50;
+        if (patch) extraUnit += 1.00;
+    }
+
+    const unitPrice = baseUnit + extraUnit;
+    const totalPrice = unitPrice * quantita;
+
+    const elExtra = document.getElementById('config-picker-extra-price');
+    const elTot = document.getElementById('config-picker-tot-price');
+    const elUnit = document.getElementById('config-picker-unit-price');
+
+    if (elExtra) elExtra.innerText = `+€ ${extraUnit.toFixed(2).replace('.', ',')}`;
+    if (elUnit) elUnit.innerText = `€ ${unitPrice.toFixed(2).replace('.', ',')}`;
+    if (elTot) elTot.innerText = `€ ${totalPrice.toFixed(2).replace('.', ',')}`;
+}
+window.ricalcolaPrezzoConfigPickerAdmin = ricalcolaPrezzoConfigPickerAdmin;
+
+async function confermaAggiungiProdottoPickerAdmin(e) {
+    if (e) e.preventDefault();
+    if (!currentPickerConfigProduct) {
+        showToast("Nessun articolo selezionato.", "error");
+        return;
+    }
+    const orderId = window.currentGestioneOrderId;
+    if (!orderId) {
+        showToast("Nessun ordine selezionato.", "error");
+        return;
+    }
+
+    const isAccessorio = currentPickerConfigProduct.tipo_catalogo === 'accessori' || Boolean(currentPickerConfigProduct.accessory_id);
+
+    const selectTaglia = document.getElementById('config-picker-taglia');
+    const qInput = document.getElementById('config-picker-quantita');
+    const nomeInput = document.getElementById('config-picker-nome');
+    const numInput = document.getElementById('config-picker-numero');
+    const patchInput = document.getElementById('config-picker-patch');
+    const btnConferma = document.getElementById('btn-conferma-aggiungi-art-picker');
+
+    const taglia = (selectTaglia ? selectTaglia.value : 'M').trim().toUpperCase() || 'M';
+    const quantita = Math.max(1, parseInt(qInput ? qInput.value : 1, 10) || 1);
+    const customName = isAccessorio ? '' : (nomeInput ? nomeInput.value : '').trim();
+    const customNumber = isAccessorio ? '' : (numInput ? numInput.value : '').trim();
+    const patchScelta = isAccessorio ? '' : (patchInput ? patchInput.value : '').trim();
+
+    const baseUnit = Number(currentPickerConfigProduct.prezzo) || (isAccessorio ? 6.00 : 23.99);
+    let extraUnit = 0;
+    if (!isAccessorio) {
+        if (customName) extraUnit += 1.50;
+        if (customNumber) extraUnit += 1.50;
+        if (patchScelta) extraUnit += 1.00;
+    }
+    const unitPrice = baseUnit + extraUnit;
+
+    let personalizzazioneTesto = "Nessuna";
+    if (!isAccessorio) {
+        if (customName || customNumber) {
+            personalizzazioneTesto = `Nome: ${customName || 'Nessuno'} - Num: ${customNumber || 'Nessuno'}`;
+        }
+        if (patchScelta) {
+            if (personalizzazioneTesto === "Nessuna") {
+                personalizzazioneTesto = `Patch: ${patchScelta}`;
+            } else {
+                personalizzazioneTesto += ` - Patch: ${patchScelta}`;
+            }
+        }
+    }
+
+    const rawImg = currentPickerConfigProduct.immagine || currentPickerConfigProduct.imgUrl || currentPickerConfigProduct.image || currentPickerConfigProduct.foto;
+    const cleanImg = (typeof estraiUrlImmaginePulito === 'function') ? (estraiUrlImmaginePulito(rawImg) || rawImg) : rawImg;
+
+    const itemPayload = {
+        id: currentPickerConfigProduct.id,
+        accessory_id: isAccessorio ? (currentPickerConfigProduct.accessory_id || currentPickerConfigProduct.id) : undefined,
+        tipo_catalogo: isAccessorio ? 'accessori' : 'prodotti',
+        legacy_id: currentPickerConfigProduct.legacy_id || null,
+        squadra: currentPickerConfigProduct.squadra || currentPickerConfigProduct.nome || 'Articolo',
+        categoria: currentPickerConfigProduct.categoria || (isAccessorio ? 'Accessori' : 'Kit'),
+        stagione: currentPickerConfigProduct.stagione || (isAccessorio ? '' : '2026/2027'),
+        versione: currentPickerConfigProduct.versione || currentPickerConfigProduct.nome || '',
+        target: isAccessorio ? 'Unica' : (currentPickerConfigProduct.target || 'Adulto'),
+        taglia: taglia,
+        quantita: quantita,
+        prezzo: isAccessorio ? Number(currentPickerConfigProduct.prezzo) : unitPrice,
+        prezzo_fornitore: currentPickerConfigProduct.prezzo_fornitore !== undefined && currentPickerConfigProduct.prezzo_fornitore !== null ? Number(currentPickerConfigProduct.prezzo_fornitore) : undefined,
+        infoPerso: personalizzazioneTesto,
+        personalizzazione: personalizzazioneTesto,
+        customName: customName,
+        customNumber: customNumber,
+        patch: patchScelta,
+        patches: patchScelta ? [patchScelta] : [],
+        imgUrl: cleanImg || ''
+    };
+
+    if (btnConferma) {
+        btnConferma.disabled = true;
+        btnConferma.innerHTML = `<span class="animate-spin">⏳</span> Aggiunta in corso...`;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}/items/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemPayload)
+        });
+        const resData = await response.json();
+
+        if (response.ok && resData.success && resData.order) {
+            showToast(`Articolo "${itemPayload.squadra}" aggiunto con successo all'ordine #${orderId}!`, "success");
+
+            // 1. Chiudi sub-modal configurazione
+            chiudiModalConfigurazionePickerAdmin();
+
+            // 2. Chiudi catalogo picker
+            chiudiCatalogoPubblicoPerOrdine();
+
+            // 3. Aggiorna stato locale dell'ordine attualmente gestito
+            const updatedOrd = resData.order;
+            const ordIdx = (window.gestioneOrdiniList || []).findIndex(o => Number(o.id) === Number(orderId));
+            if (ordIdx !== -1) {
+                window.gestioneOrdiniList[ordIdx] = { ...window.gestioneOrdiniList[ordIdx], ...updatedOrd };
+            }
+            if (Array.isArray(window.ordini)) {
+                const gIdx = window.ordini.findIndex(o => Number(o.id) === Number(orderId));
+                if (gIdx !== -1) {
+                    window.ordini[gIdx] = { ...window.ordini[gIdx], ...updatedOrd };
+                }
+            }
+
+            window.currentOrdineProdotti = Array.isArray(updatedOrd.carrello) ? JSON.parse(JSON.stringify(updatedOrd.carrello)) : [];
+
+            // 4. Renderizza i prodotti aggiornati con la nuova foto
+            renderProdottiModificabili();
+
+            // 5. Ricarica la tabella ordini e il lotto
+            if (typeof renderGestioneOrdini === 'function') renderGestioneOrdini();
+            if (typeof caricaGestioneOrdini === 'function') caricaGestioneOrdini();
+            if (typeof caricaLotto === 'function') caricaLotto();
+        } else {
+            showToast("Errore aggiunta articolo: " + (resData.error || "errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("Errore fetch aggiunta articolo:", err);
+        showToast("Impossibile contattare il server per aggiungere l'articolo.", "error");
+    } finally {
+        if (btnConferma) {
+            btnConferma.disabled = false;
+            btnConferma.innerHTML = `<span>➕</span> Aggiungi all'Ordine #${orderId}`;
+        }
+    }
+}
+window.confermaAggiungiProdottoPickerAdmin = confermaAggiungiProdottoPickerAdmin;
+
+window.aggiungiArticoloAdOrdineAdmin = async function(orderId, item) {
+    if (!orderId || !item) return;
+    showToast("Aggiunta articolo all'ordine in corso...", "info");
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}/items/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item)
+        });
+        const resData = await response.json();
+        if (response.ok && resData.success && resData.order) {
+            showToast(`Articolo "${item.squadra || 'Prodotto'}" aggiunto con successo!`, "success");
+            
+            // Aggiorna stato locale dell'ordine attualmente gestito
+            const ordIdx = window.gestioneOrdiniList.findIndex(o => Number(o.id) === Number(orderId));
+            if (ordIdx !== -1) {
+                window.gestioneOrdiniList[ordIdx] = resData.order;
+            }
+            window.currentOrdineProdotti = Array.isArray(resData.order.carrello) ? resData.order.carrello : [];
+            
+            // Chiudi il catalogo picker
+            chiudiCatalogoPubblicoPerOrdine();
+            
+            // Renderizza i prodotti aggiornati con la nuova foto
+            renderProdottiModificabili();
+            
+            // Ricarica la tabella ordini e il lotto
+            if (typeof caricaGestioneOrdini === 'function') caricaGestioneOrdini();
+            if (typeof caricaLotto === 'function') caricaLotto();
+        } else {
+            showToast("Errore aggiunta articolo: " + (resData.error || "errore sconosciuto"), "error");
+        }
+    } catch (err) {
+        console.error("Errore fetch aggiunta articolo:", err);
+        showToast("Impossibile contattare il server per aggiungere l'articolo.", "error");
+    }
 };
 
 window.gestioneInserisciNuovoProdotto = function() {
@@ -20124,16 +21392,97 @@ let ciState = {
     filteredItems: [],
     currentPage: 1,
     pageSize: 50,
-    urlCache: new Map(), // Cache: cleanUrl -> { stato, motivo, width, height }
     counters: {
         totali: 0,
-        ok: 0,
-        placeholder: 0,
-        senza_immagine: 0,
-        non_caricabili: 0,
-        da_verificare: 0
+        presenti_fornitore: 0,
+        eliminati_fornitore: 0,
+        non_verificabili: 0,
+        senza_link: 0
     }
 };
+
+/**
+ * Verifica immediata di pattern placeholder statici
+ */
+function isStaticPlaceholder(url) {
+    if (!url || typeof url !== 'string') return true;
+    const raw = url.trim().toLowerCase();
+    if (!raw || ['null', 'undefined', 'nessuna', 'none', '-', 'n/a', ''].includes(raw)) return true;
+    if (
+        raw.includes('placehold.co') ||
+        raw.includes('woocommerce-placeholder') ||
+        raw.includes('placeholder-maglia') ||
+        raw.includes('default-image') ||
+        raw.includes('no-image') ||
+        raw.includes('missing-image') ||
+        raw.includes('fallback') ||
+        raw.includes('dummy') ||
+        raw.startsWith('data:image/svg+xml')
+    ) {
+        return true;
+    }
+    // URL non validi (non http o https) o percorsi relativi non validi
+    if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Testa in modo sicuro e con retry l'effettiva caricabilità di un'immagine
+ * per evitare falsi positivi causati da rate-limit (HTTP 429) o micro-interruzioni
+ */
+function testImmagineCaricabile(url, maxRetries = 2) {
+    return new Promise((resolve) => {
+        if (isStaticPlaceholder(url)) {
+            return resolve(false);
+        }
+
+        let attempt = 0;
+        function tryLoad() {
+            attempt++;
+            const img = new Image();
+            let timer = null;
+
+            function cleanup() {
+                if (timer) clearTimeout(timer);
+                img.onload = null;
+                img.onerror = null;
+            }
+
+            timer = setTimeout(() => {
+                cleanup();
+                if (attempt < maxRetries) {
+                    setTimeout(tryLoad, 300);
+                } else {
+                    resolve(false);
+                }
+            }, 5000);
+
+            img.onload = () => {
+                cleanup();
+                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            };
+
+            img.onerror = () => {
+                cleanup();
+                if (attempt < maxRetries) {
+                    setTimeout(tryLoad, 300);
+                } else {
+                    resolve(false);
+                }
+            };
+
+            img.src = url;
+        }
+
+        tryLoad();
+    });
+}
 
 /**
  * Scorri verso la sezione Controllo Immagini e avvia la scansione
@@ -20152,157 +21501,8 @@ function scrollaEAvviaControlloImmagini() {
 }
 
 /**
- * Valuta un URL immagine e restituisce una diagnosi accurata
- */
-async function testSingolaImmagineDiagnostica(rawUrl) {
-    if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
-        return {
-            stato: 'SENZA_IMMAGINE',
-            motivo: 'Nessun riferimento immagine presente nel record prodotto.',
-            width: 0,
-            height: 0
-        };
-    }
-
-    const trimmed = rawUrl.trim();
-    if (['null', 'undefined', 'nessuna', 'none', '-', 'n/a'].includes(trimmed.toLowerCase())) {
-        return {
-            stato: 'SENZA_IMMAGINE',
-            motivo: 'Valore immagine impostato come nullo o non valido.',
-            width: 0,
-            height: 0
-        };
-    }
-
-    const cleanUrl = trimmed.split('#')[0].trim();
-    const lower = cleanUrl.toLowerCase();
-
-    // 1. Identificazione Pattern Placeholder
-    const isPlaceholder = 
-        lower.includes('woocommerce-placeholder') ||
-        lower.includes('placehold.co') ||
-        lower.includes('placeholder-maglia') ||
-        lower.includes('default-image') ||
-        lower.includes('no-image') ||
-        lower.includes('missing-image') ||
-        lower.includes('fallback') ||
-        lower.includes('dummy') ||
-        lower.startsWith('data:image/svg+xml');
-
-    if (isPlaceholder) {
-        return {
-            stato: 'PLACEHOLDER',
-            motivo: "Il prodotto utilizza l'immagine fallback/placeholder del sistema.",
-            width: 0,
-            height: 0
-        };
-    }
-
-    // 2. Controllo sintattico URL
-    const isLocal = cleanUrl.startsWith('/') || cleanUrl.startsWith('./');
-    const isHttp = cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://');
-
-    if (!isLocal && !isHttp) {
-        return {
-            stato: 'NON_CARICABILE',
-            motivo: 'URL immagine non valido o protocollo non supportato.',
-            width: 0,
-            height: 0
-        };
-    }
-
-    // 3. Verifica per URL locali / SPA Fallback check (se l'URL restituisce HTML invece di immagine)
-    if (isLocal || cleanUrl.includes('localhost')) {
-        try {
-            const checkResp = await fetch('/api/admin/catalog/check-image-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: cleanUrl })
-            }).catch(() => null);
-            if (checkResp && checkResp.ok) {
-                const data = await checkResp.json().catch(() => null);
-                if (data && data.success && data.status !== 'OK') {
-                    return {
-                        stato: data.status,
-                        motivo: data.motivo,
-                        width: 0,
-                        height: 0
-                    };
-                }
-            }
-        } catch (e) {
-            // Prosegui al rendering DOM se la chiamata fallisce
-        }
-    }
-
-    // 4. Test di caricamento nel browser con Image() e timeout controllato
-    return new Promise((resolve) => {
-        let finished = false;
-        const img = new Image();
-
-        const timer = setTimeout(() => {
-            if (!finished) {
-                finished = true;
-                img.src = '';
-                resolve({
-                    stato: 'DA_VERIFICARE',
-                    motivo: 'Timeout durante il caricamento (> 7s), risposta del server troppo lenta.',
-                    width: 0,
-                    height: 0
-                });
-            }
-        }, 7000);
-
-        img.onload = () => {
-            if (finished) return;
-            finished = true;
-            clearTimeout(timer);
-
-            const w = img.naturalWidth || 0;
-            const h = img.naturalHeight || 0;
-
-            if (w === 0 || h === 0) {
-                resolve({
-                    stato: 'NON_CARICABILE',
-                    motivo: 'File caricato ma non renderizzabile o con dimensioni nulle (0x0px).',
-                    width: 0,
-                    height: 0
-                });
-            } else if (w === 1 && h === 1) {
-                resolve({
-                    stato: 'DA_VERIFICARE',
-                    motivo: 'Pixel trasparente o tracking pixel rilevato (1x1px).',
-                    width: w,
-                    height: h
-                });
-            } else {
-                resolve({
-                    stato: 'OK',
-                    motivo: `Immagine valida e renderizzabile (${w}x${h}px).`,
-                    width: w,
-                    height: h
-                });
-            }
-        };
-
-        img.onerror = () => {
-            if (finished) return;
-            finished = true;
-            clearTimeout(timer);
-            resolve({
-                stato: 'NON_CARICABILE',
-                motivo: 'URL immagine non caricabile (HTTP 404/403 o risorsa non disponibile).',
-                width: 0,
-                height: 0
-            });
-        };
-
-        img.src = cleanUrl;
-    });
-}
-
-/**
- * Avvia la scansione completa di tutte le immagini del catalogo
+ * Avvia la scansione mirata dei soli VERI prodotti con placeholder
+ * e verifica i relativi link originali sul fornitore jerseys-catalog.com
  */
 async function avviaControlloImmaginiCatalogo() {
     if (ciState.isScanning) {
@@ -20320,14 +21520,12 @@ async function avviaControlloImmaginiCatalogo() {
     const stopBtn = document.getElementById('btn-stop-controllo-immagini');
     const exportBtn = document.getElementById('btn-esporta-controllo-immagini');
     const statusTextEl = document.getElementById('ci-scan-status-text');
-    const counterEl = document.getElementById('ci-scan-counter-text');
     const progressBar = document.getElementById('ci-scan-progress-bar');
 
-    // UI immediata: mostra box e stato caricamento catalogo
+    // UI iniziale
     if (progressBox) progressBox.classList.remove('hidden');
     if (completedAlert) completedAlert.classList.add('hidden');
-    if (statusTextEl) statusTextEl.textContent = "Caricamento catalogo in corso...";
-    if (counterEl) counterEl.textContent = "Attendere...";
+    if (statusTextEl) statusTextEl.textContent = "Caricamento catalogo in memoria...";
     if (progressBar) progressBar.style.width = "0%";
     if (scanBtn) {
         scanBtn.disabled = true;
@@ -20335,17 +21533,17 @@ async function avviaControlloImmaginiCatalogo() {
     }
     if (cardScanBtn) {
         cardScanBtn.disabled = true;
-        cardScanBtn.innerHTML = `<span>⏳</span> Caricamento catalogo...`;
+        cardScanBtn.innerHTML = `<span>⏳</span> Analisi placeholder...`;
     }
     if (exportBtn) {
         exportBtn.disabled = true;
         exportBtn.classList.add('opacity-50', 'cursor-not-allowed');
     }
+    if (stopBtn) stopBtn.classList.remove('hidden');
 
-    // Recupero del dataset reale del catalogo Admin
+    // Recupero dataset prodotti
     let items = [];
     try {
-        // 1. Verifica se i prodotti sono già presenti nella variabile di stato del catalogo
         if (Array.isArray(prodotti) && prodotti.length > 0) {
             items = prodotti;
             window.prodotti = prodotti;
@@ -20353,29 +21551,24 @@ async function avviaControlloImmaginiCatalogo() {
             items = window.prodotti;
             prodotti = window.prodotti;
         } else {
-            // 2. Se è in corso un caricamento concorrente del catalogo Admin, attendilo
             if (isProdottiLoading) {
-                if (statusTextEl) statusTextEl.textContent = "Caricamento catalogo in corso da Supabase...";
+                if (statusTextEl) statusTextEl.textContent = "Attesa caricamento prodotti da Supabase...";
                 while (isProdottiLoading) {
                     await new Promise(r => setTimeout(r, 100));
                 }
                 items = (Array.isArray(prodotti) && prodotti.length > 0) ? prodotti : (window.prodotti || []);
             }
 
-            // 3. Se ancora non caricato, richiama la funzione ufficiale caricaProdotti() dell'Admin
             if (items.length === 0 && typeof caricaProdotti === 'function') {
-                if (statusTextEl) statusTextEl.textContent = "Caricamento prodotti dal catalogo (Supabase)...";
+                if (statusTextEl) statusTextEl.textContent = "Caricamento catalogo prodotti da Supabase...";
                 await caricaProdotti();
                 items = (Array.isArray(prodotti) && prodotti.length > 0) ? prodotti : (window.prodotti || []);
             }
 
-            // 4. Se Supabase non ha risposto o restituisce 0, tenta fallback diretto sull'endpoint /api/products
             if (items.length === 0) {
-                if (statusTextEl) statusTextEl.textContent = "Recupero catalogo tramite API di sistema (/api/products)...";
+                if (statusTextEl) statusTextEl.textContent = "Recupero catalogo tramite API (/api/products)...";
                 const res = await fetch('/api/products');
-                if (!res.ok) {
-                    throw new Error(`Risposta API HTTP ${res.status}: ${res.statusText}`);
-                }
+                if (!res.ok) throw new Error(`Risposta API HTTP ${res.status}`);
                 const resJson = await res.json();
                 const fetchedList = Array.isArray(resJson) ? resJson : (resJson?.products || resJson?.data || resJson?.prodotti || []);
                 if (Array.isArray(fetchedList) && fetchedList.length > 0) {
@@ -20410,33 +21603,78 @@ async function avviaControlloImmaginiCatalogo() {
         }
         if (cardScanBtn) {
             cardScanBtn.disabled = false;
-            cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Catalogo`;
+            cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Placeholder`;
         }
-        const errDetail = err && err.message ? err.message : String(err);
+        if (stopBtn) stopBtn.classList.add('hidden');
         if (typeof showToast === 'function') {
-            showToast("Errore caricamento catalogo: " + errDetail, "error");
-        }
-        const tbody = document.getElementById('ci-table-body');
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="py-12 text-center text-red-500">
-                        <div class="flex flex-col items-center justify-center gap-2">
-                            <span class="text-3xl">⚠️</span>
-                            <span class="text-sm font-bold text-slate-800">Errore caricamento catalogo</span>
-                            <p class="text-xs text-slate-500 max-w-md">${errDetail}</p>
-                            <button onclick="avviaControlloImmaginiCatalogo()" class="mt-3 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all cursor-pointer">
-                                Riprova caricamento
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            showToast("Errore caricamento catalogo: " + (err.message || String(err)), "error");
         }
         return;
     }
 
-    if (!items || items.length === 0) {
+    prodotti = items;
+    window.prodotti = items;
+
+    // Reset stato scansione
+    ciState.isScanning = true;
+    ciState.abortRequested = false;
+    ciState.rawItems = [];
+    ciState.filteredItems = [];
+    ciState.currentPage = 1;
+    ciState.counters = {
+        totali: 0,
+        presenti_fornitore: 0,
+        eliminati_fornitore: 0,
+        non_verificabili: 0,
+        senza_link: 0
+    };
+
+    aggiornaMetricheLiveControlloImmagini(0, items.length);
+
+    const startTime = Date.now();
+
+    // =========================================================================
+    // FASE 1: Identificazione dei soli VERI prodotti con immagine non funzionante (Placeholder)
+    // =========================================================================
+    if (statusTextEl) statusTextEl.textContent = `Verifica disponibilità immagini reali (${items.length} prodotti)...`;
+
+    const brokenProducts = [];
+    const CONCURRENCY = 8;
+    let checkedCount = 0;
+
+    for (let i = 0; i < items.length && !ciState.abortRequested; i += CONCURRENCY) {
+        const chunk = items.slice(i, i + CONCURRENCY);
+        
+        await Promise.all(chunk.map(async (p) => {
+            const rawUrl = (p.immagine || '').trim();
+            if (isStaticPlaceholder(rawUrl)) {
+                brokenProducts.push(p);
+            } else {
+                // Controllo effettivo caricabilità
+                const isOk = await testImmagineCaricabile(rawUrl, 2);
+                if (!isOk) {
+                    brokenProducts.push(p);
+                }
+            }
+            checkedCount++;
+        }));
+
+        if (statusTextEl) {
+            statusTextEl.textContent = `Analisi immagini reali... (${checkedCount} di ${items.length} verificate)`;
+        }
+        if (progressBar) {
+            const pct = Math.round((checkedCount / items.length) * 50); // 0-50% per la Fase 1
+            progressBar.style.width = `${pct}%`;
+        }
+        
+        // Pacing per evitare rate limiting
+        await new Promise(r => setTimeout(r, 15));
+    }
+
+    ciState.counters.totali = brokenProducts.length;
+
+    if (ciState.abortRequested) {
+        ciState.isScanning = false;
         if (progressBox) progressBox.classList.add('hidden');
         if (scanBtn) {
             scanBtn.disabled = false;
@@ -20444,108 +21682,153 @@ async function avviaControlloImmaginiCatalogo() {
         }
         if (cardScanBtn) {
             cardScanBtn.disabled = false;
-            cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Catalogo`;
+            cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Placeholder`;
         }
-        if (typeof showToast === 'function') {
-            showToast("Errore caricamento catalogo: nessun record trovato nel database.", "error");
-        }
+        if (stopBtn) stopBtn.classList.add('hidden');
+        if (typeof showToast === 'function') showToast("Scansione interrotta.", "warning");
         return;
     }
 
-    // Assicura sincronizzazione globale
-    prodotti = items;
-    window.prodotti = items;
-
-    // Reset dello stato della scansione
-    ciState.isScanning = true;
-    ciState.abortRequested = false;
-    ciState.rawItems = [];
-    ciState.filteredItems = [];
-    ciState.currentPage = 1;
-    ciState.urlCache.clear();
-    ciState.counters = {
-        totali: items.length,
-        ok: 0,
-        placeholder: 0,
-        senza_immagine: 0,
-        non_caricabili: 0,
-        da_verificare: 0
-    };
-
-    if (cardScanBtn) {
-        cardScanBtn.disabled = true;
-        cardScanBtn.innerHTML = `<span>⏳</span> Scansione in corso...`;
-    }
-    if (stopBtn) stopBtn.classList.remove('hidden');
-
-    aggiornaMetricheLiveControlloImmagini(0, items.length);
-
-    const startTime = Date.now();
-    const CONCURRENCY = 16; // Concurrency controllata per non saturare la rete né il thread UI
-    let processedCount = 0;
-    let index = 0;
-
-    // Funzione worker per l'elaborazione progressiva
-    async function worker() {
-        while (index < items.length && !ciState.abortRequested) {
-            const currentIndex = index++;
-            const p = items[currentIndex];
-
-            const rawUrl = p.immagine || '';
-            const cleanUrl = typeof rawUrl === 'string' ? rawUrl.split('#')[0].trim() : '';
-
-            let diag = null;
-            if (cleanUrl && ciState.urlCache.has(cleanUrl)) {
-                // Utilizza cache per URL identici
-                diag = ciState.urlCache.get(cleanUrl);
-            } else {
-                diag = await testSingolaImmagineDiagnostica(rawUrl);
-                if (cleanUrl) {
-                    ciState.urlCache.set(cleanUrl, diag);
-                }
-            }
-
-            const itemResult = {
-                id: p.id,
-                legacy_id: p.legacy_id,
-                nome: p.nome || p.versione || 'Senza Nome',
-                squadra: p.squadra || 'Senza Squadra',
-                categoria: p.categoria || 'Generale',
-                stagione: p.stagione || 'N/D',
-                immagine: rawUrl,
-                stato: diag.stato,
-                motivo: diag.motivo,
-                width: diag.width,
-                height: diag.height
-            };
-
-            ciState.rawItems.push(itemResult);
-
-            // Incrementa contatori specifici
-            if (diag.stato === 'OK') ciState.counters.ok++;
-            else if (diag.stato === 'PLACEHOLDER') ciState.counters.placeholder++;
-            else if (diag.stato === 'SENZA_IMMAGINE') ciState.counters.senza_immagine++;
-            else if (diag.stato === 'NON_CARICABILE') ciState.counters.non_caricabili++;
-            else if (diag.stato === 'DA_VERIFICARE') ciState.counters.da_verificare++;
-
-            processedCount++;
-
-            // Aggiorna interfaccia ogni 15 item o all'ultimo per mantenere 60 FPS
-            if (processedCount % 15 === 0 || processedCount === items.length) {
-                aggiornaMetricheLiveControlloImmagini(processedCount, items.length);
-            }
+    // Se non ci sono prodotti rotti/placeholder
+    if (brokenProducts.length === 0) {
+        ciState.isScanning = false;
+        const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
+        if (progressBox) progressBox.classList.add('hidden');
+        if (scanBtn) {
+            scanBtn.disabled = false;
+            scanBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
+        if (cardScanBtn) {
+            cardScanBtn.disabled = false;
+            cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Placeholder`;
+        }
+        if (stopBtn) stopBtn.classList.add('hidden');
+        if (completedAlert) {
+            completedAlert.classList.remove('hidden');
+            const summaryText = document.getElementById('ci-scan-summary-text');
+            const durationBadge = document.getElementById('ci-scan-duration-badge');
+            if (summaryText) summaryText.textContent = `Tutte le ${items.length} immagini del catalogo sono attive e funzionanti! Nessun placeholder rilevato.`;
+            if (durationBadge) durationBadge.textContent = `⏱️ ${durationSec}s`;
+        }
+        aggiornaMetricheLiveControlloImmagini(items.length, items.length);
+        popolaFiltriControlloImmagini();
+        filtraControlloImmagini();
+        if (typeof showToast === 'function') showToast("Analisi completata: nessun placeholder attivo!", "success");
+        return;
     }
 
-    // Lancia i worker paralleli
-    const workers = [];
-    for (let i = 0; i < Math.min(CONCURRENCY, items.length); i++) {
-        workers.push(worker());
+    // =========================================================================
+    // FASE 2: Verifica link originale Jersey per i soli prodotti con placeholder
+    // =========================================================================
+    if (statusTextEl) {
+        statusTextEl.textContent = `Verifica fornitore Jersey per i ${brokenProducts.length} prodotti problematici...`;
     }
 
-    await Promise.all(workers);
+    const BATCH_SIZE = 15;
+    let verifiedCount = 0;
 
-    // Scansione terminata o interrotta
+    for (let i = 0; i < brokenProducts.length && !ciState.abortRequested; i += BATCH_SIZE) {
+        const batch = brokenProducts.slice(i, i + BATCH_SIZE);
+
+        try {
+            const resp = await fetch('/api/admin/catalog/check-jersey-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: batch.map(p => ({
+                        id: p.id,
+                        legacy_id: p.legacy_id,
+                        squadra: p.squadra,
+                        versione: p.versione,
+                        immagine: p.immagine
+                    }))
+                })
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                const results = data.results || [];
+                const resultMap = new Map(results.map(r => [r.id, r]));
+
+                batch.forEach(p => {
+                    const resInfo = resultMap.get(p.id) || {
+                        stato: 'NON_VERIFICABILE',
+                        motivo: 'Verifica non completata dal server.',
+                        jerseyUrl: (p.immagine || '').includes('jerseys-catalog.com') ? p.immagine : null
+                    };
+
+                    let normStato = resInfo.stato;
+                    if (normStato === 'PRESENTE' || normStato === 'PRESENTE_JERSEY') normStato = 'PRESENTE_FORNITORE';
+                    if (normStato === 'CANCELLATA' || normStato === 'CANCELLATA_JERSEY') normStato = 'ELIMINATA_FORNITORE';
+                    if (!normStato) normStato = 'NON_VERIFICABILE';
+
+                    const itemResult = {
+                        id: p.id,
+                        legacy_id: p.legacy_id,
+                        nome: p.nome || p.versione || 'Senza Nome',
+                        squadra: p.squadra || 'Senza Squadra',
+                        categoria: p.categoria || 'Generale',
+                        stagione: p.stagione || 'N/D',
+                        immagine_attuale: p.immagine || '',
+                        url_jersey: resInfo.jerseyUrl,
+                        stato: normStato,
+                        motivo: resInfo.motivo || 'Nessun dettaglio specificato',
+                        statusHttp: resInfo.statusHttp
+                    };
+
+                    ciState.rawItems.push(itemResult);
+
+                    if (itemResult.stato === 'PRESENTE_FORNITORE') ciState.counters.presenti_fornitore++;
+                    else if (itemResult.stato === 'ELIMINATA_FORNITORE') ciState.counters.eliminati_fornitore++;
+                    else if (itemResult.stato === 'SENZA_LINK_FORNITORE') ciState.counters.senza_link++;
+                    else ciState.counters.non_verificabili++;
+                });
+            } else {
+                // Fallback su errore HTTP
+                batch.forEach(p => {
+                    const itemResult = {
+                        id: p.id,
+                        legacy_id: p.legacy_id,
+                        nome: p.nome || p.versione || 'Senza Nome',
+                        squadra: p.squadra || 'Senza Squadra',
+                        categoria: p.categoria || 'Generale',
+                        stagione: p.stagione || 'N/D',
+                        immagine_attuale: p.immagine || '',
+                        url_jersey: (p.immagine || '').includes('jerseys-catalog.com') ? p.immagine : null,
+                        stato: 'NON_VERIFICABILE',
+                        motivo: `Errore chiamata API di controllo (HTTP ${resp.status})`
+                    };
+                    ciState.rawItems.push(itemResult);
+                    ciState.counters.non_verificabili++;
+                });
+            }
+        } catch (e) {
+            batch.forEach(p => {
+                const itemResult = {
+                    id: p.id,
+                    legacy_id: p.legacy_id,
+                    nome: p.nome || p.versione || 'Senza Nome',
+                    squadra: p.squadra || 'Senza Squadra',
+                    categoria: p.categoria || 'Generale',
+                    stagione: p.stagione || 'N/D',
+                    immagine_attuale: p.immagine || '',
+                    url_jersey: (p.immagine || '').includes('jerseys-catalog.com') ? p.immagine : null,
+                    stato: 'NON_VERIFICABILE',
+                    motivo: `Anomalia rete durante il controllo: ${e.message}`
+                };
+                ciState.rawItems.push(itemResult);
+                ciState.counters.non_verificabili++;
+            });
+        }
+
+        verifiedCount += batch.length;
+        if (progressBar) {
+            const pct = 50 + Math.round((verifiedCount / brokenProducts.length) * 50); // 50-100% per Fase 2
+            progressBar.style.width = `${pct}%`;
+        }
+        aggiornaMetricheLiveControlloImmagini(items.length, items.length);
+    }
+
     const durationSec = ((Date.now() - startTime) / 1000).toFixed(1);
     ciState.isScanning = false;
 
@@ -20557,11 +21840,11 @@ async function avviaControlloImmaginiCatalogo() {
     }
     if (cardScanBtn) {
         cardScanBtn.disabled = false;
-        cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Catalogo`;
+        cardScanBtn.innerHTML = `<span>🔍</span> Scansiona Placeholder`;
     }
     if (stopBtn) stopBtn.classList.add('hidden');
 
-    // Popola i filtri dinamici (Squadra, Categoria, Stagione)
+    // Popola filtri dinamici
     popolaFiltriControlloImmagini();
 
     // Mostra alert di completamento
@@ -20569,12 +21852,11 @@ async function avviaControlloImmaginiCatalogo() {
         completedAlert.classList.remove('hidden');
         const summaryText = document.getElementById('ci-scan-summary-text');
         const durationBadge = document.getElementById('ci-scan-duration-badge');
-        const totalIssues = ciState.counters.placeholder + ciState.counters.senza_immagine + ciState.counters.non_caricabili + ciState.counters.da_verificare;
 
         if (summaryText) {
             summaryText.textContent = ciState.abortRequested
-                ? `Scansione interrotta dall'utente. ${processedCount} di ${items.length} prodotti analizzati. Trovati ${totalIssues} problemi.`
-                : `Analisi terminata: ${processedCount} prodotti analizzati, ${ciState.counters.ok} immagini OK, ${totalIssues} anomalie individuate.`;
+                ? `Scansione interrotta. ${ciState.rawItems.length} di ${brokenProducts.length} prodotti con placeholder verificati.`
+                : `Analisi completata: ${brokenProducts.length} placeholder attivi rilevati su ${items.length} prodotti. Presenti sul Fornitore: ${ciState.counters.presenti_fornitore}, Eliminati: ${ciState.counters.eliminati_fornitore}, Non verificabili: ${ciState.counters.non_verificabili}, Senza link: ${ciState.counters.senza_link}.`;
         }
         if (durationBadge) {
             durationBadge.textContent = `⏱️ ${durationSec}s`;
@@ -20588,13 +21870,13 @@ async function avviaControlloImmaginiCatalogo() {
     }
 
     // Aggiorna metriche finali
-    aggiornaMetricheLiveControlloImmagini(processedCount, items.length);
+    aggiornaMetricheLiveControlloImmagini(items.length, items.length);
 
     // Filtra e renderizza la tabella
     filtraControlloImmagini();
 
     if (typeof showToast === 'function') {
-        const msg = ciState.abortRequested ? "Scansione interrotta." : "Scansione catalogo completata con successo!";
+        const msg = ciState.abortRequested ? "Scansione interrotta." : `Scansione completata: ${brokenProducts.length} placeholder rilevati!`;
         showToast(msg, ciState.abortRequested ? "warning" : "success");
     }
 }
@@ -20606,9 +21888,9 @@ function interrompiControlloImmagini() {
     if (ciState.isScanning) {
         ciState.abortRequested = true;
         const statusText = document.getElementById('ci-scan-status-text');
-        if (statusText) statusText.textContent = "Interruzione richiesta... completamento batch attivi...";
+        if (statusText) statusText.textContent = "Interruzione in corso...";
         if (typeof showToast === 'function') {
-            showToast("Interruzione in corso...", "info");
+            showToast("Interruzione scansione in corso...", "info");
         }
     }
 }
@@ -20618,37 +21900,29 @@ function interrompiControlloImmagini() {
  */
 function aggiornaMetricheLiveControlloImmagini(current, total) {
     const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-    const issues = ciState.counters.placeholder + ciState.counters.senza_immagine + ciState.counters.non_caricabili + ciState.counters.da_verificare;
 
     // Progress box elements
     const counterEl = document.getElementById('ci-scan-counter');
-    const issuesEl = document.getElementById('ci-scan-issues-count');
     const pctEl = document.getElementById('ci-scan-percent');
     const barEl = document.getElementById('ci-scan-progress-bar');
     const statusTextEl = document.getElementById('ci-scan-status-text');
 
     if (counterEl) counterEl.textContent = `${current} / ${total}`;
-    if (issuesEl) issuesEl.textContent = issues;
     if (pctEl) pctEl.textContent = `${pct}%`;
-    if (barEl) barEl.style.width = `${pct}%`;
-    if (statusTextEl && ciState.isScanning) {
-        statusTextEl.textContent = `Verifica immagini in corso... (${current} di ${total} analizzati)`;
-    }
+    if (barEl && !ciState.isScanning) barEl.style.width = `${pct}%`;
 
-    // Stat cards
+    // 5 Stat cards
     const statTotali = document.getElementById('ci-stat-totali');
-    const statOk = document.getElementById('ci-stat-ok');
-    const statPlaceholder = document.getElementById('ci-stat-placeholder');
-    const statSenzaImg = document.getElementById('ci-stat-senza-immagine');
-    const statNonCaricabili = document.getElementById('ci-stat-non-caricabili');
-    const statDaVerificare = document.getElementById('ci-stat-da-verificare');
+    const statPresenti = document.getElementById('ci-stat-presenti');
+    const statCancellati = document.getElementById('ci-stat-cancellati');
+    const statNonVerificabili = document.getElementById('ci-stat-non-verificabili');
+    const statSenzaLink = document.getElementById('ci-stat-senza-link');
 
-    if (statTotali) statTotali.textContent = current;
-    if (statOk) statOk.textContent = ciState.counters.ok;
-    if (statPlaceholder) statPlaceholder.textContent = ciState.counters.placeholder;
-    if (statSenzaImg) statSenzaImg.textContent = ciState.counters.senza_immagine;
-    if (statNonCaricabili) statNonCaricabili.textContent = ciState.counters.non_caricabili;
-    if (statDaVerificare) statDaVerificare.textContent = ciState.counters.da_verificare;
+    if (statTotali) statTotali.textContent = ciState.counters.totali;
+    if (statPresenti) statPresenti.textContent = ciState.counters.presenti_fornitore;
+    if (statCancellati) statCancellati.textContent = ciState.counters.eliminati_fornitore;
+    if (statNonVerificabili) statNonVerificabili.textContent = ciState.counters.non_verificabili;
+    if (statSenzaLink) statSenzaLink.textContent = ciState.counters.senza_link;
 }
 
 /**
@@ -20737,12 +22011,8 @@ function filtraControlloImmagini() {
         }
 
         // Filtro Stato
-        if (statoVal) {
-            if (statoVal === 'PROBLEMI') {
-                if (item.stato === 'OK') return false;
-            } else if (item.stato !== statoVal) {
-                return false;
-            }
+        if (statoVal && item.stato !== statoVal) {
+            return false;
         }
 
         // Filtro Squadra
@@ -20769,7 +22039,7 @@ function filtraControlloImmagini() {
     // Aggiorna counter testuale
     const counterText = document.getElementById('ci-filter-counter-text');
     if (counterText) {
-        counterText.textContent = `Visualizzati ${ciState.filteredItems.length} di ${ciState.rawItems.length} prodotti analizzati`;
+        counterText.textContent = `Visualizzati ${ciState.filteredItems.length} di ${ciState.rawItems.length} prodotti con placeholder`;
     }
 }
 
@@ -20809,8 +22079,8 @@ function renderizzaTabellaControlloImmagini() {
                 <td colspan="6" class="py-16 text-center text-slate-400">
                     <div class="flex flex-col items-center justify-center gap-3">
                         <span class="text-4xl">🔍</span>
-                        <span class="text-sm font-semibold text-slate-600">Nessuna scansione effettuata</span>
-                        <p class="text-xs text-slate-400 max-w-md">Premi sul pulsante <strong>"SCANSIONA CATALOGO"</strong> in alto per avviare il controllo completo delle immagini.</p>
+                        <span class="text-sm font-semibold text-slate-600">Nessun placeholder attivo rilevato</span>
+                        <p class="text-xs text-slate-400 max-w-md">Premi sul pulsante <strong>"SCANSIONA PLACEHOLDER"</strong> in alto per analizzare lo stato delle immagini.</p>
                     </div>
                 </td>
             </tr>
@@ -20852,115 +22122,70 @@ function renderizzaTabellaControlloImmagini() {
         const idDisp = item.legacy_id !== undefined && item.legacy_id !== null ? item.legacy_id : item.id;
         const rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
 
-        // Badge Stato & Motivo
+        // Badge Stato & Motivo (Classificazione richiesta a 4 stati)
         let badgeHtml = '';
-        if (item.stato === 'OK') {
+        if (item.stato === 'PRESENTE_FORNITORE') {
             badgeHtml = `
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-full uppercase border border-emerald-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> IMMAGINE OK
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PRESENTE SUL FORNITORE
                 </span>
-                <div class="text-[10px] text-slate-500 mt-1 leading-tight">${item.motivo}</div>
+                <div class="text-[10px] text-emerald-700 mt-1 leading-tight font-medium">${item.motivo}</div>
             `;
-        } else if (item.stato === 'PLACEHOLDER') {
+        } else if (item.stato === 'ELIMINATA_FORNITORE') {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-100 text-rose-800 font-bold text-[10px] rounded-full uppercase border border-rose-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> ELIMINATA DAL FORNITORE
+                </span>
+                <div class="text-[10px] text-rose-800/80 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        } else if (item.stato === 'SENZA_LINK_FORNITORE') {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-200 text-slate-800 font-bold text-[10px] rounded-full uppercase border border-slate-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> LINK NON DISPONIBILE
+                </span>
+                <div class="text-[10px] text-slate-600 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        } else {
             badgeHtml = `
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-[10px] rounded-full uppercase border border-amber-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> PLACEHOLDER
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> NON VERIFICABILE
                 </span>
-                <div class="text-[10px] text-amber-800/80 mt-1 leading-tight">${item.motivo}</div>
-            `;
-        } else if (item.stato === 'SENZA_IMMAGINE') {
-            badgeHtml = `
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-900 font-bold text-[10px] rounded-full uppercase border border-red-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span> SENZA IMMAGINE
-                </span>
-                <div class="text-[10px] text-red-700/80 mt-1 leading-tight">${item.motivo}</div>
-            `;
-        } else if (item.stato === 'NON_CARICABILE') {
-            badgeHtml = `
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-100 text-rose-900 font-bold text-[10px] rounded-full uppercase border border-rose-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> NON CARICABILE
-                </span>
-                <div class="text-[10px] text-rose-800/80 mt-1 leading-tight">${item.motivo}</div>
-            `;
-        } else {
-            badgeHtml = `
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 text-yellow-900 font-bold text-[10px] rounded-full uppercase border border-yellow-300">
-                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> DA VERIFICARE
-                </span>
-                <div class="text-[10px] text-yellow-800/80 mt-1 leading-tight">${item.motivo}</div>
+                <div class="text-[10px] text-amber-800/80 mt-1 leading-tight font-medium">${item.motivo}</div>
             `;
         }
 
-        // Estrazione nome file da mostrare
-        let fileName = 'Nessun URL';
-        if (item.immagine && typeof item.immagine === 'string') {
-            try {
-                const parts = item.immagine.split('/');
-                fileName = parts[parts.length - 1].split('?')[0].split('#')[0] || item.immagine;
-            } catch (e) {
-                fileName = item.immagine;
-            }
-        }
+        // Anteprima Placeholder / Immagine Attuale
+        const anteprimaHtml = `
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-lg border border-amber-300 bg-amber-50/80 flex items-center justify-center text-amber-700 text-sm flex-shrink-0 font-bold">🖼️</div>
+                <div class="min-w-0">
+                    <span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-bold rounded uppercase">Mostra Placeholder</span>
+                    <span class="text-[9px] text-slate-400 font-mono truncate block max-w-[150px] mt-0.5" title="${item.immagine_attuale || 'Nessun URL'}">
+                        ${item.immagine_attuale ? item.immagine_attuale.split('/').pop() : 'Nessun URL'}
+                    </span>
+                </div>
+            </div>
+        `;
 
-        // Anteprima Immagine secondo Requirement 8
-        let anteprimaHtml = '';
-        if (item.stato === 'OK') {
-            anteprimaHtml = `
-                <div class="flex items-center gap-2.5">
-                    <img src="${item.immagine}" alt="${item.nome}" class="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-slate-50 flex-shrink-0" loading="lazy" onerror="this.src='/woocommerce-placeholder-300x300.webp';">
-                    <div class="min-w-0 flex-1">
-                        <a href="${item.immagine}" target="_blank" rel="noopener noreferrer" class="text-[11px] font-mono text-slate-600 hover:text-brand-gold hover:underline truncate block max-w-[190px]" title="${item.immagine}">
-                            ${fileName}
-                        </a>
-                        <span class="text-[9px] text-emerald-700 font-medium">${item.width}x${item.height}px</span>
-                    </div>
-                </div>
-            `;
-        } else if (item.stato === 'PLACEHOLDER') {
-            anteprimaHtml = `
-                <div class="flex items-center gap-2.5">
-                    <img src="${item.immagine || '/woocommerce-placeholder-300x300.webp'}" alt="Placeholder" class="w-10 h-10 object-contain rounded-lg border border-amber-300 bg-amber-50 flex-shrink-0" loading="lazy">
-                    <div class="min-w-0 flex-1">
-                        <span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-bold rounded">PLACEHOLDER</span>
-                        <a href="${item.immagine}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-mono text-slate-500 hover:text-brand-gold hover:underline truncate block mt-0.5 max-w-[190px]" title="${item.immagine}">
-                            ${fileName}
-                        </a>
-                    </div>
-                </div>
-            `;
-        } else if (item.stato === 'SENZA_IMMAGINE') {
-            anteprimaHtml = `
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-lg border border-dashed border-red-300 bg-red-50/70 flex items-center justify-center text-red-500 text-sm flex-shrink-0">🚫</div>
-                    <div>
-                        <span class="px-2 py-0.5 bg-red-100 text-red-700 font-black text-[9px] rounded uppercase tracking-wider">NESSUNA IMMAGINE</span>
-                        <div class="text-[9px] text-red-500/80 mt-0.5">Nessun URL configurato</div>
-                    </div>
-                </div>
-            `;
-        } else if (item.stato === 'NON_CARICABILE') {
-            anteprimaHtml = `
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-lg border border-dashed border-rose-300 bg-rose-50/70 flex items-center justify-center text-rose-500 text-sm flex-shrink-0">⚠️</div>
-                    <div class="min-w-0">
-                        <span class="px-2 py-0.5 bg-rose-100 text-rose-700 font-black text-[9px] rounded uppercase tracking-wider">IMMAGINE NON CARICABILE</span>
-                        <a href="${item.immagine}" target="_blank" rel="noopener noreferrer" class="text-[9px] text-slate-400 font-mono truncate block max-w-[180px] mt-0.5 hover:underline" title="${item.immagine}">
-                            ${fileName}
-                        </a>
-                    </div>
+        // Link Originale Jersey con pulsante diretto "Apri link Jersey"
+        let jerseyLinkHtml = '';
+        if (item.url_jersey) {
+            const shortName = item.url_jersey.split('/').pop() || 'file';
+            jerseyLinkHtml = `
+                <div class="space-y-1">
+                    <a href="${item.url_jersey}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer">
+                        <span>🔗</span> Apri link Jersey
+                    </a>
+                    <span class="text-[9px] text-slate-400 font-mono truncate block max-w-[210px]" title="${item.url_jersey}">
+                        ${shortName}
+                    </span>
                 </div>
             `;
         } else {
-            anteprimaHtml = `
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-lg border border-yellow-300 bg-yellow-50 flex items-center justify-center text-yellow-600 text-sm flex-shrink-0">❓</div>
-                    <div class="min-w-0">
-                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 font-black text-[9px] rounded uppercase tracking-wider">DA VERIFICARE</span>
-                        <a href="${item.immagine}" target="_blank" rel="noopener noreferrer" class="text-[9px] text-slate-400 font-mono truncate block max-w-[180px] mt-0.5 hover:underline" title="${item.immagine}">
-                            ${fileName}
-                        </a>
-                    </div>
-                </div>
+            jerseyLinkHtml = `
+                <span class="px-2.5 py-1 bg-slate-100 text-slate-500 font-bold text-[10px] rounded-lg border border-slate-200">
+                    LINK FORNITORE NON DISPONIBILE
+                </span>
             `;
         }
 
@@ -20981,11 +22206,7 @@ function renderizzaTabellaControlloImmagini() {
                     <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium">${item.categoria}</span>
                 </td>
                 <td class="py-3 px-4 align-middle">${anteprimaHtml}</td>
-                <td class="py-3 px-4 align-middle text-right">
-                    <button onclick="vediDettaglioProdottoControlloImmagini('${item.id}')" type="button" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 font-bold text-xs rounded-lg border border-slate-200 transition-all inline-flex items-center gap-1 cursor-pointer">
-                        <span>👁️</span> Vedi
-                    </button>
-                </td>
+                <td class="py-3 px-4 align-middle">${jerseyLinkHtml}</td>
             </tr>
         `;
     });
@@ -20996,7 +22217,7 @@ function renderizzaTabellaControlloImmagini() {
     if (paginationContainer) {
         paginationContainer.classList.remove('hidden');
         if (paginationInfo) {
-            paginationInfo.textContent = `Mostrando ${startIdx + 1} - ${endIdx} di ${total} prodotti`;
+            paginationInfo.textContent = `Mostrando ${startIdx + 1} - ${endIdx} di ${total} prodotti con placeholder`;
         }
 
         if (paginationButtons) {
@@ -21008,7 +22229,6 @@ function renderizzaTabellaControlloImmagini() {
                     </button>
                 `;
 
-                // Pagine limitate
                 const startP = Math.max(1, ciState.currentPage - 2);
                 const endP = Math.min(totalPages, ciState.currentPage + 2);
 
@@ -21048,28 +22268,12 @@ function cambiaPaginaControlloImmagini(page) {
 }
 
 /**
- * Apre la scheda prodotto Admin esistente senza modificare nulla
- */
-function vediDettaglioProdottoControlloImmagini(productId) {
-    if (typeof preparaModificaProdotto === 'function') {
-        preparaModificaProdotto(productId);
-    } else if (typeof window.modificaProdotto === 'function') {
-        window.modificaProdotto(productId);
-    } else {
-        if (typeof showToast === 'function') {
-            showToast(`Scheda prodotto ID: ${productId}`, "info");
-        }
-    }
-}
-
-/**
- * Esporta i risultati dei prodotti con problemi in formato CSV (RFC 4180)
+ * Esporta i risultati dei prodotti con placeholder in formato CSV (RFC 4180)
  */
 function esportaReportControlloImmaginiCSV() {
-    // Seleziona preferibilmente gli elementi filtrati che presentano anomalie, oppure tutti i problematici
     let itemsToExport = ciState.filteredItems;
     if (itemsToExport.length === 0) {
-        itemsToExport = ciState.rawItems.filter(item => item.stato !== 'OK');
+        itemsToExport = ciState.rawItems;
     }
 
     if (itemsToExport.length === 0) {
@@ -21079,7 +22283,7 @@ function esportaReportControlloImmaginiCSV() {
         return;
     }
 
-    const headers = ["ID", "Prodotto", "Squadra", "Categoria", "Stagione", "Stato", "URL Immagine", "Motivo"];
+    const headers = ["ID", "Prodotto", "Squadra", "Categoria", "Stagione", "Stato", "Motivo", "Immagine Attuale", "Link Originale Jersey"];
     const rows = itemsToExport.map(p => {
         const idDisp = p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id;
         return [
@@ -21089,8 +22293,9 @@ function esportaReportControlloImmaginiCSV() {
             `"${(p.categoria || '').replace(/"/g, '""')}"`,
             `"${(p.stagione || '').replace(/"/g, '""')}"`,
             `"${(p.stato || '').replace(/"/g, '""')}"`,
-            `"${(p.immagine || '').replace(/"/g, '""')}"`,
-            `"${(p.motivo || '').replace(/"/g, '""')}"`
+            `"${(p.motivo || '').replace(/"/g, '""')}"`,
+            `"${(p.immagine_attuale || '').replace(/"/g, '""')}"`,
+            `"${(p.url_jersey || '').replace(/"/g, '""')}"`
         ];
     });
 
@@ -21099,7 +22304,7 @@ function esportaReportControlloImmaginiCSV() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `controllo_immagini_catalogo_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `controllo_placeholder_jersey_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -21107,6 +22312,15 @@ function esportaReportControlloImmaginiCSV() {
 
     if (typeof showToast === 'function') {
         showToast(`Report CSV con ${itemsToExport.length} prodotti generato con successo!`, "success");
+    }
+}
+
+/**
+ * Apre la schermata o modale di dettaglio/modifica per un prodotto scansionato
+ */
+function vediDettaglioProdottoControlloImmagini(id) {
+    if (typeof apriModificaProdotto === 'function' && id) {
+        apriModificaProdotto(id);
     }
 }
 
@@ -21118,8 +22332,2132 @@ window.filtraPerStatoVeloce = filtraPerStatoVeloce;
 window.filtraControlloImmagini = filtraControlloImmagini;
 window.resetFiltriControlloImmagini = resetFiltriControlloImmagini;
 window.cambiaPaginaControlloImmagini = cambiaPaginaControlloImmagini;
-window.vediDettaglioProdottoControlloImmagini = vediDettaglioProdottoControlloImmagini;
 window.esportaReportControlloImmaginiCSV = esportaReportControlloImmaginiCSV;
+window.vediDettaglioProdottoControlloImmagini = vediDettaglioProdottoControlloImmagini;
+
+// =========================================================================
+// 🛡️ MODULO DIAGNOSTICO: CONTROLLO SICUREZZA ARTICOLI (SOLO LETTURA / SICURO)
+// =========================================================================
+
+let csaState = {
+    isScanning: false,
+    rawItems: [],
+    filteredItems: [],
+    currentPage: 1,
+    pageSize: 50,
+    priceAuthorizationsMap: new Map(),
+    selectedIds: new Set(),
+    isSelectAllFiltered: false,
+    counters: {
+        totali: 0,
+        corretti: 0,
+        autorizzati: 0,
+        fuori_categoria: { total: 0, Adulto: 0, Bambino: 0 },
+        errori_critici: { total: 0, Adulto: 0, Bambino: 0 },
+        non_confrontabili: { total: 0, Adulto: 0, Bambino: 0 }
+    },
+    anomaliePerCategoria: {}
+};
+
+/**
+ * Scorri verso la sezione Controllo Sicurezza Articoli e avvia la scansione
+ */
+function scrollaEAvviaControlloSicurezzaPrezzi() {
+    if (typeof switchTab === 'function') {
+        switchTab('gestione-catalogo');
+    }
+    const section = document.getElementById('sezione-controllo-sicurezza-articoli');
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setTimeout(() => {
+        avviaControlloSicurezzaPrezzi();
+    }, 300);
+}
+
+/**
+ * Determina in modo sicuro il target (Adulto / Bambino) di un prodotto
+ * rispettando la priorità: campo esplicito -> regole Kit -> fallback semantico
+ */
+function determinaTargetProdottoSicurezza(p) {
+    if (!p) return null;
+    const rawTarget = (p.target || '').toString().trim();
+    const rawCat = (p.categoria || '').toString().trim();
+    const lowerCat = rawCat.toLowerCase();
+
+    // Rileva contraddizioni esplicite
+    if ((lowerCat === 'kit bambino' || lowerCat.includes('bambino')) && rawTarget === 'Adulto') {
+        return { target: 'Contraddittorio', isContradictory: true, error: 'Categoria Kit Bambino ma Target impostato su Adulto' };
+    }
+
+    if (rawTarget === 'Adulto' || rawTarget === 'Bambino') {
+        return { target: rawTarget, isContradictory: false };
+    }
+
+    // Regole per Kit Bambino
+    if (lowerCat === 'kit bambino' || (lowerCat === 'kit' && p.categoria === 'Kit Bambino')) {
+        return { target: 'Bambino', isContradictory: false };
+    }
+
+    // Fallback semantico
+    const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${rawCat}`.toLowerCase();
+    const hasKids = /\b(kids|bambino|bambini|child|children|youth|baby|junior)\b/i.test(textToCheck);
+    const hasAdult = /\b(adult|adults|adulto|adulti)\b/i.test(textToCheck);
+
+    if (hasKids && hasAdult) {
+        return { target: 'Contraddittorio', isContradictory: true, error: 'Presenti sia termini Adulto che Bambino nel testo' };
+    } else if (hasKids) {
+        return { target: 'Bambino', isContradictory: false };
+    } else if (hasAdult) {
+        return { target: 'Adulto', isContradictory: false };
+    }
+
+    // Default se non specificato
+    return { target: 'Adulto', isContradictory: false };
+}
+
+/**
+ * Trova la configurazione categoria corrispondente in Prezzi & Categorie (catalog_settings.categorie)
+ * gestendo la normalizzazione esistente e gli alias noti (es. Smanicato <-> Smanicati)
+ */
+function trovaConfigurazioneCategoriaSicurezza(catName, categoriesList) {
+    if (!catName || !Array.isArray(categoriesList) || categoriesList.length === 0) return null;
+    const clean = catName.toString().trim().toLowerCase();
+
+    // 1. Corrispondenza diretta esatta
+    let found = categoriesList.find(c => c && c.nome && c.nome.toString().trim().toLowerCase() === clean);
+    if (found) return found;
+
+    // 2. Normalizzazione tramite la funzione centralizzata normalizzaCategoria()
+    if (typeof normalizzaCategoria === 'function') {
+        const norm = normalizzaCategoria(catName);
+        found = categoriesList.find(c => c && c.nome && c.nome.toString().trim().toLowerCase() === norm.toString().trim().toLowerCase());
+        if (found) return found;
+    }
+
+    // 3. Gestione alias singolare / plurale (es. Smanicato <-> Smanicati, Pantaloncino <-> Pantaloncini)
+    found = categoriesList.find(c => {
+        const cClean = (c.nome || '').toString().trim().toLowerCase();
+        if (clean.startsWith('smanicat') && cClean.startsWith('smanicat')) return true;
+        if (clean.startsWith('pantaloncin') && cClean.startsWith('pantaloncin')) return true;
+        if (clean.startsWith('calzett') && cClean.startsWith('calzett')) return true;
+        return false;
+    });
+    if (found) return found;
+
+    return null;
+}
+
+/**
+ * Esegue l'analisi di sicurezza e conformità del prezzo di un singolo prodotto
+ */
+function analizzaConformitaPrezzoProdotto(p, categoriesList, authMap = null) {
+    const rawPrezzo = p.prezzo;
+
+    // 1. Controllo Errori Critici (prezzo non numerico, null, undefined, NaN)
+    if (rawPrezzo === null || rawPrezzo === undefined || rawPrezzo === '' || isNaN(Number(rawPrezzo)) || typeof rawPrezzo === 'boolean') {
+        return {
+            stato: 'ERRORE_CRITICO',
+            motivo: 'Prezzo nullo, mancante o non numerico',
+            prezzoAttuale: null,
+            prezzoAttualeDisp: 'N/D',
+            prezzoPrevisto: null,
+            prezzoPrevistoDisp: 'N/D',
+            diffEuro: null,
+            diffDisplay: 'N/D',
+            target: p.target || 'Non determinabile',
+            categoriaConfig: null
+        };
+    }
+
+    const numPrezzo = Number(rawPrezzo);
+
+    // 2. Controllo Errori Critici (0 o negativo)
+    if (numPrezzo === 0) {
+        return {
+            stato: 'ERRORE_CRITICO',
+            motivo: 'Prezzo impostato a 0,00 € (rischio vendita gratuita)',
+            prezzoAttuale: 0,
+            prezzoAttualeDisp: '0,00 €',
+            prezzoPrevisto: null,
+            prezzoPrevistoDisp: 'N/D',
+            diffEuro: null,
+            diffDisplay: 'N/D',
+            target: p.target || 'Non determinabile',
+            categoriaConfig: null
+        };
+    }
+
+    if (numPrezzo < 0) {
+        return {
+            stato: 'ERRORE_CRITICO',
+            motivo: `Prezzo negativo (${numPrezzo.toFixed(2).replace('.', ',')} €)`,
+            prezzoAttuale: numPrezzo,
+            prezzoAttualeDisp: `${numPrezzo.toFixed(2).replace('.', ',')} €`,
+            prezzoPrevisto: null,
+            prezzoPrevistoDisp: 'N/D',
+            diffEuro: null,
+            diffDisplay: 'N/D',
+            target: p.target || 'Non determinabile',
+            categoriaConfig: null
+        };
+    }
+
+    // 3. Risoluzione Target Adulto / Bambino
+    const targetInfo = determinaTargetProdottoSicurezza(p);
+    if (!targetInfo || targetInfo.isContradictory || (targetInfo.target !== 'Adulto' && targetInfo.target !== 'Bambino')) {
+        return {
+            stato: 'NON_CONFRONTABILE',
+            motivo: targetInfo?.error || 'Target Adulto/Bambino non determinabile con certezza',
+            prezzoAttuale: numPrezzo,
+            prezzoAttualeDisp: `${numPrezzo.toFixed(2).replace('.', ',')} €`,
+            prezzoPrevisto: null,
+            prezzoPrevistoDisp: 'N/D',
+            diffEuro: null,
+            diffDisplay: 'N/D',
+            target: targetInfo?.target || 'Non determinabile',
+            categoriaConfig: null
+        };
+    }
+
+    const target = targetInfo.target;
+
+    // 4. Risoluzione Categoria in Prezzi & Categorie
+    const catConfig = trovaConfigurazioneCategoriaSicurezza(p.categoria, categoriesList);
+    if (!catConfig) {
+        return {
+            stato: 'NON_CONFRONTABILE',
+            motivo: `Categoria "${p.categoria || 'Non specificata'}" non configurata in Prezzi & Categorie`,
+            prezzoAttuale: numPrezzo,
+            prezzoAttualeDisp: `${numPrezzo.toFixed(2).replace('.', ',')} €`,
+            prezzoPrevisto: null,
+            prezzoPrevistoDisp: 'N/D',
+            diffEuro: null,
+            diffDisplay: 'N/D',
+            target: target,
+            categoriaConfig: null
+        };
+    }
+
+    // 5. Risoluzione Prezzo Previsto
+    const expectedPriceRaw = target === 'Bambino' ? catConfig.prezzo_bambino : catConfig.prezzo_adulto;
+    if (expectedPriceRaw === undefined || expectedPriceRaw === null || isNaN(Number(expectedPriceRaw)) || Number(expectedPriceRaw) <= 0) {
+        return {
+            stato: 'NON_CONFRONTABILE',
+            motivo: `Prezzo per ${target} non configurato per la categoria "${catConfig.nome}"`,
+            prezzoAttuale: numPrezzo,
+            prezzoAttualeDisp: `${numPrezzo.toFixed(2).replace('.', ',')} €`,
+            prezzoPrevisto: null,
+            prezzoPrevistoDisp: 'N/D',
+            diffEuro: null,
+            diffDisplay: 'N/D',
+            target: target,
+            categoriaConfig: catConfig.nome
+        };
+    }
+
+    const expectedPrice = Number(expectedPriceRaw);
+
+    // 6. Confronto Monetario in Centesimi (Risoluzione problemi floating point)
+    const curCents = Math.round(numPrezzo * 100);
+    const expCents = Math.round(expectedPrice * 100);
+    const diffCents = curCents - expCents;
+
+    const prezzoAttualeDisp = `${numPrezzo.toFixed(2).replace('.', ',')} €`;
+    const prezzoPrevistoDisp = `${expectedPrice.toFixed(2).replace('.', ',')} €`;
+
+    if (diffCents === 0) {
+        return {
+            stato: 'PREZZO_CORRETTO',
+            motivo: `Prezzo conforme a ${catConfig.nome} [${target}] (${prezzoPrevistoDisp})`,
+            prezzoAttuale: numPrezzo,
+            prezzoAttualeDisp: prezzoAttualeDisp,
+            prezzoPrevisto: expectedPrice,
+            prezzoPrevistoDisp: prezzoPrevistoDisp,
+            diffEuro: '0.00',
+            diffCents: 0,
+            diffDisplay: '0,00 €',
+            target: target,
+            categoriaConfig: catConfig.nome
+        };
+    } else {
+        const diffValue = (diffCents / 100).toFixed(2);
+        const diffDisplay = diffCents > 0
+            ? `+${diffValue.replace('.', ',')} €`
+            : `${diffValue.replace('.', ',')} €`;
+
+        // Controlla se per questo prodotto esiste un'autorizzazione attiva per questo prezzo esatto
+        const pIdStr = String(p.id || '');
+        const pLegStr = p.legacy_id !== undefined && p.legacy_id !== null ? String(p.legacy_id) : '';
+        const auth = authMap ? (authMap.get(pIdStr) || (pLegStr ? authMap.get(pLegStr) : null)) : null;
+
+        if (auth && Math.round(Number(auth.authorized_price) * 100) === curCents) {
+            return {
+                stato: 'PREZZO_AUTORIZZATO',
+                motivo: `Prezzo autorizzato intenzionale (${prezzoAttualeDisp})`,
+                prezzoAttuale: numPrezzo,
+                prezzoAttualeDisp: prezzoAttualeDisp,
+                prezzoPrevisto: expectedPrice,
+                prezzoPrevistoDisp: prezzoPrevistoDisp,
+                diffEuro: diffValue,
+                diffCents: diffCents,
+                diffDisplay: diffDisplay,
+                target: target,
+                categoriaConfig: catConfig.nome,
+                isAuthorized: true
+            };
+        }
+
+        return {
+            stato: 'PREZZO_FUORI_CATEGORIA',
+            motivo: `Differenza di ${diffDisplay} rispetto al prezzo previsto (${prezzoPrevistoDisp})`,
+            prezzoAttuale: numPrezzo,
+            prezzoAttualeDisp: prezzoAttualeDisp,
+            prezzoPrevisto: expectedPrice,
+            prezzoPrevistoDisp: prezzoPrevistoDisp,
+            diffEuro: diffValue,
+            diffCents: diffCents,
+            diffDisplay: diffDisplay,
+            target: target,
+            categoriaConfig: catConfig.nome,
+            isAuthorized: false
+        };
+    }
+}
+
+/**
+ * Avvia la scansione completa di sicurezza prezzi in sola lettura
+ */
+async function avviaControlloSicurezzaPrezzi() {
+    if (csaState.isScanning) {
+        if (typeof showToast === 'function') {
+            showToast("Scansione sicurezza prezzi già in corso...", "warning");
+        }
+        return;
+    }
+
+    const progressBox = document.getElementById('csa-scan-progress-box');
+    const completedAlert = document.getElementById('csa-scan-completed-alert');
+    const scanBtn = document.getElementById('btn-scansiona-sicurezza-prezzi');
+    const cardScanBtn = document.getElementById('btn-scansiona-sicurezza-prezzi-card');
+    const exportBtn = document.getElementById('btn-esporta-sicurezza-prezzi');
+    const statusTextEl = document.getElementById('csa-scan-status-text');
+    const progressBar = document.getElementById('csa-scan-progress-bar');
+    const counterEl = document.getElementById('csa-scan-counter');
+    const percentEl = document.getElementById('csa-scan-percent');
+
+    // UI Feedback iniziale
+    if (progressBox) progressBox.classList.remove('hidden');
+    if (completedAlert) completedAlert.classList.add('hidden');
+    if (statusTextEl) statusTextEl.textContent = "Caricamento catalogo e regole prezzi in memoria...";
+    if (progressBar) progressBar.style.width = "20%";
+    if (scanBtn) {
+        scanBtn.disabled = true;
+        scanBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+    if (cardScanBtn) {
+        cardScanBtn.disabled = true;
+        cardScanBtn.innerHTML = `<span>⏳</span> Controllo in corso...`;
+    }
+    if (exportBtn) {
+        exportBtn.disabled = true;
+        exportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    csaState.isScanning = true;
+    csaState.rawItems = [];
+    csaState.filteredItems = [];
+    csaState.currentPage = 1;
+    csaState.selectedIds = new Set();
+    csaState.isSelectAllFiltered = false;
+    csaState.counters = {
+        totali: 0,
+        corretti: 0,
+        autorizzati: 0,
+        fuori_categoria: { total: 0, Adulto: 0, Bambino: 0 },
+        errori_critici: { total: 0, Adulto: 0, Bambino: 0 },
+        non_confrontabili: { total: 0, Adulto: 0, Bambino: 0 }
+    };
+    csaState.anomaliePerCategoria = {};
+    csaState.priceAuthorizationsMap = new Map();
+
+    const startTime = Date.now();
+
+    try {
+        // 1. Assicura che le impostazioni categorie siano caricate (Source of Truth)
+        if (!window.appSettings || !Array.isArray(window.appSettings.categorie) || window.appSettings.categorie.length === 0) {
+            if (typeof caricaSettings === 'function') {
+                await caricaSettings();
+            } else {
+                const sRes = await fetch('/api/settings');
+                if (sRes.ok) {
+                    const sData = await sRes.json();
+                    if (sData && sData.settings) window.appSettings = sData.settings;
+                }
+            }
+        }
+        if (typeof assicuratiCategorieDinamiche === 'function') {
+            assicuratiCategorieDinamiche();
+        }
+
+        const categoriesList = (window.appSettings && Array.isArray(window.appSettings.categorie))
+            ? window.appSettings.categorie
+            : [];
+
+        // 1b. Carica la lista delle autorizzazioni prezzi speciali da Supabase
+        try {
+            const authRes = await fetch('/api/catalog/price-security/authorizations');
+            if (authRes.ok) {
+                const authJson = await authRes.json();
+                if (authJson && Array.isArray(authJson.authorizations)) {
+                    authJson.authorizations.forEach(a => {
+                        if (a.product_id) csaState.priceAuthorizationsMap.set(String(a.product_id), a);
+                        if (a.legacy_id !== undefined && a.legacy_id !== null) csaState.priceAuthorizationsMap.set(String(a.legacy_id), a);
+                    });
+                }
+            }
+        } catch (eAuth) {
+            console.warn("⚠️ Caricamento autorizzazioni prezzi non riuscito:", eAuth.message);
+        }
+
+        // 2. Assicura che i prodotti siano presenti in memoria
+        let items = [];
+        if (Array.isArray(prodotti) && prodotti.length > 0) {
+            items = prodotti;
+        } else if (Array.isArray(window.prodotti) && window.prodotti.length > 0) {
+            items = window.prodotti;
+        } else {
+            if (isProdottiLoading) {
+                while (isProdottiLoading) {
+                    await new Promise(r => setTimeout(r, 100));
+                }
+                items = (Array.isArray(prodotti) && prodotti.length > 0) ? prodotti : (window.prodotti || []);
+            }
+            if (items.length === 0) {
+                const pRes = await fetch('/api/products');
+                if (pRes.ok) {
+                    const pJson = await pRes.json();
+                    items = Array.isArray(pJson) ? pJson : (pJson.products || pJson.data || []);
+                    prodotti = items;
+                    window.prodotti = items;
+                }
+            }
+        }
+
+        if (progressBar) progressBar.style.width = "60%";
+        if (statusTextEl) statusTextEl.textContent = `Analisi conformità su ${items.length} articoli...`;
+        if (counterEl) counterEl.textContent = `0 / ${items.length}`;
+
+        // 3. Esegui la scansione in memoria su tutti i prodotti
+        items.forEach((p, idx) => {
+            const analysis = analizzaConformitaPrezzoProdotto(p, categoriesList, csaState.priceAuthorizationsMap);
+
+            const itemReport = {
+                id: p.id,
+                legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+                nome: p.versione || p.nome || p.squadra || 'Senza Nome',
+                squadra: p.squadra || '',
+                categoria: p.categoria || 'Generale',
+                categoriaConfig: analysis.categoriaConfig || p.categoria || 'N/D',
+                target: analysis.target || p.target || 'Adulto',
+                prezzoAttuale: analysis.prezzoAttuale,
+                prezzoAttualeDisp: analysis.prezzoAttualeDisp,
+                prezzoPrevisto: analysis.prezzoPrevisto,
+                prezzoPrevistoDisp: analysis.prezzoPrevistoDisp,
+                diffEuro: analysis.diffEuro,
+                diffDisplay: analysis.diffDisplay,
+                diffCents: analysis.diffCents || 0,
+                stato: analysis.stato,
+                motivo: analysis.motivo,
+                isAuthorized: analysis.isAuthorized || false
+            };
+
+            csaState.rawItems.push(itemReport);
+
+            // Aggiorna contatori
+            if (analysis.stato === 'PREZZO_CORRETTO') {
+                csaState.counters.corretti++;
+            } else if (analysis.stato === 'PREZZO_AUTORIZZATO') {
+                csaState.counters.autorizzati++;
+            } else if (analysis.stato === 'PREZZO_FUORI_CATEGORIA') {
+                csaState.counters.fuori_categoria.total++;
+                if (analysis.target === 'Bambino') {
+                    csaState.counters.fuori_categoria.Bambino++;
+                } else {
+                    csaState.counters.fuori_categoria.Adulto++;
+                }
+                const catKey = analysis.categoriaConfig || p.categoria || 'Altro';
+                csaState.anomaliePerCategoria[catKey] = (csaState.anomaliePerCategoria[catKey] || 0) + 1;
+            } else if (analysis.stato === 'ERRORE_CRITICO') {
+                csaState.counters.errori_critici.total++;
+                if (analysis.target === 'Bambino') {
+                    csaState.counters.errori_critici.Bambino++;
+                } else {
+                    csaState.counters.errori_critici.Adulto++;
+                }
+                const catKey = analysis.categoriaConfig || p.categoria || 'Altro';
+                csaState.anomaliePerCategoria[catKey] = (csaState.anomaliePerCategoria[catKey] || 0) + 1;
+            } else {
+                csaState.counters.non_confrontabili.total++;
+                if (analysis.target === 'Bambino') {
+                    csaState.counters.non_confrontabili.Bambino++;
+                } else {
+                    csaState.counters.non_confrontabili.Adulto++;
+                }
+                const catKey = analysis.categoriaConfig || p.categoria || 'Altro';
+                csaState.anomaliePerCategoria[catKey] = (csaState.anomaliePerCategoria[catKey] || 0) + 1;
+            }
+        });
+
+        csaState.counters.totali = items.length;
+
+        // Verifica quadratura contatori
+        const sumContatori = csaState.counters.corretti +
+            csaState.counters.autorizzati +
+            csaState.counters.fuori_categoria.total +
+            csaState.counters.errori_critici.total +
+            csaState.counters.non_confrontabili.total;
+
+        if (sumContatori !== csaState.counters.totali) {
+            console.warn(`[Sicurezza Prezzi] Discrepanza quadratura: somma=${sumContatori} vs totali=${csaState.counters.totali}`);
+        }
+
+        if (progressBar) progressBar.style.width = "100%";
+        if (percentEl) percentEl.textContent = "100%";
+        if (counterEl) counterEl.textContent = `${items.length} / ${items.length}`;
+
+        const elapsedSec = ((Date.now() - startTime) / 1000).toFixed(2);
+
+        // Aggiorna metriche nell'interfaccia
+        aggiornaMetricheLiveSicurezzaPrezzi();
+
+        // Popola i filtri dinamici per categoria
+        popolaFiltriSicurezzaPrezzi();
+
+        // Mostra alert completamento
+        if (completedAlert) {
+            completedAlert.classList.remove('hidden');
+            const summaryText = document.getElementById('csa-scan-summary-text');
+            const durationBadge = document.getElementById('csa-scan-duration-badge');
+
+            if (summaryText) {
+                summaryText.textContent = `Analisi completata su ${csaState.counters.totali} articoli: ${csaState.counters.corretti} corretti, ${csaState.counters.autorizzati} autorizzati, ${csaState.counters.fuori_categoria.total} fuori categoria, ${csaState.counters.errori_critici.total} critici, ${csaState.counters.non_confrontabili.total} non confrontabili.`;
+            }
+            if (durationBadge) {
+                durationBadge.textContent = `⏱️ ${elapsedSec}s`;
+            }
+        }
+
+        // Abilita export se sono state rilevate anomalie
+        if (exportBtn && csaState.rawItems.length > 0) {
+            exportBtn.disabled = false;
+            exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // Renderizza la tabella
+        filtraSicurezzaPrezzi();
+
+        if (typeof showToast === 'function') {
+            const totAnomalie = csaState.counters.fuori_categoria.total + csaState.counters.errori_critici.total + csaState.counters.non_confrontabili.total;
+            if (totAnomalie === 0) {
+                showToast(`Scansione completata: tutti i ${csaState.counters.totali} prezzi sono corretti!`, "success");
+            } else {
+                showToast(`Scansione completata: rilevate ${totAnomalie} anomalie su ${csaState.counters.totali} articoli.`, "warning");
+            }
+        }
+    } catch (err) {
+        console.error("Errore durante scansione sicurezza prezzi:", err);
+        if (typeof showToast === 'function') {
+            showToast("Errore durante la scansione: " + err.message, "error");
+        }
+    } finally {
+        csaState.isScanning = false;
+        if (progressBox) progressBox.classList.add('hidden');
+        if (scanBtn) {
+            scanBtn.disabled = false;
+            scanBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        if (cardScanBtn) {
+            cardScanBtn.disabled = false;
+            cardScanBtn.innerHTML = `<span>🛡️</span> Controlla Prezzi`;
+        }
+    }
+}
+
+/**
+ * Aggiorna i contatori in testata e le suddivisioni Adulto/Bambino
+ */
+function aggiornaMetricheLiveSicurezzaPrezzi() {
+    const statTotali = document.getElementById('csa-stat-totali');
+    const statCorretti = document.getElementById('csa-stat-corretti');
+    const statAutorizzati = document.getElementById('csa-stat-autorizzati');
+    const statFuori = document.getElementById('csa-stat-fuori-cat');
+    const statCritici = document.getElementById('csa-stat-critici');
+    const statNonConf = document.getElementById('csa-stat-non-conf');
+
+    const subFuoriAdulto = document.getElementById('csa-sub-fuori-adulto');
+    const subFuoriBambino = document.getElementById('csa-sub-fuori-bambino');
+    const subCriticiAdulto = document.getElementById('csa-sub-critici-adulto');
+    const subCriticiBambino = document.getElementById('csa-sub-critici-bambino');
+    const subNonConfAdulto = document.getElementById('csa-sub-nonconf-adulto');
+    const subNonConfBambino = document.getElementById('csa-sub-nonconf-bambino');
+
+    if (statTotali) statTotali.textContent = csaState.counters.totali;
+    if (statCorretti) statCorretti.textContent = csaState.counters.corretti;
+    if (statAutorizzati) statAutorizzati.textContent = csaState.counters.autorizzati || 0;
+    if (statFuori) statFuori.textContent = csaState.counters.fuori_categoria.total;
+    if (statCritici) statCritici.textContent = csaState.counters.errori_critici.total;
+    if (statNonConf) statNonConf.textContent = csaState.counters.non_confrontabili.total;
+
+    if (subFuoriAdulto) subFuoriAdulto.textContent = csaState.counters.fuori_categoria.Adulto;
+    if (subFuoriBambino) subFuoriBambino.textContent = csaState.counters.fuori_categoria.Bambino;
+    if (subCriticiAdulto) subCriticiAdulto.textContent = csaState.counters.errori_critici.Adulto;
+    if (subCriticiBambino) subCriticiBambino.textContent = csaState.counters.errori_critici.Bambino;
+    if (subNonConfAdulto) subNonConfAdulto.textContent = csaState.counters.non_confrontabili.Adulto;
+    if (subNonConfBambino) subNonConfBambino.textContent = csaState.counters.non_confrontabili.Bambino;
+}
+
+/**
+ * Popola il menu delle categorie nel filtro
+ */
+function popolaFiltriSicurezzaPrezzi() {
+    const select = document.getElementById('csa-filter-categoria');
+    if (!select) return;
+
+    const currentVal = select.value;
+    const catSet = new Set();
+
+    csaState.rawItems.forEach(item => {
+        if (item.categoria) catSet.add(item.categoria);
+    });
+
+    select.innerHTML = '<option value="">Tutte le Categorie</option>';
+    Array.from(catSet).sort().forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+    });
+
+    if (currentVal && catSet.has(currentVal)) {
+        select.value = currentVal;
+    }
+}
+
+/**
+ * Click rapido sulle card dei contatori per filtrare istantaneamente
+ */
+function filtraSicurezzaPrezziStatoRapido(stato) {
+    const statoSelect = document.getElementById('csa-filter-stato');
+    if (!statoSelect) return;
+
+    statoSelect.value = stato;
+    filtraSicurezzaPrezzi();
+
+    const tableEl = document.getElementById('csa-table-body');
+    if (tableEl) {
+        tableEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+/**
+ * Applica i filtri combinabili (ricerca, stato, target, categoria) alla tabella
+ */
+function filtraSicurezzaPrezzi(preservePage = false) {
+    const searchVal = (document.getElementById('csa-search-input')?.value || '').trim().toLowerCase();
+    const statoVal = document.getElementById('csa-filter-stato')?.value || 'anomalie';
+    const targetVal = document.getElementById('csa-filter-target')?.value || '';
+    const categoriaVal = document.getElementById('csa-filter-categoria')?.value || '';
+
+    const savedPage = csaState.currentPage || 1;
+
+    csaState.filteredItems = csaState.rawItems.filter(item => {
+        // Filtro Ricerca: Nome o ID
+        if (searchVal) {
+            const matchNome = (item.nome || '').toLowerCase().includes(searchVal);
+            const matchSquadra = (item.squadra || '').toLowerCase().includes(searchVal);
+            const matchId = String(item.id || '').toLowerCase().includes(searchVal) || String(item.legacy_id || '').toLowerCase().includes(searchVal);
+            if (!matchNome && !matchSquadra && !matchId) return false;
+        }
+
+        // Se l'articolo è l'ultimo modificato tramite Anteprima Prodotto, mantienilo visibile temporaneamente
+        // affinché l'amministratore possa verificare immediatamente il cambio di stato a PREZZO_CORRETTO
+        const isLastModified = csaState.lastModifiedProductId && (
+            String(item.id) === String(csaState.lastModifiedProductId) || 
+            (item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id) === String(csaState.lastModifiedProductId))
+        );
+
+        // Filtro Stato
+        if (statoVal === 'anomalie') {
+            // Mostra solo le anomalie (escludi PREZZO_CORRETTO e PREZZO_AUTORIZZATO)
+            if (!isLastModified && (item.stato === 'PREZZO_CORRETTO' || item.stato === 'PREZZO_AUTORIZZATO')) return false;
+        } else if (statoVal !== 'tutti') {
+            if (!isLastModified && item.stato !== statoVal) return false;
+        }
+
+        // Filtro Target
+        if (targetVal && item.target !== targetVal) {
+            return false;
+        }
+
+        // Filtro Categoria
+        if (categoriaVal && item.categoria !== categoriaVal && item.categoriaConfig !== categoriaVal) {
+            return false;
+        }
+
+        return true;
+    });
+
+    // Filtro di sincronizzazione per gli articoli selezionati: rimuovi quelli non più presenti nei filtri correnti
+    if (csaState.selectedIds && csaState.selectedIds.size > 0) {
+        const validIdSet = new Set(csaState.filteredItems.map(i => String(i.id)));
+        csaState.selectedIds.forEach(id => {
+            if (!validIdSet.has(id)) {
+                csaState.selectedIds.delete(id);
+            }
+        });
+        if (csaState.selectedIds.size === 0 || csaState.selectedIds.size < csaState.filteredItems.length) {
+            csaState.isSelectAllFiltered = false;
+        }
+    }
+
+    if (preservePage) {
+        const totalPages = Math.max(1, Math.ceil(csaState.filteredItems.length / csaState.pageSize));
+        csaState.currentPage = Math.min(savedPage, totalPages);
+    } else {
+        csaState.currentPage = 1;
+    }
+    renderizzaTabellaSicurezzaPrezzi();
+
+    // Aggiorna contatore testuale
+    const counterText = document.getElementById('csa-filter-counter-text');
+    if (counterText) {
+        const totAnomalie = csaState.counters.fuori_categoria.total + csaState.counters.errori_critici.total + csaState.counters.non_confrontabili.total;
+        counterText.textContent = `Visualizzati ${csaState.filteredItems.length} articoli su ${csaState.rawItems.length} totali (${totAnomalie} anomalie complessive)`;
+    }
+}
+
+/**
+ * Azzera tutti i filtri di sicurezza prezzi
+ */
+function resetFiltriSicurezzaPrezzi() {
+    csaState.lastModifiedProductId = null;
+    if (csaState.selectedIds) csaState.selectedIds.clear();
+    csaState.isSelectAllFiltered = false;
+    const sInput = document.getElementById('csa-search-input');
+    const fStato = document.getElementById('csa-filter-stato');
+    const fTarget = document.getElementById('csa-filter-target');
+    const fCat = document.getElementById('csa-filter-categoria');
+
+    if (sInput) sInput.value = '';
+    if (fStato) fStato.value = 'anomalie';
+    if (fTarget) fTarget.value = '';
+    if (fCat) fCat.value = '';
+
+    filtraSicurezzaPrezzi();
+}
+
+/**
+ * Renderizza la tabella anomalie con paginazione
+ */
+function renderizzaTabellaSicurezzaPrezzi() {
+    const tbody = document.getElementById('csa-table-body');
+    const paginationContainer = document.getElementById('csa-pagination-container');
+    const paginationInfo = document.getElementById('csa-pagination-info');
+    const paginationButtons = document.getElementById('csa-pagination-buttons');
+
+    if (!tbody) return;
+
+    if (csaState.rawItems.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="py-16 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center gap-3">
+                        <span class="text-4xl">🛡️</span>
+                        <span class="text-sm font-semibold text-slate-600">Nessuna scansione effettuata</span>
+                        <p class="text-xs text-slate-400 max-w-md">Premi sul pulsante <strong>"SCANSIONA PREZZI CATALOGO"</strong> in alto per verificare la conformità dei prezzi.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        if (paginationContainer) paginationContainer.classList.add('hidden');
+        aggiornaBarraAzioniMassiveSicurezza();
+        return;
+    }
+
+    if (csaState.filteredItems.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="py-12 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                        <span class="text-3xl">🎉</span>
+                        <span class="text-sm font-semibold text-slate-700">Nessun articolo trovato con i filtri selezionati</span>
+                        <p class="text-xs text-slate-400">Tutti i prezzi corrispondono ai criteri impostati oppure nessun elemento soddisfa la ricerca.</p>
+                        <button onclick="resetFiltriSicurezzaPrezzi()" class="mt-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-all cursor-pointer">
+                            Azzera tutti i filtri
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        if (paginationContainer) paginationContainer.classList.add('hidden');
+        aggiornaBarraAzioniMassiveSicurezza();
+        return;
+    }
+
+    const total = csaState.filteredItems.length;
+    const totalPages = Math.ceil(total / csaState.pageSize);
+    if (csaState.currentPage > totalPages) csaState.currentPage = totalPages;
+    if (csaState.currentPage < 1) csaState.currentPage = 1;
+
+    const startIdx = (csaState.currentPage - 1) * csaState.pageSize;
+    const endIdx = Math.min(startIdx + csaState.pageSize, total);
+    const pageItems = csaState.filteredItems.slice(startIdx, endIdx);
+
+    let rowsHtml = '';
+    pageItems.forEach((item, idx) => {
+        const idDisp = item.legacy_id !== undefined && item.legacy_id !== null ? item.legacy_id : item.id;
+        const rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
+        const isSelected = csaState.selectedIds && csaState.selectedIds.has(String(item.id));
+
+        // Badge Stato
+        let badgeHtml = '';
+        if (item.stato === 'PREZZO_CORRETTO') {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-full uppercase border border-emerald-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Prezzo Corretto
+                </span>
+                <div class="text-[10px] text-emerald-700 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        } else if (item.stato === 'PREZZO_AUTORIZZATO') {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-100 text-indigo-900 font-bold text-[10px] rounded-full uppercase border border-indigo-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Prezzo Autorizzato
+                </span>
+                <div class="text-[10px] text-indigo-800 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        } else if (item.stato === 'PREZZO_FUORI_CATEGORIA') {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-[10px] rounded-full uppercase border border-amber-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Fuori Categoria
+                </span>
+                <div class="text-[10px] text-amber-800 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        } else if (item.stato === 'ERRORE_CRITICO') {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-100 text-rose-900 font-bold text-[10px] rounded-full uppercase border border-rose-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Errore Critico
+                </span>
+                <div class="text-[10px] text-rose-800 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        } else {
+            badgeHtml = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-200 text-slate-800 font-bold text-[10px] rounded-full uppercase border border-slate-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Non Confrontabile
+                </span>
+                <div class="text-[10px] text-slate-600 mt-1 leading-tight font-medium">${item.motivo}</div>
+            `;
+        }
+
+        // Badge Target
+        const targetBadge = item.target === 'Bambino'
+            ? `<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-bold text-[10px] uppercase">Bambino</span>`
+            : `<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-bold text-[10px] uppercase">Adulto</span>`;
+
+        // Differenza stilizzata
+        let diffHtml = '';
+        if (item.diffEuro === null || item.diffDisplay === 'N/D') {
+            diffHtml = `<span class="text-slate-400 font-mono text-xs">N/D</span>`;
+        } else if (item.diffCents > 0) {
+            diffHtml = `<span class="font-mono font-bold text-xs text-rose-600">${item.diffDisplay}</span>`;
+        } else if (item.diffCents < 0) {
+            diffHtml = `<span class="font-mono font-bold text-xs text-amber-600">${item.diffDisplay}</span>`;
+        } else {
+            diffHtml = `<span class="font-mono font-semibold text-xs text-emerald-600">0,00 €</span>`;
+        }
+
+        // Azioni
+        const itemActionId = (item.id !== undefined && item.id !== null && item.id !== '') ? item.id : item.legacy_id;
+        const anteprimaBtnHtml = `
+            <button type="button" 
+                onclick="apriAnteprimaArticoloDaSicurezza('${escapeHtml(String(itemActionId))}')" 
+                class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold text-[11px] transition-all cursor-pointer shadow-2xs whitespace-nowrap" 
+                title="Apri scheda completa e modifica articolo">
+                <span>👁️</span> Anteprima Articolo
+            </button>
+        `;
+
+        let actionsHtml = '';
+        if (item.stato === 'PREZZO_FUORI_CATEGORIA') {
+            actionsHtml = `
+                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                    ${anteprimaBtnHtml}
+                    <button type="button" onclick="apriModaleAutorizzaPrezzo('${escapeHtml(String(item.id))}')" class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg font-bold text-[11px] transition-all cursor-pointer shadow-2xs whitespace-nowrap" title="Autorizza questo prezzo personalizzato come intenzionale">
+                        <span>✓</span> Autorizza Prezzo
+                    </button>
+                    <button type="button" onclick="apriModaleRipristinaPrezzoOriginale('${escapeHtml(String(item.id))}')" class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-[11px] transition-all cursor-pointer shadow-xs whitespace-nowrap" title="Ripristina il prezzo ufficiale della categoria (${item.prezzoPrevistoDisp})">
+                        <span>↺</span> Ripristina Prezzo Originale
+                    </button>
+                </div>
+            `;
+        } else if (item.stato === 'PREZZO_AUTORIZZATO') {
+            actionsHtml = `
+                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                    ${anteprimaBtnHtml}
+                    <button type="button" onclick="apriModaleRipristinaPrezzoOriginale('${escapeHtml(String(item.id))}')" class="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg font-bold text-[11px] transition-all cursor-pointer shadow-2xs whitespace-nowrap" title="Rimuove l'autorizzazione e ripristina il prezzo della categoria (${item.prezzoPrevistoDisp})">
+                        <span>↺</span> Ripristina Prezzo Originale
+                    </button>
+                </div>
+            `;
+        } else {
+            actionsHtml = `
+                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                    ${anteprimaBtnHtml}
+                </div>
+            `;
+        }
+
+        rowsHtml += `
+            <tr class="${rowBg} hover:bg-slate-100/70 transition-colors ${isSelected ? 'bg-amber-50/60' : ''}">
+                <td class="py-3 px-3 align-middle text-center">
+                    <input type="checkbox" class="csa-row-checkbox w-4 h-4 rounded text-amber-500 focus:ring-amber-400 cursor-pointer accent-amber-500 align-middle" data-id="${idDisp}" ${isSelected ? 'checked' : ''} onchange="toggleSelezionaArticoloSicurezza('${escapeHtml(String(item.id))}', this.checked)">
+                </td>
+                <td class="py-3 px-4 align-middle">
+                    <div class="font-bold text-slate-900 leading-snug">${item.nome}</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5 font-medium">${item.squadra}</div>
+                </td>
+                <td class="py-3 px-3 align-middle text-center">
+                    <span class="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">#${idDisp}</span>
+                </td>
+                <td class="py-3 px-4 align-middle">
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-semibold">${item.categoria}</span>
+                </td>
+                <td class="py-3 px-3 align-middle text-center">
+                    ${targetBadge}
+                </td>
+                <td class="py-3 px-4 align-middle text-right font-mono font-bold text-slate-900 text-xs">
+                    ${item.prezzoAttualeDisp}
+                </td>
+                <td class="py-3 px-4 align-middle text-right font-mono font-semibold text-slate-600 text-xs">
+                    ${item.prezzoPrevistoDisp}
+                </td>
+                <td class="py-3 px-4 align-middle text-right">
+                    ${diffHtml}
+                </td>
+                <td class="py-3 px-4 align-middle">
+                    ${badgeHtml}
+                </td>
+                <td class="py-3 px-4 align-middle text-center">
+                    ${actionsHtml}
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    aggiornaBarraAzioniMassiveSicurezza();
+
+    // Aggiorna Paginazione
+    if (paginationContainer) {
+        paginationContainer.classList.remove('hidden');
+        if (paginationInfo) {
+            paginationInfo.textContent = `Mostrando ${startIdx + 1} - ${endIdx} di ${total} prodotti filtrati`;
+        }
+
+        if (paginationButtons) {
+            let btnsHtml = '';
+            if (totalPages > 1) {
+                btnsHtml += `
+                    <button onclick="cambiaPaginaSicurezzaPrezzi(${csaState.currentPage - 1})" ${csaState.currentPage === 1 ? 'disabled class="px-2.5 py-1 bg-slate-100 text-slate-300 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer"'}>
+                        ← Prec
+                    </button>
+                `;
+
+                const startP = Math.max(1, csaState.currentPage - 2);
+                const endP = Math.min(totalPages, csaState.currentPage + 2);
+
+                for (let p = startP; p <= endP; p++) {
+                    if (p === csaState.currentPage) {
+                        btnsHtml += `<span class="px-3 py-1 bg-slate-900 text-white rounded-lg text-xs font-bold">${p}</span>`;
+                    } else {
+                        btnsHtml += `
+                            <button onclick="cambiaPaginaSicurezzaPrezzi(${p})" class="px-3 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                                ${p}
+                            </button>
+                        `;
+                    }
+                }
+
+                btnsHtml += `
+                    <button onclick="cambiaPaginaSicurezzaPrezzi(${csaState.currentPage + 1})" ${csaState.currentPage === totalPages ? 'disabled class="px-2.5 py-1 bg-slate-100 text-slate-300 rounded-lg text-xs cursor-not-allowed"' : 'class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer"'}>
+                        Succ →
+                    </button>
+                `;
+            }
+            paginationButtons.innerHTML = btnsHtml;
+        }
+    }
+}
+
+/**
+ * Cambia pagina nella tabella di sicurezza prezzi
+ */
+function cambiaPaginaSicurezzaPrezzi(page) {
+    csaState.currentPage = page;
+    renderizzaTabellaSicurezzaPrezzi();
+    const tableEl = document.getElementById('csa-table-body');
+    if (tableEl) {
+        tableEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+/**
+ * Esporta le anomalie di sicurezza prezzi in formato CSV (RFC 4180)
+ */
+function esportaReportSicurezzaPrezziCSV() {
+    let itemsToExport = csaState.filteredItems;
+    if (itemsToExport.length === 0) {
+        itemsToExport = csaState.rawItems.filter(i => i.stato !== 'PREZZO_CORRETTO');
+    }
+    if (itemsToExport.length === 0) {
+        itemsToExport = csaState.rawItems;
+    }
+
+    if (itemsToExport.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast("Nessun dato da esportare.", "warning");
+        }
+        return;
+    }
+
+    const headers = ["ID", "Prodotto", "Squadra", "Categoria", "Target", "Prezzo Attuale (€)", "Prezzo Previsto (€)", "Differenza (€)", "Stato", "Motivo"];
+    const rows = itemsToExport.map(p => {
+        const idDisp = p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id;
+        return [
+            `"${idDisp}"`,
+            `"${(p.nome || '').replace(/"/g, '""')}"`,
+            `"${(p.squadra || '').replace(/"/g, '""')}"`,
+            `"${(p.categoria || '').replace(/"/g, '""')}"`,
+            `"${(p.target || '').replace(/"/g, '""')}"`,
+            `"${p.prezzoAttuale !== null && p.prezzoAttuale !== undefined ? p.prezzoAttuale : ''}"`,
+            `"${p.prezzoPrevisto !== null && p.prezzoPrevisto !== undefined ? p.prezzoPrevisto : ''}"`,
+            `"${p.diffEuro !== null && p.diffEuro !== undefined ? p.diffEuro : ''}"`,
+            `"${(p.stato || '').replace(/"/g, '""')}"`,
+            `"${(p.motivo || '').replace(/"/g, '""')}"`
+        ];
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `controllo_sicurezza_prezzi_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    if (typeof showToast === 'function') {
+        showToast(`Report CSV con ${itemsToExport.length} articoli generato con successo!`, "success");
+    }
+}
+
+let csaItemDaRipristinare = null;
+let csaItemDaAutorizzare = null;
+
+/**
+ * Apre la modale di conferma per il ripristino del prezzo originale di categoria + target
+ */
+function apriModaleRipristinaPrezzoOriginale(productId) {
+    if (!productId) return;
+    const item = csaState.rawItems.find(i => String(i.id) === String(productId) || String(i.legacy_id) === String(productId));
+    if (!item) {
+        if (typeof showToast === 'function') {
+            showToast("Articolo non trovato tra i risultati scansionati.", "error");
+        }
+        return;
+    }
+
+    csaItemDaRipristinare = item;
+
+    const modal = document.getElementById('modal-conferma-ripristina-prezzo-originale');
+    const nomeEl = document.getElementById('csa-ripristina-prodotto-nome');
+    const curEl = document.getElementById('csa-modal-prezzo-attuale');
+    const expEl = document.getElementById('csa-modal-prezzo-originale');
+    const catEl = document.getElementById('csa-modal-categoria');
+    const tgtEl = document.getElementById('csa-modal-target');
+    const btnConfirm = document.getElementById('csa-btn-conferma-ripristina');
+
+    if (nomeEl) nomeEl.textContent = `${item.nome}${item.squadra ? ' (' + item.squadra + ')' : ''} [ID #${item.legacy_id || item.id}]`;
+    if (curEl) curEl.textContent = item.prezzoAttualeDisp;
+    if (expEl) expEl.textContent = item.prezzoPrevistoDisp;
+    if (catEl) catEl.textContent = item.categoriaConfig || item.categoria;
+    if (tgtEl) tgtEl.textContent = item.target;
+
+    if (btnConfirm) {
+        btnConfirm.textContent = `RIPRISTINA A ${item.prezzoPrevistoDisp}`;
+        btnConfirm.disabled = false;
+        btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude la modale di conferma ripristino prezzo originale
+ */
+function chiudiModaleRipristinaPrezzoOriginale() {
+    csaItemDaRipristinare = null;
+    const modal = document.getElementById('modal-conferma-ripristina-prezzo-originale');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Esegue la chiamata POST al backend per ripristinare il prezzo originale
+ */
+async function eseguiRipristinoPrezzoOriginale() {
+    if (!csaItemDaRipristinare) return;
+    const item = csaItemDaRipristinare;
+    const btn = document.getElementById('csa-btn-conferma-ripristina');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.textContent = "Ripristino in corso...";
+    }
+
+    try {
+        const res = await fetch('/api/catalog/price-security/restore', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: item.id })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.error || "Errore durante il ripristino del prezzo originale.");
+        }
+
+        chiudiModaleRipristinaPrezzoOriginale();
+
+        // 1. Aggiorna l'articolo nella lista prodotti in memoria
+        const newPrice = Number(data.newPrice);
+        if (Array.isArray(prodotti)) {
+            const pObj = prodotti.find(p => String(p.id) === String(item.id) || String(p.legacy_id) === String(item.id));
+            if (pObj) pObj.prezzo = newPrice;
+        }
+        if (Array.isArray(window.prodotti)) {
+            const pObj = window.prodotti.find(p => String(p.id) === String(item.id) || String(p.legacy_id) === String(item.id));
+            if (pObj) pObj.prezzo = newPrice;
+        }
+
+        // 2. Rimuovi eventuale autorizzazione locale
+        if (csaState.priceAuthorizationsMap) {
+            csaState.priceAuthorizationsMap.delete(String(item.id));
+            if (item.legacy_id) csaState.priceAuthorizationsMap.delete(String(item.legacy_id));
+        }
+
+        if (typeof showToast === 'function') {
+            showToast(`✓ Prezzo originale ripristinato a ${newPrice.toFixed(2).replace('.', ',')} €!`, "success");
+        }
+
+        // 3. Riesegui/aggiorna il Controllo Sicurezza Articoli
+        await avviaControlloSicurezzaPrezzi();
+
+    } catch (err) {
+        console.error("Errore ripristino prezzo originale:", err);
+        if (typeof showToast === 'function') {
+            showToast("Errore ripristino: " + err.message, "error");
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.textContent = `RIPRISTINA A ${item.prezzoPrevistoDisp}`;
+        }
+    }
+}
+
+/**
+ * Apre la modale di autorizzazione prezzo personalizzato
+ */
+function apriModaleAutorizzaPrezzo(productId) {
+    if (!productId) return;
+    const item = csaState.rawItems.find(i => String(i.id) === String(productId) || String(i.legacy_id) === String(productId));
+    if (!item) {
+        if (typeof showToast === 'function') {
+            showToast("Articolo non trovato tra i risultati scansionati.", "error");
+        }
+        return;
+    }
+
+    csaItemDaAutorizzare = item;
+
+    const modal = document.getElementById('modal-conferma-autorizza-prezzo');
+    const nomeEl = document.getElementById('csa-autorizza-prodotto-nome');
+    const curEl = document.getElementById('csa-modal-auth-prezzo-attuale');
+    const expEl = document.getElementById('csa-modal-auth-prezzo-previsto');
+    const catEl = document.getElementById('csa-modal-auth-categoria');
+    const tgtEl = document.getElementById('csa-modal-auth-target');
+    const btnConfirm = document.getElementById('csa-btn-conferma-autorizza');
+
+    if (nomeEl) nomeEl.textContent = `${item.nome}${item.squadra ? ' (' + item.squadra + ')' : ''} [ID #${item.legacy_id || item.id}]`;
+    if (curEl) curEl.textContent = item.prezzoAttualeDisp;
+    if (expEl) expEl.textContent = item.prezzoPrevistoDisp;
+    if (catEl) catEl.textContent = item.categoriaConfig || item.categoria;
+    if (tgtEl) tgtEl.textContent = item.target;
+
+    if (btnConfirm) {
+        btnConfirm.textContent = `AUTORIZZA A ${item.prezzoAttualeDisp}`;
+        btnConfirm.disabled = false;
+        btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude la modale di autorizzazione prezzo
+ */
+function chiudiModaleAutorizzaPrezzo() {
+    csaItemDaAutorizzare = null;
+    const modal = document.getElementById('modal-conferma-autorizza-prezzo');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Esegue la chiamata POST per autorizzare il prezzo del prodotto
+ */
+async function eseguiAutorizzazionePrezzo() {
+    if (!csaItemDaAutorizzare) return;
+    const item = csaItemDaAutorizzare;
+    const btn = document.getElementById('csa-btn-conferma-autorizza');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.textContent = "Autorizzazione in corso...";
+    }
+
+    try {
+        const res = await fetch('/api/catalog/price-security/authorize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: item.id })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.error || "Errore durante l'autorizzazione del prezzo.");
+        }
+
+        chiudiModaleAutorizzaPrezzo();
+
+        if (typeof showToast === 'function') {
+            showToast(`✓ Prezzo di ${item.prezzoAttualeDisp} autorizzato con successo!`, "success");
+        }
+
+        // Riesegui scansione per aggiornare i badge e le metriche
+        await avviaControlloSicurezzaPrezzi();
+
+    } catch (err) {
+        console.error("Errore autorizzazione prezzo:", err);
+        if (typeof showToast === 'function') {
+            showToast("Errore autorizzazione: " + err.message, "error");
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.textContent = `AUTORIZZA A ${item.prezzoAttualeDisp}`;
+        }
+    }
+}
+
+/**
+ * Aggiorna la visibilità e i contatori della barra azioni massive e dei banner
+ */
+function aggiornaBarraAzioniMassiveSicurezza() {
+    const bar = document.getElementById('csa-bulk-actions-bar');
+    const badge = document.getElementById('csa-selected-count-badge');
+    const label = document.getElementById('csa-selected-count-label');
+    const sublabel = document.getElementById('csa-selected-sublabel');
+    const banner = document.getElementById('csa-select-all-filtered-banner');
+    const bannerText = document.getElementById('csa-select-all-filtered-text');
+    const bannerAction = document.getElementById('csa-select-all-filtered-action');
+    const headerCheck = document.getElementById('csa-select-all-page');
+
+    const totalSelected = csaState.selectedIds ? csaState.selectedIds.size : 0;
+    const totalFiltered = csaState.filteredItems ? csaState.filteredItems.length : 0;
+
+    // Calcola quanti elementi della pagina corrente sono selezionati
+    const startIdx = (csaState.currentPage - 1) * csaState.pageSize;
+    const endIdx = Math.min(startIdx + csaState.pageSize, totalFiltered);
+    const pageItems = (csaState.filteredItems || []).slice(startIdx, endIdx);
+    const pageSelectedCount = pageItems.filter(i => csaState.selectedIds && csaState.selectedIds.has(String(i.id))).length;
+
+    // Aggiorna lo stato della checkbox nell'intestazione
+    if (headerCheck) {
+        if (pageItems.length === 0) {
+            headerCheck.checked = false;
+            headerCheck.indeterminate = false;
+        } else if (pageSelectedCount === pageItems.length) {
+            headerCheck.checked = true;
+            headerCheck.indeterminate = false;
+        } else if (pageSelectedCount > 0) {
+            headerCheck.checked = false;
+            headerCheck.indeterminate = true;
+        } else {
+            headerCheck.checked = false;
+            headerCheck.indeterminate = false;
+        }
+    }
+
+    if (totalSelected > 0) {
+        if (bar) bar.classList.remove('hidden');
+        if (badge) badge.textContent = totalSelected;
+        if (label) label.textContent = totalSelected === 1 ? 'articolo selezionato' : 'articoli selezionati';
+        if (sublabel) {
+            if (csaState.isSelectAllFiltered) {
+                sublabel.textContent = `Tutti gli ${totalSelected} articoli filtrati sono selezionati`;
+            } else {
+                sublabel.textContent = `Selezionati ${totalSelected} articoli su ${totalFiltered} filtrati`;
+            }
+        }
+
+        // Gestione banner selezione totale filtrata
+        if (banner) {
+            if (pageSelectedCount === pageItems.length && totalFiltered > pageItems.length && !csaState.isSelectAllFiltered) {
+                banner.classList.remove('hidden');
+                if (bannerText) {
+                    bannerText.innerHTML = `Hai selezionato tutti i <strong>${pageItems.length}</strong> articoli di questa pagina.`;
+                }
+                if (bannerAction) {
+                    bannerAction.innerHTML = `
+                        <button type="button" onclick="selezionaTuttiFiltratiSicurezza()" class="font-black text-amber-800 hover:text-amber-950 underline cursor-pointer">
+                            Seleziona tutti gli <strong>${totalFiltered}</strong> risultati del filtro
+                        </button>
+                    `;
+                }
+            } else if (csaState.isSelectAllFiltered && totalFiltered > 0) {
+                banner.classList.remove('hidden');
+                if (bannerText) {
+                    bannerText.innerHTML = `Tutti gli <strong>${totalFiltered}</strong> articoli corrispondenti ai filtri attuali sono selezionati.`;
+                }
+                if (bannerAction) {
+                    bannerAction.innerHTML = `
+                        <button type="button" onclick="deselezionaTuttiArticoliSicurezza()" class="font-black text-slate-700 hover:text-slate-950 underline cursor-pointer">
+                            Deseleziona tutti
+                        </button>
+                    `;
+                }
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+    } else {
+        if (bar) bar.classList.add('hidden');
+        if (banner) banner.classList.add('hidden');
+    }
+}
+
+/**
+ * Seleziona o deseleziona un singolo articolo
+ */
+function toggleSelezionaArticoloSicurezza(id, isChecked) {
+    if (!id || !csaState.selectedIds) return;
+    const strId = String(id);
+    if (isChecked) {
+        csaState.selectedIds.add(strId);
+    } else {
+        csaState.selectedIds.delete(strId);
+        csaState.isSelectAllFiltered = false;
+    }
+    aggiornaBarraAzioniMassiveSicurezza();
+}
+
+/**
+ * Seleziona o deseleziona tutti gli articoli visibili nella pagina corrente
+ */
+function toggleSelectAllPageSicurezza(isChecked) {
+    if (!csaState.filteredItems || !csaState.selectedIds) return;
+    const total = csaState.filteredItems.length;
+    const startIdx = (csaState.currentPage - 1) * csaState.pageSize;
+    const endIdx = Math.min(startIdx + csaState.pageSize, total);
+    const pageItems = csaState.filteredItems.slice(startIdx, endIdx);
+
+    pageItems.forEach(item => {
+        const strId = String(item.id);
+        if (isChecked) {
+            csaState.selectedIds.add(strId);
+        } else {
+            csaState.selectedIds.delete(strId);
+        }
+    });
+
+    if (!isChecked) {
+        csaState.isSelectAllFiltered = false;
+    }
+
+    const checkboxes = document.querySelectorAll('.csa-row-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = isChecked;
+    });
+
+    aggiornaBarraAzioniMassiveSicurezza();
+}
+
+/**
+ * Seleziona tutti gli articoli corrispondenti ai filtri attuali
+ */
+function selezionaTuttiFiltratiSicurezza() {
+    if (!csaState.filteredItems || !csaState.selectedIds) return;
+    csaState.filteredItems.forEach(item => {
+        csaState.selectedIds.add(String(item.id));
+    });
+    csaState.isSelectAllFiltered = true;
+
+    const checkboxes = document.querySelectorAll('.csa-row-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = true;
+    });
+
+    aggiornaBarraAzioniMassiveSicurezza();
+}
+
+/**
+ * Deseleziona tutti gli articoli selezionati
+ */
+function deselezionaTuttiArticoliSicurezza() {
+    if (csaState.selectedIds) {
+        csaState.selectedIds.clear();
+    }
+    csaState.isSelectAllFiltered = false;
+
+    const checkboxes = document.querySelectorAll('.csa-row-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = false;
+    });
+
+    aggiornaBarraAzioniMassiveSicurezza();
+}
+
+/**
+ * Apre la modale di conferma per l'autorizzazione massiva dei prezzi
+ */
+function apriModaleBulkAutorizzaPrezzo() {
+    if (!csaState.selectedIds || csaState.selectedIds.size === 0) {
+        if (typeof showToast === 'function') showToast("Nessun articolo selezionato.", "warning");
+        return;
+    }
+
+    const selectedItems = csaState.rawItems.filter(i => csaState.selectedIds.has(String(i.id)));
+    const outsideCatItems = selectedItems.filter(i => i.stato === 'PREZZO_FUORI_CATEGORIA');
+    const excludedCount = selectedItems.length - outsideCatItems.length;
+
+    if (outsideCatItems.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast("Nessuno degli articoli selezionati ha stato 'Prezzo Fuori Categoria'. Solo i prezzi fuori categoria possono essere autorizzati.", "warning");
+        }
+        return;
+    }
+
+    const modal = document.getElementById('modal-bulk-autorizza-prezzo');
+    const countEl = document.getElementById('csa-modal-bulk-auth-count');
+    const excludedBox = document.getElementById('csa-modal-bulk-auth-excluded-note');
+    const btn = document.getElementById('csa-btn-conferma-bulk-autorizza');
+
+    if (countEl) countEl.textContent = outsideCatItems.length;
+
+    if (excludedBox) {
+        if (excludedCount > 0) {
+            excludedBox.classList.remove('hidden');
+            excludedBox.innerHTML = `⚠️ <strong>${excludedCount}</strong> articoli selezionati non sono stati inclusi perché hanno già prezzo corretto, autorizzato o critico non autorizzabile.`;
+        } else {
+            excludedBox.classList.add('hidden');
+        }
+    }
+
+    if (btn) {
+        btn.textContent = `AUTORIZZA ${outsideCatItems.length} ARTICOLI`;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude la modale di autorizzazione massiva
+ */
+function chiudiModaleBulkAutorizzaPrezzo() {
+    const modal = document.getElementById('modal-bulk-autorizza-prezzo');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Esegue la chiamata POST per autorizzare massivamente i prezzi
+ */
+async function eseguiBulkAutorizzazionePrezzo() {
+    if (!csaState.selectedIds || csaState.selectedIds.size === 0) return;
+    const selectedItems = csaState.rawItems.filter(i => csaState.selectedIds.has(String(i.id)));
+    const targetItems = selectedItems.filter(i => i.stato === 'PREZZO_FUORI_CATEGORIA');
+    const productIds = targetItems.map(i => i.id);
+
+    if (productIds.length === 0) return;
+
+    const btn = document.getElementById('csa-btn-conferma-bulk-autorizza');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.textContent = "Autorizzazione in corso...";
+    }
+
+    try {
+        const res = await fetch('/api/catalog/price-security/bulk-authorize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productIds })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.error || "Errore durante l'autorizzazione massiva.");
+        }
+
+        chiudiModaleBulkAutorizzaPrezzo();
+
+        if (data.errors && data.errors.length > 0) {
+            mostraModaleEsitoOperazione({
+                title: "Autorizzazione Massiva Completata con Avvisi",
+                icon: "⚠️",
+                successCount: data.successCount,
+                failedCount: data.failedCount,
+                totalCount: data.processedCount,
+                actionName: "autorizzati",
+                errors: data.errors
+            });
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(`✓ Prezzo autorizzato con successo per tutti i ${data.successCount} articoli!`, "success");
+            }
+        }
+
+        deselezionaTuttiArticoliSicurezza();
+        await avviaControlloSicurezzaPrezzi();
+
+    } catch (err) {
+        console.error("Errore autorizzazione massiva:", err);
+        if (typeof showToast === 'function') {
+            showToast("Errore autorizzazione massiva: " + err.message, "error");
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.textContent = `AUTORIZZA ${productIds.length} ARTICOLI`;
+        }
+    }
+}
+
+/**
+ * Apre la modale di conferma per il ripristino massivo dei prezzi originali
+ */
+function apriModaleBulkRipristinaPrezzo() {
+    if (!csaState.selectedIds || csaState.selectedIds.size === 0) {
+        if (typeof showToast === 'function') showToast("Nessun articolo selezionato.", "warning");
+        return;
+    }
+
+    const selectedItems = csaState.rawItems.filter(i => csaState.selectedIds.has(String(i.id)));
+    const validItems = selectedItems.filter(i => i.stato !== 'NON_CONFRONTABILE' && i.categoriaConfig && i.prezzoPrevisto !== null);
+    const nonRestorableCount = selectedItems.length - validItems.length;
+
+    if (validItems.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast("Nessuno degli articoli selezionati può essere ripristinato (categoria non configurata o target ambiguo).", "error");
+        }
+        return;
+    }
+
+    const modal = document.getElementById('modal-bulk-ripristina-prezzo');
+    const countEl = document.getElementById('csa-modal-bulk-restore-count');
+    const breakdownEl = document.getElementById('csa-modal-bulk-restore-breakdown');
+    const warningEl = document.getElementById('csa-modal-bulk-restore-warning');
+    const btn = document.getElementById('csa-btn-conferma-bulk-ripristina');
+
+    if (countEl) countEl.textContent = validItems.length;
+
+    // Raggruppa per Categoria + Target come richiesto dalla specifica (es. Tuta Adulto: 5, Fan Bambino: 3)
+    const breakdownMap = {};
+    validItems.forEach(i => {
+        const catName = i.categoriaConfig || i.categoria || 'Altro';
+        const tgt = i.target || 'Adulto';
+        const key = `${catName} ${tgt}`;
+        breakdownMap[key] = (breakdownMap[key] || 0) + 1;
+    });
+
+    let bHtml = '';
+    Object.keys(breakdownMap).sort().forEach(k => {
+        bHtml += `
+            <div class="flex items-center justify-between py-1 px-2.5 rounded-lg bg-white border border-slate-200/80 font-semibold text-xs">
+                <span class="text-slate-800">${escapeHtml(k)}</span>
+                <span class="px-2 py-0.5 bg-amber-100 text-amber-900 rounded-full font-black text-[11px] font-mono">${breakdownMap[k]}</span>
+            </div>
+        `;
+    });
+    if (breakdownEl) breakdownEl.innerHTML = bHtml;
+
+    if (warningEl) {
+        if (nonRestorableCount > 0) {
+            warningEl.classList.remove('hidden');
+            warningEl.innerHTML = `⚠️ <strong>${nonRestorableCount}</strong> articoli selezionati non verranno ripristinati perché hanno target ambiguo o categoria non configurata in Prezzi & Categorie.`;
+        } else {
+            warningEl.classList.add('hidden');
+        }
+    }
+
+    if (btn) {
+        btn.textContent = `RIPRISTINA ${validItems.length} ARTICOLI`;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude la modale di ripristino massivo prezzi
+ */
+function chiudiModaleBulkRipristinaPrezzo() {
+    const modal = document.getElementById('modal-bulk-ripristina-prezzo');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Esegue la chiamata POST per il ripristino massivo dei prezzi
+ */
+async function eseguiBulkRipristinoPrezzo() {
+    if (!csaState.selectedIds || csaState.selectedIds.size === 0) return;
+    const selectedItems = csaState.rawItems.filter(i => csaState.selectedIds.has(String(i.id)));
+    const validItems = selectedItems.filter(i => i.stato !== 'NON_CONFRONTABILE' && i.categoriaConfig && i.prezzoPrevisto !== null);
+    const productIds = validItems.map(i => i.id);
+
+    if (productIds.length === 0) return;
+
+    const btn = document.getElementById('csa-btn-conferma-bulk-ripristina');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.textContent = "Ripristino in corso...";
+    }
+
+    try {
+        const res = await fetch('/api/catalog/price-security/bulk-restore', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productIds })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.error || "Errore durante il ripristino massivo dei prezzi.");
+        }
+
+        chiudiModaleBulkRipristinaPrezzo();
+
+        // Aggiorna prezzi in memoria per i prodotti ripristinati
+        if (Array.isArray(data.restoredItems)) {
+            data.restoredItems.forEach(ri => {
+                const newPrice = Number(ri.newPrice);
+                if (Array.isArray(prodotti)) {
+                    const p = prodotti.find(prod => String(prod.id) === String(ri.id) || String(prod.legacy_id) === String(ri.id));
+                    if (p) p.prezzo = newPrice;
+                }
+                if (Array.isArray(window.prodotti)) {
+                    const p = window.prodotti.find(prod => String(prod.id) === String(ri.id) || String(prod.legacy_id) === String(ri.id));
+                    if (p) p.prezzo = newPrice;
+                }
+            });
+        }
+
+        if (data.errors && data.errors.length > 0) {
+            mostraModaleEsitoOperazione({
+                title: "Ripristino Prezzi Completato con Avvisi",
+                icon: "⚠️",
+                successCount: data.successCount,
+                failedCount: data.failedCount,
+                totalCount: data.processedCount,
+                actionName: "ripristinati",
+                errors: data.errors
+            });
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(`✓ Prezzo originale ripristinato con successo per ${data.successCount} articoli!`, "success");
+            }
+        }
+
+        deselezionaTuttiArticoliSicurezza();
+        await avviaControlloSicurezzaPrezzi();
+
+    } catch (err) {
+        console.error("Errore ripristino massivo prezzi:", err);
+        if (typeof showToast === 'function') {
+            showToast("Errore ripristino massivo: " + err.message, "error");
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.textContent = `RIPRISTINA ${productIds.length} ARTICOLI`;
+        }
+    }
+}
+
+/**
+ * Apre la modale di cambio categoria massivo
+ */
+function apriModaleBulkCambiaCategoria() {
+    if (!csaState.selectedIds || csaState.selectedIds.size === 0) {
+        if (typeof showToast === 'function') showToast("Nessun articolo selezionato.", "warning");
+        return;
+    }
+
+    const select = document.getElementById('csa-modal-bulk-cat-select');
+    const countEl = document.getElementById('csa-modal-bulk-cat-count');
+    const modal = document.getElementById('modal-bulk-cambia-categoria');
+    const btn = document.getElementById('csa-btn-conferma-bulk-cat');
+
+    if (countEl) countEl.textContent = csaState.selectedIds.size;
+
+    const catList = (window.appSettings?.catalog_settings?.categorie && Array.isArray(window.appSettings.catalog_settings.categorie))
+        ? window.appSettings.catalog_settings.categorie
+        : ((window.appSettings?.categorie && Array.isArray(window.appSettings.categorie)) ? window.appSettings.categorie : []);
+
+    if (select) {
+        select.innerHTML = '';
+        if (catList.length === 0) {
+            select.innerHTML = '<option value="">Nessuna categoria configurata</option>';
+        } else {
+            catList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.nome;
+                const pAdulto = c.prezzo_adulto !== undefined && c.prezzo_adulto !== null ? Number(c.prezzo_adulto).toFixed(2).replace('.', ',') + ' €' : 'N/D';
+                const pBambino = c.prezzo_bambino !== undefined && c.prezzo_bambino !== null ? Number(c.prezzo_bambino).toFixed(2).replace('.', ',') + ' €' : 'N/D';
+                opt.textContent = `${c.nome} (Adulto: ${pAdulto} • Bambino: ${pBambino})`;
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    if (btn) {
+        btn.textContent = `CAMBIA CATEGORIA A ${csaState.selectedIds.size} ARTICOLI`;
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    aggiornaAnteprimaCambioCategoriaMassivo();
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude la modale di cambio categoria massivo
+ */
+function chiudiModaleBulkCambiaCategoria() {
+    const modal = document.getElementById('modal-bulk-cambia-categoria');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Aggiorna l'anteprima economica e descrittiva nella modale di cambio categoria massivo
+ */
+function aggiornaAnteprimaCambioCategoriaMassivo() {
+    const select = document.getElementById('csa-modal-bulk-cat-select');
+    const previewEl = document.getElementById('csa-modal-bulk-cat-preview');
+    const modeRadio = document.querySelector('input[name="csa_bulk_cat_price_mode"]:checked');
+    const mode = modeRadio ? modeRadio.value : 'update';
+
+    if (!previewEl || !select) return;
+
+    const catName = select.value;
+    const catList = (window.appSettings?.catalog_settings?.categorie && Array.isArray(window.appSettings.catalog_settings.categorie))
+        ? window.appSettings.catalog_settings.categorie
+        : ((window.appSettings?.categorie && Array.isArray(window.appSettings.categorie)) ? window.appSettings.categorie : []);
+    const catConfig = catList.find(c => c && c.nome === catName);
+
+    if (!catConfig) {
+        previewEl.innerHTML = `<span class="text-slate-400">Seleziona una categoria valida</span>`;
+        return;
+    }
+
+    const pAdulto = catConfig.prezzo_adulto !== undefined && catConfig.prezzo_adulto !== null ? Number(catConfig.prezzo_adulto).toFixed(2).replace('.', ',') + ' €' : 'N/D';
+    const pBambino = catConfig.prezzo_bambino !== undefined && catConfig.prezzo_bambino !== null ? Number(catConfig.prezzo_bambino).toFixed(2).replace('.', ',') + ' €' : 'N/D';
+
+    if (mode === 'update') {
+        previewEl.innerHTML = `
+            <div class="font-bold text-blue-900 mb-1">✓ Nuovi prezzi che verranno applicati:</div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="p-2 bg-white rounded-lg border border-blue-200">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold block">Articoli Adulto</span>
+                    <strong class="text-slate-900 font-mono text-sm">${pAdulto}</strong>
+                </div>
+                <div class="p-2 bg-white rounded-lg border border-blue-200">
+                    <span class="text-slate-500 text-[10px] uppercase font-bold block">Articoli Bambino</span>
+                    <strong class="text-slate-900 font-mono text-sm">${pBambino}</strong>
+                </div>
+            </div>
+            <p class="text-[10px] text-blue-800/80 mt-1.5 leading-tight">I prezzi verranno allineati ai prezzi ufficiali e risulteranno con stato <strong>Prezzo Corretto</strong>.</p>
+        `;
+    } else {
+        previewEl.innerHTML = `
+            <div class="font-bold text-amber-900 mb-0.5">⚠️ Prezzi correnti mantenuti invariati:</div>
+            <p class="text-[11px] text-amber-800 leading-tight">La categoria verrà impostata su <strong>"${catConfig.nome}"</strong>, ma i prezzi attuali dei prodotti non saranno modificati. Gli articoli con prezzo diverso dai prezzi ufficiali (${pAdulto} / ${pBambino}) risulteranno con stato <strong>Prezzo Fuori Categoria</strong>.</p>
+        `;
+    }
+}
+
+/**
+ * Esegue la chiamata POST per il cambio categoria massivo
+ */
+async function eseguiBulkCambioCategoria() {
+    if (!csaState.selectedIds || csaState.selectedIds.size === 0) return;
+    const select = document.getElementById('csa-modal-bulk-cat-select');
+    const newCategory = select ? select.value : '';
+    if (!newCategory) {
+        if (typeof showToast === 'function') showToast("Seleziona una categoria valida.", "error");
+        return;
+    }
+
+    const modeRadio = document.querySelector('input[name="csa_bulk_cat_price_mode"]:checked');
+    const updatePrice = modeRadio ? modeRadio.value === 'update' : true;
+
+    const productIds = Array.from(csaState.selectedIds);
+    const btn = document.getElementById('csa-btn-conferma-bulk-cat');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.textContent = "Aggiornamento in corso...";
+    }
+
+    try {
+        const res = await fetch('/api/catalog/price-security/bulk-change-category', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productIds, newCategory, updatePrice })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            throw new Error(data.error || "Errore durante il cambio categoria massivo.");
+        }
+
+        chiudiModaleBulkCambiaCategoria();
+
+        // Aggiorna in memoria prodotti
+        if (Array.isArray(data.updatedItems)) {
+            data.updatedItems.forEach(ui => {
+                if (Array.isArray(prodotti)) {
+                    const p = prodotti.find(prod => String(prod.id) === String(ui.id) || String(prod.legacy_id) === String(ui.id));
+                    if (p) {
+                        p.categoria = ui.newCategoria;
+                        if (ui.newPrice !== undefined) p.prezzo = Number(ui.newPrice);
+                    }
+                }
+                if (Array.isArray(window.prodotti)) {
+                    const p = window.prodotti.find(prod => String(prod.id) === String(ui.id) || String(prod.legacy_id) === String(ui.id));
+                    if (p) {
+                        p.categoria = ui.newCategoria;
+                        if (ui.newPrice !== undefined) p.prezzo = Number(ui.newPrice);
+                    }
+                }
+            });
+        }
+
+        if (data.errors && data.errors.length > 0) {
+            mostraModaleEsitoOperazione({
+                title: "Cambio Categoria Completato con Avvisi",
+                icon: "⚠️",
+                successCount: data.successCount,
+                failedCount: data.failedCount,
+                totalCount: data.processedCount,
+                actionName: `aggiornati alla categoria "${newCategory}"`,
+                errors: data.errors
+            });
+        } else {
+            if (typeof showToast === 'function') {
+                showToast(`✓ Categoria aggiornata a "${newCategory}" per tutti i ${data.successCount} articoli!`, "success");
+            }
+        }
+
+        deselezionaTuttiArticoliSicurezza();
+        await avviaControlloSicurezzaPrezzi();
+
+    } catch (err) {
+        console.error("Errore cambio categoria massivo:", err);
+        if (typeof showToast === 'function') {
+            showToast("Errore cambio categoria: " + err.message, "error");
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.textContent = `CAMBIA CATEGORIA A ${productIds.length} ARTICOLI`;
+        }
+    }
+}
+
+/**
+ * Mostra la modale di riepilogo con gli esiti dettagliati di un'operazione massiva (anche in caso di fallimenti parziali)
+ */
+function mostraModaleEsitoOperazione(options) {
+    const modal = document.getElementById('modal-bulk-esito-operazione');
+    const iconEl = document.getElementById('csa-modal-esito-icon');
+    const titleEl = document.getElementById('csa-modal-esito-title');
+    const subtitleEl = document.getElementById('csa-modal-esito-subtitle');
+    const summaryEl = document.getElementById('csa-modal-esito-summary');
+    const errContainer = document.getElementById('csa-modal-esito-errors-container');
+    const errorsEl = document.getElementById('csa-modal-esito-errors');
+
+    if (iconEl) iconEl.textContent = options.icon || '✓';
+    if (titleEl) titleEl.textContent = options.title || 'Operazione Completata';
+    if (subtitleEl) subtitleEl.textContent = `Elaborati ${options.totalCount} articoli in totale`;
+
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <div class="flex items-center justify-between py-1">
+                <span class="text-emerald-700 font-bold">Riusciti (${options.actionName || 'elaborati'}):</span>
+                <strong class="text-emerald-800 font-mono text-sm">${options.successCount}</strong>
+            </div>
+            <div class="flex items-center justify-between py-1 border-t border-slate-200/60">
+                <span class="text-rose-700 font-bold">Non riusciti / Falliti:</span>
+                <strong class="text-rose-800 font-mono text-sm">${options.failedCount}</strong>
+            </div>
+        `;
+    }
+
+    if (errContainer && errorsEl) {
+        if (options.errors && options.errors.length > 0) {
+            errContainer.classList.remove('hidden');
+            let eHtml = '';
+            options.errors.forEach(e => {
+                const idDisp = e.legacyId || e.id;
+                const nameDisp = e.name ? ` (${e.name})` : '';
+                eHtml += `
+                    <div class="py-1 border-b border-rose-200/40 last:border-0 leading-tight">
+                        <strong>Articolo #${idDisp}${escapeHtml(nameDisp)}:</strong> ${escapeHtml(e.error || 'Errore non specificato')}
+                    </div>
+                `;
+            });
+            errorsEl.innerHTML = eHtml;
+        } else {
+            errContainer.classList.add('hidden');
+        }
+    }
+
+    if (modal) modal.classList.remove('hidden');
+}
+
+/**
+ * Chiude la modale di esito operazione massiva
+ */
+function chiudiModaleEsitoOperazione() {
+    const modal = document.getElementById('modal-bulk-esito-operazione');
+    if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Contesto di provenienza quando si apre la scheda modifica prodotto dal Controllo Sicurezza Articoli
+ */
+let csaEditorContext = {
+    active: false,
+    productId: null,
+    savedPage: 1
+};
+
+/**
+ * Apre la scheda completa e modificabile del prodotto nel Controllo Sicurezza Articoli
+ * Riutilizza ESATTAMENTE la funzione preparaModificaProdotto utilizzata dalla matita in Prodotti
+ */
+async function apriAnteprimaArticoloDaSicurezza(productId) {
+    if (!productId) return;
+    csaEditorContext = {
+        active: true,
+        productId: String(productId),
+        savedPage: csaState.currentPage || 1
+    };
+
+    // Assicura che i prodotti siano presenti in memoria
+    if (!Array.isArray(prodotti) || prodotti.length === 0) {
+        if (typeof caricaProdotti === 'function') {
+            await caricaProdotti();
+        }
+    }
+
+    // Riutilizza ESATTAMENTE l'editor esistente utilizzato dalla matita in Prodotti
+    preparaModificaProdotto(productId);
+}
+
+/**
+ * Aggiorna il Controllo Sicurezza Articoli dopo il salvataggio di un prodotto
+ * Rivaluta il prodotto, aggiorna i contatori e la riga mantenendo filtri e pagina
+ */
+function aggiornaControlloSicurezzaDopoModifica(productId) {
+    if (!productId) return;
+
+    // Se non è stata ancora effettuata alcuna scansione in Controllo Sicurezza, nulla da sincronizzare
+    if (!csaState || !Array.isArray(csaState.rawItems) || csaState.rawItems.length === 0) {
+        if (csaEditorContext && csaEditorContext.active) {
+            if (typeof switchTab === 'function' && currentActiveTab !== 'gestione-catalogo') {
+                switchTab('gestione-catalogo');
+            }
+            csaEditorContext.active = false;
+        }
+        return;
+    }
+
+    const prodIdStr = String(productId).trim();
+    // Trova il prodotto aggiornato in memoria (già ricaricato da caricaDati in salvaProdotto)
+    let updatedProd = (Array.isArray(prodotti) && prodotti.find(p => p && (String(p.id).trim() === prodIdStr || (p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id).trim() === prodIdStr))));
+    if (!updatedProd && typeof trovaProdottoPerId === 'function') {
+        updatedProd = trovaProdottoPerId(productId);
+    }
+
+    if (!updatedProd) return;
+
+    // Recupera la configurazione attuale di Prezzi & Categorie
+    let categoriesList = [];
+    if (window.appSettings?.catalog_settings?.categorie && Array.isArray(window.appSettings.catalog_settings.categorie)) {
+        categoriesList = window.appSettings.catalog_settings.categorie;
+    } else if (window.appSettings?.categorie && Array.isArray(window.appSettings.categorie)) {
+        categoriesList = window.appSettings.categorie;
+    }
+
+    // Rivaluta la conformità del prezzo con analizzaConformitaPrezzoProdotto
+    const analysis = analizzaConformitaPrezzoProdotto(updatedProd, categoriesList, csaState.priceAuthorizationsMap);
+
+    // Trova l'elemento nel report csaState.rawItems
+    let itemIdx = csaState.rawItems.findIndex(it => it && (String(it.id).trim() === prodIdStr || (it.legacy_id !== undefined && it.legacy_id !== null && String(it.legacy_id).trim() === prodIdStr)));
+
+    const itemReport = {
+        id: updatedProd.id,
+        legacy_id: updatedProd.legacy_id !== undefined && updatedProd.legacy_id !== null ? updatedProd.legacy_id : updatedProd.id,
+        nome: updatedProd.versione || updatedProd.nome || updatedProd.squadra || 'Senza Nome',
+        squadra: updatedProd.squadra || '',
+        categoria: updatedProd.categoria || 'Generale',
+        categoriaConfig: analysis.categoriaConfig || updatedProd.categoria || 'N/D',
+        target: analysis.target || updatedProd.target || 'Adulto',
+        prezzoAttuale: analysis.prezzoAttuale,
+        prezzoAttualeDisp: analysis.prezzoAttualeDisp,
+        prezzoPrevisto: analysis.prezzoPrevisto,
+        prezzoPrevistoDisp: analysis.prezzoPrevistoDisp,
+        diffEuro: analysis.diffEuro,
+        diffDisplay: analysis.diffDisplay,
+        diffCents: analysis.diffCents || 0,
+        stato: analysis.stato,
+        motivo: analysis.motivo,
+        isAuthorized: analysis.isAuthorized || false
+    };
+
+    if (itemIdx >= 0) {
+        csaState.rawItems[itemIdx] = itemReport;
+    } else {
+        csaState.rawItems.push(itemReport);
+    }
+
+    // Registra come ultimo prodotto modificato per mantenerlo visibile ed evidenziare il nuovo stato
+    csaState.lastModifiedProductId = String(updatedProd.id);
+
+    // Ricalcola TUTTI i contatori in modo rigoroso
+    csaState.counters = {
+        totali: csaState.rawItems.length,
+        corretti: 0,
+        autorizzati: 0,
+        fuori_categoria: { total: 0, Adulto: 0, Bambino: 0 },
+        errori_critici: { total: 0, Adulto: 0, Bambino: 0 },
+        non_confrontabili: { total: 0, Adulto: 0, Bambino: 0 }
+    };
+    csaState.anomaliePerCategoria = {};
+
+    csaState.rawItems.forEach(it => {
+        if (it.stato === 'PREZZO_CORRETTO') {
+            csaState.counters.corretti++;
+        } else if (it.stato === 'PREZZO_AUTORIZZATO') {
+            csaState.counters.autorizzati++;
+        } else if (it.stato === 'PREZZO_FUORI_CATEGORIA') {
+            csaState.counters.fuori_categoria.total++;
+            if (it.target === 'Bambino') csaState.counters.fuori_categoria.Bambino++;
+            else csaState.counters.fuori_categoria.Adulto++;
+            const catK = it.categoriaConfig || it.categoria || 'Altro';
+            csaState.anomaliePerCategoria[catK] = (csaState.anomaliePerCategoria[catK] || 0) + 1;
+        } else if (it.stato === 'ERRORE_CRITICO') {
+            csaState.counters.errori_critici.total++;
+            if (it.target === 'Bambino') csaState.counters.errori_critici.Bambino++;
+            else csaState.counters.errori_critici.Adulto++;
+            const catK = it.categoriaConfig || it.categoria || 'Altro';
+            csaState.anomaliePerCategoria[catK] = (csaState.anomaliePerCategoria[catK] || 0) + 1;
+        } else {
+            csaState.counters.non_confrontabili.total++;
+            if (it.target === 'Bambino') csaState.counters.non_confrontabili.Bambino++;
+            else csaState.counters.non_confrontabili.Adulto++;
+            const catK = it.categoriaConfig || it.categoria || 'Altro';
+            csaState.anomaliePerCategoria[catK] = (csaState.anomaliePerCategoria[catK] || 0) + 1;
+        }
+    });
+
+    // Aggiorna metriche a video
+    aggiornaMetricheLiveSicurezzaPrezzi();
+
+    // Aggiorna testo riassunto se presente
+    const summaryText = document.getElementById('csa-scan-summary-text');
+    if (summaryText) {
+        summaryText.textContent = `Analisi completata su ${csaState.counters.totali} articoli: ${csaState.counters.corretti} corretti, ${csaState.counters.autorizzati} autorizzati, ${csaState.counters.fuori_categoria.total} fuori categoria, ${csaState.counters.errori_critici.total} critici, ${csaState.counters.non_confrontabili.total} non confrontabili.`;
+    }
+
+    // Riapplica filtri preservando la pagina corrente e i filtri impostati
+    filtraSicurezzaPrezzi(true);
+
+    // Se l'operazione proveniva da Controllo Sicurezza Articoli, rimani in Gestione Catalogo e mantieni la posizione
+    if (csaEditorContext && csaEditorContext.active) {
+        if (typeof switchTab === 'function' && currentActiveTab !== 'gestione-catalogo') {
+            switchTab('gestione-catalogo');
+        }
+        const section = document.getElementById('sezione-controllo-sicurezza-articoli');
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        csaEditorContext.active = false;
+    }
+}
+
+// Esporta funzioni globali per Controllo Sicurezza Articoli
+window.scrollaEAvviaControlloSicurezzaPrezzi = scrollaEAvviaControlloSicurezzaPrezzi;
+window.avviaControlloSicurezzaPrezzi = avviaControlloSicurezzaPrezzi;
+window.filtraSicurezzaPrezzi = filtraSicurezzaPrezzi;
+window.filtraSicurezzaPrezziStatoRapido = filtraSicurezzaPrezziStatoRapido;
+window.resetFiltriSicurezzaPrezzi = resetFiltriSicurezzaPrezzi;
+window.cambiaPaginaSicurezzaPrezzi = cambiaPaginaSicurezzaPrezzi;
+window.esportaReportSicurezzaPrezziCSV = esportaReportSicurezzaPrezziCSV;
+window.apriModaleRipristinaPrezzoOriginale = apriModaleRipristinaPrezzoOriginale;
+window.chiudiModaleRipristinaPrezzoOriginale = chiudiModaleRipristinaPrezzoOriginale;
+window.eseguiRipristinoPrezzoOriginale = eseguiRipristinoPrezzoOriginale;
+window.apriModaleAutorizzaPrezzo = apriModaleAutorizzaPrezzo;
+window.chiudiModaleAutorizzaPrezzo = chiudiModaleAutorizzaPrezzo;
+window.eseguiAutorizzazionePrezzo = eseguiAutorizzazionePrezzo;
+window.apriAnteprimaArticoloDaSicurezza = apriAnteprimaArticoloDaSicurezza;
+window.aggiornaControlloSicurezzaDopoModifica = aggiornaControlloSicurezzaDopoModifica;
+window.aggiornaBarraAzioniMassiveSicurezza = aggiornaBarraAzioniMassiveSicurezza;
+window.toggleSelezionaArticoloSicurezza = toggleSelezionaArticoloSicurezza;
+window.toggleSelectAllPageSicurezza = toggleSelectAllPageSicurezza;
+window.selezionaTuttiFiltratiSicurezza = selezionaTuttiFiltratiSicurezza;
+window.deselezionaTuttiArticoliSicurezza = deselezionaTuttiArticoliSicurezza;
+window.apriModaleBulkAutorizzaPrezzo = apriModaleBulkAutorizzaPrezzo;
+window.chiudiModaleBulkAutorizzaPrezzo = chiudiModaleBulkAutorizzaPrezzo;
+window.eseguiBulkAutorizzazionePrezzo = eseguiBulkAutorizzazionePrezzo;
+window.apriModaleBulkRipristinaPrezzo = apriModaleBulkRipristinaPrezzo;
+window.chiudiModaleBulkRipristinaPrezzo = chiudiModaleBulkRipristinaPrezzo;
+window.eseguiBulkRipristinoPrezzo = eseguiBulkRipristinoPrezzo;
+window.apriModaleBulkCambiaCategoria = apriModaleBulkCambiaCategoria;
+window.chiudiModaleBulkCambiaCategoria = chiudiModaleBulkCambiaCategoria;
+window.aggiornaAnteprimaCambioCategoriaMassivo = aggiornaAnteprimaCambioCategoriaMassivo;
+window.eseguiBulkCambioCategoria = eseguiBulkCambioCategoria;
+window.mostraModaleEsitoOperazione = mostraModaleEsitoOperazione;
+window.chiudiModaleEsitoOperazione = chiudiModaleEsitoOperazione;
 
 // =========================================================================
 // MODIFICA PREZZO CONCORDATO ORDINE (MODALE & GESTIONE PREZZI / FASCE)
@@ -21251,7 +24589,7 @@ function onSelectOrdineModificaPrezzo(orderId) {
 
     if (badgeEl) badgeEl.textContent = `ORD-#${dispIdx}`;
     if (custEl) custEl.textContent = order.nome || 'Cliente';
-    if (dateEl) dateEl.textContent = `📅 ${order.data || 'N/D'}`;
+    if (dateEl) dateEl.textContent = `📅 ${formattaDataOraOrdine(order)}`;
     if (phoneEl) phoneEl.textContent = `📞 ${order.telefono || 'N/D'}`;
     if (currentTotEl) currentTotEl.textContent = totFormatted;
     if (suppEurEl) suppEurEl.textContent = `€ ${costEurStr}`;
@@ -21304,6 +24642,8 @@ function onSelectOrdineModificaPrezzo(orderId) {
             prezzo_originale: origPrice,
             mode: mode, // 'singolo' | 'fasce'
             prezzo_unitario: unitPrice,
+            is_prezzo_fornitore: Boolean(item.is_prezzo_fornitore || item.origine_prezzo === 'fornitore'),
+            origine_prezzo: item.origine_prezzo || (item.is_prezzo_fornitore ? 'fornitore' : null),
             fasce: fasce
         };
     });
@@ -21375,9 +24715,15 @@ function renderItemsPrezzoOrdineUI() {
                         </div>
                     </div>
 
-                    <button type="button" onclick="ripristinaPrezzoItem(${idx})" class="text-[11px] text-slate-500 hover:text-brand-gold font-bold flex items-center gap-1 transition-colors self-start sm:self-auto cursor-pointer" title="Reimposta al prezzo di listino originale">
-                        <span>🔄</span> Ripristina Listino Originale
-                    </button>
+                    <div class="flex items-center gap-2.5 self-start sm:self-auto">
+                        <button type="button" onclick="applicaPrezzoFornitoreItem(${idx})" class="text-[11px] text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 transition-colors cursor-pointer" title="Calcola ed applica il prezzo fornitore esatto (USD -> EUR + personalizzazioni)">
+                            <span>🏷️</span> Prezzo Fornitore
+                        </button>
+                        <span class="text-slate-300">•</span>
+                        <button type="button" onclick="ripristinaPrezzoItem(${idx})" class="text-[11px] text-slate-500 hover:text-brand-gold font-bold flex items-center gap-1 transition-colors cursor-pointer" title="Reimposta al prezzo di listino originale">
+                            <span>🔄</span> Ripristina Listino
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Configurazione Input Prezzo Singolo -->
@@ -21496,6 +24842,8 @@ function onInputPrezzoSingoloItem(itemIdx, val) {
     if (!itemsPrezzoOrdineState[itemIdx]) return;
     const p = parseFloat(String(val).replace(',', '.'));
     itemsPrezzoOrdineState[itemIdx].prezzo_unitario = isNaN(p) ? 0 : p;
+    itemsPrezzoOrdineState[itemIdx].is_prezzo_fornitore = false;
+    itemsPrezzoOrdineState[itemIdx].origine_prezzo = null;
     itemsPrezzoOrdineState[itemIdx].fasce = [{ quantita: itemsPrezzoOrdineState[itemIdx].quantita, prezzo_unitario: itemsPrezzoOrdineState[itemIdx].prezzo_unitario }];
     ricalcolaTotaliModalePrezzoOrdine();
 }
@@ -21504,6 +24852,8 @@ function onInputFasciaQty(itemIdx, fasciaIdx, val) {
     if (!itemsPrezzoOrdineState[itemIdx] || !itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx]) return;
     const q = parseInt(val, 10);
     itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx].quantita = isNaN(q) ? 0 : q;
+    itemsPrezzoOrdineState[itemIdx].is_prezzo_fornitore = false;
+    itemsPrezzoOrdineState[itemIdx].origine_prezzo = null;
     ricalcolaTotaliModalePrezzoOrdine();
 }
 
@@ -21511,6 +24861,8 @@ function onInputFasciaPrice(itemIdx, fasciaIdx, val) {
     if (!itemsPrezzoOrdineState[itemIdx] || !itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx]) return;
     const p = parseFloat(String(val).replace(',', '.'));
     itemsPrezzoOrdineState[itemIdx].fasce[fasciaIdx].prezzo_unitario = isNaN(p) ? 0 : p;
+    itemsPrezzoOrdineState[itemIdx].is_prezzo_fornitore = false;
+    itemsPrezzoOrdineState[itemIdx].origine_prezzo = null;
     ricalcolaTotaliModalePrezzoOrdine();
 }
 
@@ -21540,10 +24892,189 @@ function ripristinaPrezzoItem(itemIdx) {
     const item = itemsPrezzoOrdineState[itemIdx];
     item.mode = 'singolo';
     item.prezzo_unitario = item.prezzo_originale;
+    item.is_prezzo_fornitore = false;
+    item.origine_prezzo = null;
     item.fasce = [{ quantita: item.quantita, prezzo_unitario: item.prezzo_originale }];
     
     renderItemsPrezzoOrdineUI();
     ricalcolaTotaliModalePrezzoOrdine();
+}
+
+/**
+ * Calcola il prezzo fornitore esatto in EUR per un singolo articolo dell'ordine
+ * secondo la formula definitiva:
+ * PREZZO FORNITORE USD = prezzo_fornitore catalogo + Nome ($1) + Numero ($1) + Patch ($1/patch) + quota spedizione fornitore dinamica Lotto
+ * (Nessun extra per taglia XXL, kit, categoria o trasferta)
+ * PREZZO FORNITORE EUR = PREZZO FORNITORE USD * exchangeRate
+ */
+function calcolaPrezzoFornitoreSingoloArticolo(item, order) {
+    if (!item) return null;
+
+    // 0. Source Autorevole Diretta: Se l'ordine ha 1 solo articolo fisico ed ha già il Costo Totale Reale calcolato dal backend
+    const cartItems = Array.isArray(order?.carrello) ? order.carrello : [];
+    const nonTechItems = cartItems.filter(ci => ci && !(ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra)));
+    const totalPhysicalPieces = nonTechItems.reduce((s, it) => s + (Number(it.quantita) || 1), 0);
+
+    if (totalPhysicalPieces === 1 && order) {
+        const rawCostoTotEur = parseFlexibleDecimal(order["Costo totale (EUR)"] || order.costo_totale_eur || order["Costo Fornitore (EUR)"]);
+        if (rawCostoTotEur > 0) {
+            return Number(rawCostoTotEur.toFixed(2));
+        }
+    }
+
+    // 1. Recupero prodotto dal catalogo admin per ottenere il prezzo fornitore ufficiale
+    const prodList = (Array.isArray(window.prodotti) && window.prodotti.length > 0)
+        ? window.prodotti
+        : (Array.isArray(window.catalogoProdotti) ? window.catalogoProdotti : []);
+
+    let matchedProd = null;
+    if (item.id) {
+        matchedProd = prodList.find(p => String(p.id) === String(item.id));
+    }
+    if (!matchedProd && item.legacy_id) {
+        matchedProd = prodList.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+    }
+    if (!matchedProd && item.nome) {
+        matchedProd = prodList.find(p => p.versione === item.nome || p.squadra === item.nome || p.nome === item.nome);
+    }
+
+    // 2. Determinazione prezzo base fornitore in USD (nessun extra taglia/kit)
+    let baseKitUSD = null;
+    if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && !isNaN(Number(matchedProd.prezzo_fornitore)) && Number(matchedProd.prezzo_fornitore) > 0) {
+        baseKitUSD = Number(matchedProd.prezzo_fornitore);
+    } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
+        baseKitUSD = Number(item.prezzo_fornitore);
+    } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
+        baseKitUSD = Number(item.Prezzo_fornitore);
+    } else if (item.prezzo_originale && Number(item.prezzo_originale) > 0) {
+        baseKitUSD = Number(item.prezzo_originale) * 0.4;
+    } else if (item.prezzo && Number(item.prezzo) > 0) {
+        baseKitUSD = Number(item.prezzo) * 0.4;
+    }
+
+    if (baseKitUSD === null || isNaN(baseKitUSD) || baseKitUSD <= 0) {
+        return null;
+    }
+
+    // 3. Calcolo personalizzazioni ($1 Nome, $1 Numero, $1 per ciascuna Patch)
+    const custom = parseCustomizationDetailsClient(item.infoPerso || item.personalizzazione, item);
+    let persCostUSD = 0.00;
+    if (custom.nome && custom.nome.trim()) {
+        persCostUSD += 1.00;
+    }
+    if (custom.numero && String(custom.numero).trim()) {
+        persCostUSD += 1.00;
+    }
+    let patchCount = 0;
+    if (Array.isArray(custom.patches) && custom.patches.length > 0) {
+        custom.patches.forEach(p => {
+            if (p && String(p).includes(',')) {
+                patchCount += String(p).split(',').map(s => s.trim()).filter(Boolean).length;
+            } else if (p && !["nessuna", "nessuno", "no", "false", ""].includes(String(p).toLowerCase().trim())) {
+                patchCount += 1;
+            }
+        });
+    } else if (custom.patchStr && custom.patchStr.trim()) {
+        patchCount += custom.patchStr.split(',').map(s => s.trim()).filter(s => s && !["nessuna", "nessuno", "no", "false", ""].includes(s.toLowerCase())).length;
+    }
+    persCostUSD += (patchCount * 1.00);
+
+    // 4. Determinazione quota spedizione fornitore dinamica per pezzo (in USD)
+    let unitShippingUSD = 0.00;
+    const allOrders = (Array.isArray(window.gestioneOrdiniList) && window.gestioneOrdiniList.length > 0)
+        ? window.gestioneOrdiniList
+        : (Array.isArray(window.ordini) ? window.ordini : []);
+
+    if (order && order.lotto_id !== undefined && order.lotto_id !== null && String(order.lotto_id).trim() !== '') {
+        const lotIdNum = Number(order.lotto_id);
+        const lottoOrders = allOrders.filter(o => !o.is_archived && Number(o.lotto_id) === lotIdNum);
+        let totalLottoPieces = lottoOrders.reduce((sum, o) => {
+            const count = (typeof estraiNumeroArticoli === 'function')
+                ? estraiNumeroArticoli(o)
+                : (Array.isArray(o.carrello) ? o.carrello.reduce((s, it) => s + (Number(it.quantita) || 1), 0) : 1);
+            return sum + count;
+        }, 0);
+
+        if (window.currentLottoData && Number(window.currentLottoData.id) === lotIdNum && Number(window.currentLottoData.numero_totale_articoli) > 0) {
+            totalLottoPieces = Math.max(totalLottoPieces, Number(window.currentLottoData.numero_totale_articoli));
+        }
+
+        if (totalLottoPieces <= 0) {
+            totalLottoPieces = Array.isArray(order.carrello)
+                ? order.carrello.reduce((s, it) => s + (Number(it.quantita) || 1), 0)
+                : 1;
+        }
+
+        unitShippingUSD = getShippingRateByQuantityClient(totalLottoPieces, window.appSettings);
+    } else {
+        // Ordine senza Lotto: usa il numero di pezzi fisici dell'ordine corrente
+        const orderPieces = Array.isArray(order?.carrello)
+            ? order.carrello.reduce((s, it) => s + (Number(it.quantita) || 1), 0)
+            : (Number(item.quantita) || 1);
+        unitShippingUSD = getShippingRateByQuantityClient(orderPieces, window.appSettings);
+    }
+
+    const shippingMult = getItemShippingMultiplierClient(item, matchedProd);
+    const effectiveItemShippingUSD = unitShippingUSD * shippingMult;
+    const totalItemUSD = baseKitUSD + persCostUSD + effectiveItemShippingUSD;
+
+    // 5. Risoluzione tasso di cambio USD -> EUR
+    let exchangeRate = null;
+    if (order) {
+        const rawRate = order["Cambio USD/EUR"] || order.cambio_usd_eur || order.exchange_rate || order.tasso_cambio;
+        if (rawRate !== undefined && rawRate !== null && rawRate !== '') {
+            const parsed = parseFlexibleDecimal(rawRate);
+            if (!isNaN(parsed) && parsed > 0) {
+                exchangeRate = parsed;
+            }
+        }
+    }
+
+    if (!exchangeRate || exchangeRate <= 0) {
+        if (window.appSettings?.cambioValuta?.mode === 'manual' && window.appSettings?.cambioValuta?.manual_rate) {
+            exchangeRate = parseFloat(window.appSettings.cambioValuta.manual_rate) || 0.86;
+        } else if (window.appSettings?.cambio_usd_eur) {
+            exchangeRate = parseFloat(window.appSettings.cambio_usd_eur) || 0.86;
+        } else {
+            exchangeRate = 0.86;
+        }
+    }
+
+    // 6. Calcolo finale unitario in EUR
+    const finalEur = Number((totalItemUSD * exchangeRate).toFixed(2));
+    return (isNaN(finalEur) || finalEur <= 0) ? null : finalEur;
+}
+
+/**
+ * Gestore click pulsante "Prezzo Fornitore" per il singolo articolo:
+ * Imposta il prezzo unitario calcolato nel campo e ricalcola il modale
+ * SENZA salvare né effettuare chiamate API premature.
+ */
+function applicaPrezzoFornitoreItem(itemIdx) {
+    if (!itemsPrezzoOrdineState[itemIdx]) return;
+    const item = itemsPrezzoOrdineState[itemIdx];
+
+    const prezzoFornEur = calcolaPrezzoFornitoreSingoloArticolo(item, selectedPrezzoOrdine);
+
+    if (prezzoFornEur === null || isNaN(prezzoFornEur) || prezzoFornEur <= 0) {
+        if (typeof showToast === 'function') {
+            showToast("Prezzo fornitore non disponibile per questo articolo.", "error");
+        }
+        return;
+    }
+
+    item.mode = 'singolo';
+    item.prezzo_unitario = prezzoFornEur;
+    item.is_prezzo_fornitore = true;
+    item.origine_prezzo = 'fornitore';
+    item.fasce = [{ quantita: item.quantita, prezzo_unitario: prezzoFornEur }];
+
+    renderItemsPrezzoOrdineUI();
+    ricalcolaTotaliModalePrezzoOrdine();
+
+    if (typeof showToast === 'function') {
+        showToast(`Prezzo fornitore applicato: € ${prezzoFornEur.toFixed(2).replace('.', ',')}`, "success");
+    }
 }
 
 function ricalcolaTotaliModalePrezzoOrdine() {
@@ -21634,7 +25165,10 @@ function ricalcolaTotaliModalePrezzoOrdine() {
         }
     });
 
-    // Spedizione cliente & coupon (stessa logica del checkout pubblico: gratuita >= 50€, altrimenti 2.00€)
+    // Spedizione cliente & coupon: se tutti i pezzi dell'ordine sono a Prezzo Fornitore, la spedizione cliente è 0.00€
+    const nonTechState = itemsPrezzoOrdineState.filter(ci => ci && !isTechnicalShippingOrServiceLine(ci.nome));
+    const isAllPrezzoFornitoreState = nonTechState.length > 0 && nonTechState.every(it => it.is_prezzo_fornitore === true);
+
     const isConv = Boolean(
         selectedPrezzoOrdine.codice_fornitura || 
         selectedPrezzoOrdine.torneo_id || 
@@ -21645,7 +25179,7 @@ function ricalcolaTotaliModalePrezzoOrdine() {
         selectedPrezzoOrdine.coupon_type === 'supplier_price' ||
         (selectedPrezzoOrdine.coupon_code && (String(selectedPrezzoOrdine.coupon_code).toUpperCase() === 'MIAKHALIFA' ||
             (Array.isArray(couponsList) && couponsList.some(c => c && c.code && String(c.code).toUpperCase() === String(selectedPrezzoOrdine.coupon_code).toUpperCase() && (c.type === 'fornitore' || c.type === 'supplier_price')))));
-    const spedizioneCliente = (isConv || isFornitoreCoupon) ? 0.00 : (itemsNewSubtotal >= 50.0 ? 0.00 : 2.00);
+    const spedizioneCliente = (isConv || isFornitoreCoupon || isAllPrezzoFornitoreState) ? 0.00 : (itemsNewSubtotal >= 50.0 ? 0.00 : 2.00);
     const couponDiscount = (selectedPrezzoOrdine.coupon_discount !== undefined && selectedPrezzoOrdine.coupon_discount !== null) ? Number(selectedPrezzoOrdine.coupon_discount) : 0;
 
     const newOrderTotal = Math.max(0, itemsNewSubtotal + spedizioneCliente - couponDiscount);
@@ -21653,7 +25187,7 @@ function ricalcolaTotaliModalePrezzoOrdine() {
     const diffTotal = newOrderTotal - origOrderTotal;
 
     const costEur = parseFlexibleDecimal(selectedPrezzoOrdine["Costo totale (EUR)"] || selectedPrezzoOrdine.costo_totale_eur);
-    const newProfit = Math.max(-999999, newOrderTotal - costEur);
+    const newProfit = (isAllPrezzoFornitoreState && Math.abs(newOrderTotal - costEur) < 0.02) ? 0.00 : Math.max(-999999, newOrderTotal - costEur);
 
     // Aggiorna anteprima economica
     const origTotalEl = document.getElementById('modal-prezzo-preview-orig-total');
@@ -21723,6 +25257,8 @@ async function salvaPrezzoConcordatoOrdine() {
                     id: item.id,
                     legacy_id: item.legacy_id,
                     index: item.index,
+                    is_prezzo_fornitore: Boolean(item.is_prezzo_fornitore),
+                    origine_prezzo: item.is_prezzo_fornitore ? 'fornitore' : null,
                     fasce_prezzo: item.fasce.map(f => ({
                         quantita: parseInt(f.quantita, 10),
                         prezzo_unitario: Number(parseFloat(f.prezzo_unitario).toFixed(2))
@@ -21733,6 +25269,8 @@ async function salvaPrezzoConcordatoOrdine() {
                     id: item.id,
                     legacy_id: item.legacy_id,
                     index: item.index,
+                    is_prezzo_fornitore: Boolean(item.is_prezzo_fornitore),
+                    origine_prezzo: item.is_prezzo_fornitore ? 'fornitore' : null,
                     prezzo_concordato: Number(parseFloat(item.prezzo_unitario).toFixed(2))
                 };
             }
@@ -21837,9 +25375,72 @@ window.onInputFasciaPrice = onInputFasciaPrice;
 window.aggiungiFasciaPrezzo = aggiungiFasciaPrezzo;
 window.rimuoviFasciaPrezzo = rimuoviFasciaPrezzo;
 window.ripristinaPrezzoItem = ripristinaPrezzoItem;
+window.applicaPrezzoFornitoreItem = applicaPrezzoFornitoreItem;
+window.calcolaPrezzoFornitoreSingoloArticolo = calcolaPrezzoFornitoreSingoloArticolo;
 window.ricalcolaTotaliModalePrezzoOrdine = ricalcolaTotaliModalePrezzoOrdine;
 window.salvaPrezzoConcordatoOrdine = salvaPrezzoConcordatoOrdine;
 window.ripristinaTuttiPrezziOrdine = ripristinaTuttiPrezziOrdine;
+
+/**
+ * Gestore click Rimuovi / Ripristina Spedizione Cliente per singolo ordine
+ */
+async function toggleSpedizioneClienteAdmin(orderId, rimuovi) {
+    if (!orderId) {
+        console.warn("toggleSpedizioneClienteAdmin: orderId mancante");
+        return;
+    }
+    const isRemoving = Boolean(rimuovi);
+
+    try {
+        const res = await fetch('/api/admin/orders/toggle-shipping-override', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId, rimuovi: isRemoving })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            showToast(data.message || (isRemoving ? "Spedizione cliente rimossa!" : "Spedizione cliente ripristinata!"), "success");
+            
+            // Aggiorna lo stato locale ordini e gestioneOrdiniList
+            if (Array.isArray(ordini)) {
+                const idx = ordini.findIndex(o => (o.id !== undefined && String(o.id) === String(orderId)) || (o.data && String(o.data) === String(orderId)));
+                if (idx !== -1 && data.order) {
+                    ordini[idx] = {
+                        ...ordini[idx],
+                        ...data.order
+                    };
+                }
+            }
+            if (Array.isArray(window.gestioneOrdiniList)) {
+                const idx = window.gestioneOrdiniList.findIndex(o => (o.id !== undefined && String(o.id) === String(orderId)) || (o.data && String(o.data) === String(orderId)));
+                if (idx !== -1 && data.order) {
+                    window.gestioneOrdiniList[idx] = {
+                        ...window.gestioneOrdiniList[idx],
+                        ...data.order
+                    };
+                }
+            }
+
+            // Ricarica la lista o aggiorna il rendering
+            if (typeof renderOrdini === 'function') {
+                renderOrdini();
+            }
+            if (typeof renderGestioneOrdini === 'function') {
+                renderGestioneOrdini();
+            }
+            if (typeof caricaLotto === 'function') {
+                caricaLotto();
+            }
+        } else {
+            showToast(data.error || "Errore durante l'aggiornamento della spedizione cliente.", "error");
+        }
+    } catch (err) {
+        console.error("Errore toggle spedizione cliente:", err);
+        showToast("Errore di rete durante l'operazione.", "error");
+    }
+}
+window.toggleSpedizioneClienteAdmin = toggleSpedizioneClienteAdmin;
 
 // ==========================================
 // FUNZIONALITÀ GESTIONE FORNITURA TORNEI (ADMIN)

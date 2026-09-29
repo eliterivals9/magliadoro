@@ -18664,9 +18664,14 @@
   {
     "id": "c940ff9a-a47d-4351-8ea6-60417ee9746a",
     "currentImage": "https://jerseys-catalog.com/wp-content/uploads/2026/06/20dbba345af325bc6d2cb2be9a5ce374-300x300.png",
-    "filename": null,
-    "storageUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/06/20dbba345af325bc6d2cb2be9a5ce374-300x300.png",
-    "isLocal": false
+    "filename": "img_079b469ea0707b6d.webp",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_079b469ea0707b6d.webp",
+    "isLocal": false,
+    "legacy_id": 1114,
+    "squadra": "Botafogo",
+    "versione": "Versione Fan Seconda Trasferta Botafogo",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/06/20dbba345af325bc6d2cb2be9a5ce374-300x300.png",
+    "migratedAt": "2026-09-25T14:13:25.007Z"
   },
   {
     "id": "3468d6f8-697b-4a3e-bf7f-92ea15031bcd",
@@ -30980,5 +30985,605 @@
     "filename": "img_7d941b2de5177f01.webp",
     "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_7d941b2de5177f01.webp",
     "isLocal": true
+  },
+  {
+    "id": "0fcfd662-77bf-4fec-8e6b-1677f6d24b0f",
+    "legacy_id": 4,
+    "squadra": "Everton",
+    "versione": "Player Fuori Casa Everton",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_163931_893-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ca0fb395187c9cb7.webp",
+    "filename": "img_ca0fb395187c9cb7.webp",
+    "migratedAt": "2026-09-25T14:12:41.018Z"
+  },
+  {
+    "id": "f3fabc1a-7c54-4125-86fa-cdcfab17b5c9",
+    "legacy_id": 35,
+    "squadra": "AS Monaco",
+    "versione": "Fan Seconda Trasferta AS Monaco",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_110324_897-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_59cb5ab2ada3372d.webp",
+    "filename": "img_59cb5ab2ada3372d.webp",
+    "migratedAt": "2026-09-25T14:12:41.736Z"
+  },
+  {
+    "id": "496be5b9-29f4-47dd-b9d0-500b2df4d654",
+    "legacy_id": 27,
+    "squadra": "Benfica",
+    "versione": "Polo Allenamento Benfica Bianca",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_130735_726-1-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_f6400cb15dccf783.webp",
+    "filename": "img_f6400cb15dccf783.webp",
+    "migratedAt": "2026-09-25T14:12:42.368Z"
+  },
+  {
+    "id": "99e516be-9859-4d33-9ba0-499c7a8d5d74",
+    "legacy_id": 13,
+    "squadra": "Boca Juniors",
+    "versione": "Mezza Zip Boca Juniors Bianca",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_151227_598-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_8cb3db9a71f24204.webp",
+    "filename": "img_8cb3db9a71f24204.webp",
+    "migratedAt": "2026-09-25T14:12:42.939Z"
+  },
+  {
+    "id": "7a512be3-08d2-4ae0-83db-2c6080eebecf",
+    "legacy_id": 16,
+    "squadra": "Lazio",
+    "versione": "Fan Fuori Casa Lazio",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/FA5A9F6984BA52D02A0F2C23B1E8215F-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ee8f5fef5ead64b5.webp",
+    "filename": "img_ee8f5fef5ead64b5.webp",
+    "migratedAt": "2026-09-25T14:12:43.511Z"
+  },
+  {
+    "id": "8bf7407c-4398-4388-80a7-0b5042cbd347",
+    "legacy_id": 36,
+    "squadra": "Manchester City",
+    "versione": "Maglia Retro Seconda Trasferta Manchester City",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/A6D8236B00AAA6FA335F4B41A49EAF30-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_2a36c875039cc42a.webp",
+    "filename": "img_2a36c875039cc42a.webp",
+    "migratedAt": "2026-09-25T14:12:44.115Z"
+  },
+  {
+    "id": "d86726ec-ad1f-4f75-aa5e-bcb8baf16a0d",
+    "legacy_id": 39,
+    "squadra": "Santos",
+    "versione": "Player Fuori Casa Santos",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/74D2BA1FCF107F04A12A5B6F40CD664D-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_e772fb480a87c654.webp",
+    "filename": "img_e772fb480a87c654.webp",
+    "migratedAt": "2026-09-25T14:12:44.808Z"
+  },
+  {
+    "id": "ca1006e5-673f-47f9-b627-d129d2c86595",
+    "legacy_id": 19,
+    "squadra": "River Plate",
+    "versione": "Polo Allenamento River Plate Bianca",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_142755_727-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_49e620ea08160755.webp",
+    "filename": "img_49e620ea08160755.webp",
+    "migratedAt": "2026-09-25T14:12:45.389Z"
+  },
+  {
+    "id": "3a7d212c-6e43-4266-8511-ad84912b13ec",
+    "legacy_id": 17,
+    "squadra": "Siviglia",
+    "versione": "Polo Allenamento Siviglia Bordeaux",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_144907_242-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_64e550fb906dd889.webp",
+    "filename": "img_64e550fb906dd889.webp",
+    "migratedAt": "2026-09-25T14:12:46.064Z"
+  },
+  {
+    "id": "d5d5ae82-fc25-470e-a7f2-f6f4676533e0",
+    "legacy_id": 29,
+    "squadra": "Boca Juniors",
+    "versione": "Polo Allenamento Boca Juniors Blu Royal",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_114626_487-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_c2f1164baa974db0.webp",
+    "filename": "img_c2f1164baa974db0.webp",
+    "migratedAt": "2026-09-25T14:12:46.673Z"
+  },
+  {
+    "id": "fc52c4e4-a79f-4ba5-aee4-cb58df79fd04",
+    "legacy_id": 26,
+    "squadra": "Leeds United",
+    "versione": "Smanicato Leeds United Nero e Giallo",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-10_131928_740-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_0daff114b3df862d.webp",
+    "filename": "img_0daff114b3df862d.webp",
+    "migratedAt": "2026-09-25T14:12:47.281Z"
+  },
+  {
+    "id": "76540592-38b4-4c96-a479-11570eddf461",
+    "legacy_id": 37,
+    "squadra": "Club América",
+    "versione": "Player Edizione Speciale Club América Blu",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/6ECB4977AAF445E66593F794BAE52654-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_517a2881a53cb339.webp",
+    "filename": "img_517a2881a53cb339.webp",
+    "migratedAt": "2026-09-25T14:12:47.887Z"
+  },
+  {
+    "id": "eb6f8efa-a4c7-4c45-840c-9fa2127eda15",
+    "legacy_id": 40,
+    "squadra": "Santos",
+    "versione": "Player Casa Santos",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/7B47E940135D27BF3AE04BAB5CAA90E7-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_a430a86029af26aa.webp",
+    "filename": "img_a430a86029af26aa.webp",
+    "migratedAt": "2026-09-25T14:12:48.501Z"
+  },
+  {
+    "id": "a5e6a50c-4e4b-4eef-ac7a-64999dd411f5",
+    "legacy_id": 83,
+    "squadra": "Flamengo",
+    "versione": "Kit Portiere Flamengo",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-153628-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_50547625b14bec3d.webp",
+    "filename": "img_50547625b14bec3d.webp",
+    "migratedAt": "2026-09-25T14:12:49.015Z"
+  },
+  {
+    "id": "ac7b2160-1590-49a6-9b42-212a819b60e2",
+    "legacy_id": 74,
+    "squadra": "AS Roma",
+    "versione": "Kit Bambino Casa AS Roma",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/B3EBF22C20983283AA8897567BF3D82F-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1cdbdc86951d20d2.webp",
+    "filename": "img_1cdbdc86951d20d2.webp",
+    "migratedAt": "2026-09-25T14:12:49.616Z"
+  },
+  {
+    "id": "a5987dd8-986b-4bb6-af4f-93bfdf84fc36",
+    "legacy_id": 82,
+    "squadra": "Palmeiras",
+    "versione": "Fan Seconda Trasferta Palmeiras",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-154002-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_bf4607f37eba96f9.webp",
+    "filename": "img_bf4607f37eba96f9.webp",
+    "migratedAt": "2026-09-25T14:12:50.344Z"
+  },
+  {
+    "id": "14d94bb2-563a-4046-95ce-460285965f13",
+    "legacy_id": 84,
+    "squadra": "Internacional",
+    "versione": "Fan Seconda Trasferta Internacional",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-153149-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_da33f678c502ce4a.webp",
+    "filename": "img_da33f678c502ce4a.webp",
+    "migratedAt": "2026-09-25T14:12:50.910Z"
+  },
+  {
+    "id": "60c4461f-8c8c-4d3e-8514-fb0255dff57d",
+    "legacy_id": 87,
+    "squadra": "River Plate",
+    "versione": "Fan Edizione Speciale River Plate",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-151116-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ec07909fe0e2b077.webp",
+    "filename": "img_ec07909fe0e2b077.webp",
+    "migratedAt": "2026-09-25T14:12:51.481Z"
+  },
+  {
+    "id": "08976b8b-6602-4111-b121-0de76577b69b",
+    "legacy_id": 94,
+    "squadra": "Osasuna",
+    "versione": "Fan Casa Osasuna",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-113120-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_843363204871266d.webp",
+    "filename": "img_843363204871266d.webp",
+    "migratedAt": "2026-09-25T14:12:52.063Z"
+  },
+  {
+    "id": "54c86986-48c6-442b-9d97-b184231db2e5",
+    "legacy_id": 101,
+    "squadra": "SSC Napoli",
+    "versione": "Kit Seconda Trasferta SSC Napoli",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-102718-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_1f0b612834aab3e1.webp",
+    "filename": "img_1f0b612834aab3e1.webp",
+    "migratedAt": "2026-09-25T14:12:52.608Z"
+  },
+  {
+    "id": "7d41ca37-79f5-49c4-95f8-cc2dffe6ffaa",
+    "legacy_id": 104,
+    "squadra": "Barcellona",
+    "versione": "Antivento Barcellona",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/1B0C7B77580BE20FD3E308985FAF0727-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4261fe812e08178d.webp",
+    "filename": "img_4261fe812e08178d.webp",
+    "migratedAt": "2026-09-25T14:12:53.180Z"
+  },
+  {
+    "id": "34858304-25ae-49a7-b67a-f576b0a80afc",
+    "legacy_id": 123,
+    "squadra": "Boca Juniors",
+    "versione": "Tuta Zip Intera Bambino Boca Juniors Blu",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-142430-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_7228f9b7ec760d14.webp",
+    "filename": "img_7228f9b7ec760d14.webp",
+    "migratedAt": "2026-09-25T14:12:53.760Z"
+  },
+  {
+    "id": "3f17f0f6-c7bd-462b-94e4-a78088d40a9a",
+    "legacy_id": 126,
+    "squadra": "Ajax",
+    "versione": "Tuta Zip Intera Ajax",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-135913-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_e708e50522ea0ce6.webp",
+    "filename": "img_e708e50522ea0ce6.webp",
+    "migratedAt": "2026-09-25T14:12:55.964Z"
+  },
+  {
+    "id": "8b9804b9-1ab1-444b-9aac-63a500075e12",
+    "legacy_id": 85,
+    "squadra": "Real Sociedad",
+    "versione": "Fan Casa Real Sociedad",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-152348-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_22fc589c21966a85.webp",
+    "filename": "img_22fc589c21966a85.webp",
+    "migratedAt": "2026-09-25T14:12:56.494Z"
+  },
+  {
+    "id": "9f5f582c-7e48-406e-953a-cf32b6b58535",
+    "legacy_id": 92,
+    "squadra": "Venezia",
+    "versione": "Fan Fuori Casa Venezia",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-114430-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_689e66dae1537419.webp",
+    "filename": "img_689e66dae1537419.webp",
+    "migratedAt": "2026-09-25T14:12:57.049Z"
+  },
+  {
+    "id": "9569a281-cc09-4728-be8b-07828657396f",
+    "legacy_id": 96,
+    "squadra": "Eindhoven",
+    "versione": "Fan Fuori Casa Eindhoven",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-111248-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_f1c214d051576400.webp",
+    "filename": "img_f1c214d051576400.webp",
+    "migratedAt": "2026-09-25T14:12:57.647Z"
+  },
+  {
+    "id": "f789f3ab-a820-4691-8cdb-2357c7457660",
+    "legacy_id": 99,
+    "squadra": "Siviglia",
+    "versione": "Kit Bambino Casa Siviglia",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-103845-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_dd32e49319fcb4e1.webp",
+    "filename": "img_dd32e49319fcb4e1.webp",
+    "migratedAt": "2026-09-25T14:12:58.188Z"
+  },
+  {
+    "id": "ebe3522c-c281-4960-846e-0ee041f522bc",
+    "legacy_id": 102,
+    "squadra": "Chelsea F.C.",
+    "versione": "Maglia Retro Chelsea F.C.",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/6733931F522329EDD12C88176E4CAF93-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_c6a19b6ac6a46389.webp",
+    "filename": "img_c6a19b6ac6a46389.webp",
+    "migratedAt": "2026-09-25T14:12:58.829Z"
+  },
+  {
+    "id": "824ceba2-ab2e-4c8a-99a9-476ed46d1ecb",
+    "legacy_id": 105,
+    "squadra": "Paris Saint-Germain",
+    "versione": "Antivento Paris Saint-Germain",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/75D03FA153B2D5C723867600D91845C5-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d131f59860177905.webp",
+    "filename": "img_d131f59860177905.webp",
+    "migratedAt": "2026-09-25T14:12:59.457Z"
+  },
+  {
+    "id": "9291d737-028e-40b6-afd1-3301d9ee7f9b",
+    "legacy_id": 121,
+    "squadra": "Chelsea F.C.",
+    "versione": "Tuta Zip Intera Chelsea F.C. Nera",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-151033-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_73277585e1a4644b.webp",
+    "filename": "img_73277585e1a4644b.webp",
+    "migratedAt": "2026-09-25T14:13:00.050Z"
+  },
+  {
+    "id": "4dfd697b-f2f8-42dc-8b88-a6c6c829d17c",
+    "legacy_id": 86,
+    "squadra": "Eindhoven",
+    "versione": "Fan Fuori Casa Eindhoven",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-151728-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d4f8be04d128de50.webp",
+    "filename": "img_d4f8be04d128de50.webp",
+    "migratedAt": "2026-09-25T14:13:00.613Z"
+  },
+  {
+    "id": "486286f6-c9d2-457a-8afc-95d58bb87f25",
+    "legacy_id": 93,
+    "squadra": "Union Berlino",
+    "versione": "Fan Fuori Casa Union Berlino",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-113721-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4c72f3a02bad53e5.webp",
+    "filename": "img_4c72f3a02bad53e5.webp",
+    "migratedAt": "2026-09-25T14:13:01.156Z"
+  },
+  {
+    "id": "95baca6a-02f0-442b-aac2-016f5cbc576b",
+    "legacy_id": 97,
+    "squadra": "Vasco da Gama",
+    "versione": "Fan Seconda Trasferta Vasco da Gama",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-110442-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_439a1b617800c271.webp",
+    "filename": "img_439a1b617800c271.webp",
+    "migratedAt": "2026-09-25T14:13:01.740Z"
+  },
+  {
+    "id": "e412f587-0db6-4dfb-a587-f3d95fd2774a",
+    "legacy_id": 103,
+    "squadra": "Palmeiras",
+    "versione": "Fan Seconda Trasferta Palmeiras",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-102225-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d5a1c9155dce2b06.webp",
+    "filename": "img_d5a1c9155dce2b06.webp",
+    "migratedAt": "2026-09-25T14:13:02.348Z"
+  },
+  {
+    "id": "7d742ed7-8934-4119-99af-12caaac1b1d7",
+    "legacy_id": 131,
+    "squadra": "Manchester United",
+    "versione": "Player Casa Manchester United Nera",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/192A95E902207DC90DD801E25723E50B-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5c628d7e95dd99d8.webp",
+    "filename": "img_5c628d7e95dd99d8.webp",
+    "migratedAt": "2026-09-25T14:13:02.883Z"
+  },
+  {
+    "id": "fcf169a0-7a8b-43ef-b127-930dc67eb41e",
+    "legacy_id": 134,
+    "squadra": "Arsenal F.C.",
+    "versione": "Player Casa Arsenal F.C.",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ADEA79A4590A38B90C26CCC9FE369AE0-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_593d7d8c5067903e.webp",
+    "filename": "img_593d7d8c5067903e.webp",
+    "migratedAt": "2026-09-25T14:13:03.452Z"
+  },
+  {
+    "id": "47c09c86-027a-42c7-86b0-bad4ce573fbb",
+    "legacy_id": 140,
+    "squadra": "Arsenal F.C.",
+    "versione": "Antivento Arsenal F.C. Nero",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-14_110111_379-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_095a8624a579a068.webp",
+    "filename": "img_095a8624a579a068.webp",
+    "migratedAt": "2026-09-25T14:13:04.066Z"
+  },
+  {
+    "id": "ef3a8f11-73de-46bb-8cec-e552b2861453",
+    "legacy_id": 125,
+    "squadra": "Chelsea F.C.",
+    "versione": "Tuta Zip Intera Chelsea F.C.",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-140435-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_90526671d9ea7fa9.webp",
+    "filename": "img_90526671d9ea7fa9.webp",
+    "migratedAt": "2026-09-25T14:13:04.687Z"
+  },
+  {
+    "id": "be327d07-40c8-4c1c-8382-bdf18cbedf71",
+    "legacy_id": 130,
+    "squadra": "Athletic Club",
+    "versione": "Player Casa Athletic Club",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/7ABD3A887C8FFE0E806D1ADAB60EF504-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d918afaf1e31d2c0.webp",
+    "filename": "img_d918afaf1e31d2c0.webp",
+    "migratedAt": "2026-09-25T14:13:05.212Z"
+  },
+  {
+    "id": "a017ac9b-7959-4998-a46f-801c9673b4f5",
+    "legacy_id": 132,
+    "squadra": "River Plate",
+    "versione": "Tuta Zip Intera River Plate Bianca",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-113210-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5dc914c7529ce972.webp",
+    "filename": "img_5dc914c7529ce972.webp",
+    "migratedAt": "2026-09-25T14:13:06.712Z"
+  },
+  {
+    "id": "773e829d-6569-483a-bcdc-b620d861fbba",
+    "legacy_id": 148,
+    "squadra": "Inter Miami",
+    "versione": "Fan Casa Inter Miami",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-173306-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_c1c284e899a3c50b.webp",
+    "filename": "img_c1c284e899a3c50b.webp",
+    "migratedAt": "2026-09-25T14:13:07.327Z"
+  },
+  {
+    "id": "b563cf4b-0a3c-4a51-bf75-041950cfddbb",
+    "legacy_id": 152,
+    "squadra": "Barcellona",
+    "versione": "Antivento Barcellona",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-12_165719_060-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_0536a3adaad17fdc.webp",
+    "filename": "img_0536a3adaad17fdc.webp",
+    "migratedAt": "2026-09-25T14:13:07.875Z"
+  },
+  {
+    "id": "6351c603-da23-4232-9bf7-2b19f48562a5",
+    "legacy_id": 155,
+    "squadra": "Real Madrid",
+    "versione": "Antivento Real Madrid Beige",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-12_163518_104-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_f7202b939e7ef813.webp",
+    "filename": "img_f7202b939e7ef813.webp",
+    "migratedAt": "2026-09-25T14:13:08.610Z"
+  },
+  {
+    "id": "17e2628c-ce69-4ed5-934a-74cf8626eaa2",
+    "legacy_id": 135,
+    "squadra": "Manchester United",
+    "versione": "Tuta Zip Intera Manchester United Rossa",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-111923-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_11f6f8f6920113d3.webp",
+    "filename": "img_11f6f8f6920113d3.webp",
+    "migratedAt": "2026-09-25T14:13:09.206Z"
+  },
+  {
+    "id": "2feaa05f-03b0-4f65-9cde-d7dea77a2056",
+    "legacy_id": 138,
+    "squadra": "Barcellona",
+    "versione": "Tuta Zip Intera Barcellona Bordeaux",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-110818-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4ba82ba11de80ffb.webp",
+    "filename": "img_4ba82ba11de80ffb.webp",
+    "migratedAt": "2026-09-25T14:13:09.738Z"
+  },
+  {
+    "id": "f7368a8f-732a-46b4-914a-76a729d04696",
+    "legacy_id": 141,
+    "squadra": "Manchester United",
+    "versione": "Tuta Zip Intera Manchester United Nera e Rossa",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-105711-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_139ce76a5c13b280.webp",
+    "filename": "img_139ce76a5c13b280.webp",
+    "migratedAt": "2026-09-25T14:13:10.434Z"
+  },
+  {
+    "id": "62e70e3a-87c8-49e9-8e73-f95d814349c7",
+    "legacy_id": 136,
+    "squadra": "River Plate",
+    "versione": "Player Casa River Plate",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/E5A1B77D5258FDE9F7660D247839BA58-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_8feaf6727b45b7c3.webp",
+    "filename": "img_8feaf6727b45b7c3.webp",
+    "migratedAt": "2026-09-25T14:13:10.993Z"
+  },
+  {
+    "id": "aba95040-1689-4b0b-9e92-3c80aaf94bc1",
+    "legacy_id": 145,
+    "squadra": "Barcellona",
+    "versione": "Antivento Barcellona Nero e Viola",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-14_103413_947-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ec9f2a497340c104.webp",
+    "filename": "img_ec9f2a497340c104.webp",
+    "migratedAt": "2026-09-25T14:13:11.655Z"
+  },
+  {
+    "id": "b435c2a8-0526-4191-82d6-267deca02ee7",
+    "legacy_id": 150,
+    "squadra": "Inter Miami",
+    "versione": "Fan Seconda Trasferta Inter Miami",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-171700-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_311bfe7ae8f2042b.webp",
+    "filename": "img_311bfe7ae8f2042b.webp",
+    "migratedAt": "2026-09-25T14:13:12.408Z"
+  },
+  {
+    "id": "99ccb8f1-90e8-49a6-8ccc-a46578b440f8",
+    "legacy_id": 153,
+    "squadra": "Aston Villa",
+    "versione": "Player Fuori Casa Aston Villa",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-165541-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_b936dd1afe56000f.webp",
+    "filename": "img_b936dd1afe56000f.webp",
+    "migratedAt": "2026-09-25T14:13:12.950Z"
+  },
+  {
+    "id": "338aeedb-6fb4-49f4-95c2-bfdaac6b8455",
+    "legacy_id": 156,
+    "squadra": "Botafogo",
+    "versione": "Fan Seconda Trasferta Botafogo",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-161013-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_ce25445cfd7fedaa.webp",
+    "filename": "img_ce25445cfd7fedaa.webp",
+    "migratedAt": "2026-09-25T14:13:13.525Z"
+  },
+  {
+    "id": "c478c9f7-7ec6-42e4-9f0d-90402caa5f57",
+    "legacy_id": 159,
+    "squadra": "Cruzeiro",
+    "versione": "Fan Seconda Trasferta Cruzeiro",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-154955-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d645b4bdc8ee74f1.webp",
+    "filename": "img_d645b4bdc8ee74f1.webp",
+    "migratedAt": "2026-09-25T14:13:15.211Z"
+  },
+  {
+    "id": "809225db-3470-4779-ae3b-a60b6ba6aa08",
+    "legacy_id": 139,
+    "squadra": "Ajax",
+    "versione": "Tuta Zip Intera Ajax Nera",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-110222-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_d3199ca4f8b0aeb1.webp",
+    "filename": "img_d3199ca4f8b0aeb1.webp",
+    "migratedAt": "2026-09-25T14:13:16.809Z"
+  },
+  {
+    "id": "0d1e628c-0bbf-4a0c-ba38-0a9ee845b497",
+    "legacy_id": 149,
+    "squadra": "Inter Miami",
+    "versione": "Fan Fuori Casa Inter Miami",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-172512-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_41c13bb523425eb2.webp",
+    "filename": "img_41c13bb523425eb2.webp",
+    "migratedAt": "2026-09-25T14:13:18.743Z"
+  },
+  {
+    "id": "61e95fb0-1259-4a93-9f68-8672f3e8642f",
+    "legacy_id": 154,
+    "squadra": "Real Madrid",
+    "versione": "Antivento Real Madrid Bianco",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/ScreenShot_2026-09-12_165255_780-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_139030753cfef42b.webp",
+    "filename": "img_139030753cfef42b.webp",
+    "migratedAt": "2026-09-25T14:13:19.246Z"
+  },
+  {
+    "id": "1bf5d14b-18c2-4e8d-afa9-962d67fd605c",
+    "legacy_id": 157,
+    "squadra": "Flamengo",
+    "versione": "Fan Allenamento Flamengo",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260912-155644-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_5f76ebb55abb2742.webp",
+    "filename": "img_5f76ebb55abb2742.webp",
+    "migratedAt": "2026-09-25T14:13:19.783Z"
+  },
+  {
+    "id": "5e18784a-cc1c-4a8a-8703-dde068aa66cf",
+    "legacy_id": 146,
+    "squadra": "Flamengo",
+    "versione": "Tuta Zip Intera Flamengo Rossa",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-101621-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4ffb9632d27110cf.webp",
+    "filename": "img_4ffb9632d27110cf.webp",
+    "migratedAt": "2026-09-25T14:13:21.382Z"
+  },
+  {
+    "id": "eade8954-f09c-4d3c-9bb1-9736aaee5193",
+    "legacy_id": 129,
+    "squadra": "Boca Juniors",
+    "versione": "Tuta Zip Intera Bambino Boca Juniors Bianca",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-114509-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_2819be445dc482ef.webp",
+    "filename": "img_2819be445dc482ef.webp",
+    "migratedAt": "2026-09-25T14:13:22.315Z"
+  },
+  {
+    "id": "fabe4c42-ee0b-477f-b06d-3a85b6be4f32",
+    "legacy_id": 137,
+    "squadra": "Paris Saint-Germain",
+    "versione": "Tuta Zip Intera Paris Saint-Germain Nera e Rossa",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-111333-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_751a2b5a0e430bc9.webp",
+    "filename": "img_751a2b5a0e430bc9.webp",
+    "migratedAt": "2026-09-25T14:13:22.854Z"
+  },
+  {
+    "id": "94ecb248-f882-41fa-8a19-4ab28659e404",
+    "legacy_id": 142,
+    "squadra": "Arsenal F.C.",
+    "versione": "Tuta Zip Intera Arsenal F.C.",
+    "originalUrl": "https://jerseys-catalog.com/wp-content/uploads/2026/09/QQ20260914-105034-300x300.png",
+    "storageUrl": "https://rcnuedfueaymfppesnet.supabase.co/storage/v1/object/public/prodotti/img_4e4032f8e4f60600.webp",
+    "filename": "img_4e4032f8e4f60600.webp",
+    "migratedAt": "2026-09-25T14:13:24.480Z"
   }
 ]

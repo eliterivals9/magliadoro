@@ -1,3 +1,4 @@
+import { setupItemEndpoints } from './order_items_controller.js';
 import express from 'express';
 import compression from 'compression';
 import path from 'path';
@@ -197,6 +198,14 @@ app.get('/lotti/:filename', async (req, res, next) => {
     return handleDownloadExcelLotto(req, res, lottoId);
   }
   next();
+});
+
+// Route esplicita per la Home pubblica (index.html) con no-cache per garantire sempre il codice aggiornato
+app.get(['/', '/index.html'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Serve static files from root directory with optimized cache for assets
@@ -1288,15 +1297,12 @@ function parserPersonalizzazione(infoPerso, taglia, item = {}) {
   const details = parseCustomizationDetails(infoPerso, item);
   let nameNumberStr = "";
   if (details.nome || details.numero) {
-    const cleanTaglia = String(taglia).replace('Taglia', '').replace(/^1x\s+\[|\]$/g, '').replace(/^\[|\]$/g, '').trim();
-    const isKid = !isNaN(cleanTaglia) && cleanTaglia !== "";
-    const sizePrefix = isKid ? `#${cleanTaglia}` : cleanTaglia;
     if (details.nome && details.numero) {
-      nameNumberStr = `${sizePrefix}(${details.nome.toUpperCase()}, ${details.numero})`;
+      nameNumberStr = `(${details.nome.toUpperCase()}, ${details.numero})`;
     } else if (details.numero) {
-      nameNumberStr = `${sizePrefix}(${details.numero})`;
+      nameNumberStr = `(${details.numero})`;
     } else if (details.nome) {
-      nameNumberStr = `${sizePrefix}(${details.nome.toUpperCase()})`;
+      nameNumberStr = `(${details.nome.toUpperCase()})`;
     }
   }
 
@@ -1569,6 +1575,31 @@ function isSupplierShippingEnabledForItem(item, accessoriesList = null) {
   }
 
   return true;
+}
+
+/**
+ * HELPER CENTRALIZZATO SPEDIZIONE FORNITORE
+ * Determina il moltiplicatore di spedizione fornitore per un singolo articolo:
+ * 0 = articolo escluso dalla spedizione fornitore (es. accessorio escluso o riga tecnica di servizio)
+ * 2 = Tuta (costo spedizione fornitore doppio della quota base)
+ * 1 = articolo normale (maglie, kit, retro, fan, smanicato, antivento, portiere, ecc.)
+ */
+function getItemShippingMultiplier(item, matchedProd = null, accessoriesList = null) {
+  if (!item) return 0;
+  const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+  if (isSpedizioneCliente) return 0;
+
+  if (!isSupplierShippingEnabledForItem(item, accessoriesList)) {
+    return 0;
+  }
+
+  // Priorità assoluta alla categoria strutturata del prodotto matched dal catalogo, con fallback alla categoria salvata nell'item
+  const cat = String(matchedProd?.categoria || item?.categoria || '').trim().toLowerCase();
+  if (cat === 'tuta' || cat === 'tute') {
+    return 2;
+  }
+
+  return 1;
 }
 
 function getCentralizedExchangeRate(settings = null) {
@@ -2193,6 +2224,7 @@ async function generaExcelLotto(lottoId, orders) {
       
       const imageUrl = (typeof rawImg === 'string') ? rawImg.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim() : "";
       const styleEng = getExcelProductStyle(item, matchedProd);
+      const shippingMultiplier = getItemShippingMultiplier(item, matchedProd, localAccessories);
 
       const normalized = {
         productId: matchedProd ? matchedProd.id : (item.id || "UNREGISTERED_ITEM"),
@@ -2211,7 +2243,9 @@ async function generaExcelLotto(lottoId, orders) {
         supplierCustomizationPriceUSD: Number(supplierCustomizationPriceUSD.toFixed(2)),
         supplierUnitPriceUSD: supplierUnitPriceUSD,
         supplierTotalPriceUSD: supplierTotalPriceUSD,
-        supplierShippingEnabled: isSupplierShippingEnabledForItem(item, localAccessories),
+        supplierShippingEnabled: shippingMultiplier > 0,
+        shippingMultiplier,
+        shippingUnits: shippingMultiplier * q,
         matchedProd
       };
 
@@ -2225,11 +2259,84 @@ async function generaExcelLotto(lottoId, orders) {
     });
   });
 
-  console.log(`[GENERA EXCEL] Compilazione normalizzata di ${normalizedItems.length} righe per il Lotto #${lottoId}`);
+  console.log(`[GENERA EXCEL] Compilazione normalizzata di ${normalizedItems.length} articoli per il Lotto #${lottoId}`);
+
+  // 2. RAGGRUPPAMENTO ARTICOLI PER EXCEL: STESSO PRODOTTO -> UNA SOLA RIGA
+  const groupMap = new Map();
+
+  normalizedItems.forEach(item => {
+    const isCalz = isAccessoryOrSocks(item);
+    let groupKey = "";
+    if (item.productId && String(item.productId).trim() !== "" && String(item.productId) !== "UNREGISTERED_ITEM") {
+      groupKey = `prod_${String(item.productId).trim()}`;
+    } else if (item.matchedProd && item.matchedProd.id) {
+      groupKey = `prod_${String(item.matchedProd.id).trim()}`;
+    } else if (item.matchedProd && item.matchedProd.legacy_id !== undefined && item.matchedProd.legacy_id !== null) {
+      groupKey = `legacy_${String(item.matchedProd.legacy_id).trim()}`;
+    } else {
+      groupKey = `custom_${item.squadra}_${item.categoria}_${item.season}_${item.style}_${isCalz ? 'calz' : 'shirt'}`.toLowerCase();
+    }
+
+    if (!groupMap.has(groupKey)) {
+      groupMap.set(groupKey, {
+        productId: item.productId,
+        titleItalian: item.titleItalian,
+        squadra: item.squadra,
+        categoria: item.categoria,
+        season: item.season,
+        style: item.style,
+        imageUrl: item.imageUrl,
+        supplierBasePriceUSD: item.supplierBasePriceUSD,
+        supplierShippingEnabled: item.supplierShippingEnabled,
+        matchedProd: item.matchedProd,
+        quantity: 0,
+        sizesMap: {},
+        nameNumberLines: [],
+        patchLines: [],
+        supplierTotalPriceUSD: 0
+      });
+    }
+
+    const group = groupMap.get(groupKey);
+    const q = item.quantity || 1;
+    group.quantity += q;
+    group.supplierTotalPriceUSD = Number((group.supplierTotalPriceUSD + item.supplierTotalPriceUSD).toFixed(2));
+
+    if (!group.imageUrl && item.imageUrl) {
+      group.imageUrl = item.imageUrl;
+    }
+
+    const s = String(item.taglia || '').toUpperCase().replace(/^1x\s+\[|\]$/g, '').replace(/^\[|\]$/g, '').trim();
+    if (s && s !== '-') {
+      group.sizesMap[s] = (group.sizesMap[s] || 0) + q;
+    }
+
+    if (!isCalz) {
+      const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
+      if (nameNumberStr && nameNumberStr.trim()) {
+        const cleanInner = nameNumberStr.trim().replace(/^[A-Z0-9#]+\s*\(/i, '(');
+        const prefix = s ? `${s}: ` : '';
+        const line = (q > 1) 
+          ? `${q}x ${prefix}${cleanInner}`
+          : `${prefix}${cleanInner}`;
+        group.nameNumberLines.push(line);
+      }
+      if (patch && patch.trim()) {
+        const cleanPatch = patch.trim().replace(/^[A-Z0-9#]+:\s*/i, '');
+        const line = (q > 1)
+          ? `${q}x ${cleanPatch}`
+          : cleanPatch;
+        group.patchLines.push(line);
+      }
+    }
+  });
+
+  const aggregatedItems = Array.from(groupMap.values());
+  console.log(`[GENERA EXCEL] Aggregazione completata: ${normalizedItems.length} articoli raggruppati in ${aggregatedItems.length} righe per il Lotto #${lottoId}`);
 
   // Download parallelo delle immagini uniche con cache e limite di concorrenza
   const uniqueUrls = new Set();
-  normalizedItems.forEach(item => {
+  aggregatedItems.forEach(item => {
     if (item.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.trim().length > 0) {
       uniqueUrls.add(item.imageUrl.trim());
     }
@@ -2253,7 +2360,7 @@ async function generaExcelLotto(lottoId, orders) {
   const standardItems = [];
   const socksItems = [];
 
-  normalizedItems.forEach(item => {
+  aggregatedItems.forEach(item => {
     if (isAccessoryOrSocks(item)) {
       socksItems.push(item);
     } else {
@@ -2269,12 +2376,10 @@ async function generaExcelLotto(lottoId, orders) {
     const row = worksheet.getRow(currentRowNum);
 
     const { titleEng, titleCh, styleEng, isCalz } = compileProductFieldsForExcel(item);
-    const { nameNumberStr, patch } = isCalz
-      ? { nameNumberStr: "", patch: "" }
-      : parserPersonalizzazione(item.infoPerso, item.taglia, item);
 
     // Col A (1): Immagine incorporata realmente nel workbook (104x104px)
-    row.height = 88;
+    const lineCount = Math.max(1, item.nameNumberLines?.length || 0, item.patchLines?.length || 0);
+    row.height = Math.max(88, 20 + lineCount * 18);
     const imgUrl = item.imageUrl;
     row.getCell(1).value = "";
     if (imgUrl) {
@@ -2324,23 +2429,29 @@ async function generaExcelLotto(lottoId, orders) {
       row.getCell(5).value = "";
     } else {
       // PER MAGLIE / KIT:
-      // Imposta la quantità corretta nella colonna della taglia
-      const colIdx = getColumnIndexForSize(item.taglia, false);
-      if (colIdx !== -1) {
-        row.getCell(colIdx).value = item.quantity;
+      // Imposta la quantità corretta per ciascuna taglia aggregata
+      if (item.sizesMap && typeof item.sizesMap === 'object') {
+        for (const [sizeKey, sizeQty] of Object.entries(item.sizesMap)) {
+          const colIdx = getColumnIndexForSize(sizeKey, false);
+          if (colIdx !== -1) {
+            row.getCell(colIdx).value = (row.getCell(colIdx).value || 0) + sizeQty;
+          }
+        }
       }
     }
 
     row.getCell(21).value = item.quantity;                // Col U (21): 数量(quantity)
-    row.getCell(22).value = isCalz ? "" : nameNumberStr;  // Col V (22): 名字 号码(name number)
-    row.getCell(23).value = isCalz ? "" : (patch || "");  // Col W (23): 臂章(patches)
+    row.getCell(22).value = isCalz ? "" : (item.nameNumberLines?.join('\n') || "");  // Col V (22): 名字 号码(name number)
+    row.getCell(22).alignment = { vertical: 'middle', wrapText: true };
+    row.getCell(23).value = isCalz ? "" : (item.patchLines?.join('\n') || "");        // Col W (23): 臂章(patches)
+    row.getCell(23).alignment = { vertical: 'middle', wrapText: true };
     
-    // Col X (24): Unit USD (PREZZO FORNITORE REALE UNITARIO IN USD)
-    row.getCell(24).value = item.supplierUnitPriceUSD;
+    // Col X (24): Unit USD (PREZZO FORNITORE REALE BASE UNITARIO IN USD)
+    row.getCell(24).value = item.supplierBasePriceUSD;
     row.getCell(24).numFmt = '#,##0.00';
 
-    // Col Y (25): Sum USD (PREZZO FORNITORE TOTALE RIGA IN USD = Unit * Qty)
-    row.getCell(25).value = { formula: `U${currentRowNum}*X${currentRowNum}`, result: item.supplierTotalPriceUSD };
+    // Col Y (25): Sum USD (PREZZO FORNITORE TOTALE RIGA IN USD COMPRENSIVO DI PERSONALIZZAZIONI)
+    row.getCell(25).value = item.supplierTotalPriceUSD;
     row.getCell(25).numFmt = '#,##0.00';
 
     // Allinea e formatta
@@ -2362,7 +2473,8 @@ async function generaExcelLotto(lottoId, orders) {
 
   const lastItemRowNum = currentRowNum > 4 ? currentRowNum - 1 : 4;
   const totalQuantityPcs = normalizedItems.reduce((acc, it) => acc + it.quantity, 0);
-  const shippingQuantityPcs = normalizedItems.filter(it => it.supplierShippingEnabled !== false).reduce((acc, it) => acc + it.quantity, 0);
+  const physicalShippingPcs = normalizedItems.filter(it => it.supplierShippingEnabled !== false).reduce((acc, it) => acc + it.quantity, 0);
+  const totalShippingUnits = normalizedItems.reduce((acc, it) => acc + (it.shippingUnits || 0), 0);
   const totalItemsSupplierPriceUSD = Number(normalizedItems.reduce((acc, it) => acc + it.supplierTotalPriceUSD, 0).toFixed(2));
 
   // Righe finali riepilogo
@@ -2388,14 +2500,13 @@ async function generaExcelLotto(lottoId, orders) {
   shippingRow.getCell(1).font = { bold: true };
   
   const settings = getSettings();
-  const { unitShipping, totalShipping: totShippingUSD } = getSupplierShippingCost(shippingQuantityPcs, settings);
+  const unitShipping = getShippingRateByQuantity(physicalShippingPcs, settings);
+  const totShippingUSD = Number((totalShippingUnits * unitShipping).toFixed(2));
 
   shippingRow.getCell(24).value = unitShipping;
   shippingRow.getCell(24).numFmt = '#,##0.00';
   shippingRow.getCell(24).alignment = { horizontal: 'center', vertical: 'middle' };
-  shippingRow.getCell(25).value = shippingQuantityPcs === totalQuantityPcs
-    ? { formula: `X${shippingRowNum}*U${totalQtyRowNum}`, result: totShippingUSD }
-    : { formula: `${shippingQuantityPcs}*X${shippingRowNum}`, result: totShippingUSD };
+  shippingRow.getCell(25).value = totShippingUSD;
   shippingRow.getCell(25).font = { bold: true };
   shippingRow.getCell(25).numFmt = '#,##0.00';
   currentRowNum++;
@@ -2950,11 +3061,15 @@ async function getAllProductsFromSupabase(supabase) {
 async function getDbOrders() {
   const supabase = getSupabaseClient();
   let dbOrders = [];
+  let supabaseQueryStatus = 'SUPABASE_ERROR'; // Default conservativo: SUPABASE_ERROR finché non verificato
+
   if (supabase) {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-      if (!error && data) {
+      if (!error && Array.isArray(data)) {
+        supabaseQueryStatus = 'SUPABASE_SUCCESS';
         dbOrders = data.map(o => ({
+          ...o,
           id: o.id,
           created_at: o.created_at,
           data: o.data,
@@ -2979,44 +3094,58 @@ async function getDbOrders() {
           coupon_code: o.coupon_code || null,
           coupon_discount: o.coupon_discount !== undefined && o.coupon_discount !== null ? Number(o.coupon_discount) : 0,
           coupon_type: o.coupon_type || null,
-          coupon_value: o.coupon_value !== undefined && o.coupon_value !== null ? Number(o.coupon_value) : null
+          coupon_value: o.coupon_value !== undefined && o.coupon_value !== null ? Number(o.coupon_value) : null,
+          free_shipping_discount: o.free_shipping_discount !== undefined && o.free_shipping_discount !== null ? Number(o.free_shipping_discount) : 0,
+          free_shipping_override: Boolean(o.free_shipping_override || (Array.isArray(o.carrello) && o.carrello[0]?.free_shipping_override) || (Number(o.free_shipping_discount) > 0 && !o.coupon_code))
         }));
       } else if (error) {
+        supabaseQueryStatus = 'SUPABASE_ERROR';
         console.warn("⚠️ Querying orders table from Supabase failed:", error.message);
       }
     } catch (err) {
+      supabaseQueryStatus = 'SUPABASE_ERROR';
       console.warn("⚠️ Exception querying orders from Supabase:", err.message);
     }
+  } else {
+    supabaseQueryStatus = 'SUPABASE_ERROR';
   }
 
-  // Resilienza con persistenza locale (orders_local.json)
-  const localOrders = getLocalOrders();
-  
-  // Merge deterministico su Map: chiave prioritaria ID (o data univoca)
-  const mergedMap = new Map();
-  
-  // 1. Popola con gli ordini locali
-  for (const lo of localOrders) {
-    if (!lo) continue;
-    const key = (lo.id !== undefined && lo.id !== null && String(lo.id).trim() !== '') 
-      ? `id_${lo.id}` 
-      : `data_${String(lo.data || '').trim()}`;
-    mergedMap.set(key, lo);
-  }
-  
-  // 2. Sovrascrivi/integra con i record remoti di Supabase mantenendo i dati più completi
-  for (const dbo of dbOrders) {
-    if (!dbo) continue;
-    const keyById = (dbo.id !== undefined && dbo.id !== null && String(dbo.id).trim() !== '') ? `id_${dbo.id}` : null;
-    const keyByData = (dbo.data !== undefined && dbo.data !== null && String(dbo.data).trim() !== '') ? `data_${String(dbo.data).trim()}` : null;
-    
-    const matchedKey = (keyById && mergedMap.has(keyById)) ? keyById : ((keyByData && mergedMap.has(keyByData)) ? keyByData : null);
-    
-    if (matchedKey) {
-      const existing = mergedMap.get(matchedKey);
+  let rawOrders = [];
+
+  if (supabaseQueryStatus === 'SUPABASE_SUCCESS') {
+    // =========================================================================
+    // SUPABASE_SUCCESS: Supabase è la SOURCE OF TRUTH esclusiva.
+    // Nessun ordine presente solo in orders_local.json deve essere aggiunto.
+    // Se Supabase restituisce 0 ordini, il risultato DEVE essere 0 ordini (DB vuoto).
+    // Per gli ordini restituiti da Supabase, integriamo eventuali metadati locali (es. carrello/convenzione)
+    // =========================================================================
+    const localOrders = getLocalOrders();
+    const localMap = new Map();
+    for (const lo of localOrders) {
+      if (!lo) continue;
+      const keyById = (lo.id !== undefined && lo.id !== null && String(lo.id).trim() !== '') ? `id_${lo.id}` : null;
+      const keyByData = (lo.data !== undefined && lo.data !== null && String(lo.data).trim() !== '') ? `data_${String(lo.data).trim()}` : null;
+      if (keyById) localMap.set(keyById, lo);
+      if (keyByData) localMap.set(keyByData, lo);
+    }
+
+    rawOrders = dbOrders.map(dbo => {
+      if (!dbo) return dbo;
+      const keyById = (dbo.id !== undefined && dbo.id !== null && String(dbo.id).trim() !== '') ? `id_${dbo.id}` : null;
+      const keyByData = (dbo.data !== undefined && dbo.data !== null && String(dbo.data).trim() !== '') ? `data_${String(dbo.data).trim()}` : null;
+      
+      const existing = (keyById && localMap.has(keyById)) 
+        ? localMap.get(keyById) 
+        : ((keyByData && localMap.has(keyByData)) ? localMap.get(keyByData) : null);
+
+      if (!existing) {
+        return dbo;
+      }
+
       const mergedStatus = dbo.status || existing.status || null;
       const mergedIsArchived = (dbo.is_archived !== undefined && dbo.is_archived !== null) ? dbo.is_archived : existing.is_archived;
       const mergedCarrello = (dbo.carrello && Array.isArray(dbo.carrello) && dbo.carrello.length > 0) ? dbo.carrello : (existing.carrello || dbo.carrello);
+      const mergedPaymentStatus = existing.payment_status || dbo.payment_status || null;
       const mergedCapitanoNome = dbo.capitano_nome || existing.capitano_nome || null;
       const mergedCapitanoTelefono = dbo.capitano_telefono || existing.capitano_telefono || null;
       const mergedTorneoNome = dbo.torneo_nome || existing.torneo_nome || null;
@@ -3024,12 +3153,13 @@ async function getDbOrders() {
       const mergedCodiceUnivoco = dbo.codice_univoco || existing.codice_univoco || null;
       const mergedIsConvenzione = (dbo.is_convenzione !== undefined) ? dbo.is_convenzione : existing.is_convenzione;
 
-      const mergedObj = {
+      return {
         ...existing,
         ...dbo,
         status: mergedStatus,
         is_archived: mergedIsArchived,
         carrello: mergedCarrello,
+        payment_status: mergedPaymentStatus,
         capitano_nome: mergedCapitanoNome,
         capitano_telefono: mergedCapitanoTelefono,
         torneo_nome: mergedTorneoNome,
@@ -3037,20 +3167,16 @@ async function getDbOrders() {
         codice_univoco: mergedCodiceUnivoco,
         is_convenzione: mergedIsConvenzione
       };
-
-      if (keyById && matchedKey !== keyById) {
-        mergedMap.delete(matchedKey);
-        mergedMap.set(keyById, mergedObj);
-      } else {
-        mergedMap.set(matchedKey, mergedObj);
-      }
-    } else {
-      const finalKey = keyById || keyByData || `item_${Math.random()}`;
-      mergedMap.set(finalKey, dbo);
-    }
+    });
+  } else {
+    // =========================================================================
+    // SUPABASE_ERROR: Fallback di emergenza su orders_local.json
+    // =========================================================================
+    console.warn("⚠️ [getDbOrders] Supabase non disponibile o query in errore (SUPABASE_ERROR). Fallback su orders_local.json.");
+    rawOrders = getLocalOrders() || [];
   }
-  
-  const finalOrders = Array.from(mergedMap.values()).map(o => {
+
+  const finalOrders = rawOrders.map(o => {
     if (!o) return o;
     let capNome = o.capitano_nome || null;
     let capTel = o.capitano_telefono || null;
@@ -4043,6 +4169,861 @@ app.delete('/api/catalog/duplicate-exceptions', async (req, res) => {
   } catch (err) {
     console.error("⚠️ Errore eliminazione eccezione duplicato:", err.message);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// =========================================================================
+// CONTROLLO SICUREZZA ARTICOLI — FONTE PREZZI E AZIONI (RESTORE & AUTHORIZE)
+// =========================================================================
+
+/**
+ * Determina in modo sicuro il target (Adulto / Bambino) di un prodotto
+ * rispettando la priorità: campo esplicito -> regole Kit -> fallback semantico
+ */
+function determinaTargetProdottoSicurezza(p) {
+  if (!p) return null;
+  const rawTarget = (p.target || '').toString().trim();
+  const rawCat = (p.categoria || '').toString().trim();
+  const lowerCat = rawCat.toLowerCase();
+
+  // Rileva contraddizioni esplicite
+  if ((lowerCat === 'kit bambino' || lowerCat.includes('bambino')) && rawTarget === 'Adulto') {
+    return { target: 'Contraddittorio', isContradictory: true, error: 'Categoria Kit Bambino ma Target impostato su Adulto' };
+  }
+
+  if (rawTarget === 'Adulto' || rawTarget === 'Bambino') {
+    return { target: rawTarget, isContradictory: false };
+  }
+
+  // Regole per Kit Bambino
+  if (lowerCat === 'kit bambino' || (lowerCat === 'kit' && p.categoria === 'Kit Bambino')) {
+    return { target: 'Bambino', isContradictory: false };
+  }
+
+  // Fallback semantico
+  const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${rawCat}`.toLowerCase();
+  const hasKids = /\b(kids|bambino|bambini|child|children|youth|baby|junior)\b/i.test(textToCheck);
+  const hasAdult = /\b(adult|adults|adulto|adulti)\b/i.test(textToCheck);
+
+  if (hasKids && hasAdult) {
+    return { target: 'Contraddittorio', isContradictory: true, error: 'Presenti sia termini Adulto che Bambino nel testo' };
+  } else if (hasKids) {
+    return { target: 'Bambino', isContradictory: false };
+  } else if (hasAdult) {
+    return { target: 'Adulto', isContradictory: false };
+  }
+
+  // Default se non specificato
+  return { target: 'Adulto', isContradictory: false };
+}
+
+/**
+ * Trova la configurazione categoria corrispondente in Prezzi & Categorie (catalog_settings.categorie)
+ */
+function trovaConfigurazioneCategoriaSicurezza(catName, categoriesList) {
+  if (!catName || !Array.isArray(categoriesList) || categoriesList.length === 0) return null;
+  const clean = catName.toString().trim().toLowerCase();
+
+  // 1. Corrispondenza diretta esatta
+  let found = categoriesList.find(c => c && c.nome && c.nome.toString().trim().toLowerCase() === clean);
+  if (found) return found;
+
+  // 2. Normalizzazione tramite la funzione centralizzata normalizzaCategoria()
+  if (typeof normalizzaCategoria === 'function') {
+    const norm = normalizzaCategoria(catName);
+    found = categoriesList.find(c => c && c.nome && c.nome.toString().trim().toLowerCase() === norm.toString().trim().toLowerCase());
+    if (found) return found;
+  }
+
+  // 3. Gestione alias singolare / plurale (es. Smanicato <-> Smanicati, Pantaloncino <-> Pantaloncini)
+  found = categoriesList.find(c => {
+    const cClean = (c.nome || '').toString().trim().toLowerCase();
+    if (clean.startsWith('smanicat') && cClean.startsWith('smanicat')) return true;
+    if (clean.startsWith('pantaloncin') && cClean.startsWith('pantaloncin')) return true;
+    if (clean.startsWith('calzett') && cClean.startsWith('calzett')) return true;
+    return false;
+  });
+  if (found) return found;
+
+  return null;
+}
+
+/**
+ * Legge l'elenco delle autorizzazioni prezzi da Supabase / catalog_settings
+ */
+async function getPriceAuthorizationsFromSupabase() {
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('catalog_settings')
+        .select('value')
+        .eq('key', 'catalog_price_authorizations')
+        .maybeSingle();
+      if (!error && data && Array.isArray(data.value)) {
+        return data.value;
+      }
+    } catch (e) {
+      console.warn("⚠️ Lettura catalog_price_authorizations fallita:", e.message);
+    }
+  }
+  return [];
+}
+
+/**
+ * Salva l'autorizzazione di un prezzo su Supabase / catalog_settings
+ */
+async function savePriceAuthorizationInSupabase(productId, authorizedPrice) {
+  const supabase = getSupabaseClient();
+  const now = new Date().toISOString();
+  let authorizations = await getPriceAuthorizationsFromSupabase();
+
+  let prodId = String(productId);
+  let legId = null;
+  if (supabase) {
+    const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+    let q = supabase.from('products').select('id, legacy_id');
+    if (isNum) q = q.eq('legacy_id', Number(productId));
+    else q = q.eq('id', String(productId));
+    const { data: p } = await q.maybeSingle();
+    if (p) {
+      prodId = String(p.id);
+      legId = p.legacy_id;
+    }
+  }
+
+  // Rimuovi eventuale autorizzazione precedente per lo stesso prodotto
+  authorizations = authorizations.filter(a => {
+    if (String(a.product_id) === prodId) return false;
+    if (legId !== null && a.legacy_id !== undefined && a.legacy_id !== null && Number(a.legacy_id) === Number(legId)) return false;
+    return true;
+  });
+
+  const authEntry = {
+    product_id: prodId,
+    legacy_id: legId,
+    authorized_price: Math.round(Number(authorizedPrice) * 100) / 100,
+    created_at: now
+  };
+
+  authorizations.unshift(authEntry);
+
+  if (supabase) {
+    await supabase.from('catalog_settings').upsert({
+      key: 'catalog_price_authorizations',
+      value: authorizations,
+      updated_at: now
+    }, { onConflict: 'key' });
+  }
+
+  return authEntry;
+}
+
+/**
+ * Rimuove l'autorizzazione di un prezzo da Supabase / catalog_settings
+ */
+async function deletePriceAuthorizationFromSupabase(productId, legacyId = null) {
+  const supabase = getSupabaseClient();
+  const prodIdStr = String(productId || '');
+  const legIdNum = legacyId !== null && legacyId !== undefined
+    ? Number(legacyId)
+    : (!isNaN(Number(productId)) && String(productId).indexOf('-') === -1 ? Number(productId) : null);
+
+  let authorizations = await getPriceAuthorizationsFromSupabase();
+  const initialLen = authorizations.length;
+  authorizations = authorizations.filter(a => {
+    if (prodIdStr && String(a.product_id) === prodIdStr) return false;
+    if (legIdNum !== null && a.legacy_id !== undefined && a.legacy_id !== null && Number(a.legacy_id) === legIdNum) return false;
+    return true;
+  });
+
+  if (authorizations.length !== initialLen && supabase) {
+    await supabase.from('catalog_settings').upsert({
+      key: 'catalog_price_authorizations',
+      value: authorizations,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'key' });
+  }
+}
+
+// GET /api/catalog/price-security/authorizations - Lista prezzi autorizzati
+app.get('/api/catalog/price-security/authorizations', async (req, res) => {
+  try {
+    const authorizations = await getPriceAuthorizationsFromSupabase();
+    res.json({ success: true, authorizations });
+  } catch (err) {
+    console.error("⚠️ Errore lettura autorizzazioni prezzi:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/catalog/price-security/authorize - Autorizza un prezzo fuori categoria
+app.post('/api/catalog/price-security/authorize', async (req, res) => {
+  try {
+    const { productId } = req.body || {};
+    if (!productId) {
+      return res.status(400).json({ success: false, error: "productId obbligatorio" });
+    }
+
+    const supabase = getSupabaseClient();
+    let product = null;
+
+    if (supabase) {
+      const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+      let q = supabase.from('products').select('*');
+      if (isNum) q = q.eq('legacy_id', Number(productId));
+      else q = q.eq('id', String(productId));
+      const { data, error } = await q.maybeSingle();
+      if (!error && data) product = data;
+    }
+
+    if (!product && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        product = localProds.find(p => String(p.id) === String(productId) || String(p.legacy_id) === String(productId));
+      } catch (eLocal) {}
+    }
+
+    if (!product) {
+      return res.status(404).json({ success: false, error: `Articolo con ID ${productId} non trovato.` });
+    }
+
+    if (product.prezzo === null || product.prezzo === undefined || isNaN(Number(product.prezzo))) {
+      return res.status(400).json({ success: false, error: "Il prodotto non ha un prezzo numerico valido da autorizzare." });
+    }
+
+    const auth = await savePriceAuthorizationInSupabase(product.id, product.prezzo);
+    res.json({
+      success: true,
+      productId: product.id,
+      legacyId: product.legacy_id,
+      authorizedPrice: auth.authorized_price
+    });
+  } catch (err) {
+    console.error("⚠️ Errore autorizzazione prezzo:", err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/catalog/price-security/restore - Ripristina prezzo originale (Categoria + Target)
+app.post('/api/catalog/price-security/restore', async (req, res) => {
+  try {
+    const { productId } = req.body || {};
+    if (!productId) {
+      return res.status(400).json({ success: false, error: "productId obbligatorio" });
+    }
+
+    const supabase = getSupabaseClient();
+    let product = null;
+
+    // 1. Recupera il prodotto reale tramite product_id
+    if (supabase) {
+      const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+      let q = supabase.from('products').select('*');
+      if (isNum) {
+        q = q.eq('legacy_id', Number(productId));
+      } else {
+        q = q.eq('id', String(productId));
+      }
+      const { data, error } = await q.maybeSingle();
+      if (!error && data) {
+        product = data;
+      }
+    }
+
+    if (!product && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        product = localProds.find(p => String(p.id) === String(productId) || String(p.legacy_id) === String(productId));
+      } catch (eLocal) {}
+    }
+
+    if (!product) {
+      return res.status(404).json({ success: false, error: `Articolo con ID ${productId} non trovato nel catalogo.` });
+    }
+
+    // 2. Leggi categoria reale
+    const rawCategoria = (product.categoria || '').toString().trim();
+    if (!rawCategoria) {
+      return res.status(400).json({ success: false, error: `Impossibile ripristinare: l'articolo ha categoria non definita.` });
+    }
+
+    // 3. Determina target reale Adulto/Bambino
+    const targetInfo = determinaTargetProdottoSicurezza(product);
+    if (!targetInfo || targetInfo.isContradictory || (targetInfo.target !== 'Adulto' && targetInfo.target !== 'Bambino')) {
+      return res.status(400).json({
+        success: false,
+        error: `Impossibile determinare con certezza il target (Adulto/Bambino) per l'articolo: ${targetInfo?.error || 'Target ambiguo'}`
+      });
+    }
+    const target = targetInfo.target;
+
+    // 4. Leggi la configurazione ATTUALE di Prezzi & Categorie
+    let categoriesList = [];
+    if (supabase) {
+      try {
+        const { data: catRow } = await supabase.from('catalog_settings').select('value').eq('key', 'categorie').maybeSingle();
+        if (catRow && Array.isArray(catRow.value)) {
+          categoriesList = catRow.value;
+        }
+      } catch (eCat) {}
+    }
+    if (categoriesList.length === 0) {
+      const currentSettings = getSettings();
+      if (currentSettings && Array.isArray(currentSettings.categorie)) {
+        categoriesList = currentSettings.categorie;
+      }
+    }
+
+    const catConfig = trovaConfigurazioneCategoriaSicurezza(rawCategoria, categoriesList);
+    if (!catConfig) {
+      return res.status(400).json({
+        success: false,
+        error: `La categoria "${rawCategoria}" non è configurata in Prezzi & Categorie.`
+      });
+    }
+
+    // 5. Recupera prezzo_adulto oppure prezzo_bambino
+    const expectedRaw = target === 'Bambino' ? catConfig.prezzo_bambino : catConfig.prezzo_adulto;
+    if (expectedRaw === undefined || expectedRaw === null || isNaN(Number(expectedRaw)) || Number(expectedRaw) <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Prezzo ufficiale ${target} non valido o non configurato per la categoria "${catConfig.nome}".`
+      });
+    }
+
+    // 6. Calcola server-side il prezzo originale
+    const prezzoOriginale = Math.round(Number(expectedRaw) * 100) / 100;
+    const oldPrezzo = product.prezzo;
+
+    // 7. Aggiorna ESCLUSIVAMENTE products.prezzo
+    if (supabase) {
+      const isNum = !isNaN(Number(productId)) && String(productId).indexOf('-') === -1;
+      let upd = supabase.from('products').update({ prezzo: prezzoOriginale });
+      if (isNum) {
+        upd = upd.eq('legacy_id', Number(productId));
+      } else {
+        upd = upd.eq('id', String(productId));
+      }
+      const { error: updErr } = await upd;
+      if (updErr) {
+        throw new Error("Errore durante l'aggiornamento del prezzo nel database: " + updErr.message);
+      }
+    }
+
+    // Se esiste file locale, aggiorna esclusivamente il campo prezzo
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+        const idx = localProds.findIndex(p => String(p.id) === String(productId) || String(p.legacy_id) === String(productId));
+        if (idx !== -1) {
+          localProds[idx].prezzo = prezzoOriginale;
+          fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+        }
+      } catch (eLocUpd) {
+        console.warn("⚠️ Aggiornamento LOCAL_PRODUCTS_FILE non riuscito:", eLocUpd.message);
+      }
+    }
+
+    // 8. Elimina eventuale autorizzazione precedente per quel prodotto
+    await deletePriceAuthorizationFromSupabase(product.id, product.legacy_id);
+
+    // 9. Invalida la cache prodotti
+    invalidateProductsCache();
+
+    console.log(`✅ [Sicurezza Prezzi] Prodotto #${product.legacy_id || product.id} (${product.versione || product.nome}): prezzo ripristinato da ${oldPrezzo} € a ${prezzoOriginale} € (Categoria: ${catConfig.nome}, Target: ${target})`);
+
+    // 10. Ritorna dettagli al client
+    return res.json({
+      success: true,
+      productId: product.id,
+      legacyId: product.legacy_id,
+      oldPrice: oldPrezzo,
+      newPrice: prezzoOriginale,
+      categoria: product.categoria,
+      categoriaConfig: catConfig.nome,
+      target: target
+    });
+  } catch (err) {
+    console.error("🔴 Errore ripristino prezzo originale:", err);
+    return res.status(500).json({ success: false, error: err.message || "Errore interno durante il ripristino del prezzo originale." });
+  }
+});
+
+/**
+ * Recupera in blocco una lista di prodotti da Supabase e/o file locale per ID o legacy_id
+ */
+async function fetchProductsForBulkSecurity(productIds) {
+  const supabase = getSupabaseClient();
+  const foundMap = new Map();
+  const idStrs = (productIds || []).map(x => String(x).trim()).filter(Boolean);
+  
+  if (supabase && idStrs.length > 0) {
+    const numIds = [];
+    const uuidIds = [];
+    idStrs.forEach(id => {
+      if (!isNaN(Number(id)) && id.indexOf('-') === -1) {
+        numIds.push(Number(id));
+      } else {
+        uuidIds.push(id);
+      }
+    });
+
+    if (uuidIds.length > 0) {
+      try {
+        const { data, error } = await supabase.from('products').select('*').in('id', uuidIds);
+        if (!error && Array.isArray(data)) {
+          data.forEach(p => {
+            if (p.id) foundMap.set(String(p.id), p);
+            if (p.legacy_id !== undefined && p.legacy_id !== null) foundMap.set(String(p.legacy_id), p);
+          });
+        }
+      } catch (e) {}
+    }
+
+    if (numIds.length > 0) {
+      try {
+        const { data: dataLeg, error: errLeg } = await supabase.from('products').select('*').in('legacy_id', numIds);
+        if (!errLeg && Array.isArray(dataLeg)) {
+          dataLeg.forEach(p => {
+            if (p.id) foundMap.set(String(p.id), p);
+            if (p.legacy_id !== undefined && p.legacy_id !== null) foundMap.set(String(p.legacy_id), p);
+          });
+        }
+      } catch (e) {}
+
+      try {
+        const { data: dataId, error: errId } = await supabase.from('products').select('*').in('id', numIds.map(String));
+        if (!errId && Array.isArray(dataId)) {
+          dataId.forEach(p => {
+            if (p.id) foundMap.set(String(p.id), p);
+            if (p.legacy_id !== undefined && p.legacy_id !== null) foundMap.set(String(p.legacy_id), p);
+          });
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+    try {
+      const localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      if (Array.isArray(localProds)) {
+        idStrs.forEach(id => {
+          if (!foundMap.has(id)) {
+            const p = localProds.find(lp => String(lp.id) === id || String(lp.legacy_id) === id);
+            if (p) {
+              if (p.id) foundMap.set(String(p.id), p);
+              if (p.legacy_id !== undefined && p.legacy_id !== null) foundMap.set(String(p.legacy_id), p);
+            }
+          }
+        });
+      }
+    } catch (eLocal) {}
+  }
+
+  return Array.from(new Set(foundMap.values()));
+}
+
+// POST /api/catalog/price-security/bulk-authorize - Autorizza i prezzi attuali per più articoli in modo individuale
+app.post('/api/catalog/price-security/bulk-authorize', async (req, res) => {
+  try {
+    const { productIds } = req.body || {};
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ success: false, error: "Array productIds obbligatorio e non vuoto." });
+    }
+
+    const products = await fetchProductsForBulkSecurity(productIds);
+    const prodMap = new Map();
+    products.forEach(p => {
+      if (p.id) prodMap.set(String(p.id), p);
+      if (p.legacy_id !== undefined && p.legacy_id !== null) prodMap.set(String(p.legacy_id), p);
+    });
+
+    const supabase = getSupabaseClient();
+    let authorizations = await getPriceAuthorizationsFromSupabase();
+    const now = new Date().toISOString();
+
+    const errors = [];
+    const authorizedItems = [];
+
+    for (const pid of productIds) {
+      const p = prodMap.get(String(pid));
+      if (!p) {
+        errors.push({ id: pid, error: `Articolo con ID ${pid} non trovato nel catalogo.` });
+        continue;
+      }
+
+      if (p.prezzo === null || p.prezzo === undefined || isNaN(Number(p.prezzo)) || Number(p.prezzo) <= 0) {
+        errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: `Prezzo non valido da autorizzare (${p.prezzo})` });
+        continue;
+      }
+
+      const authorizedPrice = Math.round(Number(p.prezzo) * 100) / 100;
+      const pIdStr = String(p.id);
+      const legIdNum = p.legacy_id !== undefined && p.legacy_id !== null ? Number(p.legacy_id) : null;
+
+      authorizations = authorizations.filter(a => {
+        if (String(a.product_id) === pIdStr) return false;
+        if (legIdNum !== null && a.legacy_id !== undefined && a.legacy_id !== null && Number(a.legacy_id) === legIdNum) return false;
+        return true;
+      });
+
+      const entry = {
+        product_id: pIdStr,
+        legacy_id: legIdNum,
+        authorized_price: authorizedPrice,
+        created_at: now
+      };
+
+      authorizations.unshift(entry);
+      authorizedItems.push({
+        id: p.id,
+        legacyId: p.legacy_id,
+        name: p.nome || p.versione,
+        authorizedPrice
+      });
+    }
+
+    if (supabase) {
+      await supabase.from('catalog_settings').upsert({
+        key: 'catalog_price_authorizations',
+        value: authorizations,
+        updated_at: now
+      }, { onConflict: 'key' });
+    }
+
+    console.log(`🛡️ [Sicurezza Prezzi] Bulk authorize completata: ${authorizedItems.length} autorizzati, ${errors.length} errori`);
+
+    return res.json({
+      success: true,
+      processedCount: productIds.length,
+      successCount: authorizedItems.length,
+      failedCount: errors.length,
+      authorizedItems,
+      errors
+    });
+  } catch (err) {
+    console.error("🔴 Errore autorizzazione massiva prezzi:", err);
+    return res.status(500).json({ success: false, error: err.message || "Errore interno durante l'autorizzazione massiva." });
+  }
+});
+
+// POST /api/catalog/price-security/bulk-restore - Ripristina i prezzi originali (Categoria + Target) per più articoli
+app.post('/api/catalog/price-security/bulk-restore', async (req, res) => {
+  try {
+    const { productIds } = req.body || {};
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ success: false, error: "Array productIds obbligatorio e non vuoto." });
+    }
+
+    const supabase = getSupabaseClient();
+
+    let categoriesList = [];
+    if (supabase) {
+      try {
+        const { data: catRow } = await supabase.from('catalog_settings').select('value').eq('key', 'categorie').maybeSingle();
+        if (catRow && Array.isArray(catRow.value)) {
+          categoriesList = catRow.value;
+        }
+      } catch (eCat) {}
+    }
+    if (categoriesList.length === 0) {
+      const currentSettings = getSettings();
+      if (currentSettings && Array.isArray(currentSettings.categorie)) {
+        categoriesList = currentSettings.categorie;
+      }
+    }
+
+    const products = await fetchProductsForBulkSecurity(productIds);
+    const prodMap = new Map();
+    products.forEach(p => {
+      if (p.id) prodMap.set(String(p.id), p);
+      if (p.legacy_id !== undefined && p.legacy_id !== null) prodMap.set(String(p.legacy_id), p);
+    });
+
+    const restoredItems = [];
+    const errors = [];
+    const restoredProductIds = new Set();
+    const restoredLegacyIds = new Set();
+
+    let localProds = null;
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      } catch (e) {}
+    }
+
+    for (const pid of productIds) {
+      const p = prodMap.get(String(pid));
+      if (!p) {
+        errors.push({ id: pid, error: `Articolo con ID ${pid} non trovato nel catalogo.` });
+        continue;
+      }
+
+      const rawCat = (p.categoria || '').toString().trim();
+      if (!rawCat) {
+        errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: "Categoria non definita" });
+        continue;
+      }
+
+      const targetInfo = determinaTargetProdottoSicurezza(p);
+      if (!targetInfo || targetInfo.isContradictory || (targetInfo.target !== 'Adulto' && targetInfo.target !== 'Bambino')) {
+        errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: targetInfo?.error || "Target Adulto/Bambino non determinabile" });
+        continue;
+      }
+      const target = targetInfo.target;
+
+      const catConfig = trovaConfigurazioneCategoriaSicurezza(rawCat, categoriesList);
+      if (!catConfig) {
+        errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: `Categoria "${rawCat}" non configurata in Prezzi & Categorie` });
+        continue;
+      }
+
+      const expectedRaw = target === 'Bambino' ? catConfig.prezzo_bambino : catConfig.prezzo_adulto;
+      if (expectedRaw === undefined || expectedRaw === null || isNaN(Number(expectedRaw)) || Number(expectedRaw) <= 0) {
+        errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: `Prezzo ufficiale ${target} non configurato per "${catConfig.nome}"` });
+        continue;
+      }
+
+      const prezzoOriginale = Math.round(Number(expectedRaw) * 100) / 100;
+      const oldPrice = p.prezzo;
+
+      if (supabase) {
+        try {
+          let upd = supabase.from('products').update({ prezzo: prezzoOriginale });
+          if (p.id) upd = upd.eq('id', String(p.id));
+          else if (p.legacy_id) upd = upd.eq('legacy_id', Number(p.legacy_id));
+          const { error: updErr } = await upd;
+          if (updErr) throw updErr;
+        } catch (dbErr) {
+          errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: "Errore DB: " + dbErr.message });
+          continue;
+        }
+      }
+
+      if (localProds) {
+        const lIdx = localProds.findIndex(lp => String(lp.id) === String(p.id) || String(lp.legacy_id) === String(p.id));
+        if (lIdx !== -1) {
+          localProds[lIdx].prezzo = prezzoOriginale;
+        }
+      }
+
+      restoredProductIds.add(String(p.id));
+      if (p.legacy_id !== undefined && p.legacy_id !== null) restoredLegacyIds.add(Number(p.legacy_id));
+
+      restoredItems.push({
+        id: p.id,
+        legacyId: p.legacy_id,
+        name: p.nome || p.versione,
+        oldPrice: oldPrice,
+        newPrice: prezzoOriginale,
+        categoria: p.categoria,
+        categoriaConfig: catConfig.nome,
+        target: target
+      });
+    }
+
+    if (localProds && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+      } catch (eLoc) {}
+    }
+
+    if (restoredProductIds.size > 0 && supabase) {
+      try {
+        let authList = await getPriceAuthorizationsFromSupabase();
+        const initLen = authList.length;
+        authList = authList.filter(a => {
+          if (a.product_id && restoredProductIds.has(String(a.product_id))) return false;
+          if (a.legacy_id !== undefined && a.legacy_id !== null && restoredLegacyIds.has(Number(a.legacy_id))) return false;
+          return true;
+        });
+        if (authList.length !== initLen) {
+          await supabase.from('catalog_settings').upsert({
+            key: 'catalog_price_authorizations',
+            value: authList,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'key' });
+        }
+      } catch (eAuthClean) {
+        console.warn("⚠️ Pulizia autorizzazioni post bulk-restore fallita:", eAuthClean.message);
+      }
+    }
+
+    invalidateProductsCache();
+
+    console.log(`↺ [Sicurezza Prezzi] Bulk restore completato: ${restoredItems.length} ripristinati, ${errors.length} errori`);
+
+    return res.json({
+      success: true,
+      processedCount: productIds.length,
+      successCount: restoredItems.length,
+      failedCount: errors.length,
+      restoredItems,
+      errors
+    });
+  } catch (err) {
+    console.error("🔴 Errore ripristino massivo prezzi:", err);
+    return res.status(500).json({ success: false, error: err.message || "Errore interno durante il ripristino massivo dei prezzi." });
+  }
+});
+
+// POST /api/catalog/price-security/bulk-change-category - Cambia categoria in blocco ad una lista di articoli
+app.post('/api/catalog/price-security/bulk-change-category', async (req, res) => {
+  try {
+    const { productIds, newCategory, updatePrice } = req.body || {};
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ success: false, error: "Array productIds obbligatorio e non vuoto." });
+    }
+    const cleanCat = (newCategory || '').toString().trim();
+    if (!cleanCat) {
+      return res.status(400).json({ success: false, error: "newCategory obbligatoria." });
+    }
+
+    const supabase = getSupabaseClient();
+
+    let categoriesList = [];
+    if (supabase) {
+      try {
+        const { data: catRow } = await supabase.from('catalog_settings').select('value').eq('key', 'categorie').maybeSingle();
+        if (catRow && Array.isArray(catRow.value)) {
+          categoriesList = catRow.value;
+        }
+      } catch (eCat) {}
+    }
+    if (categoriesList.length === 0) {
+      const currentSettings = getSettings();
+      if (currentSettings && Array.isArray(currentSettings.categorie)) {
+        categoriesList = currentSettings.categorie;
+      }
+    }
+
+    const targetCatConfig = trovaConfigurazioneCategoriaSicurezza(cleanCat, categoriesList);
+    if (!targetCatConfig) {
+      return res.status(400).json({ success: false, error: `La categoria di destinazione "${cleanCat}" non è configurata in Prezzi & Categorie.` });
+    }
+
+    const products = await fetchProductsForBulkSecurity(productIds);
+    const prodMap = new Map();
+    products.forEach(p => {
+      if (p.id) prodMap.set(String(p.id), p);
+      if (p.legacy_id !== undefined && p.legacy_id !== null) prodMap.set(String(p.legacy_id), p);
+    });
+
+    const updatedItems = [];
+    const errors = [];
+    const modifiedProductIds = new Set();
+    const modifiedLegacyIds = new Set();
+
+    let localProds = null;
+    if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        localProds = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      } catch (e) {}
+    }
+
+    for (const pid of productIds) {
+      const p = prodMap.get(String(pid));
+      if (!p) {
+        errors.push({ id: pid, error: `Articolo con ID ${pid} non trovato nel catalogo.` });
+        continue;
+      }
+
+      const updatePayload = { categoria: targetCatConfig.nome };
+      let newCalculatedPrice = null;
+
+      if (updatePrice) {
+        const targetInfo = determinaTargetProdottoSicurezza(p);
+        const target = (targetInfo && !targetInfo.isContradictory && (targetInfo.target === 'Adulto' || targetInfo.target === 'Bambino'))
+          ? targetInfo.target
+          : 'Adulto';
+
+        const expectedRaw = target === 'Bambino' ? targetCatConfig.prezzo_bambino : targetCatConfig.prezzo_adulto;
+        if (expectedRaw !== undefined && expectedRaw !== null && !isNaN(Number(expectedRaw)) && Number(expectedRaw) > 0) {
+          newCalculatedPrice = Math.round(Number(expectedRaw) * 100) / 100;
+          updatePayload.prezzo = newCalculatedPrice;
+        }
+      }
+
+      if (supabase) {
+        try {
+          let upd = supabase.from('products').update(updatePayload);
+          if (p.id) upd = upd.eq('id', String(p.id));
+          else if (p.legacy_id) upd = upd.eq('legacy_id', Number(p.legacy_id));
+          const { error: updErr } = await upd;
+          if (updErr) throw updErr;
+        } catch (dbErr) {
+          errors.push({ id: pid, legacyId: p.legacy_id, name: p.nome || p.versione, error: "Errore DB: " + dbErr.message });
+          continue;
+        }
+      }
+
+      if (localProds) {
+        const lIdx = localProds.findIndex(lp => String(lp.id) === String(p.id) || String(lp.legacy_id) === String(p.id));
+        if (lIdx !== -1) {
+          localProds[lIdx].categoria = targetCatConfig.nome;
+          if (newCalculatedPrice !== null) {
+            localProds[lIdx].prezzo = newCalculatedPrice;
+          }
+        }
+      }
+
+      modifiedProductIds.add(String(p.id));
+      if (p.legacy_id !== undefined && p.legacy_id !== null) modifiedLegacyIds.add(Number(p.legacy_id));
+
+      updatedItems.push({
+        id: p.id,
+        legacyId: p.legacy_id,
+        name: p.nome || p.versione,
+        oldCategoria: p.categoria,
+        newCategoria: targetCatConfig.nome,
+        oldPrice: p.prezzo,
+        newPrice: newCalculatedPrice !== null ? newCalculatedPrice : p.prezzo
+      });
+    }
+
+    if (localProds && fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      try {
+        fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(localProds, null, 2), 'utf8');
+      } catch (eLoc) {}
+    }
+
+    if (updatePrice && modifiedProductIds.size > 0 && supabase) {
+      try {
+        let authList = await getPriceAuthorizationsFromSupabase();
+        const initLen = authList.length;
+        authList = authList.filter(a => {
+          if (a.product_id && modifiedProductIds.has(String(a.product_id))) return false;
+          if (a.legacy_id !== undefined && a.legacy_id !== null && modifiedLegacyIds.has(Number(a.legacy_id))) return false;
+          return true;
+        });
+        if (authList.length !== initLen) {
+          await supabase.from('catalog_settings').upsert({
+            key: 'catalog_price_authorizations',
+            value: authList,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'key' });
+        }
+      } catch (eAuthClean) {}
+    }
+
+    invalidateProductsCache();
+
+    console.log(`🏷️ [Sicurezza Prezzi] Bulk change category completato: ${updatedItems.length} aggiornati a "${targetCatConfig.nome}", ${errors.length} errori`);
+
+    return res.json({
+      success: true,
+      processedCount: productIds.length,
+      successCount: updatedItems.length,
+      failedCount: errors.length,
+      newCategory: targetCatConfig.nome,
+      priceUpdated: Boolean(updatePrice),
+      updatedItems,
+      errors
+    });
+  } catch (err) {
+    console.error("🔴 Errore cambio categoria massivo:", err);
+    return res.status(500).json({ success: false, error: err.message || "Errore interno durante il cambio categoria massivo." });
   }
 });
 
@@ -8108,19 +9089,38 @@ function parseOrderTotalCustomerPaid(order) {
   return parseFlexibleDecimal(raw);
 }
 
-function calculateLottoTotals(orders, settings, extraExpenses = []) {
+function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProducts = null) {
   if (!settings) {
     settings = getSettings();
   }
   let numero_totale_articoli = 0;
   let numero_articoli_spedizione = 0;
-  let costo_totale_prodotti_usd = 0.0;
+  let unita_spedizione_economiche = 0;
+  let costo_base_prodotti_usd = 0.0;
   let costo_totale_personalizzazioni_usd = 0.0;
 
   let localAccessories = [];
   try {
     localAccessories = getLocalAccessories();
   } catch (e) {}
+
+  if (!allDbProducts) {
+    let localProducts = [];
+    try {
+      localProducts = getLocalProducts();
+    } catch (e) {}
+    allDbProducts = [...localProducts, ...(Array.isArray(localAccessories) ? localAccessories : [])];
+  }
+
+  const prodByIdMap = new Map();
+  const prodByLegacyIdMap = new Map();
+  if (Array.isArray(allDbProducts)) {
+    allDbProducts.forEach(p => {
+      if (p.id) prodByIdMap.set(String(p.id).trim(), p);
+      if (p.legacy_id !== undefined && p.legacy_id !== null) prodByLegacyIdMap.set(String(p.legacy_id).trim(), p);
+      if (p.codice) prodByIdMap.set(String(p.codice).trim(), p);
+    });
+  }
 
   orders.forEach(order => {
     if (!isOrderActiveForLotto(order)) return;
@@ -8132,29 +9132,64 @@ function calculateLottoTotals(orders, settings, extraExpenses = []) {
 
     let order_items_count = 0;
     let order_shipping_count = 0;
+    let order_shipping_units = 0;
     cartItems.forEach(item => {
       const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
       if (isSpedizioneCliente) return;
 
-      const q = parseInt(item.quantita) || 1;
+      const q = Math.max(1, parseInt(item.quantita) || 1);
       order_items_count += q;
-      if (isSupplierShippingEnabledForItem(item, localAccessories)) {
-        order_shipping_count += q;
+
+      // 1. MATCHING PRODOTTO CATALOGO
+      let matchedProd = null;
+      if (item.id && prodByIdMap.has(String(item.id).trim())) {
+        matchedProd = prodByIdMap.get(String(item.id).trim());
+      } else if (item.accessory_id && prodByIdMap.has(String(item.accessory_id).trim())) {
+        matchedProd = prodByIdMap.get(String(item.accessory_id).trim());
+      } else if (item.legacy_id && prodByLegacyIdMap.has(String(item.legacy_id).trim())) {
+        matchedProd = prodByLegacyIdMap.get(String(item.legacy_id).trim());
       }
 
-      const persCost = calcolaCostoFornitoreProdotto(0, item.infoPerso || item.personalizzazione);
-      costo_totale_personalizzazioni_usd += persCost * q;
+      const shippingMult = getItemShippingMultiplier(item, matchedProd, localAccessories);
+      if (shippingMult > 0) {
+        order_shipping_count += q;
+        order_shipping_units += (q * shippingMult);
+      }
+
+      const isCalz = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
+
+      // 2. PREZZO BASE FORNITORE (NO extra XXL, NO extra kit)
+      let basePriceUSD = 0;
+      if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && Number(matchedProd.prezzo_fornitore) > 0) {
+        basePriceUSD = Number(matchedProd.prezzo_fornitore);
+      } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && Number(item.prezzo_fornitore) > 0) {
+        basePriceUSD = Number(item.prezzo_fornitore);
+      } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && Number(item.Prezzo_fornitore) > 0) {
+        basePriceUSD = Number(item.Prezzo_fornitore);
+      } else {
+        basePriceUSD = isCalz ? 4.00 : 10.00;
+      }
+
+      // 3. PERSONALIZZAZIONI FORNITORE ($1 Nome, $1 Numero, $1 Patch)
+      const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
+      const customDetails = isCalz ? { customizationCostUSD: 0.00 } : parseCustomizationDetails(rawInfoPerso, item);
+      const persCostUSD = customDetails.customizationCostUSD;
+
+      costo_base_prodotti_usd += (basePriceUSD * q);
+      costo_totale_personalizzazioni_usd += (persCostUSD * q);
     });
 
     numero_totale_articoli += order_items_count;
     numero_articoli_spedizione += order_shipping_count;
-
-    const rawCost = order["Costo prodotti (USD)"] || order.costo_prodotti_usd || '0';
-    costo_totale_prodotti_usd += parseItalianFloat(String(rawCost));
+    unita_spedizione_economiche += order_shipping_units;
   });
 
+  const costo_totale_prodotti_usd = Number((costo_base_prodotti_usd + costo_totale_personalizzazioni_usd).toFixed(2));
+  costo_base_prodotti_usd = Number(costo_base_prodotti_usd.toFixed(2));
+  costo_totale_personalizzazioni_usd = Number(costo_totale_personalizzazioni_usd.toFixed(2));
+
   const spedizione_unitaria = getShippingRateByQuantity(numero_articoli_spedizione, settings);
-  const spedizione_corrente_usd = Number((numero_articoli_spedizione * spedizione_unitaria).toFixed(2));
+  const spedizione_corrente_usd = Number((unita_spedizione_economiche * spedizione_unitaria).toFixed(2));
   const costo_fornitore_usd = Number((costo_totale_prodotti_usd + spedizione_corrente_usd).toFixed(2));
   const costo_complessivo_lotto_usd = costo_fornitore_usd;
 
@@ -8187,12 +9222,13 @@ function calculateLottoTotals(orders, settings, extraExpenses = []) {
 
   return {
     numero_totale_articoli,
-    costo_totale_prodotti_usd: Number(costo_totale_prodotti_usd.toFixed(2)),
+    costo_base_prodotti_usd,
+    costo_totale_prodotti_usd,
     spedizione_corrente_usd,
     costo_fornitore_usd,
     costo_complessivo_lotto_usd,
     spedizione_unitaria,
-    costo_totale_personalizzazioni_usd: Number(costo_totale_personalizzazioni_usd.toFixed(2)),
+    costo_totale_personalizzazioni_usd,
     alibaba_fee_percent,
     alibaba_fee_usd,
     alibaba_fee_eur,
@@ -8282,17 +9318,44 @@ async function recalculateCurrentLottoInternal() {
     console.warn("⚠️ Impossibile caricare spese extra per ricalcolo lotto:", errExp.message);
   }
 
-  const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses);
+  let localProducts = [];
+  try {
+    localProducts = getLocalProducts();
+  } catch (e) {}
+  let supabaseProducts = [];
+  try {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      supabaseProducts = await getAllProductsFromSupabase(supabase);
+    }
+  } catch (e) {}
+  let localAccessories = [];
+  try {
+    localAccessories = getLocalAccessories();
+  } catch (e) {}
+
+  const allDbProducts = [
+    ...(supabaseProducts.length > 0 ? supabaseProducts : localProducts),
+    ...(Array.isArray(localAccessories) ? localAccessories : [])
+  ];
+
+  const prodByIdMap = new Map();
+  const prodByLegacyIdMap = new Map();
+  if (Array.isArray(allDbProducts)) {
+    allDbProducts.forEach(p => {
+      if (p.id) prodByIdMap.set(String(p.id).trim(), p);
+      if (p.legacy_id !== undefined && p.legacy_id !== null) prodByLegacyIdMap.set(String(p.legacy_id).trim(), p);
+      if (p.codice) prodByIdMap.set(String(p.codice).trim(), p);
+    });
+  }
+
+  const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses, allDbProducts);
   const currentUnitShippingRate = totals.spedizione_unitaria;
 
   // Sincronizza dinamicamente la tariffa di spedizione e tutti i calcoli economici di TUTTI gli ordini attivi del lotto
   if (activeOrders.length > 0) {
     let hasOrderChanges = false;
     const supabase = getSupabaseClient();
-    let localAccessories = [];
-    try {
-      localAccessories = getLocalAccessories();
-    } catch (e) {}
 
     for (const ord of activeOrders) {
       let cartItems = ord.carrello;
@@ -8302,19 +9365,31 @@ async function recalculateCurrentLottoInternal() {
 
       let orderItemCount = 0;
       let orderShippingItemCount = 0;
+      let orderShippingUnits = 0;
       cartItems.forEach(item => {
         const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
         if (!isSpedizioneCliente) {
           const q = parseInt(item.quantita) || 1;
           orderItemCount += q;
-          if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+          let matchedProd = null;
+          if (item.id && prodByIdMap.has(String(item.id).trim())) {
+            matchedProd = prodByIdMap.get(String(item.id).trim());
+          } else if (item.accessory_id && prodByIdMap.has(String(item.accessory_id).trim())) {
+            matchedProd = prodByIdMap.get(String(item.accessory_id).trim());
+          } else if (item.legacy_id && prodByLegacyIdMap.has(String(item.legacy_id).trim())) {
+            matchedProd = prodByLegacyIdMap.get(String(item.legacy_id).trim());
+          }
+
+          const shippingMult = getItemShippingMultiplier(item, matchedProd, localAccessories);
+          if (shippingMult > 0) {
             orderShippingItemCount += q;
+            orderShippingUnits += (q * shippingMult);
           }
         }
       });
 
       const rawProdCostUSD = parseItalianFloat(String(ord["Costo prodotti (USD)"] || ord.costo_prodotti_usd || '0'));
-      const newShippingUSD = Number((orderShippingItemCount * currentUnitShippingRate).toFixed(2));
+      const newShippingUSD = Number((orderShippingUnits * currentUnitShippingRate).toFixed(2));
       const newTotalCostUSD = Number((rawProdCostUSD + newShippingUSD).toFixed(2));
       const orderRate = getOrderEffectiveExchangeRate(ord, settings);
       const newTotalCostEUR = convertUsdToEur(newTotalCostUSD, orderRate, 'recalculateCurrentLottoInternal');
@@ -8387,6 +9462,7 @@ async function recalculateCurrentLottoInternal() {
     id: currentLottoId,
     prossimo_lotto_id: currentLottoId,
     numero_totale_articoli: totals.numero_totale_articoli,
+    costo_base_prodotti_usd: totals.costo_base_prodotti_usd,
     costo_totale_prodotti_usd: totals.costo_totale_prodotti_usd,
     spedizione_corrente_usd: totals.spedizione_corrente_usd,
     costo_fornitore_usd: totals.costo_fornitore_usd,
@@ -9314,16 +10390,16 @@ async function processReviewImages(images, reviewId = null) {
   return processedUrls;
 }
 
-// Helper to get reviews from Supabase (native reviews table or settings key)
+// Helper to get reviews from Supabase (native reviews table or settings key) with resilient fallback
 async function getDbReviews() {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   
   if (supabase) {
-    // 1. Try native 'reviews' table first (if created by user)
+    // 1. Try native 'reviews' table first (if created in Supabase)
     try {
       const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
       if (!error && Array.isArray(data)) {
-        return data.map(r => ({
+        const formatted = data.map(r => ({
           id: r.id,
           customer_id: r.customer_id || null,
           customer_name: r.customer_name || 'Cliente',
@@ -9342,60 +10418,49 @@ async function getDbReviews() {
           review_type: r.review_type || ((r.order_id || r.order_number) ? 'verified_purchase' : 'shared_experience'),
           created_at: r.created_at || new Date().toISOString()
         }));
-      }
-      
-      // If error is a genuine database/network error (and NOT just table missing in schema cache)
-      if (error && error.code !== 'PGRST205' && !error.message?.includes('schema cache')) {
-        console.error("❌ Errore Supabase tabella reviews:", error.message);
-        throw new Error(`Database error: ${error.message}`);
+        try {
+          fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(formatted, null, 2), 'utf8');
+        } catch (e) {}
+        return formatted;
       }
     } catch (e) {
-      if (e.message?.startsWith('Database error:')) {
-        throw e;
-      }
+      // Non-blocking: table might not exist or network glitch, smoothly fallback to settings
     }
 
     // 2. Read from 'settings' table key 'reviews' (Primary storage)
     try {
-      const { data, error } = await supabase.from('settings').select('value').eq('key', 'reviews');
-      if (error) {
-        console.error("❌ Errore lettura recensioni da Supabase settings:", error.message);
-        throw new Error(`Database error: ${error.message}`);
+      const { data, error } = await supabase.from('settings').select('value').eq('key', 'reviews').maybeSingle();
+      if (!error && data && Array.isArray(data.value)) {
+        const formatted = data.value.map(r => ({
+          id: r.id,
+          customer_id: r.customer_id || null,
+          customer_name: r.customer_name || 'Cliente',
+          email: r.email || null,
+          order_id: r.order_id || null,
+          order_number: r.order_number || null,
+          product_id: r.product_id || null,
+          product_name: r.product_name || null,
+          product_image: r.product_image || null,
+          purchase_date: r.purchase_date || null,
+          rating: Number(r.rating) || 5,
+          title: r.title || null,
+          comment: r.comment || '',
+          images: Array.isArray(r.images) ? r.images : [],
+          status: r.status || 'pending',
+          review_type: r.review_type || ((r.order_id || r.order_number) ? 'verified_purchase' : 'shared_experience'),
+          created_at: r.created_at || new Date().toISOString()
+        }));
+        try {
+          fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(formatted, null, 2), 'utf8');
+        } catch (e) {}
+        return formatted;
       }
-      if (data && data.length > 0) {
-        const val = data[0].value;
-        if (Array.isArray(val)) {
-          // If array exists (even if empty []), return it directly as valid data
-          return val.map(r => ({
-            id: r.id,
-            customer_id: r.customer_id || null,
-            customer_name: r.customer_name || 'Cliente',
-            email: r.email || null,
-            order_id: r.order_id || null,
-            order_number: r.order_number || null,
-            product_id: r.product_id || null,
-            product_name: r.product_name || null,
-            product_image: r.product_image || null,
-            purchase_date: r.purchase_date || null,
-            rating: Number(r.rating) || 5,
-            title: r.title || null,
-            comment: r.comment || '',
-            images: Array.isArray(r.images) ? r.images : [],
-            status: r.status || 'pending',
-            review_type: r.review_type || ((r.order_id || r.order_number) ? 'verified_purchase' : 'shared_experience'),
-            created_at: r.created_at || new Date().toISOString()
-          }));
-        }
-      }
-      // If settings key 'reviews' does not exist in DB, return empty array without modifying Supabase
-      return [];
     } catch (e) {
-      console.error("❌ Eccezione durante la lettura delle recensioni da Supabase:", e.message);
-      throw e;
+      console.warn("⚠️ Avviso lettura recensioni da Supabase settings:", e.message);
     }
   }
   
-  // Offline development fallback ONLY when Supabase credentials are not configured at all
+  // Resilient fallback to local storage (reviews_local.json)
   try {
     if (fs.existsSync(LOCAL_REVIEWS_FILE)) {
       const content = fs.readFileSync(LOCAL_REVIEWS_FILE, 'utf8');
@@ -9415,7 +10480,7 @@ async function getDbReviews() {
 
 // Helper to save a new review
 async function insertDbReview(review) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   
   if (supabase) {
     // 1. Try native 'reviews' table
@@ -9443,11 +10508,9 @@ async function insertDbReview(review) {
       if (!error && data && data.length > 0) {
         insertedInTable = true;
         createdRecord = data[0];
-      } else if (error && error.code !== 'PGRST205' && !error.message?.includes('schema cache')) {
-        throw new Error(`Database error: ${error.message}`);
       }
     } catch (e) {
-      if (e.message?.startsWith('Database error:')) throw e;
+      // Non-blocking fallback to settings
     }
 
     if (insertedInTable && createdRecord) {
@@ -9455,31 +10518,35 @@ async function insertDbReview(review) {
     }
 
     // 2. Persist to Supabase settings key 'reviews'
-    const currentReviews = await getDbReviews();
-    const newId = currentReviews.length > 0 ? Math.max(...currentReviews.map(r => Number(r.id) || 0)) + 1 : 1;
-    const newReview = {
-      id: newId,
-      ...review,
-      created_at: review.created_at || new Date().toISOString()
-    };
-    currentReviews.unshift(newReview);
-    
-    const { error: upsertErr } = await supabase.from('settings').upsert({
-      key: 'reviews',
-      value: currentReviews,
-      updated_at: new Date().toISOString()
-    });
-    
-    if (upsertErr) {
-      throw new Error(`Database error: ${upsertErr.message}`);
-    }
-    
-    // Update local cache safely
     try {
-      fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(currentReviews, null, 2), 'utf8');
-    } catch (e) {}
-    
-    return newReview;
+      const currentReviews = await getDbReviews();
+      const newId = currentReviews.length > 0 ? Math.max(...currentReviews.map(r => Number(r.id) || 0)) + 1 : 1;
+      const newReview = {
+        id: newId,
+        ...review,
+        created_at: review.created_at || new Date().toISOString()
+      };
+      currentReviews.unshift(newReview);
+      
+      const { error: upsertErr } = await supabase.from('settings').upsert({
+        key: 'reviews',
+        value: currentReviews,
+        updated_at: new Date().toISOString()
+      });
+      
+      if (upsertErr) {
+        console.warn("⚠️ Avviso salvataggio recensioni su Supabase settings:", upsertErr.message);
+      }
+      
+      // Update local cache safely
+      try {
+        fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(currentReviews, null, 2), 'utf8');
+      } catch (e) {}
+      
+      return newReview;
+    } catch (err) {
+      console.warn("⚠️ Eccezione salvataggio recensioni su Supabase settings:", err.message);
+    }
   }
   
   // Offline development mode
@@ -9501,7 +10568,7 @@ async function insertDbReview(review) {
 
 // Helper to update an existing review
 async function updateDbReview(id, updateData) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   
   if (supabase) {
     // 1. Try native 'reviews' table
@@ -9510,11 +10577,9 @@ async function updateDbReview(id, updateData) {
       const { data, error } = await supabase.from('reviews').update(updateData).eq('id', id).select();
       if (!error && data && data.length > 0) {
         updatedInTable = true;
-      } else if (error && error.code !== 'PGRST205' && !error.message?.includes('schema cache')) {
-        throw new Error(`Database error: ${error.message}`);
       }
     } catch (e) {
-      if (e.message?.startsWith('Database error:')) throw e;
+      // Non-blocking
     }
 
     if (updatedInTable) {
@@ -9522,32 +10587,36 @@ async function updateDbReview(id, updateData) {
     }
 
     // 2. Update in Supabase settings key 'reviews'
-    const currentReviews = await getDbReviews();
-    const idx = currentReviews.findIndex(r => String(r.id) === String(id));
-    if (idx === -1) {
-      return false;
-    }
-    
-    currentReviews[idx] = {
-      ...currentReviews[idx],
-      ...updateData
-    };
-    
-    const { error: upsertErr } = await supabase.from('settings').upsert({
-      key: 'reviews',
-      value: currentReviews,
-      updated_at: new Date().toISOString()
-    });
-    
-    if (upsertErr) {
-      throw new Error(`Database error: ${upsertErr.message}`);
-    }
-    
     try {
-      fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(currentReviews, null, 2), 'utf8');
-    } catch (e) {}
-    
-    return true;
+      const currentReviews = await getDbReviews();
+      const idx = currentReviews.findIndex(r => String(r.id) === String(id));
+      if (idx === -1) {
+        return false;
+      }
+      
+      currentReviews[idx] = {
+        ...currentReviews[idx],
+        ...updateData
+      };
+      
+      const { error: upsertErr } = await supabase.from('settings').upsert({
+        key: 'reviews',
+        value: currentReviews,
+        updated_at: new Date().toISOString()
+      });
+      
+      if (upsertErr) {
+        console.warn("⚠️ Avviso aggiornamento recensioni su Supabase settings:", upsertErr.message);
+      }
+      
+      try {
+        fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(currentReviews, null, 2), 'utf8');
+      } catch (e) {}
+      
+      return true;
+    } catch (err) {
+      console.warn("⚠️ Eccezione aggiornamento recensione:", err.message);
+    }
   }
   
   // Offline development mode
@@ -9565,7 +10634,7 @@ async function updateDbReview(id, updateData) {
 
 // Helper to delete a review
 async function deleteDbReview(id) {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
   
   if (supabase) {
     // 1. Try native 'reviews' table
@@ -9574,11 +10643,9 @@ async function deleteDbReview(id) {
       const { data, error } = await supabase.from('reviews').delete().eq('id', id).select();
       if (!error && data && data.length > 0) {
         deletedInTable = true;
-      } else if (error && error.code !== 'PGRST205' && !error.message?.includes('schema cache')) {
-        throw new Error(`Database error: ${error.message}`);
       }
     } catch (e) {
-      if (e.message?.startsWith('Database error:')) throw e;
+      // Non-blocking
     }
 
     if (deletedInTable) {
@@ -9586,46 +10653,50 @@ async function deleteDbReview(id) {
     }
 
     // 2. Delete in Supabase settings key 'reviews'
-    const currentReviews = await getDbReviews();
-    const originalLength = currentReviews.length;
-    const targetReview = currentReviews.find(r => String(r.id) === String(id));
-    const filteredReviews = currentReviews.filter(r => String(r.id) !== String(id));
-    
-    if (filteredReviews.length === originalLength) {
-      return false;
-    }
-    
-    const { error: upsertErr } = await supabase.from('settings').upsert({
-      key: 'reviews',
-      value: filteredReviews,
-      updated_at: new Date().toISOString()
-    });
-    
-    if (upsertErr) {
-      throw new Error(`Database error: ${upsertErr.message}`);
-    }
+    try {
+      const currentReviews = await getDbReviews();
+      const originalLength = currentReviews.length;
+      const targetReview = currentReviews.find(r => String(r.id) === String(id));
+      const filteredReviews = currentReviews.filter(r => String(r.id) !== String(id));
+      
+      if (filteredReviews.length === originalLength) {
+        return false;
+      }
+      
+      const { error: upsertErr } = await supabase.from('settings').upsert({
+        key: 'reviews',
+        value: filteredReviews,
+        updated_at: new Date().toISOString()
+      });
+      
+      if (upsertErr) {
+        console.warn("⚠️ Avviso eliminazione recensione su Supabase settings:", upsertErr.message);
+      }
 
-    // Safely remove associated storage objects from 'reviews' bucket
-    if (targetReview && Array.isArray(targetReview.images)) {
-      for (const imgUrl of targetReview.images) {
-        if (typeof imgUrl === 'string' && imgUrl.includes('/storage/v1/object/public/reviews/')) {
-          try {
-            const fileName = imgUrl.split('/storage/v1/object/public/reviews/')[1];
-            if (fileName && fileName.startsWith('rec-')) {
-              await supabase.storage.from('reviews').remove([fileName]);
+      // Safely remove associated storage objects from 'reviews' bucket
+      if (targetReview && Array.isArray(targetReview.images)) {
+        for (const imgUrl of targetReview.images) {
+          if (typeof imgUrl === 'string' && imgUrl.includes('/storage/v1/object/public/reviews/')) {
+            try {
+              const fileName = imgUrl.split('/storage/v1/object/public/reviews/')[1];
+              if (fileName && fileName.startsWith('rec-')) {
+                await supabase.storage.from('reviews').remove([fileName]);
+              }
+            } catch (e) {
+              // Non-blocking cleanup
             }
-          } catch (e) {
-            // Non-blocking cleanup
           }
         }
       }
+      
+      try {
+        fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(filteredReviews, null, 2), 'utf8');
+      } catch (e) {}
+      
+      return true;
+    } catch (err) {
+      console.warn("⚠️ Eccezione eliminazione recensione:", err.message);
     }
-    
-    try {
-      fs.writeFileSync(LOCAL_REVIEWS_FILE, JSON.stringify(filteredReviews, null, 2), 'utf8');
-    } catch (e) {}
-    
-    return true;
   }
   
   // Offline development mode
@@ -10102,12 +11173,17 @@ const handleUpdateOrderPricing = async (req, res) => {
         const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
         if (isSped) continue;
 
-        // Cerca l'aggiornamento corrispondente per ID, legacy_id o indice
-        const update = items.find(u => 
-          (u.id && item.id && String(u.id) === String(item.id)) ||
-          (u.legacy_id && item.legacy_id && String(u.legacy_id) === String(item.legacy_id)) ||
-          (u.index !== undefined && Number(u.index) === i)
-        );
+        // Cerca l'aggiornamento corrispondente:
+        // 1. PRIORITÀ ASSOLUTA all'indice di riga posizionale (index) per evitare collisioni tra articoli dello stesso prodotto
+        let update = items.find(u => u.index !== undefined && u.index !== null && Number(u.index) === i);
+
+        // 2. Fallback legacy SOLO se l'aggiornamento non è stato trovato tramite index
+        if (!update) {
+          update = items.find(u => 
+            (u.id && item.id && String(u.id) === String(item.id)) ||
+            (u.legacy_id && item.legacy_id && String(u.legacy_id) === String(item.legacy_id))
+          );
+        }
 
         if (!update) continue;
 
@@ -10155,6 +11231,8 @@ const handleUpdateOrderPricing = async (req, res) => {
           item.prezzo_concordato = validatedTiers.length === 1 ? validatedTiers[0].prezzo_unitario : Number((calculatedItemTotal / totalItemQty).toFixed(2));
           item.prezzo = Number((calculatedItemTotal / totalItemQty).toFixed(4));
           item.ha_prezzo_concordato = true;
+          item.is_prezzo_fornitore = Boolean(update.is_prezzo_fornitore);
+          item.origine_prezzo = update.is_prezzo_fornitore ? 'fornitore' : null;
           item.totale_concordato = Number(calculatedItemTotal.toFixed(2));
         } else if (update.prezzo_concordato !== undefined && update.prezzo_concordato !== null && update.prezzo_concordato !== '') {
           const p = parseFloat(String(update.prezzo_concordato).replace(',', '.'));
@@ -10168,6 +11246,8 @@ const handleUpdateOrderPricing = async (req, res) => {
           item.prezzo_concordato = Number(p.toFixed(2));
           item.fasce_prezzo = [{ quantita: totalItemQty, prezzo_unitario: Number(p.toFixed(2)) }];
           item.ha_prezzo_concordato = true;
+          item.is_prezzo_fornitore = Boolean(update.is_prezzo_fornitore);
+          item.origine_prezzo = update.is_prezzo_fornitore ? 'fornitore' : null;
           item.totale_concordato = Number((totalItemQty * p).toFixed(2));
         }
       }
@@ -10189,13 +11269,16 @@ const handleUpdateOrderPricing = async (req, res) => {
       }
     });
 
+    const nonTechItems = cartItems.filter(ci => ci && !(ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra)));
+    const isAllPrezzoFornitore = nonTechItems.length > 0 && nonTechItems.every(ci => ci.is_prezzo_fornitore === true || ci.origine_prezzo === 'fornitore');
+
     const isConv = Boolean(
       order.codice_fornitura || 
       order.torneo_id || 
       order.torneo_squadra_id || 
       (order.fornitura && typeof order.fornitura === 'object' && (order.fornitura.torneo_id || order.fornitura.codice_univoco))
     );
-    const spedizioneCliente = isConv ? 0.00 : (itemsSubtotal >= 50.0 ? 0.00 : 2.00);
+    const spedizioneCliente = (isConv || isAllPrezzoFornitore) ? 0.00 : (itemsSubtotal >= 50.0 ? 0.00 : 2.00);
     const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? Number(order.coupon_discount) : 0;
     const newOrderTotal = Math.max(0, Number((itemsSubtotal + spedizioneCliente - couponDiscount).toFixed(2)));
 
@@ -10206,7 +11289,7 @@ const handleUpdateOrderPricing = async (req, res) => {
     const rawShipUSD = parseItalianFloat(String(order["Costo spedizione (USD)"] || order.costo_spedizione_usd || '0'));
     const totalCostUSD = Number((rawProdCostUSD + rawShipUSD).toFixed(2));
     const costEur = order["Costo totale (EUR)"] ? parseItalianFloat(String(order["Costo totale (EUR)"])) : convertUsdToEur(totalCostUSD, orderRate, 'updatePricing');
-    const newProfitEUR = Number((newOrderTotal - costEur).toFixed(2));
+    const newProfitEUR = (isAllPrezzoFornitore && Math.abs(newOrderTotal - costEur) < 0.02) ? 0.00 : Number((newOrderTotal - costEur).toFixed(2));
 
     const newTotaleStr = `${newOrderTotal.toFixed(2).replace('.', ',')}€`;
     const newProfitStr = newProfitEUR.toFixed(2).replace('.', ',');
@@ -10519,7 +11602,7 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
   let costo_completini_usd = 0;
   let costo_personalizzazioni_usd = 0;
   let quant_total = 0;
-  let quant_spedizione = 0;
+  let quant_spedizione_units = 0;
 
   carrello.forEach(item => {
     const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
@@ -10561,27 +11644,32 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
       costo_completini_usd += (baseKitUSD * q);
       costo_personalizzazioni_usd += (persUnitUSD * q);
       quant_total += q;
-      if (isSupplierShippingEnabledForItem(item, localAccessories)) {
-        quant_spedizione += q;
+
+      const shippingMult = getItemShippingMultiplier(item, matchedProd, localAccessories);
+      if (shippingMult > 0) {
+        quant_spedizione_units += (q * shippingMult);
       }
     }
   });
 
   const settings = getSettings();
-  const spedizione_unitaria = getShippingRateByQuantity(quant_spedizione, settings);
+  
+  // Determinazione tariffa unitaria fornitore basata sul lotto corrente (o sui pezzi del carrello se non c'è lotto)
+  let totalLottoPieces = quant_total;
+  try {
+    const lottoFile = path.join(__dirname, 'lotto.json');
+    if (fs.existsSync(lottoFile)) {
+      const lotto = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+      if (lotto && Number(lotto.numero_totale_articoli) > 0) {
+        totalLottoPieces = Math.max(quant_total, Number(lotto.numero_totale_articoli));
+      }
+    }
+  } catch (e) {}
 
-  // Per il calcolo del codice coupon / prezzo fornitore, la spedizione è ESCLUSA dal totale prezzo fornitore.
-  const costo_spedizione_usd = includeShipping ? Number((quant_spedizione * spedizione_unitaria).toFixed(2)) : 0;
+  const spedizione_unitaria = getShippingRateByQuantity(totalLottoPieces, settings);
+  const costo_spedizione_usd = includeShipping ? Number((quant_spedizione_units * spedizione_unitaria).toFixed(2)) : 0;
   const costo_totale_usd = Number((costo_completini_usd + costo_personalizzazioni_usd + costo_spedizione_usd).toFixed(2));
   const prezzo_finale_eur = Number((costo_totale_usd * exchangeRate).toFixed(2));
-
-  console.log("Costo completino USD:", Number(costo_completini_usd.toFixed(2)));
-  console.log("Costo spedizione USD (inclusa:", includeShipping, "):", Number(costo_spedizione_usd.toFixed(2)));
-  console.log("Costo personalizzazioni USD:", Number(costo_personalizzazioni_usd.toFixed(2)));
-  console.log("Totale USD:", Number(costo_totale_usd.toFixed(2)));
-  console.log("Cambio USD/EUR:", exchangeRate);
-  console.log("Prezzo finale EUR:", prezzo_finale_eur);
-  console.log("Totale cliente:", prezzo_finale_eur);
 
   return prezzo_finale_eur;
 }
@@ -12744,24 +13832,9 @@ app.post('/api/coupons/validate', async (req, res) => {
       discount = subtotal_eur * (parseFloat(c.value) / 100);
     } else if (c.type === 'fisso') {
       discount = Math.min(parseFloat(c.value), subtotal_eur + shipping_cost_eur);
-    } else if (c.type === 'fornitore') {
+    } else if (c.type === 'fornitore' || c.type === 'supplier_price') {
       const settings = getSettings();
-      let exchangeRate = 0.92;
-      if (settings.cambioValuta.mode === 'manual') {
-        exchangeRate = parseFloat(settings.cambioValuta.manual_rate) || 0.86;
-      } else {
-        try {
-          const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
-          if (rateRes.ok) {
-            const rateData = await rateRes.json();
-            if (rateData && rateData.rates && rateData.rates.EUR) {
-              exchangeRate = rateData.rates.EUR;
-            }
-          }
-        } catch (err) {
-          exchangeRate = parseFloat(settings.cambioValuta.manual_rate) || 0.92;
-        }
-      }
+      const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
       
       let allDbProducts = getLocalProducts();
       const supabase = getSupabaseClient();
@@ -12771,7 +13844,8 @@ app.post('/api/coupons/validate', async (req, res) => {
           if (sp && sp.length > 0) allDbProducts = sp;
         } catch (e) {}
       }
-      supplier_cost_eur = calcolaCostoFornitoreEur(carrello, exchangeRate, allDbProducts, false);
+      // Per i coupon fornitore la spedizione fornitore viene inclusa nel prezzo fornitore calcolato
+      supplier_cost_eur = calcolaCostoFornitoreEur(carrello, exchangeRate, allDbProducts, true);
       discount = Math.max(0, Number((subtotal_eur - supplier_cost_eur).toFixed(2)));
     }
     
@@ -14507,10 +15581,10 @@ app.post('/api/orders', async (req, res) => {
             discount_eur = subtotal_eur * (parseFloat(c.value) / 100);
           } else if (c.type === 'fisso') {
             discount_eur = Math.min(parseFloat(c.value), subtotal_eur + shipping_cost_eur);
-          } else if (c.type === 'fornitore') {
+          } else if (c.type === 'fornitore' || c.type === 'supplier_price') {
             const settings = getSettings();
             const exRate = await getLiveOrSettingsExchangeRate(settings);
-            supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts, false);
+            supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts, true);
             isSupplierCoupon = true;
             discount_eur = Math.max(0, Number((subtotal_eur - supplierCostEur).toFixed(2)));
           }
@@ -15854,7 +16928,9 @@ async function getDbOrdersMerged() {
     }
 
     const email = (custOrd && custOrd.email) || `${ord.nome.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
-    const paymentStatus = custOrd ? (custOrd.payment_status === 'paid' ? 'Pagato' : (custOrd.payment_status === 'refunded' ? 'Rimborso' : 'Da pagare')) : 'Da pagare';
+    const paymentStatus = ord.payment_status 
+      ? ord.payment_status 
+      : (custOrd ? (custOrd.payment_status === 'paid' ? 'Pagato' : (custOrd.payment_status === 'refunded' ? 'Rimborso' : 'Da pagare')) : 'Da pagare');
 
     return {
       ...ord,
@@ -16307,6 +17383,11 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
     }
 
     // 2. Aggiorna la cache locale backup 'orders_local.json'
+    // Includi payment_status nella cache locale per emergenze/offline
+    if (payment_status !== undefined) {
+      updateData.payment_status = payment_status;
+    }
+
     if (Object.keys(updateData).length > 0) {
       try {
         const localOrders = getLocalOrders();
@@ -16316,33 +17397,86 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
             ...localOrders[localIdx],
             ...updateData
           };
-          fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
-          console.log(`✅ Cache locale orders_local.json aggiornata per ordine #${id}`);
+        } else {
+          localOrders.push({
+            id: Number(id),
+            data: existingOrder?.data || new Date().toLocaleString('it-IT'),
+            nome: existingOrder?.nome || '',
+            ...updateData
+          });
         }
+        fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+        console.log(`✅ Cache locale orders_local.json aggiornata per ordine #${id}`);
       } catch (e) {
         console.warn("⚠️ Impossibile aggiornare cache locale orders_local.json:", e.message);
       }
     }
     
-    // 3. Aggiorniamo su Supabase customer_orders per real-time sync Area Cliente
+    // 3. Sincronizzazione persistente su Supabase 'customer_orders'
     if (supabase) {
-      const dbPaymentStatus = payment_status === 'Pagato' ? 'paid' : (payment_status === 'Rimborso' ? 'refunded' : 'pending');
-      const dbStatus = status || 'In preparazione';
+      const dbPaymentStatus = (payment_status === 'Pagato' || payment_status === 'paid') 
+        ? 'paid' 
+        : (payment_status === 'Rimborso' || payment_status === 'refunded' ? 'refunded' : 'pending');
+      const dbStatus = status || existingOrder?.status || 'In preparazione';
       
       try {
-        if (carrello !== undefined) {
-          await supabase.from('customer_orders').update({
+        // Verifica se esiste già una riga associata a questo admin_order_id
+        const { data: existingCust, error: findCustErr } = await supabase
+          .from('customer_orders')
+          .select('*')
+          .eq('admin_order_id', Number(id));
+
+        if (!findCustErr && existingCust && existingCust.length > 0) {
+          // UPDATE MIRATO: aggiorna esclusivamente payment_status e timestamp senza alterare user_id o order_number
+          const updateCustFields = {
             status: dbStatus,
             payment_status: dbPaymentStatus,
-            total: totale ? parseFloat(String(totale).replace('€', '').replace(',', '.')) : undefined,
             updated_at: new Date().toISOString()
-          }).eq('admin_order_id', id);
+          };
+          if (totale !== undefined) {
+            const parsedTot = parseFloat(String(totale).replace('€', '').replace(/\s+/g, '').replace(',', '.'));
+            if (!isNaN(parsedTot)) updateCustFields.total = parsedTot;
+          }
+          await supabase
+            .from('customer_orders')
+            .update(updateCustFields)
+            .eq('admin_order_id', Number(id));
+          console.log(`✅ Aggiornato record customer_orders esistente per admin_order_id #${id}: payment_status = ${dbPaymentStatus}`);
         } else {
-          await supabase.from('customer_orders').update({
-            status: dbStatus,
-            payment_status: dbPaymentStatus,
-            updated_at: new Date().toISOString()
-          }).eq('admin_order_id', id);
+          // Se esiste un account utente associato (user_id), crea la riga in customer_orders
+          const targetUserId = existingOrder?.user_id || req.body?.user_id || null;
+          if (targetUserId) {
+            let orderTot = 0;
+            if (totale !== undefined) {
+              orderTot = parseFloat(String(totale).replace('€', '').replace(/\s+/g, '').replace(',', '.')) || 0;
+            } else if (existingOrder && existingOrder.totale) {
+              orderTot = parseFloat(String(existingOrder.totale).replace('€', '').replace(/\s+/g, '').replace(',', '.')) || 0;
+            }
+
+            const newCustOrd = {
+              id: crypto.randomUUID(),
+              user_id: targetUserId,
+              admin_order_id: Number(id),
+              order_number: `ORD-${id}`,
+              subtotal: orderTot,
+              shipping: 0,
+              total: orderTot,
+              payment_status: dbPaymentStatus,
+              status: dbStatus,
+              created_at: existingOrder?.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+
+            const { error: insErr } = await supabase
+              .from('customer_orders')
+              .insert(newCustOrd);
+
+            if (insErr) {
+              console.warn(`⚠️ Errore inserimento customer_orders per admin_order_id #${id}:`, insErr.message);
+            } else {
+              console.log(`✅ Creato record customer_orders per admin_order_id #${id}: payment_status = ${dbPaymentStatus}, user_id = ${targetUserId}`);
+            }
+          }
         }
       } catch (err) {
         console.warn("⚠️ Aggiornamento customer_orders fallito:", err.message);
@@ -16361,6 +17495,208 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
     console.error("⚠️ Errore POST /api/admin/gestione-ordini/update:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// POST /api/admin/orders/toggle-shipping-override - Rimuove o ripristina la spedizione cliente per un ordine
+app.post('/api/admin/orders/toggle-shipping-override', async (req, res) => {
+  try {
+    const { order_id, rimuovi } = req.body || {};
+    if (!order_id) {
+      return res.status(400).json({ success: false, error: "Identificativo ordine mancante." });
+    }
+
+    const orderIdNum = Number(order_id);
+    const allOrders = await getDbOrders();
+    const order = allOrders.find(o => 
+      (!isNaN(orderIdNum) && Number(o.id) === orderIdNum) || 
+      (o.id !== undefined && String(o.id).trim() === String(order_id).trim()) ||
+      (o.data && String(o.data).trim() === String(order_id).trim())
+    );
+
+    if (!order) {
+      return res.status(404).json({ success: false, error: `Ordine #${order_id} non trovato.` });
+    }
+
+    let cartItems = order.carrello;
+    if (!Array.isArray(cartItems) || cartItems.length === 0) {
+      cartItems = ricostruisciCarrelloDaStringhe(order);
+    }
+
+    // Calcola il subtotale prodotti effettivo
+    let subtotale = 0;
+    cartItems.forEach(item => {
+      if (item && !(item.squadra && isTechnicalShippingOrServiceLine(item.squadra))) {
+        const q = parseInt(item.quantita, 10) || 1;
+        let itemTot = 0;
+        if (item.totale_concordato !== null && item.totale_concordato !== undefined && item.totale_concordato !== '') {
+          itemTot = parseFlexibleDecimal(item.totale_concordato);
+        } else if (item.prezzo_concordato !== null && item.prezzo_concordato !== undefined && item.prezzo_concordato !== '') {
+          itemTot = parseFlexibleDecimal(item.prezzo_concordato) * q;
+        } else if (item.prezzo !== undefined && item.prezzo !== null && item.prezzo !== '') {
+          itemTot = parseFlexibleDecimal(item.prezzo) * q;
+        } else if (item.prezzo_originale !== undefined && item.prezzo_originale !== null && item.prezzo_originale !== '') {
+          itemTot = parseFlexibleDecimal(item.prezzo_originale) * q;
+        }
+        subtotale += itemTot;
+      }
+    });
+
+    if (subtotale <= 0) {
+      subtotale = parseFlexibleDecimal(order.totale);
+    }
+
+    const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null) ? parseFlexibleDecimal(order.coupon_discount) : 0;
+    const shouldRemove = Boolean(rimuovi);
+
+    let newShipping = 0;
+    let newTotalEur = 0;
+    let freeShippingDiscount = 0;
+
+    if (shouldRemove) {
+      // Rimuovi spedizione cliente: imposta a 0.00€
+      const standardShipping = (subtotale >= 50.0) ? 0 : 2.00;
+      freeShippingDiscount = standardShipping;
+      newShipping = 0;
+      newTotalEur = Math.max(0, subtotale - couponDiscount);
+      
+      // Salva flag su tutti gli item del carrello per persistenza garantita
+      cartItems.forEach(it => {
+        if (it) it.free_shipping_override = true;
+      });
+      order.free_shipping_override = true;
+      order.free_shipping_discount = freeShippingDiscount;
+    } else {
+      // Ripristina spedizione: ricalcola secondo le regole correnti (senza hardcode)
+      const standardShipping = (subtotale >= 50.0) ? 0 : 2.00;
+      freeShippingDiscount = 0;
+      newShipping = standardShipping;
+      newTotalEur = Math.max(0, subtotale + standardShipping - couponDiscount);
+
+      cartItems.forEach(it => {
+        if (it) delete it.free_shipping_override;
+      });
+      delete order.free_shipping_override;
+      order.free_shipping_discount = 0;
+    }
+
+    const newTotaleStr = `${newTotalEur.toFixed(2).replace('.', ',')}€`;
+    order.totale = newTotaleStr;
+    order.carrello = cartItems;
+
+    // Ricalcola profitto ordine
+    const costoTotaleEur = parseFlexibleDecimal(order["Costo totale (EUR)"] || order.costo_totale_eur);
+    const newProfittoEur = Number((newTotalEur - costoTotaleEur).toFixed(2));
+    order.profitto_eur = String(newProfittoEur);
+    order["Profitto (EUR)"] = String(newProfittoEur);
+
+    // 1. Aggiorna Supabase 'orders'
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        await supabase
+          .from('orders')
+          .update({
+            totale: newTotaleStr,
+            carrello: cartItems,
+            free_shipping_discount: freeShippingDiscount,
+            profitto_eur: String(newProfittoEur)
+          })
+          .eq('id', orderIdNum);
+      } catch (err) {
+        console.warn(`⚠️ Errore aggiornamento Supabase orders #${orderIdNum}:`, err.message);
+      }
+
+      // 2. Sincronizza customer_orders solo se il record esiste già
+      try {
+        const { data: existingCust } = await supabase
+          .from('customer_orders')
+          .select('id')
+          .eq('admin_order_id', orderIdNum);
+
+        if (existingCust && existingCust.length > 0) {
+          await supabase
+            .from('customer_orders')
+            .update({
+              shipping: newShipping,
+              total: newTotalEur,
+              updated_at: new Date().toISOString()
+            })
+            .eq('admin_order_id', orderIdNum);
+        }
+      } catch (custErr) {
+        console.warn(`⚠️ Sincronizzazione customer_orders per #${orderIdNum} saltata:`, custErr.message);
+      }
+    }
+
+    // 3. Aggiorna cache locale orders_local.json
+    try {
+      if (fs.existsSync(LOCAL_ORDERS_FILE)) {
+        const localOrders = JSON.parse(fs.readFileSync(LOCAL_ORDERS_FILE, 'utf8') || '[]');
+        const idx = localOrders.findIndex(o => Number(o.id) === orderIdNum);
+        if (idx !== -1) {
+          localOrders[idx] = {
+            ...localOrders[idx],
+            totale: newTotaleStr,
+            carrello: cartItems,
+            free_shipping_override: shouldRemove,
+            free_shipping_discount: freeShippingDiscount,
+            profitto_eur: String(newProfittoEur),
+            "Profitto (EUR)": String(newProfittoEur)
+          };
+          if (!shouldRemove) {
+            delete localOrders[idx].free_shipping_override;
+          }
+          fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+        }
+      }
+    } catch (fsErr) {
+      console.warn("⚠️ Aggiornamento cache locale fallito:", fsErr.message);
+    }
+
+    // 4. Sincronizza il lotto corrente
+    await recalculateCurrentLotto();
+
+    return res.json({
+      success: true,
+      message: shouldRemove ? "Spedizione cliente rimossa con successo!" : "Spedizione cliente ripristinata con successo!",
+      order: {
+        ...order,
+        totale: newTotaleStr,
+        carrello: cartItems,
+        free_shipping_override: shouldRemove,
+        free_shipping_discount: freeShippingDiscount,
+        profitto_eur: String(newProfittoEur)
+      }
+    });
+  } catch (err) {
+    console.error("⚠️ Errore in /api/admin/orders/toggle-shipping-override:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+setupItemEndpoints(app, {
+  getDbOrders,
+  getDbOrdersMerged,
+  getDbLotti,
+  getSettings,
+  getLocalAccessories,
+  getLocalProducts,
+  getAllProductsFromSupabase,
+  getSupabaseClient,
+  getShippingRateByQuantity,
+  getItemShippingMultiplier,
+  calculateLottoTotals,
+  calcolaCostoFornitoreProdotto,
+  parseCustomizationDetails,
+  isTechnicalShippingOrServiceLine,
+  isSupplierShippingEnabledForItem,
+  convertUsdToEur,
+  getLiveOrSettingsExchangeRate,
+  getLocalOrders,
+  LOCAL_ORDERS_FILE,
+  recalculateCurrentLotto,
+  ricostruisciCarrelloDaStringhe
 });
 
 // Helper di tracciamento per i Lotti (Tracking Lotto)
@@ -16995,6 +18331,192 @@ app.post('/api/admin/store-image', async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Errore /api/admin/store-image:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/catalog/check-jersey-status - Diagnostica per verifica disponibilità link originali jerseys-catalog.com
+app.post('/api/admin/catalog/check-jersey-status', async (req, res) => {
+  try {
+    const { items } = req.body || {};
+    const itemList = Array.isArray(items) ? items : [];
+
+    if (itemList.length === 0) {
+      return res.status(400).json({ success: false, error: "Nessun prodotto fornito per la verifica Jersey." });
+    }
+
+    // Carica mapping storico da products_local.json e products_storage_mapping.json se esistono
+    let localProducts = null;
+    let storageMapping = null;
+    try {
+      if (fs.existsSync('products_local.json')) {
+        localProducts = JSON.parse(fs.readFileSync('products_local.json', 'utf8'));
+      }
+    } catch (e) {}
+
+    try {
+      if (fs.existsSync('products_storage_mapping.json')) {
+        storageMapping = JSON.parse(fs.readFileSync('products_storage_mapping.json', 'utf8'));
+      }
+    } catch (e) {}
+
+    const results = [];
+
+    for (const item of itemList) {
+      let jerseyUrl = null;
+
+      // 1. Controlla se il campo immagine attuale punta già a jerseys-catalog.com
+      const currentImg = (item.immagine || '').trim();
+      if (currentImg.includes('jerseys-catalog.com')) {
+        jerseyUrl = currentImg;
+      } else if (item.original_jersey_url && item.original_jersey_url.includes('jerseys-catalog.com')) {
+        jerseyUrl = item.original_jersey_url.trim();
+      } else {
+        // Cerca in products_local.json
+        if (Array.isArray(localProducts)) {
+          const match = localProducts.find(p => 
+            (item.id && p.id === item.id) || 
+            (item.legacy_id && (p.legacy_id === item.legacy_id || p.legacy_id === Number(item.legacy_id))) ||
+            (p.squadra && item.squadra && p.versione && item.versione && p.squadra === item.squadra && p.versione === item.versione)
+          );
+          if (match && match.immagine_originale && match.immagine_originale.includes('jerseys-catalog.com')) {
+            jerseyUrl = match.immagine_originale;
+          }
+        }
+
+        // Cerca in products_storage_mapping.json
+        if (!jerseyUrl && Array.isArray(storageMapping)) {
+          const found = storageMapping.find(m => 
+            (item.id && m.id === item.id) || 
+            (m.filename && currentImg.includes(m.filename))
+          );
+          if (found && found.originalUrl && found.originalUrl.includes('jerseys-catalog.com')) {
+            jerseyUrl = found.originalUrl;
+          }
+        }
+      }
+
+      if (!jerseyUrl) {
+        results.push({
+          id: item.id,
+          legacy_id: item.legacy_id,
+          jerseyUrl: null,
+          stato: 'SENZA_LINK_FORNITORE',
+          motivo: 'Nessun link originale jerseys-catalog.com rintracciato per questo prodotto.',
+          statusHttp: null
+        });
+        continue;
+      }
+
+      // 2. Probe HTTP verso jerseys-catalog.com con header realistici
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        let resp = null;
+        try {
+          resp = await fetch(jerseyUrl, {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+              'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+              'Referer': 'https://jerseys-catalog.com/'
+            },
+            signal: controller.signal
+          });
+        } catch (fetchErr) {
+          clearTimeout(timeoutId);
+          if (fetchErr.name === 'AbortError') {
+            results.push({
+              id: item.id,
+              legacy_id: item.legacy_id,
+              jerseyUrl,
+              stato: 'NON_VERIFICABILE',
+              motivo: 'Timeout durante la connessione al server fornitore (> 6s).',
+              statusHttp: 'TIMEOUT'
+            });
+          } else {
+            results.push({
+              id: item.id,
+              legacy_id: item.legacy_id,
+              jerseyUrl,
+              stato: 'NON_VERIFICABILE',
+              motivo: `Errore di rete durante la connessione: ${fetchErr.message}`,
+              statusHttp: 'ERROR'
+            });
+          }
+          continue;
+        }
+
+        clearTimeout(timeoutId);
+
+        const status = resp.status;
+        const ct = (resp.headers.get('content-type') || '').toLowerCase();
+        const len = resp.headers.get('content-length') || '0';
+
+        if (status === 200 && (ct.includes('image/') || ct.includes('application/octet-stream'))) {
+          results.push({
+            id: item.id,
+            legacy_id: item.legacy_id,
+            jerseyUrl,
+            stato: 'PRESENTE_FORNITORE',
+            motivo: `Immagine presente e disponibile sul server fornitore (HTTP 200).`,
+            statusHttp: 200,
+            contentType: ct,
+            contentLength: len
+          });
+        } else if (status === 404 || status === 410) {
+          results.push({
+            id: item.id,
+            legacy_id: item.legacy_id,
+            jerseyUrl,
+            stato: 'ELIMINATA_FORNITORE',
+            motivo: `Risorsa definitivamente eliminata/non trovata sul server fornitore (HTTP ${status}).`,
+            statusHttp: status
+          });
+        } else if (status === 403 || status === 401) {
+          results.push({
+            id: item.id,
+            legacy_id: item.legacy_id,
+            jerseyUrl,
+            stato: 'NON_VERIFICABILE',
+            motivo: `Accesso protetto o bloccato da WAF/anti-bot fornitore (HTTP ${status}).`,
+            statusHttp: status
+          });
+        } else if (status === 202 || (status === 200 && ct.includes('text/html'))) {
+          results.push({
+            id: item.id,
+            legacy_id: item.legacy_id,
+            jerseyUrl,
+            stato: 'NON_VERIFICABILE',
+            motivo: `Risposta Cloudflare Challenge/HTML ricevuta (HTTP ${status}).`,
+            statusHttp: status
+          });
+        } else {
+          results.push({
+            id: item.id,
+            legacy_id: item.legacy_id,
+            jerseyUrl,
+            stato: 'NON_VERIFICABILE',
+            motivo: `Risposta inconclusiva dal server fornitore (HTTP ${status}, ${ct}).`,
+            statusHttp: status
+          });
+        }
+      } catch (err) {
+        results.push({
+          id: item.id,
+          legacy_id: item.legacy_id,
+          jerseyUrl,
+          stato: 'NON_VERIFICABILE',
+          motivo: `Anomalia durante la verifica: ${err.message}`,
+          statusHttp: 'ERROR'
+        });
+      }
+    }
+
+    return res.json({ success: true, count: results.length, results });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/admin/catalog/check-jersey-status:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });

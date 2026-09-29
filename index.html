@@ -1331,6 +1331,17 @@ body {
         .recensione-testo { color: rgba(255, 255, 255, 0.9); font-size: 13.5px; margin: 0; line-height: 1.6; }
 
         /* Modal personalizzazione (Lightbox) */
+        .is-admin-picker .icona-carrello,
+        .is-admin-picker .carrello-flottante,
+        .is-admin-picker #customer-chat-modal,
+        .is-admin-picker #floating-chat-btn,
+        .is-admin-picker .sidebar-carrello,
+        .is-admin-picker .overlay-carrello,
+        .is-admin-picker #btn-apri-auth,
+        .is-admin-picker #box-recensioni-home {
+            display: none !important;
+        }
+
         .modal-personalizza {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(6, 6, 6, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 310; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
         }
@@ -11004,6 +11015,10 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                     <option value="XXL">Taglia XXL</option>
                 </select>
             </div>
+            <div class="gruppo-form" id="gruppo-modal-quantita">
+                <label id="label-modal-quantita">Quantità</label>
+                <input type="number" id="modal-quantita" min="1" max="99" step="1" value="1" oninput="ricalcolaPrezzoPopup()" onchange="ricalcolaPrezzoPopup()">
+            </div>
             <div class="gruppo-form" id="gruppo-modal-nome">
                 <label id="label-modal-nome">Nome sulla maglia <span id="badge-modal-nome">+1,50€</span></label>
                 <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
@@ -11190,6 +11205,50 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
     </div>
 
     <script>
+        var _urlParams = new URLSearchParams(window.location.search);
+        window._isAdminPickerMode = _urlParams.get('admin_picker') === '1';
+        window._adminPickerOrderId = _urlParams.get('order_id') || '';
+
+        if (window._isAdminPickerMode) {
+            document.documentElement.classList.add('is-admin-picker');
+            window.addEventListener('DOMContentLoaded', function() {
+                if (document.body) document.body.classList.add('is-admin-picker');
+            });
+        }
+
+        var adminPickerBootstrapPromise = null;
+        async function bootstrapAdminPicker() {
+            if (!window._isAdminPickerMode) return Promise.resolve();
+            if (adminPickerBootstrapPromise) {
+                return adminPickerBootstrapPromise;
+            }
+
+            adminPickerBootstrapPromise = (async () => {
+                try {
+                    const pSettings = (typeof caricaSettingsEFiltriPubblici === 'function') ? caricaSettingsEFiltriPubblici() : Promise.resolve();
+                    const pProducts = (typeof caricaProdottiDaDatabase === 'function') ? caricaProdottiDaDatabase() : Promise.resolve();
+                    await Promise.all([pSettings, pProducts]);
+
+                    if (typeof apriTuttiGliArticoliClub === 'function') {
+                        apriTuttiGliArticoliClub();
+                    }
+                } catch (err) {
+                    console.error("Errore durante bootstrapAdminPicker:", err);
+                }
+            })();
+
+            return adminPickerBootstrapPromise;
+        }
+        window.bootstrapAdminPicker = bootstrapAdminPicker;
+
+        if (window._isAdminPickerMode) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bootstrapAdminPicker);
+            } else {
+                bootstrapAdminPicker();
+            }
+        }
+
         var databaseProdotti = window.databaseProdotti || [];
         window.databaseProdotti = databaseProdotti;
         var indiceProdottiPerSquadra = new Map();
@@ -15572,6 +15631,10 @@ for (const cat in hierarchy) {
 
             aggiornaStatoVistaProdottiClub();
 
+            if (typeof renderizzaSidebarLegheClub === 'function') {
+                renderizzaSidebarLegheClub();
+            }
+
             // Aggiorna stato attivo nella sidebar
             document.querySelectorAll('.item-lega-sidebar').forEach(el => {
                 if (el.getAttribute('data-lega') === 'tutti-gli-articoli') {
@@ -17382,7 +17445,15 @@ for (const cat in hierarchy) {
         window.avviaControlloBadgeCustomer = avviaControlloBadgeCustomer;
 
         window.onload = async function() {
-            // Esegue in parallelo il caricamento leggero di filtri e navigazione dinamica
+            if (window._isAdminPickerMode) {
+                // In modalità Admin Picker, il bootstrap è già stato avviato tempestivamente su DOMContentLoaded
+                if (typeof bootstrapAdminPicker === 'function') {
+                    await bootstrapAdminPicker();
+                }
+                return;
+            }
+
+            // Esegue in parallelo il caricamento leggero di filtri e navigazione dinamica per la Home pubblica
             const pSettings = (typeof caricaSettingsEFiltriPubblici === 'function') ? caricaSettingsEFiltriPubblici() : Promise.resolve();
             const pNav = (typeof caricaNavigazioneDinamica === 'function') ? caricaNavigazioneDinamica() : Promise.resolve();
             await Promise.all([pSettings, pNav]);
@@ -19015,6 +19086,14 @@ if (valoreLega === 'tutti') {
         window.cambiaPaginaRicerca = cambiaPaginaRicerca;
 
 function renderizzaProdottiSquadraConFiltri() {
+            if (window._adminPickerLog) {
+                window._adminPickerLog('renderizzaProdottiSquadraConFiltri START', {
+                    squad: squadraSelezionata,
+                    mod: typeof modalitaClubCorrente !== 'undefined' ? modalitaClubCorrente : null,
+                    isCaricamento: isCaricamentoCatalogoInCorso,
+                    dbInit: databaseInizializzato
+                });
+            }
             const paginaMondialiEl = document.getElementById('pagina-mondiali');
             const isPaginaMondialiAttiva = paginaMondialiEl && (paginaMondialiEl.classList.contains('attiva') || paginaMondialiEl.style.display === 'block');
 
@@ -21503,7 +21582,26 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
             }
 
+            const qEl = document.getElementById('modal-quantita');
+            if (qEl) {
+                if (indexInModifica !== null && carrello[indexInModifica]) {
+                    qEl.value = Math.max(1, parseInt(carrello[indexInModifica].quantita, 10) || 1);
+                } else {
+                    qEl.value = 1;
+                }
+            }
+
             ricalcolaPrezzoPopup();
+
+            const btnConferma = document.querySelector('.btn-conferma-carrello');
+            if (btnConferma) {
+                if (window._isAdminPickerMode) {
+                    btnConferma.innerText = `➕ Aggiungi all'Ordine #${window._adminPickerOrderId || ''}`;
+                } else {
+                    btnConferma.innerText = (indexInModifica !== null) ? "Aggiorna Articolo" : "Aggiungi al Carrello";
+                }
+            }
+
             document.getElementById('modal-personalizza').style.display = 'flex';
             if (typeof aggiornaGraficaConsigliatiHome === 'function') {
                 aggiornaGraficaConsigliatiHome();
@@ -21515,7 +21613,11 @@ function renderizzaProdottiSquadraConFiltri() {
             indexInModifica = null;
             const btnConferma = document.querySelector('.btn-conferma-carrello');
             if (btnConferma) {
-                btnConferma.innerText = "Aggiungi al Carrello";
+                if (window._isAdminPickerMode) {
+                    btnConferma.innerText = `➕ Aggiungi all'Ordine #${window._adminPickerOrderId || ''}`;
+                } else {
+                    btnConferma.innerText = "Aggiungi al Carrello";
+                }
             }
             if (typeof aggiornaGraficaConsigliatiHome === 'function') {
                 aggiornaGraficaConsigliatiHome();
@@ -21526,15 +21628,23 @@ function renderizzaProdottiSquadraConFiltri() {
             const elNome = document.getElementById('modal-nome');
             const elNumero = document.getElementById('modal-numero');
             const elPatch = document.getElementById('modal-patch');
+            const elQuantita = document.getElementById('modal-quantita');
 
             const nome = (elNome && !elNome.disabled) ? elNome.value.trim() : '';
             const numero = (elNumero && !elNumero.disabled) ? elNumero.value.trim() : '';
             const patch = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
 
-            let totale = prezzoBaseInConfigurazione;
-            if (nome) totale += costoNomeAttivo; 
-            if (numero) totale += costoNumeroAttivo; 
-            if (patch) totale += costoPatchAttivo;
+            let rawQ = elQuantita ? parseInt(elQuantita.value, 10) : 1;
+            if (isNaN(rawQ) || rawQ < 1) rawQ = 1;
+            if (rawQ > 99) rawQ = 99;
+            const quantita = rawQ;
+
+            let prezzoUnitario = prezzoBaseInConfigurazione;
+            if (nome) prezzoUnitario += costoNomeAttivo; 
+            if (numero) prezzoUnitario += costoNumeroAttivo; 
+            if (patch) prezzoUnitario += costoPatchAttivo;
+
+            const totaleConfigurazione = prezzoUnitario * quantita;
 
             const boxAnteprima = document.getElementById('box-anteprima-prezzo-modal');
             const bloccoStandard = document.getElementById('blocco-prezzo-standard');
@@ -21552,7 +21662,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 if (boxAnteprima) boxAnteprima.classList.remove('modal-convenzione-attiva');
                 if (bloccoStandard) bloccoStandard.style.display = 'flex';
                 if (badgeConvenzione) badgeConvenzione.style.display = 'none';
-                if (elAnteprima) elAnteprima.innerText = totale.toFixed(2).replace('.', ',') + '€';
+                if (elAnteprima) elAnteprima.innerText = totaleConfigurazione.toFixed(2).replace('.', ',') + '€';
             }
         }
 
@@ -21608,11 +21718,50 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
             }
 
+            // MODALITÀ ADMIN: Aggiunta diretta all'ordine admin attualmente gestito via postMessage
+            if (window._isAdminPickerMode) {
+                const elQ = document.getElementById('modal-quantita');
+                let qVal = elQ ? parseInt(elQ.value, 10) : 1;
+                if (isNaN(qVal) || qVal < 1) qVal = 1;
+                if (qVal > 99) qVal = 99;
+                const itemPayload = {
+                    id: idInConfigurazione || null,
+                    legacy_id: legacyIdInConfigurazione || null,
+                    squadra: squadraInConfigurazione,
+                    categoria: categoriaInConfigurazione || '',
+                    taglia: tagliaScelta,
+                    quantita: qVal,
+                    prezzo: prezzoFinaleOggetto,
+                    infoPerso: personalizzazioneTesto,
+                    personalizzazione: personalizzazioneTesto,
+                    customName: nomeInput || '',
+                    customNumber: numeroInput || '',
+                    patch: patchScelta || '',
+                    patches: patchScelta ? [patchScelta] : [],
+                    imgUrl: urlImmagineInConfigurazione || ''
+                };
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'ADMIN_ADD_PRODUCT_TO_ORDER',
+                        orderId: window._adminPickerOrderId,
+                        item: itemPayload
+                    }, '*');
+                }
+                chiudiPersonalizzazione();
+                return;
+            }
+
+            const elQuantita = document.getElementById('modal-quantita');
+            let q = elQuantita ? parseInt(elQuantita.value, 10) : 1;
+            if (isNaN(q) || q < 1) q = 1;
+            if (q > 99) q = 99;
+
             if (indexInModifica !== null) {
-                // Modalità Modifica: Aggiorna l'articolo esistente nel carrello!
+                // Modalità Modifica: Aggiorna l'articolo esistente nel carrello (quantità sostituita)
                 carrello[indexInModifica].squadra = squadraInConfigurazione;
                 carrello[indexInModifica].infoPerso = personalizzazioneTesto;
                 carrello[indexInModifica].taglia = tagliaScelta;
+                carrello[indexInModifica].quantita = q;
                 carrello[indexInModifica].prezzo = prezzoFinaleOggetto;
                 carrello[indexInModifica].imgUrl = urlImmagineInConfigurazione;
                 carrello[indexInModifica].id = idInConfigurazione;
@@ -21651,6 +21800,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     squadra: squadraInConfigurazione, 
                     infoPerso: personalizzazioneTesto, 
                     taglia: tagliaScelta, 
+                    quantita: q,
                     prezzo: prezzoFinaleOggetto, 
                     imgUrl: urlImmagineInConfigurazione,
                     id: idInConfigurazione,
@@ -21678,7 +21828,11 @@ function renderizzaProdottiSquadraConFiltri() {
                     item.legacy_id === nuovaMaglia.legacy_id &&
                     JSON.stringify(item.fornitura || null) === JSON.stringify(nuovaMaglia.fornitura || null)
                 );
-                if (giaPresente) { giaPresente.quantita += 1; } else { nuovaMaglia.quantita = 1; carrello.push(nuovaMaglia); }
+                if (giaPresente) { 
+                    giaPresente.quantita = (parseInt(giaPresente.quantita, 10) || 0) + q; 
+                } else { 
+                    carrello.push(nuovaMaglia); 
+                }
                 
                 if (couponApplicato) {
                     ricalcolaCouponSePresente().then(() => {
@@ -21864,11 +22018,13 @@ function renderizzaProdottiSquadraConFiltri() {
             const elNumero = document.getElementById('modal-numero');
             const elPatch = document.getElementById('modal-patch');
             const elTaglia = document.getElementById('modal-taglia');
+            const elQuantita = document.getElementById('modal-quantita');
 
             if (elNome && !elNome.disabled) elNome.value = nome;
             if (elNumero && !elNumero.disabled) elNumero.value = numero;
             if (elPatch && !elPatch.disabled) elPatch.value = patch;
             if (elTaglia) elTaglia.value = item.taglia;
+            if (elQuantita) elQuantita.value = Math.max(1, parseInt(item.quantita, 10) || 1);
             
             ricalcolaPrezzoPopup();
             
@@ -22161,15 +22317,30 @@ function renderizzaProdottiSquadraConFiltri() {
                 if (boxDatiCapitano) boxDatiCapitano.style.display = 'none';
                 if (boxCapitanoEsistente) boxCapitanoEsistente.style.display = 'none';
                 // MODALITÀ NORMALE (Identica al comportamento standard esistente)
-                // Calcolo spedizione (gratuita sopra 50€)
+                // Controllo coupon fornitore attivo
+                const isFornitoreCoupon = Boolean(
+                    couponApplicato && (
+                        couponApplicato.type === 'fornitore' ||
+                        couponApplicato.type === 'supplier_price' ||
+                        (couponApplicato.code && String(couponApplicato.code).toUpperCase() === 'MIAKHALIFA')
+                    )
+                );
+
+                // Calcolo spedizione (gratuita sopra 50€ o se è attivo un coupon fornitore)
                 const sogliaSpedizioneGratis = 50.0;
                 const costoSpedizioneStandard = 2.00;
-                let spedizioneGratis = subtotale >= sogliaSpedizioneGratis;
-                let costoSpedizione = spedizioneGratis ? 0 : costoSpedizioneStandard;
+                let spedizioneGratis = isFornitoreCoupon || (subtotale >= sogliaSpedizioneGratis);
+                let costoSpedizione = isFornitoreCoupon ? 0 : (spedizioneGratis ? 0 : costoSpedizioneStandard);
 
                 if (boxSpedizione) {
                     boxSpedizione.style.display = 'block';
-                    if (spedizioneGratis) {
+                    if (isFornitoreCoupon) {
+                        boxSpedizione.innerHTML = 
+                            '<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-m); padding: 10px 14px; display: flex; align-items: center; gap: 8px;">' +
+                                '<span style="font-size: 16px;">🚚</span>' +
+                                '<span style="font-size: 12px; font-weight: 800; color: #10B981;">Spedizione Inclusa nel Prezzo Fornitore!</span>' +
+                            '</div>';
+                    } else if (spedizioneGratis) {
                         boxSpedizione.innerHTML = 
                             '<div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-m); padding: 10px 14px; display: flex; align-items: center; gap: 8px;">' +
                                 '<span style="font-size: 16px;">🚚</span>' +
@@ -22193,7 +22364,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 // Prodotto Suggerito
                 if (boxSuggerimenti) {
-                    if (prodottoSuggeritoCorrente && !spedizioneGratis) {
+                    if (prodottoSuggeritoCorrente && !spedizioneGratis && !isFornitoreCoupon) {
                         boxSuggerimenti.style.display = 'block';
                         boxSuggerimenti.innerHTML = 
                             '<div style="background: rgba(214, 164, 58, 0.05); border: 1px dashed rgba(214, 164, 58, 0.3); border-radius: var(--radius-m); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">' +
@@ -22213,20 +22384,20 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 // Calcolo totale con Coupon
                 let scontoApplicatoVal = 0;
-                let isFornitoreCoupon = false;
                 if (couponApplicato) {
-                    if (couponApplicato.type === 'fornitore' || couponApplicato.type === 'supplier_price') {
-                        isFornitoreCoupon = true;
-                        if (couponApplicato.discount) {
-                            scontoApplicatoVal = couponApplicato.discount;
-                        } else if (couponApplicato.supplier_cost_eur !== undefined && couponApplicato.supplier_cost_eur !== null) {
+                    if (isFornitoreCoupon) {
+                        if (couponApplicato.supplier_cost_eur !== undefined && couponApplicato.supplier_cost_eur !== null) {
                             scontoApplicatoVal = Math.max(0, Number((subtotale - couponApplicato.supplier_cost_eur).toFixed(2)));
+                        } else if (couponApplicato.discount) {
+                            scontoApplicatoVal = couponApplicato.discount;
                         }
                     } else if (couponApplicato.discount) {
                         scontoApplicatoVal = couponApplicato.discount;
                     }
                 }
-                let totaleFinale = Math.max(0, subtotale - scontoApplicatoVal + costoSpedizione);
+                let totaleFinale = (isFornitoreCoupon && couponApplicato && couponApplicato.supplier_cost_eur !== undefined && couponApplicato.supplier_cost_eur !== null)
+                    ? couponApplicato.supplier_cost_eur
+                    : Math.max(0, subtotale - scontoApplicatoVal + costoSpedizione);
 
                 if (totaleBasso) {
                     totaleBasso.innerText = totaleFinale.toFixed(2).replace('.', ',') + '€';

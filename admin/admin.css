@@ -270,30 +270,169 @@ input[type="checkbox"] {
     animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 9. OTTIMIZZAZIONI RESPONSIVE PANNELLO ADMIN (MOBILE & TABLET) */
+/* 9. OTTIMIZZAZIONI RESPONSIVE PANNELLO ADMIN (MOBILE COMPACT & DENSE) */
 @media (max-width: 1023px) {
     /* Mobile Chat Responsiveness */
     #section-chat {
         height: auto;
     }
     #admin-chat-list-column, #admin-chat-active-column {
-        min-height: 420px;
+        min-height: 380px;
     }
     #admin-chat-messaggi-stream {
-        max-height: calc(100vh - 380px);
+        max-height: calc(100vh - 340px);
     }
     #admin-chat-metadata-box {
         font-size: 11px;
     }
     
-    /* Previene scrollbar orizzontali indesiderate nel layout */
+    /* Previene scrollbar orizzontali indesiderate nel layout principale */
     main {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
         overflow-x: hidden;
     }
 
-    /* Modal responsiveness su schermi piccoli */
+    /* Tabelle scorrevoli con touch momentum */
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+        border-radius: 0.75rem;
+    }
+}
+
+/* ==========================================================================
+   MODALITÀ MOBILE COMPACT (< 768px): ALTA DENSITÀ INFORMATIVA SIMIL-DESKTOP
+   ========================================================================== */
+@media (max-width: 767px) {
+    /* 1. Header compatto ad alta efficienza di spazio */
+    header {
+        height: 3.25rem !important;
+        min-height: 3.25rem !important;
+        padding-left: 0.65rem !important;
+        padding-right: 0.65rem !important;
+    }
+    #current-section-title {
+        font-size: 0.95rem !important;
+        line-height: 1.15rem !important;
+    }
+    #btn-quick-edit-order {
+        padding: 0.35rem 0.65rem !important;
+        font-size: 10.5px !important;
+        min-height: 28px !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* 2. Workspace principale compatto */
+    main {
+        padding: 0.65rem 0.5rem !important;
+        gap: 0.65rem !important;
+    }
+    main > section, .tab-content {
+        gap: 0.65rem !important;
+    }
+    .space-y-8 > :not([hidden]) ~ :not([hidden]),
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 0.65rem !important;
+    }
+
+    /* 3. Banner benvenuto compatto */
+    #section-dashboard > div:first-child {
+        padding: 0.85rem 1rem !important;
+        border-radius: 1rem !important;
+        gap: 0.5rem !important;
+    }
+    #section-dashboard > div:first-child h3 {
+        font-size: 1.05rem !important;
+        line-height: 1.25rem !important;
+    }
+    #section-dashboard > div:first-child p {
+        font-size: 11px !important;
+    }
+
+    /* 4. Griglie Metriche a 2 COLONNE su Mobile (Non 1 colonna impilata) */
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4,
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.45rem !important;
+    }
+
+    /* Card Metriche Dashboard compatte */
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 > div,
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 > div {
+        padding: 0.55rem 0.65rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 h4[id^="stats-"],
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 h4[id^="stats-"] {
+        font-size: 1.15rem !important;
+        line-height: 1.25rem !important;
+    }
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 p,
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 p {
+        font-size: 9.5px !important;
+        line-height: 11px !important;
+    }
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 .h-10.w-10,
+    .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-5 .h-10.w-10 {
+        height: 1.65rem !important;
+        width: 1.65rem !important;
+        font-size: 0.8rem !important;
+        border-radius: 0.45rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* 5. Controlli Form compatti (Input, Select, Textarea, Button) */
+    button, input, select, textarea {
+        min-height: 32px !important;
+        font-size: 11px !important;
+    }
+    input[type="text"], input[type="number"], input[type="email"], select {
+        padding: 0.35rem 0.55rem !important;
+        border-radius: 0.55rem !important;
+    }
+    textarea {
+        padding: 0.45rem 0.6rem !important;
+        border-radius: 0.55rem !important;
+    }
+
+    /* 6. Sidebar Mobile compatta */
+    #sidebar {
+        width: 14.5rem !important;
+    }
+    #sidebar .h-16 {
+        height: 3.25rem !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    #sidebar nav {
+        padding: 0.5rem 0.4rem !important;
+        gap: 0.2rem !important;
+    }
+    #sidebar .nav-item {
+        padding: 0.35rem 0.55rem !important;
+        font-size: 11px !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* 7. Tabelle ad alta densità informativa */
+    table th {
+        padding: 0.35rem 0.45rem !important;
+        font-size: 9.5px !important;
+        letter-spacing: 0.25px !important;
+        white-space: nowrap !important;
+    }
+    table td {
+        padding: 0.4rem 0.45rem !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+    }
+    table td button {
+        padding: 0.2rem 0.45rem !important;
+        min-height: 26px !important;
+        font-size: 10px !important;
+        border-radius: 0.4rem !important;
+    }
+
+    /* 8. Modali ad alta compattezza visiva */
+    #modal-container, 
     #product-preview-container, 
     #import-modal-container, 
     #results-modal-container, 
@@ -304,51 +443,81 @@ input[type="checkbox"] {
     #gestione-ordine-modal-container, 
     #clienti-scheda-modal-container, 
     #multi-results-modal-container,
-    #coupon-modal > div,
-    #edit-review-modal > div {
-        max-height: 90vh !important;
-        overflow-y: auto !important;
-        width: 96% !important;
+    #modal-configura-articolo-picker > div,
+    #modal-catalogo-ordine-overlay > div,
+    #modal-modifica-articolo-container {
+        width: 98% !important;
+        max-width: 98% !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
+        border-radius: 1rem !important;
         margin: auto !important;
-        padding: 1rem !important;
     }
 
-    /* Tabelle scorrevoli con touch momentum */
-    .overflow-x-auto {
-        -webkit-overflow-scrolling: touch;
-        border-radius: 0.75rem;
+    /* Modale Gestione Ordine - Header & Body compatti */
+    #gestione-ordine-modal-container > div:first-child {
+        padding: 0.6rem 0.75rem !important;
+    }
+    #gestione-ordine-modal-container > div:first-child h3 {
+        font-size: 0.85rem !important;
+    }
+    #gestione-ordine-modal-container > div:first-child p {
+        display: none !important;
+    }
+    #gestione-ordine-modal-container > div:nth-child(2) {
+        padding: 0.55rem 0.55rem !important;
+        gap: 0.55rem !important;
     }
 
-    /* Adattamento tabelle per iPhone SE e schermi stretti */
-    table th, table td {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-        white-space: nowrap;
+    /* Modale Gestione Ordine - Footer compatto */
+    #gestione-ordine-modal-container > div:last-child {
+        padding: 0.5rem 0.75rem !important;
+        gap: 0.4rem !important;
+    }
+    #gestione-ordine-modal-container > div:last-child button {
+        padding: 0.4rem 0.75rem !important;
+        font-size: 11px !important;
+        min-height: 30px !important;
+        border-radius: 0.55rem !important;
     }
 
-    /* Header mobile adattivo */
-    header {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
+    /* Card Articolo nel Modale Gestione Ordine */
+    #gestione-ordine-prodotti-list > div {
+        padding: 0.5rem !important;
+        border-radius: 0.75rem !important;
+        gap: 0.4rem !important;
     }
-}
-
-@media (max-width: 639px) {
-    /* Pulsanti touch-friendly e leggibili su iPhone SE e Android */
-    button, input, select {
-        min-height: 38px;
+    #gestione-ordine-prodotti-list .w-20.h-20,
+    #gestione-ordine-prodotti-list .sm\:w-24.sm\:h-24 {
+        width: 3.75rem !important;
+        height: 3.75rem !important;
+        border-radius: 0.55rem !important;
     }
-
-    /* Adattamento testi lunghi nelle schedine ordini */
-    .ordini-card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+    #gestione-ordine-prodotti-list h5 {
+        font-size: 11px !important;
     }
 
-    /* Modali su schermi ultra-compatti */
-    .grid-cols-2 {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
+    /* Filtri Gestione Ordini & Cataloghi */
+    #section-gestione-ordini .bg-white.border,
+    #section-ordini .bg-white.border {
+        padding: 0.65rem 0.75rem !important;
+        border-radius: 0.85rem !important;
+    }
+    #section-gestione-ordini .grid.grid-cols-1.md\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.45rem !important;
+    }
+    #section-gestione-ordini .grid.grid-cols-1.md\:grid-cols-4 > div:first-child {
+        grid-column: span 2 !important;
+    }
+
+    /* Picker Catalogo Prodotti Grid su Mobile */
+    #picker-prodotti-grid {
+        gap: 0.45rem !important;
+    }
+    #picker-prodotti-grid > div {
+        padding: 0.45rem !important;
+        border-radius: 0.75rem !important;
     }
 }
 
