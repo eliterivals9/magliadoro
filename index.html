@@ -17148,19 +17148,30 @@ for (const cat in hierarchy) {
             const badgeEl = document.getElementById('customer-chat-unread-badge');
             if (badgeEl) badgeEl.style.display = 'none';
 
+            // Pausa badge check mentre la chat è aperta
+            if (customerChatBadgeInterval) {
+                clearInterval(customerChatBadgeInterval);
+                customerChatBadgeInterval = null;
+            }
+
             await caricaMessaggiCustomer(false);
             
             // Focus input
             const inputEl = document.getElementById('customer-chat-input');
             if (inputEl) inputEl.focus();
 
-            // Avvia polling attivo ogni 4 secondi
-            if (customerChatPollingInterval) clearInterval(customerChatPollingInterval);
-            customerChatPollingInterval = setInterval(() => {
-                if (customerChatIsOpen) {
-                    caricaMessaggiCustomer(true);
-                }
-            }, 4000);
+            // Avvia polling attivo ogni 4 secondi (solo se visibile)
+            if (customerChatPollingInterval) {
+                clearInterval(customerChatPollingInterval);
+                customerChatPollingInterval = null;
+            }
+            if (!document.hidden) {
+                customerChatPollingInterval = setInterval(() => {
+                    if (customerChatIsOpen && !document.hidden) {
+                        caricaMessaggiCustomer(true);
+                    }
+                }, 4000);
+            }
         }
 
         function chiudiChatCustomer() {
@@ -17171,6 +17182,8 @@ for (const cat in hierarchy) {
                 clearInterval(customerChatPollingInterval);
                 customerChatPollingInterval = null;
             }
+            // Riavvia controllo badge a chat chiusa
+            avviaControlloBadgeCustomer();
         }
 
         function toggleChatCustomer() {
@@ -17395,43 +17408,113 @@ for (const cat in hierarchy) {
             if (previewBox) previewBox.style.display = 'none';
         }
 
-        function avviaControlloBadgeCustomer() {
-            if (customerChatBadgeInterval) clearInterval(customerChatBadgeInterval);
-            
-            async function checkBadge() {
-                if (customerChatIsOpen) return;
-                const ident = getCustomerChatIdentity();
-                try {
-                    const res = await fetch('/api/chat/get-or-create', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            user_id: ident.userId,
-                            nome: ident.nome,
-                            email: ident.email
-                        })
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && data.success && Array.isArray(data.messages)) {
-                            const unreadAdminMsgs = data.messages.filter(m => m.sender === 'admin' && !m.is_read);
-                            const badgeEl = document.getElementById('customer-chat-unread-badge');
-                            if (badgeEl) {
-                                if (unreadAdminMsgs.length > 0) {
-                                    badgeEl.innerText = unreadAdminMsgs.length;
-                                    badgeEl.style.display = 'flex';
-                                } else {
-                                    badgeEl.style.display = 'none';
-                                }
+        let publicPromoPollingInterval = null;
+
+        async function checkCustomerChatBadge() {
+            if (customerChatIsOpen || document.hidden) return;
+            const ident = getCustomerChatIdentity();
+            try {
+                const res = await fetch('/api/chat/get-or-create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: ident.userId,
+                        nome: ident.nome,
+                        email: ident.email
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.success && Array.isArray(data.messages)) {
+                        const unreadAdminMsgs = data.messages.filter(m => m.sender === 'admin' && !m.is_read);
+                        const badgeEl = document.getElementById('customer-chat-unread-badge');
+                        if (badgeEl) {
+                            if (unreadAdminMsgs.length > 0) {
+                                badgeEl.innerText = unreadAdminMsgs.length;
+                                badgeEl.style.display = 'flex';
+                            } else {
+                                badgeEl.style.display = 'none';
                             }
                         }
                     }
-                } catch(e) {}
-            }
+                }
+            } catch(e) {}
+        }
 
-            // Sospende la chiamata immediata al caricamento iniziale per evitare traffico inutile;
-            // il controllo badge periodico avverrà ogni 30s.
-            customerChatBadgeInterval = setInterval(checkBadge, 30000);
+        function avviaControlloBadgeCustomer() {
+            if (customerChatBadgeInterval) {
+                clearInterval(customerChatBadgeInterval);
+                customerChatBadgeInterval = null;
+            }
+            if (document.hidden || customerChatIsOpen) return;
+            
+            // Esegui controllo immediato
+            checkCustomerChatBadge();
+
+            // Il controllo badge periodico avverrà ogni 60s (solo se pagina visibile)
+            customerChatBadgeInterval = setInterval(() => {
+                if (!document.hidden && !customerChatIsOpen) {
+                    checkCustomerChatBadge();
+                }
+            }, 60000);
+        }
+
+        function avviaPollingMarketingPromo() {
+            if (publicPromoPollingInterval) {
+                clearInterval(publicPromoPollingInterval);
+                publicPromoPollingInterval = null;
+            }
+            if (document.hidden) return;
+
+            checkAndInitMarketingPromo();
+
+            // Polling per far partire/scadere la promo in tempo reale (ogni 60 secondi con visibilità)
+            publicPromoPollingInterval = setInterval(() => {
+                if (!document.hidden) {
+                    checkAndInitMarketingPromo();
+                }
+            }, 60000);
+        }
+
+        // Gestore singleton Visibility API per Frontend Pubblico
+        if (!window._publicVisibilityListenerAttached) {
+            window._publicVisibilityListenerAttached = true;
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // Sospendi timer badge
+                    if (customerChatBadgeInterval) {
+                        clearInterval(customerChatBadgeInterval);
+                        customerChatBadgeInterval = null;
+                    }
+                    // Sospendi timer chat attiva
+                    if (customerChatPollingInterval) {
+                        clearInterval(customerChatPollingInterval);
+                        customerChatPollingInterval = null;
+                    }
+                    // Sospendi timer promo
+                    if (publicPromoPollingInterval) {
+                        clearInterval(publicPromoPollingInterval);
+                        publicPromoPollingInterval = null;
+                    }
+                } else {
+                    // Al ritorno visibile:
+                    // 1. Promo: refresh immediato + riavvio timer 60s
+                    avviaPollingMarketingPromo();
+
+                    // 2. Chat attiva o controllo badge
+                    if (customerChatIsOpen) {
+                        caricaMessaggiCustomer(true);
+                        if (customerChatPollingInterval) clearInterval(customerChatPollingInterval);
+                        customerChatPollingInterval = setInterval(() => {
+                            if (customerChatIsOpen && !document.hidden) {
+                                caricaMessaggiCustomer(true);
+                            }
+                        }, 4000);
+                    } else {
+                        avviaControlloBadgeCustomer();
+                    }
+                }
+            });
         }
 
         // Global functions export
@@ -17470,15 +17553,15 @@ for (const cat in hierarchy) {
             avviaCountdownFittizio();
             aggiornaGraficaCarrello();
 
-            // Inizializza controllo messaggi non letti chat assistenza
+            // Inizializza controllo messaggi non letti chat assistenza (60s)
             if (typeof avviaControlloBadgeCustomer === 'function') {
                 avviaControlloBadgeCustomer();
             }
 
-            // Inizializza marketing promo
-            await checkAndInitMarketingPromo();
-            // Polling per far partire/scadere la promo in tempo reale (ogni 60 secondi)
-            setInterval(checkAndInitMarketingPromo, 60000);
+            // Inizializza marketing promo con gestione visibility (60s)
+            if (typeof avviaPollingMarketingPromo === 'function') {
+                avviaPollingMarketingPromo();
+            }
 
             // Gestione routing URL per apertura diretta / refresh (es. /accessori, /club, /mondiali, etc.)
             if (typeof inizializzaRoutingURL === 'function') {
@@ -22584,19 +22667,36 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 const data = await res.json();
                 if (data.success) {
-                    if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) {
-                        window.fornituraTorneoAttiva.has_existing_order = true;
-                        if (data.capitano_nome) window.fornituraTorneoAttiva.capitano_nome = data.capitano_nome;
-                        if (data.capitano_telefono) window.fornituraTorneoAttiva.capitano_telefono = data.capitano_telefono;
-                        sessionStorage.setItem('fornituraTorneoAttiva', JSON.stringify(window.fornituraTorneoAttiva));
-                    }
+                    // RESET COMPLETO MODALITÀ FORNITURA TORNEO DOPO ORDINE INVIATO CON SUCCESSO
+                    window.fornituraTorneoAttiva = null;
+                    try {
+                        sessionStorage.removeItem('fornituraTorneoAttiva');
+                        localStorage.removeItem('fornituraTorneoAttiva');
+                    } catch (e) {}
+                    fornituraStatusMsg = '';
+                    fornituraStatusType = '';
 
+                    // Pulisci input interfaccia codice torneo
+                    const inputCart = document.getElementById('input-codice-fornitura-cart');
+                    if (inputCart) inputCart.value = '';
+                    const inputGen = document.getElementById('input-codice-fornitura');
+                    if (inputGen) inputGen.value = '';
+
+                    // Svuota carrello e ripristina stato ecommerce normale
                     carrello = [];
                     salvaCarrelloInLocalStorage();
                     couponApplicato = null;
                     couponStatusMsg = '';
                     aggiornaGraficaCarrello();
                     toggleCarrello();
+
+                    // Ricarica cataloghi e filtri in modalità ecommerce pubblica standard
+                    if (typeof renderizzaProdottiSquadraConFiltri === 'function') {
+                        renderizzaProdottiSquadraConFiltri();
+                    }
+                    if (typeof renderizzaCatalogoAccessori === 'function') {
+                        renderizzaCatalogoAccessori();
+                    }
 
                     if (window.mostraToastPremium) {
                         if (data.is_aggregated) {
@@ -22609,14 +22709,8 @@ function renderizzaProdottiSquadraConFiltri() {
                     if (sessioneUtente && typeof window.sincronizzaOrdiniCliente === 'function') {
                         await window.sincronizzaOrdiniCliente();
                     }
-
-                    if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.codice_univoco) {
-                        verificaCodiceFornitura(window.fornituraTorneoAttiva.codice_univoco).catch(e => console.warn("Sync fornitura quota post order:", e));
-                    }
                 } else {
-                    if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.codice_univoco) {
-                        verificaCodiceFornitura(window.fornituraTorneoAttiva.codice_univoco).catch(e => console.warn("Sync fornitura quota post reject:", e));
-                    }
+                    // SE L'ORDINE FALLISCE: NON resettare nulla (il cliente può riprovare)
                     if (window.mostraToastPremium) {
                         window.mostraToastPremium(data.error || "Errore durante l'invio dell'ordine.", "error");
                     }

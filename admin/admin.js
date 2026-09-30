@@ -16371,11 +16371,18 @@ async function selezionaConversazioneAdmin(id) {
     // Carica messaggi
     await caricaMessaggiConversazioneCorrente(false);
     
-    // Attiva polling per la chat attiva ogni 4 secondi
-    if (adminChatPollingInterval) clearInterval(adminChatPollingInterval);
-    adminChatPollingInterval = setInterval(() => {
-        caricaMessaggiConversazioneCorrente(true);
-    }, 4000);
+    // Attiva polling per la chat attiva ogni 4 secondi (solo se tab visibile)
+    if (adminChatPollingInterval) {
+        clearInterval(adminChatPollingInterval);
+        adminChatPollingInterval = null;
+    }
+    if (!document.hidden) {
+        adminChatPollingInterval = setInterval(() => {
+            if (!document.hidden && conversazioneSelezionataId) {
+                caricaMessaggiConversazioneCorrente(true);
+            }
+        }, 4000);
+    }
 }
 
 function tornaAListaConversazioniAdmin() {
@@ -16744,18 +16751,60 @@ function annullaAllegatoAdmin() {
     document.getElementById('admin-chat-attachment-preview-box').classList.add('hidden');
 }
 
-// Inizializza il polling globale dei badge in background per l'amministratore (ogni 10 secondi)
+// Inizializza il polling globale dei badge in background per l'amministratore (ogni 30 secondi con gestione visibility)
 function avviaPollingGlobaleBadgeAdmin() {
-    if (adminGlobalBadgePollingInterval) clearInterval(adminGlobalBadgePollingInterval);
+    if (adminGlobalBadgePollingInterval) {
+        clearInterval(adminGlobalBadgePollingInterval);
+        adminGlobalBadgePollingInterval = null;
+    }
     
-    // Esegui subito al caricamento iniziale
+    // Se la scheda non è visibile, non avviare il timer
+    if (document.hidden) return;
+
+    // Esegui subito al caricamento iniziale o al ritorno visibile
     caricaConversazioniAdmin(true);
     caricaRecensioniAdmin(true);
 
     adminGlobalBadgePollingInterval = setInterval(() => {
-        caricaConversazioniAdmin(true);
-        caricaRecensioniAdmin(true);
-    }, 10000);
+        if (!document.hidden) {
+            caricaConversazioniAdmin(true);
+            caricaRecensioniAdmin(true);
+        }
+    }, 30000);
+}
+
+// Gestore singleton Visibility API per Admin
+if (!window._adminVisibilityListenerAttached) {
+    window._adminVisibilityListenerAttached = true;
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // Sospendi polling globale badge
+            if (adminGlobalBadgePollingInterval) {
+                clearInterval(adminGlobalBadgePollingInterval);
+                adminGlobalBadgePollingInterval = null;
+            }
+            // Sospendi polling chat attiva
+            if (adminChatPollingInterval) {
+                clearInterval(adminChatPollingInterval);
+                adminChatPollingInterval = null;
+            }
+        } else {
+            // Al ritorno visibile:
+            // 1. Riavvia badge globale (refresh immediato + timer 30s)
+            avviaPollingGlobaleBadgeAdmin();
+            
+            // 2. Se una conversazione è attualmente aperta, refresh immediato e riavvio polling 4s
+            if (conversazioneSelezionataId) {
+                caricaMessaggiConversazioneCorrente(true);
+                if (adminChatPollingInterval) clearInterval(adminChatPollingInterval);
+                adminChatPollingInterval = setInterval(() => {
+                    if (!document.hidden && conversazioneSelezionataId) {
+                        caricaMessaggiConversazioneCorrente(true);
+                    }
+                }, 4000);
+            }
+        }
+    });
 }
 
 // Polling avviato in bootstrapAdminApp solo dopo avvenuta verifica di autenticazione
@@ -26579,6 +26628,11 @@ function switchTorneiSubTab(tab) {
     }
 }
 
+function isPagamentoConfermato(p) {
+    if (!p) return false;
+    return (p.stato === 'PAGATO' || p.stato === 'paid') && Boolean(p.order_id);
+}
+
 async function caricaPagamentiTorneiAdmin() {
     const tbody = document.getElementById('pagamenti-tabella-body');
     if (!tbody) return;
@@ -26607,8 +26661,8 @@ async function caricaPagamentiTorneiAdmin() {
             const statPagatiTotale = document.getElementById('pagamenti-stat-pagati-totale');
             const badgePending = document.getElementById('tornei-badge-pagamenti-attesa');
 
-            const inAttesa = pagList.filter(p => p.stato === 'IN ATTESA DI PAGAMENTO');
-            const pagati = pagList.filter(p => p.stato === 'PAGATO');
+            const inAttesa = pagList.filter(p => !isPagamentoConfermato(p));
+            const pagati = pagList.filter(p => isPagamentoConfermato(p));
 
             const totAttesaEur = inAttesa.reduce((sum, p) => sum + (parseFloat(p.totale) || 0), 0);
             const totPagatiEur = pagati.reduce((sum, p) => sum + (parseFloat(p.totale) || 0), 0);
@@ -26644,7 +26698,7 @@ async function caricaPagamentiTorneiAdmin() {
             }
 
             tbody.innerHTML = pagList.map(p => {
-                const isPending = p.stato === 'IN ATTESA DI PAGAMENTO';
+                const isPending = !isPagamentoConfermato(p);
                 const statusBadge = isPending
                     ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-700 border border-amber-500/30"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> IN ATTESA</span>`
                     : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PAGATO</span>`;
@@ -26655,19 +26709,27 @@ async function caricaPagamentiTorneiAdmin() {
                 const codFornitura = p.codice_fornitura ? `<span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-mono text-[10px] border border-amber-200">${escapeHtml(p.codice_fornitura)}</span>` : '';
 
                 const actionButtons = `
-                    <div class="flex items-center justify-end gap-2">
-                        <button onclick="mostraDettaglioPagamentoTorneo('${p.id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Visualizza Dettaglio Articoli">
+                    <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                        <button onclick="mostraDettaglioPagamentoTorneo('${p.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Visualizza Dettaglio Articoli">
                             <span>👁️</span> Dettaglio
                         </button>
                         ${isPending ? `
-                            <button onclick="confermaPagamentoTorneoUI('${p.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black tracking-wide shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer" title="Conferma Pagamento e Crea Ordine">
+                            <button onclick="confermaPagamentoTorneoUI('${p.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black tracking-wide shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer" title="Conferma Pagamento e Crea Ordine">
                                 <span>💰</span> PAGATO
                             </button>
                         ` : `
-                            <span class="text-[10px] font-bold text-emerald-600 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-200 font-mono">
-                                Inserito #${p.order_id || 'OK'}
-                            </span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[10px] font-bold text-emerald-600 px-2 py-1 bg-emerald-50 rounded-lg border border-emerald-200 font-mono">
+                                    Inserito #${p.order_id || 'OK'}
+                                </span>
+                                <button onclick="ripristinaPagamentoInAttesaUI('${p.id}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer" title="Riporta in Attesa di Pagamento e Rimuovi da Ordini Prodotti">
+                                    <span>↩️</span> Riporta in attesa
+                                </button>
+                            </div>
                         `}
+                        <button onclick="eliminaPagamentoTorneoUI('${p.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Elimina definitivamente questo invio">
+                            <span>🗑️</span> Elimina
+                        </button>
                     </div>
                 `;
 
@@ -26749,14 +26811,18 @@ function mostraDettaglioPagamentoTorneo(id) {
     document.getElementById('pagamento-modal-codice').innerText = p.codice_fornitura || '-';
     document.getElementById('pagamento-modal-torneo').innerText = p.torneo_nome || '-';
     
+    const subtitleEl = document.getElementById('pagamento-modal-sottotitolo');
     const statoEl = document.getElementById('pagamento-modal-stato');
+    const isPending = !isPagamentoConfermato(p);
     if (statoEl) {
-        if (p.stato === 'IN ATTESA DI PAGAMENTO') {
+        if (isPending) {
             statoEl.className = 'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-200';
             statoEl.innerText = 'IN ATTESA DI PAGAMENTO';
+            if (subtitleEl) subtitleEl.innerText = 'Snapshot articoli invio originale';
         } else {
             statoEl.className = 'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-100 text-emerald-800 border border-emerald-200';
             statoEl.innerText = 'PAGATO';
+            if (subtitleEl) subtitleEl.innerText = `Articoli correnti ordine operativo #${p.order_id || 'OK'}`;
         }
     }
 
@@ -26769,10 +26835,12 @@ function mostraDettaglioPagamentoTorneo(id) {
 
     document.getElementById('pagamento-modal-data').innerText = p.data || (p.created_at ? new Date(p.created_at).toLocaleString('it-IT') : '-');
 
-    // Articoli Snapshot
-    const articoli = Array.isArray(p.articoli_snapshot) && p.articoli_snapshot.length > 0 
-        ? p.articoli_snapshot 
-        : (Array.isArray(p.raw_order_payload?.carrello) ? p.raw_order_payload.carrello : []);
+    // Articoli (Source of truth: articoli_operativi se presenti/pagati, altrimenti snapshot)
+    const articoli = Array.isArray(p.articoli_operativi) && p.articoli_operativi.length > 0
+        ? p.articoli_operativi
+        : (Array.isArray(p.articoli_snapshot) && p.articoli_snapshot.length > 0 
+            ? p.articoli_snapshot 
+            : (Array.isArray(p.raw_order_payload?.carrello) ? p.raw_order_payload.carrello : []));
 
     const totPezzi = articoli.reduce((acc, it) => acc + (parseInt(it.quantita, 10) || 1), 0);
     document.getElementById('pagamento-modal-tot-pezzi').innerText = `${totPezzi} articoli`;
@@ -26814,17 +26882,30 @@ function mostraDettaglioPagamentoTorneo(id) {
     // Actions
     const actionsContainer = document.getElementById('pagamento-modal-actions');
     if (actionsContainer) {
-        if (p.stato === 'IN ATTESA DI PAGAMENTO') {
+        if (isPending) {
             actionsContainer.innerHTML = `
-                <button type="button" onclick="confermaPagamentoTorneoUI('${p.id}')" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2 cursor-pointer">
-                    <span>💰</span> Segna come PAGATO
-                </button>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button type="button" onclick="confermaPagamentoTorneoUI('${p.id}')" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all uppercase tracking-wider flex items-center gap-2 cursor-pointer">
+                        <span>💰</span> Segna come PAGATO
+                    </button>
+                    <button type="button" onclick="eliminaPagamentoTorneoUI('${p.id}')" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span>🗑️</span> Elimina Invio
+                    </button>
+                </div>
             `;
         } else {
             actionsContainer.innerHTML = `
-                <span class="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs rounded-xl flex items-center gap-1.5 font-mono">
-                    <span>✅</span> Pagamento Confermato (${p.order_id ? `Ordine #${p.order_id}` : 'Inserito'})
-                </span>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs rounded-xl flex items-center gap-1.5 font-mono">
+                        <span>✅</span> Pagamento Confermato (${p.order_id ? `Ordine #${p.order_id}` : 'Inserito'})
+                    </span>
+                    <button type="button" onclick="ripristinaPagamentoInAttesaUI('${p.id}')" class="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span>↩️</span> Riporta in Attesa
+                    </button>
+                    <button type="button" onclick="eliminaPagamentoTorneoUI('${p.id}')" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span>🗑️</span> Elimina Invio
+                    </button>
+                </div>
             `;
         }
     }
@@ -26849,29 +26930,317 @@ function chiudiDettaglioPagamentoTorneo() {
     }, 300);
 }
 
+// Helper Modale di Conferma HTML Admin (100% DOM, No window.confirm, compatibile con iframe sandbox)
+window.mostraConfermaAdmin = function({
+    title = 'Conferma Operazione',
+    message = 'Sei sicuro di voler procedere?',
+    confirmText = 'Conferma',
+    cancelText = 'Annulla',
+    confirmClass = 'bg-emerald-600 hover:bg-emerald-700 text-white',
+    icon = '⚠️',
+    onConfirm = null
+} = {}) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('admin-generic-confirm-modal');
+        const container = document.getElementById('admin-generic-confirm-container');
+        const titleEl = document.getElementById('admin-generic-confirm-title');
+        const msgEl = document.getElementById('admin-generic-confirm-message');
+        const btnConfirm = document.getElementById('admin-generic-confirm-btn-confirm');
+        const btnCancel = document.getElementById('admin-generic-confirm-btn-cancel');
+        const iconEl = document.getElementById('admin-generic-confirm-icon');
+        const errorEl = document.getElementById('admin-generic-confirm-error');
+
+        if (!modal || !container || !btnConfirm || !btnCancel) {
+            console.warn("Elementi modal conferma non trovati nel DOM.");
+            resolve(true);
+            return;
+        }
+
+        if (titleEl) titleEl.innerText = title;
+        if (msgEl) msgEl.innerText = message;
+        if (iconEl) iconEl.innerText = icon;
+        if (errorEl) {
+            errorEl.innerText = '';
+            errorEl.classList.add('hidden');
+        }
+
+        btnConfirm.innerHTML = confirmText;
+        btnConfirm.disabled = false;
+        btnConfirm.className = `flex-1 py-2.5 font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 ${confirmClass}`;
+
+        btnCancel.innerHTML = cancelText;
+        btnCancel.disabled = false;
+        btnCancel.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        let isProcessing = false;
+
+        function closeModal(result) {
+            btnConfirm.removeEventListener('click', handleConfirmClick);
+            btnCancel.removeEventListener('click', handleCancelClick);
+            modal.removeEventListener('click', handleOverlayClick);
+
+            container.classList.remove('scale-100', 'opacity-100');
+            container.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                resolve(result);
+            }, 150);
+        }
+
+        async function handleConfirmClick() {
+            if (isProcessing) return;
+
+            if (typeof onConfirm === 'function') {
+                isProcessing = true;
+                btnConfirm.disabled = true;
+                btnCancel.disabled = true;
+                btnConfirm.classList.add('opacity-75', 'cursor-not-allowed');
+                btnCancel.classList.add('opacity-50', 'cursor-not-allowed');
+                const origConfirmHtml = btnConfirm.innerHTML;
+                btnConfirm.innerHTML = `<span>⏳</span> Operazione in corso...`;
+
+                if (errorEl) {
+                    errorEl.innerText = '';
+                    errorEl.classList.add('hidden');
+                }
+
+                try {
+                    const res = await onConfirm();
+                    closeModal(res !== undefined ? res : true);
+                } catch (err) {
+                    console.error("Errore onConfirm:", err);
+                    isProcessing = false;
+                    btnConfirm.disabled = false;
+                    btnCancel.disabled = false;
+                    btnConfirm.classList.remove('opacity-75', 'cursor-not-allowed');
+                    btnCancel.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnConfirm.innerHTML = origConfirmHtml;
+
+                    if (errorEl) {
+                        errorEl.innerText = err.message || "Errore durante l'operazione.";
+                        errorEl.classList.remove('hidden');
+                    }
+                }
+            } else {
+                closeModal(true);
+            }
+        }
+
+        function handleCancelClick() {
+            if (isProcessing) return;
+            closeModal(false);
+        }
+
+        function handleOverlayClick(e) {
+            if (isProcessing) return;
+            if (e.target === modal) {
+                closeModal(false);
+            }
+        }
+
+        btnConfirm.addEventListener('click', handleConfirmClick);
+        btnCancel.addEventListener('click', handleCancelClick);
+        modal.addEventListener('click', handleOverlayClick);
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    });
+};
+
 async function confermaPagamentoTorneoUI(id) {
     const p = (window.torneoPagamentiList || []).find(item => String(item.id) === String(id));
     const nomeSquadra = p ? p.nome_squadra : 'questa squadra';
     const totaleEur = p ? (typeof p.totale === 'number' ? `${p.totale.toFixed(2).replace('.', ',')} €` : p.totale_formattato) : '';
 
     const msg = `Sei sicuro di voler contrassegnare come PAGATO l'ordine torneo di "${nomeSquadra}" (${totaleEur})?\n\nL'ordine verrà creato ufficialmente in ORDINI PRODOTTI e inserito nel Lotto in corso.`;
-    if (!confirm(msg)) {
+
+    await window.mostraConfermaAdmin({
+        title: "Conferma Pagamento Fornitura",
+        message: msg,
+        confirmText: "Conferma Pagamento",
+        cancelText: "Annulla",
+        confirmClass: "bg-emerald-600 hover:bg-emerald-700 text-white",
+        icon: "💰",
+        onConfirm: async () => {
+            const res = await fetch(`/api/tornei/pagamenti/${id}/paga`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data && data.success) {
+                showToast("Pagamento confermato! Ordine creato e aggiunto al lotto con successo.", "success");
+                if (typeof chiudiDettaglioPagamentoTorneo === 'function') {
+                    chiudiDettaglioPagamentoTorneo();
+                }
+                await caricaPagamentiTorneiAdmin();
+                
+                // Aggiorna anche gli ordini se la funzione è presente
+                if (typeof caricaOrdini === 'function') {
+                    caricaOrdini();
+                }
+                if (typeof caricaLotto === 'function') {
+                    caricaLotto();
+                }
+                return true;
+            } else {
+                throw new Error(data.error || "Errore durante la conferma del pagamento.");
+            }
+        }
+    });
+}
+
+async function ripristinaPagamentoInAttesaUI(id) {
+    const p = (window.torneoPagamentiList || []).find(item => String(item.id) === String(id));
+    const nomeSquadra = p ? p.nome_squadra : 'questa squadra';
+
+    const msg = `Riportare "${nomeSquadra}" in attesa di pagamento?\n\nL'ordine verrà rimosso dagli Ordini Prodotti e dal Lotto operativo, ma i dati della fornitura resteranno salvati.`;
+
+    await window.mostraConfermaAdmin({
+        title: "Ripristina in Attesa",
+        message: msg,
+        confirmText: "Riporta in attesa",
+        cancelText: "Annulla",
+        confirmClass: "bg-amber-600 hover:bg-amber-700 text-white",
+        icon: "↩️",
+        onConfirm: async () => {
+            const res = await fetch(`/api/tornei/pagamenti/${id}/ripristina-attesa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data && data.success) {
+                showToast("Pagamento riportato in attesa e rimosso dagli ordini operativi!", "success");
+                if (typeof chiudiDettaglioPagamentoTorneo === 'function') {
+                    chiudiDettaglioPagamentoTorneo();
+                }
+                await caricaPagamentiTorneiAdmin();
+                if (typeof caricaOrdini === 'function') {
+                    caricaOrdini();
+                }
+                if (typeof caricaLotto === 'function') {
+                    caricaLotto();
+                }
+                return true;
+            } else {
+                throw new Error(data.error || "Errore durante il ripristino del pagamento.");
+            }
+        }
+    });
+}
+
+// -------------------------------------------------------------
+// GESTIONE ELIMINAZIONE SINGOLO INVIO FORNITURA TORNEO
+// -------------------------------------------------------------
+window.currentPaymentIdToDelete = null;
+
+function apriModalEliminaPagamentoTorneo(id) {
+    const p = (window.torneoPagamentiList || []).find(item => String(item.id) === String(id));
+    if (!p) {
+        showToast("Invio fornitura torneo non trovato.", "error");
         return;
     }
 
+    window.currentPaymentIdToDelete = id;
+
+    const modal = document.getElementById('modal-elimina-pagamento-torneo');
+    const container = document.getElementById('modal-elimina-pagamento-container');
+    const sqEl = document.getElementById('del-pag-squadra');
+    const qEl = document.getElementById('del-pag-quantita');
+    const totEl = document.getElementById('del-pag-totale');
+    const dataEl = document.getElementById('del-pag-data');
+    const statoEl = document.getElementById('del-pag-stato');
+    const errEl = document.getElementById('del-pag-error');
+    const btnConfirm = document.getElementById('btn-conferma-elimina-pagamento');
+    const btnCancel = document.getElementById('btn-annulla-elimina-pagamento');
+
+    if (sqEl) sqEl.innerText = p.nome_squadra || 'Squadra';
+    const quantita = p.quantita_totale !== undefined ? `${p.quantita_totale} pz` : `${(p.articoli_snapshot || []).reduce((acc, it) => acc + (it.quantita || 1), 0)} pz`;
+    if (qEl) qEl.innerText = quantita;
+    const totVal = typeof p.totale === 'number' ? `${p.totale.toFixed(2).replace('.', ',')} €` : (p.totale_formattato || `${p.totale} €`);
+    if (totEl) totEl.innerText = totVal;
+    const dataInvio = p.data || (p.created_at ? new Date(p.created_at).toLocaleString('it-IT') : '-');
+    if (dataEl) dataEl.innerText = dataInvio;
+    const isPending = !isPagamentoConfermato(p);
+    if (statoEl) {
+        statoEl.innerHTML = isPending 
+            ? `<span class="text-amber-600 font-bold">IN ATTESA DI PAGAMENTO</span>` 
+            : `<span class="text-emerald-600 font-bold">PAGATO (Ordine #${p.order_id || 'OK'})</span>`;
+    }
+
+    if (errEl) {
+        errEl.innerText = '';
+        errEl.classList.add('hidden');
+    }
+
+    if (btnConfirm) {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = `<span>🗑️</span> ELIMINA DEFINITIVAMENTE`;
+    }
+    if (btnCancel) {
+        btnCancel.disabled = false;
+    }
+
+    if (modal && container) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+}
+
+function chiudiModalEliminaPagamentoTorneo() {
+    const modal = document.getElementById('modal-elimina-pagamento-torneo');
+    const container = document.getElementById('modal-elimina-pagamento-container');
+    if (modal && container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            window.currentPaymentIdToDelete = null;
+        }, 150);
+    }
+}
+
+async function eseguiEliminaPagamentoTorneo() {
+    const id = window.currentPaymentIdToDelete;
+    if (!id) return;
+
+    const btnConfirm = document.getElementById('btn-conferma-elimina-pagamento');
+    const btnCancel = document.getElementById('btn-annulla-elimina-pagamento');
+    const errEl = document.getElementById('del-pag-error');
+
+    if (btnConfirm) {
+        btnConfirm.disabled = true;
+        btnConfirm.innerHTML = `<span>⏳</span> Eliminazione in corso...`;
+    }
+    if (btnCancel) {
+        btnCancel.disabled = true;
+    }
+    if (errEl) {
+        errEl.innerText = '';
+        errEl.classList.add('hidden');
+    }
+
     try {
-        const res = await fetch(`/api/tornei/pagamenti/${id}/paga`, {
-            method: 'POST',
+        const res = await fetch(`/api/tornei/pagamenti/${id}`, {
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' }
         });
         const data = await res.json();
 
-        if (data && data.success) {
-            showToast("Pagamento confermato! Ordine creato e aggiunto al lotto con successo.", "success");
-            chiudiDettaglioPagamentoTorneo();
+        if (res.ok && data.success) {
+            showToast("Invio fornitura eliminato con successo!", "success");
+            chiudiModalEliminaPagamentoTorneo();
+            if (typeof chiudiDettaglioPagamentoTorneo === 'function') {
+                chiudiDettaglioPagamentoTorneo();
+            }
             await caricaPagamentiTorneiAdmin();
-            
-            // Aggiorna anche gli ordini se la funzione è presente
             if (typeof caricaOrdini === 'function') {
                 caricaOrdini();
             }
@@ -26879,11 +27248,35 @@ async function confermaPagamentoTorneoUI(id) {
                 caricaLotto();
             }
         } else {
-            showToast(data.error || "Errore durante la conferma del pagamento.", "error");
+            const errorMsg = data.error || "Impossibile eliminare l'invio fornitura.";
+            if (errEl) {
+                errEl.innerText = errorMsg;
+                errEl.classList.remove('hidden');
+            }
+            showToast(errorMsg, "error");
+            if (btnConfirm) {
+                btnConfirm.disabled = false;
+                btnConfirm.innerHTML = `<span>🗑️</span> ELIMINA DEFINITIVAMENTE`;
+            }
+            if (btnCancel) {
+                btnCancel.disabled = false;
+            }
         }
     } catch (err) {
-        console.error("Errore confermaPagamentoTorneoUI:", err);
-        showToast("Errore di connessione al server durante la conferma.", "error");
+        console.error("Errore eliminazione pagamento torneo:", err);
+        const errorMsg = "Errore di connessione durante l'eliminazione.";
+        if (errEl) {
+            errEl.innerText = errorMsg;
+            errEl.classList.remove('hidden');
+        }
+        showToast(errorMsg, "error");
+        if (btnConfirm) {
+            btnConfirm.disabled = false;
+            btnConfirm.innerHTML = `<span>🗑️</span> ELIMINA DEFINITIVAMENTE`;
+        }
+        if (btnCancel) {
+            btnCancel.disabled = false;
+        }
     }
 }
 
@@ -26893,6 +27286,11 @@ window.caricaPagamentiTorneiAdmin = caricaPagamentiTorneiAdmin;
 window.mostraDettaglioPagamentoTorneo = mostraDettaglioPagamentoTorneo;
 window.chiudiDettaglioPagamentoTorneo = chiudiDettaglioPagamentoTorneo;
 window.confermaPagamentoTorneoUI = confermaPagamentoTorneoUI;
+window.ripristinaPagamentoInAttesaUI = ripristinaPagamentoInAttesaUI;
+window.eliminaPagamentoTorneoUI = apriModalEliminaPagamentoTorneo;
+window.apriModalEliminaPagamentoTorneo = apriModalEliminaPagamentoTorneo;
+window.chiudiModalEliminaPagamentoTorneo = chiudiModalEliminaPagamentoTorneo;
+window.eseguiEliminaPagamentoTorneo = eseguiEliminaPagamentoTorneo;
 
 // -------------------------------------------------------------
 // GESTIONE ASSEGNAZIONE ACCOUNT ORDINE (FASE 15)

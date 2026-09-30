@@ -6214,6 +6214,72 @@
         </div>
     </div>
 
+    <!-- MODAL CONFERMA GENERICA ADMIN (100% HTML, No window.confirm) -->
+    <div id="admin-generic-confirm-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden select-none">
+        <div id="admin-generic-confirm-container" class="bg-white border border-slate-200 rounded-3xl w-full max-w-md shadow-2xl p-6 overflow-hidden transform scale-95 opacity-0 transition-all duration-200 ease-out text-center">
+            <span id="admin-generic-confirm-icon" class="text-4xl block mb-2.5">⚠️</span>
+            <h3 id="admin-generic-confirm-title" class="text-base font-extrabold text-slate-900 mb-2">Conferma Operazione</h3>
+            <p id="admin-generic-confirm-message" class="text-xs text-slate-600 mb-6 leading-relaxed whitespace-pre-line"></p>
+            
+            <div id="admin-generic-confirm-error" class="hidden text-xs text-red-600 font-semibold mb-4 p-2 bg-red-50 rounded-xl border border-red-100"></div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" id="admin-generic-confirm-btn-cancel" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" id="admin-generic-confirm-btn-confirm" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5">
+                    Conferma
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ELIMINA SINGOLO INVIO PAGAMENTO FORNITURA TORNEO (100% HTML, No window.confirm) -->
+    <div id="modal-elimina-pagamento-torneo" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden select-none">
+        <div id="modal-elimina-pagamento-container" class="bg-white border border-rose-200 rounded-3xl w-full max-w-md shadow-2xl p-6 overflow-hidden transform scale-95 opacity-0 transition-all duration-200 ease-out text-center">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner border border-rose-100">
+                🗑️
+            </div>
+            <h3 class="text-lg font-black text-slate-900 mb-1 tracking-tight">ELIMINA ORDINE FORNITURA?</h3>
+            <p class="text-xs text-slate-500 font-medium mb-4">L'eliminazione è definitiva e rimuoverà esclusivamente questo invio.</p>
+
+            <!-- Card Dettagli Invio -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-left space-y-2 mb-4">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Squadra:</span>
+                    <span id="del-pag-squadra" class="font-extrabold text-slate-900">-</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Quantità:</span>
+                    <span id="del-pag-quantita" class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">-</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Totale:</span>
+                    <span id="del-pag-totale" class="font-mono font-extrabold text-slate-900">-</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-bold">Data invio:</span>
+                    <span id="del-pag-data" class="font-mono text-slate-600 text-[11px]">-</span>
+                </div>
+                <div class="flex justify-between items-center text-xs pt-1 border-t border-slate-200/60">
+                    <span class="text-slate-500 font-bold">Stato:</span>
+                    <span id="del-pag-stato" class="font-bold text-[11px]">-</span>
+                </div>
+            </div>
+
+            <div id="del-pag-error" class="hidden text-xs text-rose-700 font-semibold mb-4 p-2.5 bg-rose-50 rounded-xl border border-rose-200 text-left"></div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" id="btn-annulla-elimina-pagamento" onclick="chiudiModalEliminaPagamentoTorneo()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                    ANNULLA
+                </button>
+                <button type="button" id="btn-conferma-elimina-pagamento" onclick="eseguiEliminaPagamentoTorneo()" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-1.5">
+                    <span>🗑️</span> ELIMINA DEFINITIVAMENTE
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DETTAGLIO ORDINE TORNEO & PAGAMENTO -->
     <div id="modal-dettaglio-pagamento-torneo" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
         <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out max-h-[90vh] flex flex-col" id="modal-dettaglio-pagamento-container">

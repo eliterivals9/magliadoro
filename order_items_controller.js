@@ -16,6 +16,8 @@ export function setupItemEndpoints(app, helpers) {
     getAllProductsFromSupabase,
     getSupabaseClient,
     getShippingRateByQuantity,
+    resolveSupplierBasePrice,
+    calculateSupplierProductCost,
     calcolaCostoFornitoreProdotto,
     parseCustomizationDetails,
     isTechnicalShippingOrServiceLine,
@@ -84,22 +86,15 @@ export function setupItemEndpoints(app, helpers) {
           quantita_articoli_spedizione += q;
         }
 
-        let matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
-        if (!matchedProd && item.legacy_id) {
-          matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
-        }
-        if (!matchedProd) {
-          matchedProd = allDbProducts.find(p => p.versione === item.squadra || p.squadra === item.squadra);
-        }
+        // PREZZO BASE FORNITORE (Resolver centrale autorevole)
+        const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories);
+        const singleItemCostUSD = calculateSupplierProductCost(basePriceUSD, item.infoPerso || item.personalizzazione, item);
 
-        let prezzoFornUnitarioUSD = (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null) 
-          ? Number(item.prezzo_fornitore) 
-          : (matchedProd && matchedProd.prezzo_fornitore ? Number(matchedProd.prezzo_fornitore) : 14.50);
-        
-        prezzoFornUnitarioUSD = calcolaCostoFornitoreProdotto(prezzoFornUnitarioUSD, item.infoPerso || item.personalizzazione, item);
-        costo_prodotti_usd += (prezzoFornUnitarioUSD * q);
+        // REGOLA INVIOLABILE: item.prezzo_fornitore è sempre e solo il PREZZO BASE
+        item.prezzo_fornitore = basePriceUSD;
+        costo_prodotti_usd += (singleItemCostUSD * q);
 
-        const labelFornitore = prezzoFornUnitarioUSD > 0 ? `$${prezzoFornUnitarioUSD.toFixed(2)}` : "-";
+        const labelFornitore = singleItemCostUSD > 0 ? `$${singleItemCostUSD.toFixed(2)}` : "-";
         itemSupplierPrices.push(`${q}x ${labelFornitore}`);
 
         stringaSquadre.push(`${q}x ${item.squadra || 'Prodotto'}`);
@@ -510,17 +505,17 @@ export function setupItemEndpoints(app, helpers) {
         priceVal = matchedAcc ? parseFloat(matchedAcc.prezzo) : (matchedProd && matchedProd.prezzo ? parseFloat(matchedProd.prezzo) : (isAccessoryItem ? 6.00 : 23.99));
       }
 
-      // Prezzo fornitore
-      let supplierVal = parseFloat(prezzo_fornitore);
-      if (isNaN(supplierVal) || supplierVal <= 0) {
-        if (matchedAcc && matchedAcc.prezzo_fornitore !== undefined && matchedAcc.prezzo_fornitore !== null) {
-          supplierVal = parseFloat(matchedAcc.prezzo_fornitore);
-        } else if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null) {
-          supplierVal = parseFloat(matchedProd.prezzo_fornitore);
-        } else {
-          supplierVal = isAccessoryItem ? 3.00 : 14.50;
-        }
-      }
+      // Prezzo fornitore base (Resolver centrale autorevole)
+      const supplierVal = resolveSupplierBasePrice({
+        id: matchedAcc ? matchedAcc.id : ((matchedProd && matchedProd.id) ? matchedProd.id : (productId || null)),
+        accessory_id: isAccessoryItem ? (matchedAcc ? matchedAcc.id : (req.body.accessory_id || productId)) : undefined,
+        legacy_id: (matchedProd && matchedProd.legacy_id) ? matchedProd.legacy_id : (legacy_id || null),
+        squadra: nomeSquadra,
+        versione: vers,
+        categoria: cat,
+        tipo_catalogo: isAccessoryItem ? 'accessori' : 'prodotti',
+        prezzo_fornitore: !isNaN(parseFloat(prezzo_fornitore)) ? parseFloat(prezzo_fornitore) : undefined
+      }, allDbProducts, localAccessories);
 
       // Immagine reale
       let resolvedImgUrl = imgUrl || '';
