@@ -7,6 +7,23 @@
 let prodotti = [];
 let squadreCatalogo = [];
 window.squadreCatalogo = squadreCatalogo;
+let squadreMapByNormName = new Map();
+
+function aggiornaSquadreMap() {
+    squadreMapByNormName.clear();
+    if (Array.isArray(squadreCatalogo)) {
+        for (let i = 0; i < squadreCatalogo.length; i++) {
+            const t = squadreCatalogo[i];
+            if (t && t.name) {
+                const key = t.name.trim().toLowerCase();
+                if (key && !squadreMapByNormName.has(key)) {
+                    squadreMapByNormName.set(key, t);
+                }
+            }
+        }
+    }
+}
+window.aggiornaSquadreMap = aggiornaSquadreMap;
 let ordini = [];
 let currentActiveTab = 'dashboard';
 let orderSelectionMode = null; // null | 'profitSplit'
@@ -955,7 +972,13 @@ function isProdottoNazionale(p) {
     if (!p) return false;
     if (p.squadra) {
         const sqNorm = p.squadra.trim().toLowerCase();
-        const teamObj = Array.isArray(squadreCatalogo) && squadreCatalogo.find(t => t && t.name && t.name.trim().toLowerCase() === sqNorm);
+        if (squadreMapByNormName.size === 0 && Array.isArray(squadreCatalogo) && squadreCatalogo.length > 0) {
+            aggiornaSquadreMap();
+        }
+        let teamObj = squadreMapByNormName.get(sqNorm);
+        if (!teamObj && Array.isArray(squadreCatalogo)) {
+            teamObj = squadreCatalogo.find(t => t && t.name && t.name.trim().toLowerCase() === sqNorm);
+        }
         if (teamObj && teamObj.categoria) {
             const cat = teamObj.categoria.trim().toLowerCase();
             if (cat === 'nazionali' || cat === 'nazionale') return true;
@@ -1515,6 +1538,7 @@ async function caricaSquadre(force = false) {
                 if (data && data.success) {
                     squadreCatalogo = data.teams || [];
                     window.squadreCatalogo = squadreCatalogo;
+                    aggiornaSquadreMap();
                 }
             }
         } catch (e) {
@@ -4951,6 +4975,10 @@ function showToast(message, type = "info") {
  * @param {string} tabId - L'id della tab da attivare
  */
 function switchTab(tabId, preserveSelectionMode = false) {
+    if (typeof debounceSearchOrdiniTimer !== 'undefined' && debounceSearchOrdiniTimer) {
+        clearTimeout(debounceSearchOrdiniTimer);
+        debounceSearchOrdiniTimer = null;
+    }
     if (tabId === 'lotti') {
         tabId = 'lotto';
     }
@@ -5410,12 +5438,10 @@ window.gestisciArchiviazione = async function(dataKey, isArchived) {
         const result = await response.json();
         if (result && result.success) {
             showToast(`Ordine ${actionLabel} con successo!`, "success");
-            await caricaLotto();
-            await caricaOrdini();
-            if (typeof caricaGestioneOrdini === 'function') {
-                await caricaGestioneOrdini();
-            }
-            await caricaCronologiaLotti();
+            await Promise.all([
+                caricaOrdini(),
+                typeof caricaGestioneOrdini === 'function' ? caricaGestioneOrdini() : Promise.resolve()
+            ]);
         } else {
             showToast("Errore durante l'operazione: " + (result.error || "errore sconosciuto"), "error");
         }
@@ -5474,16 +5500,10 @@ window.gestisciEliminazione = async function(orderIdOrKey, optionalDataKey) {
         const result = await response.json();
         if (response.ok && result && result.success) {
             showToast("Ordine eliminato definitivamente con successo!", "success");
-            await caricaOrdini();
-            if (typeof caricaGestioneOrdini === 'function') {
-                await caricaGestioneOrdini();
-            }
-            if (typeof caricaLotto === 'function') {
-                await caricaLotto();
-            }
-            if (typeof caricaCronologiaLotti === 'function') {
-                await caricaCronologiaLotti();
-            }
+            await Promise.all([
+                caricaOrdini(),
+                typeof caricaGestioneOrdini === 'function' ? caricaGestioneOrdini() : Promise.resolve()
+            ]);
         } else {
             showToast("Errore durante l'eliminazione: " + (result.error || "errore sconosciuto"), "error");
         }
@@ -5605,6 +5625,28 @@ function getOrderTimestampForSorting(o) {
         return Number(o.id);
     }
     return 0;
+}
+
+/**
+ * Costruisce una Map per lookup O(1) del numero progressivo cronologico reale degli ordini (1-based).
+ */
+function costruisciMappaIndiciCronologici(ordiniList) {
+    if (!Array.isArray(ordiniList)) return new Map();
+    const cronoList = [...ordiniList].sort((a, b) => {
+        const tA = getOrderTimestampForSorting(a);
+        const tB = getOrderTimestampForSorting(b);
+        if (tA !== tB) return tA - tB;
+        return (Number(a.id) || 0) - (Number(b.id) || 0);
+    });
+
+    const indexMap = new Map();
+    cronoList.forEach((o, index) => {
+        const key = o.id ? `id_${Number(o.id)}` : `data_${o.data}`;
+        if (!indexMap.has(key)) {
+            indexMap.set(key, index + 1);
+        }
+    });
+    return indexMap;
 }
 
 /**
@@ -6282,14 +6324,8 @@ function renderOrdini() {
         return;
     }
 
-    // 1. Ordina l'intero array degli ordini in ordine CRONOLOGICO (dal più vecchio al più recente)
-    // per assegnare il numero progressivo reale (#1 al primo ordine mai fatto, #2 al secondo, ecc.)
-    const ordiniCronologici = [...ordini].sort((a, b) => {
-        const tA = getOrderTimestampForSorting(a);
-        const tB = getOrderTimestampForSorting(b);
-        if (tA !== tB) return tA - tB;
-        return (Number(a.id) || 0) - (Number(b.id) || 0);
-    });
+    // 1. Costruisce la Map O(1) per assegnare il numero progressivo reale (#1 al primo ordine mai fatto, #2 al secondo, ecc.)
+    const cronoIndexMap = costruisciMappaIndiciCronologici(ordini);
 
     // 2. Ordina gli ordini filtrati dal PIÙ RECENTE al PIÙ VECCHIO per la visualizzazione in pagina
     const ordiniDaMostrare = [...ordiniFiltrati].sort((a, b) => {
@@ -6299,12 +6335,13 @@ function renderOrdini() {
         return (Number(b.id) || 0) - (Number(a.id) || 0);
     });
 
-    // 3. Mappa ciascun ordine con il suo numero progressivo cronologico reale (1-based)
+    // 3. Mappa ciascun ordine con il suo numero progressivo cronologico reale O(1) (1-based)
     const ordiniConDettagli = ordiniDaMostrare.map(order => {
-        const cronoIndex = ordiniCronologici.findIndex(o => (o.id && order.id ? Number(o.id) === Number(order.id) : o.data === order.data));
+        const key = order.id ? `id_${Number(order.id)}` : `data_${order.data}`;
+        const displayIndex = cronoIndexMap.get(key) || 'N/D';
         return {
             order,
-            displayIndex: cronoIndex !== -1 ? (cronoIndex + 1) : 'N/D'
+            displayIndex
         };
     });
 
@@ -14234,13 +14271,55 @@ window.chiudiCatalogoPubblicoPerOrdine = function() {
     if (modal) modal.classList.add('hidden');
 };
 
+let cachedPickerAccessori = null;
+let lastAccRawRef = null;
+
+function ottieniAccessoriPickerNormalizzati() {
+    const accRawList = Array.isArray(window.accessori) ? window.accessori : [];
+    if (cachedPickerAccessori && lastAccRawRef === accRawList) {
+        return cachedPickerAccessori;
+    }
+    lastAccRawRef = accRawList;
+    cachedPickerAccessori = accRawList.map(a => ({
+        id: a.id,
+        accessory_id: a.id,
+        tipo_catalogo: 'accessori',
+        squadra: a.nome || a.marca || 'Accessorio',
+        nome: a.nome,
+        categoria: a.categoria || 'Accessori',
+        stagione: '',
+        versione: a.nome,
+        prezzo: Number(a.prezzo) || 6.00,
+        prezzo_fornitore: a.prezzo_fornitore !== undefined && a.prezzo_fornitore !== null ? Number(a.prezzo_fornitore) : 3.00,
+        immagine: a.immagine || a.imgUrl || '',
+        gestione_taglia: a.gestione_taglia || 'unica',
+        richiede_taglia: a.richiede_taglia,
+        opzioni: a.opzioni,
+        taglia: a.taglia,
+        marca: a.marca,
+        supplier_shipping_enabled: a.supplier_shipping_enabled
+    }));
+    return cachedPickerAccessori;
+}
+
+let pickerSearchDebounceTimer = null;
+function onInputPickerSearchAdmin() {
+    if (pickerSearchDebounceTimer) {
+        clearTimeout(pickerSearchDebounceTimer);
+    }
+    pickerSearchDebounceTimer = setTimeout(() => {
+        filtraPickerProdottiAdmin();
+    }, 150);
+}
+window.onInputPickerSearchAdmin = onInputPickerSearchAdmin;
+
 function popolaFiltriPickerAdmin() {
     const catSelect = document.getElementById('picker-select-categoria');
     const sqSelect = document.getElementById('picker-select-squadra');
     const stagSelect = document.getElementById('picker-select-stagione');
 
     const prodList = Array.isArray(window.prodotti) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
-    const accList = Array.isArray(window.accessori) ? window.accessori : [];
+    const accList = ottieniAccessoriPickerNormalizzati();
 
     const allCats = [
         ...prodList.map(p => (p.categoria || '').trim()),
@@ -14337,27 +14416,7 @@ function filtraPickerProdottiAdmin() {
     const selOrd = ordSelect ? ordSelect.value : 'recenti';
 
     const prodList = Array.isArray(window.prodotti) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
-    const accRawList = Array.isArray(window.accessori) ? window.accessori : [];
-
-    const accList = accRawList.map(a => ({
-        id: a.id,
-        accessory_id: a.id,
-        tipo_catalogo: 'accessori',
-        squadra: a.nome || a.marca || 'Accessorio',
-        nome: a.nome,
-        categoria: a.categoria || 'Accessori',
-        stagione: '',
-        versione: a.nome,
-        prezzo: Number(a.prezzo) || 6.00,
-        prezzo_fornitore: a.prezzo_fornitore !== undefined && a.prezzo_fornitore !== null ? Number(a.prezzo_fornitore) : 3.00,
-        immagine: a.immagine || a.imgUrl || '',
-        gestione_taglia: a.gestione_taglia || 'unica',
-        richiede_taglia: a.richiede_taglia,
-        opzioni: a.opzioni,
-        taglia: a.taglia,
-        marca: a.marca,
-        supplier_shipping_enabled: a.supplier_shipping_enabled
-    }));
+    const accList = ottieniAccessoriPickerNormalizzati();
 
     let listaBase = [];
     if (pickerTipoFiltro === 'club') {
@@ -16157,7 +16216,7 @@ let adminChatAllegatoCorrente = null;
 
 async function caricaConversazioniAdmin(silente = false) {
     try {
-        const res = await fetch('/api/admin/chats');
+        const res = await fetch('/api/admin/chats', { headers: getAdminAuthHeaders() });
         if (!res.ok) {
             if (!silente) console.warn("Risposta non OK da /api/admin/chats:", res.status);
             return;
@@ -16352,16 +16411,18 @@ async function selezionaConversazioneAdmin(id) {
     try {
         const res = await fetch('/api/admin/chat/mark-read', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ conversation_id: id })
         });
-        const data = await res.json();
-        if (data.success) {
-            const convIdx = conversazioniAdminList.findIndex(c => c.id === id);
-            if (convIdx !== -1) {
-                conversazioniAdminList[convIdx].admin_last_read_at = new Date().toISOString();
-                conversazioniAdminList[convIdx].unreadCount = 0; // Reset local count
-                renderConversazioniLista(); // Re-render to update badge immediately
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.success) {
+                const convIdx = conversazioniAdminList.findIndex(c => c.id === id);
+                if (convIdx !== -1) {
+                    conversazioniAdminList[convIdx].admin_last_read_at = new Date().toISOString();
+                    conversazioniAdminList[convIdx].unreadCount = 0; // Reset local count
+                    renderConversazioniLista(); // Re-render to update badge immediately
+                }
             }
         }
     } catch (err) {
@@ -16444,7 +16505,7 @@ window.addEventListener('resize', () => {
 async function caricaMessaggiConversazioneCorrente(silente = false) {
     if (!conversazioneSelezionataId) return;
     try {
-        const res = await fetch(`/api/admin/chat/${conversazioneSelezionataId}/messages`);
+        const res = await fetch(`/api/admin/chat/${conversazioneSelezionataId}/messages`, { headers: getAdminAuthHeaders() });
         if (!res.ok) {
             if (!silente) console.warn("Risposta non OK messaggi chat:", res.status);
             return;
@@ -16524,15 +16585,19 @@ async function cambiaStatoConversazioneSelezionata(nuovoStato) {
     try {
         const res = await fetch('/api/admin/chat/update-status', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ conversation_id: conversazioneSelezionataId, stato: nuovoStato })
         });
-        const data = await res.json();
-        if (data.success) {
-            showToast(`Stato conversazione aggiornato a "${nuovoStato}".`, "success");
-            await caricaConversazioniAdmin(true);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+                showToast(`Stato conversazione aggiornato a "${nuovoStato}".`, "success");
+                await caricaConversazioniAdmin(true);
+            } else {
+                showToast("Errore aggiornamento stato: " + data.error, "error");
+            }
         } else {
-            showToast("Errore aggiornamento stato: " + data.error, "error");
+            showToast("Errore di autorizzazione nell'aggiornamento dello stato", "error");
         }
     } catch (err) {
         console.error("Errore cambiaStatoConversazioneSelezionata:", err);
@@ -16559,18 +16624,21 @@ async function inviaMessaggioAdmin() {
 
         const res = await fetch('/api/admin/chat/respond', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(payload)
         });
-        const data = await res.json();
-
-        if (data.success) {
-            inputEl.value = '';
-            annullaAllegatoAdmin();
-            await caricaMessaggiConversazioneCorrente(false);
-            await caricaConversazioniAdmin(true);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+                inputEl.value = '';
+                annullaAllegatoAdmin();
+                await caricaMessaggiConversazioneCorrente(false);
+                await caricaConversazioniAdmin(true);
+            } else {
+                showToast("Errore invio messaggio: " + data.error, "error");
+            }
         } else {
-            showToast("Errore invio messaggio: " + data.error, "error");
+            showToast("Errore di autorizzazione nell'invio del messaggio", "error");
         }
     } catch (err) {
         console.error("Errore inviaMessaggioAdmin:", err);
@@ -18453,13 +18521,21 @@ function esciModalitaSelezioneOrdini() {
     switchTab('suddivisione-conti');
 }
 
+let debounceSearchOrdiniTimer = null;
+
 /**
- * Filtra gli ordini visualizzati nel tab ordini in base all'input di ricerca
+ * Filtra gli ordini visualizzati nel tab ordini in base all'input di ricerca con debounce (150ms)
  */
 function filtraOrdiniCards() {
-    const input = document.getElementById('ordini-search-input');
-    ordiniSearchQuery = input ? input.value.trim().toLowerCase() : '';
-    renderOrdini();
+    if (debounceSearchOrdiniTimer) {
+        clearTimeout(debounceSearchOrdiniTimer);
+    }
+    debounceSearchOrdiniTimer = setTimeout(() => {
+        debounceSearchOrdiniTimer = null;
+        const input = document.getElementById('ordini-search-input');
+        ordiniSearchQuery = input ? input.value.trim().toLowerCase() : '';
+        renderOrdini();
+    }, 150);
 }
 
 /**
@@ -24527,19 +24603,14 @@ function openModificaPrezzoOrdineModal(orderIdToSelect = null) {
     // Filtra gli ordini attivi non archiviati
     const ordiniAttivi = ordini.filter(o => !archivedKeys.includes(o.data) && !o.is_archived);
 
-    // Ordine cronologico per mostrare displayIndex corretto
-    const ordiniCronologici = [...ordini].sort((a, b) => {
-        const tA = getOrderTimestampForSorting(a);
-        const tB = getOrderTimestampForSorting(b);
-        if (tA !== tB) return tA - tB;
-        return (Number(a.id) || 0) - (Number(b.id) || 0);
-    });
+    // Ordine cronologico O(1) per mostrare displayIndex corretto
+    const cronoIndexMap = costruisciMappaIndiciCronologici(ordini);
 
     select.innerHTML = '<option value="">-- Seleziona un ordine attivo --</option>';
 
     ordiniAttivi.forEach(o => {
-        const cronoIndex = ordiniCronologici.findIndex(x => (x.id && o.id ? Number(x.id) === Number(o.id) : x.data === o.data));
-        const dispIdx = cronoIndex !== -1 ? (cronoIndex + 1) : 'N/D';
+        const key = o.id ? `id_${Number(o.id)}` : `data_${o.data}`;
+        const dispIdx = cronoIndexMap.get(key) || 'N/D';
         const orderIdVal = String(o.id !== undefined && o.id !== null ? o.id : o.data);
         const numArt = estraiNumeroArticoli(o);
         const totalStr = typeof o.totale === 'number' ? `€ ${o.totale.toFixed(2).replace('.', ',')}` : (String(o.totale).includes('€') ? String(o.totale) : `€ ${o.totale}`);
@@ -24611,15 +24682,10 @@ function onSelectOrdineModificaPrezzo(orderId) {
 
     selectedPrezzoOrdine = order;
 
-    // Recupera indice cronologico reale
-    const ordiniCronologici = [...ordini].sort((a, b) => {
-        const tA = getOrderTimestampForSorting(a);
-        const tB = getOrderTimestampForSorting(b);
-        if (tA !== tB) return tA - tB;
-        return (Number(a.id) || 0) - (Number(b.id) || 0);
-    });
-    const cronoIndex = ordiniCronologici.findIndex(x => (x.id && order.id ? Number(x.id) === Number(order.id) : x.data === order.data));
-    const dispIdx = cronoIndex !== -1 ? (cronoIndex + 1) : (order.id || 'N/D');
+    // Recupera indice cronologico reale O(1)
+    const cronoIndexMap = costruisciMappaIndiciCronologici(ordini);
+    const key = order.id ? `id_${Number(order.id)}` : `data_${order.data}`;
+    const dispIdx = cronoIndexMap.get(key) || (order.id || 'N/D');
 
     // Popola Header Riepilogo Ordine
     const badgeEl = document.getElementById('modal-prezzo-order-badge');
@@ -27588,10 +27654,17 @@ let isPerfLoading = false;
 function getAdminAuthHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     try {
-        const sessionStr = localStorage.getItem('sb-' + (window.SUPABASE_PROJECT_ID || 'f192abf6-499a-4c57-82e2-6f321d60f017') + '-auth-token') || localStorage.getItem('supabase_token');
+        const sessionStr = localStorage.getItem('sb-admin-auth-token') || 
+                           localStorage.getItem('sb-' + (window.SUPABASE_PROJECT_ID || 'f192abf6-499a-4c57-82e2-6f321d60f017') + '-auth-token') || 
+                           localStorage.getItem('supabase_token');
         if (sessionStr) {
-            const parsed = JSON.parse(sessionStr);
-            const token = parsed?.access_token || parsed?.currentSession?.access_token || sessionStr;
+            let token = null;
+            if (sessionStr.startsWith('{')) {
+                const parsed = JSON.parse(sessionStr);
+                token = parsed?.access_token || parsed?.currentSession?.access_token || null;
+            } else {
+                token = sessionStr;
+            }
             if (token && typeof token === 'string') {
                 headers['Authorization'] = `Bearer ${token}`;
             }

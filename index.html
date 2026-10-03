@@ -11015,10 +11015,6 @@ Per qualsiasi dubbio o anomalia nella consegna, il nostro servizio clienti sarà
                     <option value="XXL">Taglia XXL</option>
                 </select>
             </div>
-            <div class="gruppo-form" id="gruppo-modal-quantita">
-                <label id="label-modal-quantita">Quantità</label>
-                <input type="number" id="modal-quantita" min="1" max="99" step="1" value="1" oninput="ricalcolaPrezzoPopup()" onchange="ricalcolaPrezzoPopup()">
-            </div>
             <div class="gruppo-form" id="gruppo-modal-nome">
                 <label id="label-modal-nome">Nome sulla maglia <span id="badge-modal-nome">+1,50€</span></label>
                 <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
@@ -18776,6 +18772,15 @@ for (const cat in hierarchy) {
             // 1. Cerca la configurazione del filtro nei filtriCatalogo dell'Admin (Source of Truth)
             const configFiltro = trovaConfigurazioneFiltroCatalogo(catFiltro);
 
+            // Modalità "Tutti": quando il filtro è "Tutti" o neutrale, NON applicare alcun filtro Adulto/Bambino
+            const isFiltroTutti = cf === 'tutti' || cf === 'tutto' || cfNorm === 'tutti' || 
+                                  (configFiltro && ((configFiltro.nome || '').toLowerCase().trim() === 'tutti' || 
+                                                    (configFiltro.nome || '').toLowerCase().trim() === 'tutto' || 
+                                                    (configFiltro.id || '').toLowerCase().trim() === 'fil_tutti'));
+            if (isFiltroTutti) {
+                return true;
+            }
+
             if (configFiltro) {
                 // Se il filtro è disattivato dall'Admin, non deve mostrare prodotti
                 if (configFiltro.stato === 'inattivo' || configFiltro.attivo === false) {
@@ -21835,7 +21840,12 @@ function renderizzaProdottiSquadraConFiltri() {
             }
 
             const elQuantita = document.getElementById('modal-quantita');
-            let q = elQuantita ? parseInt(elQuantita.value, 10) : 1;
+            let q = 1;
+            if (elQuantita) {
+                q = parseInt(elQuantita.value, 10);
+            } else if (indexInModifica !== null && carrello[indexInModifica]) {
+                q = parseInt(carrello[indexInModifica].quantita, 10) || 1;
+            }
             if (isNaN(q) || q < 1) q = 1;
             if (q > 99) q = 99;
 

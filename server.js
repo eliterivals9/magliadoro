@@ -3262,6 +3262,84 @@ function invalidateProductsCache() {
   productsCountCache = null;
 }
 
+async function getProductsCatalogFromCacheOrFetch() {
+  const now = Date.now();
+  if (productsCacheData && (now - productsCacheData.timestamp < PRODUCTS_CACHE_TTL_MS) && productsCacheData.responseJson && Array.isArray(productsCacheData.responseJson.products)) {
+    return productsCacheData.responseJson.products;
+  }
+
+  if (productsFetchPromise) {
+    const resJson = await productsFetchPromise;
+    if (resJson && Array.isArray(resJson.products)) return resJson.products;
+  }
+
+  productsFetchPromise = (async () => {
+    const supabase = getSupabaseClient();
+    let data = [];
+    let source = 'supabase';
+
+    if (supabase) {
+      try {
+        const allProductsRaw = await getAllProductsFromSupabase(supabase);
+        data = allProductsRaw;
+      } catch (dbErr) {
+        if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+          data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+          source = 'local';
+        } else {
+          throw dbErr;
+        }
+      }
+    } else if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      source = 'local';
+    } else {
+      throw new Error("Nessun database configurato o trovato.");
+    }
+
+    const products = data.map(p => {
+      let target = p.target;
+      let categoria = normalizzaCategoria(p.categoria);
+      if (categoria === "Kit" && (p.categoria === "Kit Bambino" || target === "Bambino")) {
+        target = "Bambino";
+      }
+      if (!target) {
+        const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${p.categoria || ''}`.toLowerCase();
+        if (textToCheck.includes('kids') || textToCheck.includes('bambino') || textToCheck.includes('child') || textToCheck.includes('youth')) {
+          target = "Bambino";
+        } else {
+          target = "Adulto";
+        }
+      }
+      return {
+        id: p.id,
+        legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+        squadra: p.squadra || '',
+        categoria: categoria,
+        target: target,
+        versione: p.versione || '',
+        stagione: p.stagione || '',
+        prezzo: p.prezzo !== undefined ? Number(p.prezzo) : 23.99,
+        prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null && p.prezzo_fornitore !== "" ? Number(p.prezzo_fornitore) : null,
+        immagine: p.immagine || '',
+        filtro_catalogo: p.filtro_catalogo || '',
+        tag: p.tag || '',
+        tipo: p.tipo || ''
+      };
+    });
+
+    const responseJson = { success: true, source, products };
+    productsCacheData = { responseJson, timestamp: Date.now() };
+    return products;
+  })();
+
+  try {
+    return await productsFetchPromise;
+  } finally {
+    productsFetchPromise = null;
+  }
+}
+
 async function getProductsCatalogCounts() {
   const now = Date.now();
   if (productsCountCache && (now - productsCountCache.timestamp < PRODUCTS_COUNT_CACHE_TTL_MS)) {
@@ -3271,6 +3349,17 @@ async function getProductsCatalogCounts() {
   let totaleProdotti = 0;
   let prodottiSenzaFornitore = 0;
 
+  // 1. Se la RAM cache dei prodotti (productsCacheData) è già disponibile e valida, usiamola direttamente senza fare query Supabase
+  if (productsCacheData && (now - productsCacheData.timestamp < PRODUCTS_CACHE_TTL_MS) && productsCacheData.responseJson && Array.isArray(productsCacheData.responseJson.products)) {
+    const prods = productsCacheData.responseJson.products;
+    totaleProdotti = prods.length;
+    prodottiSenzaFornitore = prods.filter(p => p.prezzo_fornitore === null || p.prezzo_fornitore === undefined || p.prezzo_fornitore === 0).length;
+    const result = { totaleProdotti, senzaFornitore: prodottiSenzaFornitore };
+    productsCountCache = { data: result, timestamp: now };
+    return result;
+  }
+
+  // 2. Fallback: Se la RAM cache non è attiva, eseguiamo le query Supabase
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -3322,6 +3411,10 @@ function invalidateSettingsCache() {
 
 // Helper per scaricare in modo resiliente e paginato TUTTI i prodotti da Supabase (evitando il limite di 1000 righe)
 async function getAllProductsFromSupabase(supabase) {
+  const now = Date.now();
+  if (productsCacheData && (now - productsCacheData.timestamp < PRODUCTS_CACHE_TTL_MS) && productsCacheData.responseJson && Array.isArray(productsCacheData.responseJson.products)) {
+    return productsCacheData.responseJson.products;
+  }
   if (!supabase) return [];
   let allProductsRaw = [];
   let rangeStart = 0;
@@ -8754,18 +8847,7 @@ app.get('/api/lotto/archive', async (req, res) => {
     const settings = getSettings();
     const profitData = await getDbProfitShares();
     const allOrders = await getDbOrders();
-    let localProducts = [];
-    try {
-      localProducts = getLocalProducts();
-    } catch (e) {}
-    let supabaseProducts = [];
-    try {
-      const supabase = getSupabaseClient();
-      if (supabase) {
-        supabaseProducts = await getAllProductsFromSupabase(supabase);
-      }
-    } catch (e) {}
-    const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+    const allDbProducts = await getProductsCatalogFromCacheOrFetch();
 
     // Filtra per mostrare nella Cronologia solo i lotti con stato concluso/archiviato
     // Esclude lotti con status 'ripristinato', 'attivo' o 'riaperto'
@@ -8854,6 +8936,7 @@ app.get('/api/lotto/archive', async (req, res) => {
       }
     }));
 
+    console.timeEnd("GET /api/lotto/archive TOTAL");
     return res.json({ success: true, archive: enrichedArchive });
   } catch (err) {
     console.error("⚠️ Errore lettura archivio lotti:", err.message);

@@ -482890,3 +482890,1994 @@ sourceFunction: GET /api/lotto/archive
 [2026-09-30T17:07:10.096Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
 [2026-09-30T17:07:10.208Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
 [2026-09-30T17:07:14.099Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 1228ms
+[2026-10-01T00:27:53.427Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T00:27:53.522Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T00:27:53.522Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:27:53.523Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T00:27:53.524Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:27:53.929Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T00:27:56.525Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T00:27:56.528Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:27:56.570Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:27:56.626Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:27:56.653Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:27:57.598Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 502ms
+[2026-10-01T00:31:23.552Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T00:31:23.635Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T00:31:23.635Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:31:23.636Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T00:31:23.636Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:31:24.005Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T00:31:26.637Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T00:31:26.639Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:31:26.705Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:31:31.208Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:31:31.297Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:31:32.325Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 532ms
+[2026-10-01T00:36:12.245Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T00:36:12.332Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T00:36:12.332Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:36:12.333Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T00:36:12.333Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:36:12.670Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T00:36:15.336Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T00:36:15.341Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:36:15.414Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:36:20.130Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:36:20.195Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:36:21.284Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 502ms
+[2026-10-01T00:46:15.120Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:46:15.220Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:46:15.792Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:46:15.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:15.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.8792
+convertedEUR: 12.57
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:15.795Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:15.796Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:15.797Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:15.797Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:15.800Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T00:46:52.596Z] [LOG] 👤 [API registered-accounts] Recuperati con successo 9 account registrati da Supabase profiles.
+[2026-10-01T00:46:53.159Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:46:53.160Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:53.161Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.8792
+convertedEUR: 12.57
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:53.161Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:53.161Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:53.161Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:53.165Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:46:53.165Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T00:46:53.312Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:46:53.445Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:46:53.445Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:46:53.452Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:46:53.494Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:52:21.755Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T00:52:21.840Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T00:52:21.840Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:52:21.842Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T00:52:21.842Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:52:21.948Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T00:52:24.843Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T00:52:24.846Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:52:24.901Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:52:29.191Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:52:29.258Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:52:30.304Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 512ms
+[2026-10-01T00:53:11.276Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:53:11.278Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:11.278Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.8792
+convertedEUR: 12.57
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:11.278Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:11.278Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:11.279Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:11.279Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:11.279Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T00:53:14.234Z] [LOG] 👤 [API registered-accounts] Recuperati con successo 9 account registrati da Supabase profiles.
+[2026-10-01T00:53:14.802Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:53:14.934Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:14.936Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:14.942Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:14.980Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:19.689Z] [LOG] 👤 [API registered-accounts] Recuperati con successo 9 account registrati da Supabase profiles.
+[2026-10-01T00:53:26.233Z] [LOG] ➕ Aggiunto articolo all'ordine #355: Norvegia (M)
+[2026-10-01T00:53:26.693Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 24.8
+conversionRate: 0.881813
+convertedEUR: 21.87
+sourceFunction: ricalcolaTotaliEDatiDerivatiOrdine
+[2026-10-01T00:53:26.779Z] [LOG] ✅ Supabase orders aggiornato per ordine #355
+[2026-10-01T00:53:26.842Z] [LOG] ✅ Cache locale orders_local.json sincronizzata per ordine #355
+[2026-10-01T00:53:27.334Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.74
+conversionRate: 0.856
+convertedEUR: 14.33
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:53:27.335Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:27.335Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 24.8
+conversionRate: 0.881813
+convertedEUR: 21.87
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:27.372Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:27.372Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:27.372Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:27.375Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:27.378Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 40
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 126
+[2026-10-01T00:53:28.306Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.31
+conversionRate: 0.856
+convertedEUR: 14.82
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:53:28.403Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:28.404Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:28.408Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:28.447Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:53:30.385Z] [LOG] 🗑️ Rimosso articolo dall'ordine #355: Norvegia (M)
+[2026-10-01T00:53:31.261Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: ricalcolaTotaliEDatiDerivatiOrdine
+[2026-10-01T00:53:32.112Z] [LOG] ✅ Supabase orders aggiornato per ordine #355
+[2026-10-01T00:53:32.773Z] [LOG] ✅ Cache locale orders_local.json sincronizzata per ordine #355
+[2026-10-01T00:53:34.423Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:53:34.423Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:34.424Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:34.478Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:34.478Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:34.478Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:34.481Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:53:34.484Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T00:56:58.294Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:56:58.295Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:56:58.295Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:56:58.295Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:56:58.295Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:56:58.299Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:56:58.299Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:56:58.299Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T00:56:59.012Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:56:59.147Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.147Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.155Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.204Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.812Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:56:59.919Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.920Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.924Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:56:59.959Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:00.586Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:57:00.688Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:00.688Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:00.692Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:00.726Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:55.038Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 11.36
+conversionRate: 0.856
+convertedEUR: 9.72
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:57:55.038Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:57:55.038Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:57:55.038Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:57:55.039Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:57:55.039Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T00:57:55.039Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 26
+shippingRate: 3
+ordersAffected: 5
+totalShipping: 84
+[2026-10-01T00:57:55.780Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T00:57:55.875Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:55.875Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:55.879Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:57:55.912Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T00:58:17.319Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T00:58:17.404Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T00:58:17.405Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:58:17.406Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T00:58:17.406Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T00:58:17.504Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T00:58:20.407Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T00:58:20.410Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:58:20.466Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:58:25.292Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T00:58:25.372Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T00:58:26.329Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 419ms
+[2026-10-01T01:00:49.982Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:00:50.065Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:00:50.065Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:00:50.066Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:00:50.066Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:00:50.212Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:00:53.069Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:00:53.071Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:00:53.139Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:00:57.186Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:00:57.239Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:00:58.304Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 469ms
+[2026-10-01T01:01:28.367Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:01:28.368Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:01:28.368Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:01:28.369Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:01:28.369Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:01:28.369Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:01:28.369Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:01:28.370Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:03:34.441Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:03:34.527Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:03:34.528Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:03:34.528Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:03:34.529Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:03:34.688Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:03:37.531Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:03:37.533Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:03:37.585Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:03:40.782Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:03:40.830Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:03:41.755Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 478ms
+[2026-10-01T01:05:53.097Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:05:53.183Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:05:53.184Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:05:53.185Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:05:53.185Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:05:53.573Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:05:56.185Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:05:56.188Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:05:56.264Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:06:00.200Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:06:00.267Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:06:01.229Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 459ms
+[2026-10-01T01:06:50.891Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:06:50.894Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:06:50.895Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:06:50.895Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:06:50.899Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:06:50.899Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:06:50.901Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:06:50.905Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:07:36.693Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:07:36.787Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:07:36.787Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:07:36.789Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:07:36.789Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:07:36.889Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:07:39.791Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:07:39.794Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:07:39.840Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:07:47.174Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:07:47.246Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:07:48.132Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 430ms
+[2026-10-01T01:08:43.279Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:43.282Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:08:43.282Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:08:43.282Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:08:43.282Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:08:43.283Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:08:43.283Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:08:43.283Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:08:43.425Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:43.564Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:43.565Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:43.572Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:43.619Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.167Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:44.271Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.271Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.274Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.305Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.865Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:44.968Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.969Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:44.972Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:45.004Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:45.512Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:45.609Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:45.609Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:45.614Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:45.652Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.150Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:46.264Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.264Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.268Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.299Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.846Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:08:46.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.954Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:08:46.986Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:09:49.798Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:09:49.884Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:09:49.885Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:09:49.886Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:09:49.886Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:09:50.012Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:09:52.887Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:09:52.890Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:09:52.970Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:09:58.566Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:09:58.649Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:09:59.681Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 461ms
+[2026-10-01T01:10:59.441Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:10:59.602Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:10:59.603Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:10:59.609Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:10:59.650Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:35.351Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:35.498Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:35.498Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:35.502Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:35.535Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.078Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:36.179Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.180Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.184Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.227Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.749Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:36.872Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.872Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.877Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:36.914Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:37.422Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:37.535Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:37.535Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:37.540Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:37.581Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.101Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:38.207Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.207Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.766Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:38.768Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:11:38.768Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:11:38.768Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:11:38.773Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:11:38.773Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:11:38.773Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:11:38.773Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:11:38.829Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:11:38.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.925Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.930Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:11:38.962Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:56.662Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:12:56.790Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:56.790Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:56.794Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:56.841Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:57.458Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:12:57.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:57.559Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:57.566Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:57.596Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.195Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:12:58.286Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.286Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.290Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.324Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.862Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:12:58.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.949Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.954Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:58.982Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:59.524Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:12:59.623Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:59.623Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:59.628Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:12:59.661Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:00.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:13:00.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:13:00.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:13:00.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:13:00.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:13:00.213Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:13:00.213Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:13:00.213Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:13:00.367Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:13:00.458Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:00.458Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:00.462Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:00.489Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:59.620Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:13:59.747Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:59.748Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:59.753Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:13:59.797Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:00.378Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:00.483Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:00.483Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:00.487Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:00.521Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.092Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:01.187Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.188Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.191Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.221Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.727Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:01.813Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.813Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.816Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:01.846Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:02.351Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:02.442Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:02.442Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:02.446Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:02.477Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:03.113Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:03.202Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:03.202Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:03.206Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:03.246Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:03.398Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:03.399Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:14:03.399Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:14:03.399Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:14:03.399Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:14:03.400Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:14:03.406Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:14:03.406Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:14:31.961Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:14:32.101Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:32.101Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:32.107Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:14:32.153Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:06.054Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 579ms
+[2026-10-01T01:15:06.663Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:15:06.784Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:06.784Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:06.791Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:06.830Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:23.740Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:15:23.858Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:23.859Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:23.863Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:23.895Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:15:56.550Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:15:56.630Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:15:56.630Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:15:56.631Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:15:56.631Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:15:56.711Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:15:59.632Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:15:59.636Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:15:59.693Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:16:06.493Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:16:06.566Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:16:07.655Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 524ms
+[2026-10-01T01:17:18.411Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:17:18.414Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:17:18.414Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:17:18.415Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:17:18.418Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:17:18.420Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:17:18.423Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:17:18.426Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:17:18.923Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:17:19.057Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.059Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.069Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.115Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.116Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:17:19.117Z] [ERROR] (node:2569) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2026-10-01T01:17:19.666Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:17:19.780Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.780Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.786Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.817Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:19.817Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:17:19.820Z] [ERROR] (node:2569) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+[2026-10-01T01:17:20.334Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:17:20.421Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:20.423Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:20.427Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:20.457Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:17:20.457Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:17:20.458Z] [ERROR] (node:2569) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+[2026-10-01T01:17:41.254Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:17:41.344Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:17:41.345Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:17:41.346Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:17:41.346Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:17:41.433Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:17:44.346Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:17:44.349Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:17:44.404Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:17:50.782Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:17:50.828Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:17:51.875Z] [LOG] [API /api/products] Successfully loaded 4746 products from Supabase via helper in 475ms
+[2026-10-01T01:18:21.756Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:18:21.760Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:21.761Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:21.762Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:21.762Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:21.768Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:21.769Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:21.770Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:18:26.078Z] [LOG] 👤 [API registered-accounts] Recuperati con successo 9 account registrati da Supabase profiles.
+[2026-10-01T01:18:26.212Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:18:26.354Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:26.354Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:26.358Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:26.403Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:26.405Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:18:26.406Z] [ERROR] (node:2618) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2026-10-01T01:18:27.215Z] [LOG] 👤 [API registered-accounts] Recuperati con successo 9 account registrati da Supabase profiles.
+[2026-10-01T01:18:27.355Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:18:27.491Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:27.491Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:27.499Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:27.540Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:27.540Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:18:27.541Z] [ERROR] (node:2618) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+[2026-10-01T01:18:28.781Z] [LOG] [TORNEI DEBUG] Operazione: SELECT FROM public.tornei
+[2026-10-01T01:18:28.830Z] [LOG] [TORNEI DEBUG] Supabase SELECT completata, trovati 3 tornei
+[2026-10-01T01:18:42.416Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:18:42.416Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:42.416Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:42.417Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:42.417Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:42.420Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:42.421Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:18:42.421Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:18:42.509Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:18:42.617Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:42.618Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:42.629Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:42.677Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:18:42.680Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:18:42.681Z] [ERROR] (node:2618) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+[2026-10-01T01:19:04.077Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:19:04.241Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:04.241Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:04.245Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:04.286Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:04.289Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:19:04.290Z] [ERROR] (node:2618) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+[2026-10-01T01:19:04.354Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 16.43
+conversionRate: 0.856
+convertedEUR: 14.06
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:19:04.357Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 169
+conversionRate: 0.88152
+convertedEUR: 148.98
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:19:04.357Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 14.3
+conversionRate: 0.881813
+convertedEUR: 12.61
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:19:04.357Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 32
+conversionRate: 0.8792
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:19:04.357Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 21.86
+conversionRate: 0.8792
+convertedEUR: 19.22
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:19:04.361Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 280.23
+conversionRate: 0.88152
+convertedEUR: 247.03
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:19:04.361Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 31.99
+conversionRate: 0.879241
+convertedEUR: 28.13
+sourceFunction: recalculateCurrentLottoInternal
+[2026-10-01T01:19:04.361Z] [LOG] [GLOBAL SHIPPING RECALC DEBUG]
+lottoId: 5
+totalQuantity: 39
+shippingRate: 3
+ordersAffected: 6
+totalShipping: 123
+[2026-10-01T01:19:04.868Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:19:04.992Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:04.992Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:04.996Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:05.039Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:05.040Z] [ERROR] ⚠️ Errore lettura archivio lotti: t4 is not defined
+[2026-10-01T01:19:05.040Z] [ERROR] (node:2618) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+[2026-10-01T01:19:17.016Z] [LOG] ✅ File .env caricato correttamente in server.js
+[2026-10-01T01:19:17.112Z] [LOG] 🚀 Server running on http://0.0.0.0:3000
+[2026-10-01T01:19:17.112Z] [LOG] === INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:19:17.113Z] [LOG] [BACKEND CLEANUP] Pulizia lotti completata. Rimasti 1 lotti reali.
+[2026-10-01T01:19:17.113Z] [LOG] === FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===
+[2026-10-01T01:19:17.203Z] [LOG] [ACCESSORI] Sincronizzati 79 accessori da Supabase settings.
+[2026-10-01T01:19:20.113Z] [LOG] === CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===
+[2026-10-01T01:19:20.115Z] [LOG] [DEBUG] Caricamento configurazione catalogo da Supabase (tabella 'catalog_settings')...
+[2026-10-01T01:19:20.160Z] [LOG] [DEBUG] Syncing price rules from Supabase table 'price_rules'...
+[2026-10-01T01:19:20.966Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17
+conversionRate: 0.856
+convertedEUR: 14.55
+sourceFunction: calculateLottoTotals
+[2026-10-01T01:19:21.114Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 3
+conversionRate: 0.856
+convertedEUR: 2.57
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:21.115Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 0
+conversionRate: 0.856
+convertedEUR: 0
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:21.119Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 17.741999999999997
+conversionRate: 0.856
+convertedEUR: 15.19
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:21.156Z] [LOG] [USD EUR CONVERSION DEBUG]
+originalUSD: 22.125899999999998
+conversionRate: 0.856
+convertedEUR: 18.94
+sourceFunction: GET /api/lotto/archive
+[2026-10-01T01:19:21.165Z] [ERROR] (node:2694) Warning: No such label 'GET /api/lotto/archive TOTAL' for console.timeEnd()
+(Use `node --trace-warnings ...` to show where the warning was created)

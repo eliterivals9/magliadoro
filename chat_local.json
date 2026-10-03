@@ -7,8 +7,9 @@
       "email": "mario@example.com",
       "stato": "In attesa",
       "created_at": "2026-09-04T17:20:33.262Z",
-      "updated_at": "2026-09-04T17:20:33.563Z",
-      "last_message_at": "2026-09-04T17:20:33.563Z"
+      "updated_at": "2026-10-01T00:33:20.098Z",
+      "last_message_at": "2026-10-01T00:33:20.098Z",
+      "admin_last_read_at": "2026-10-01T00:33:20.244Z"
     },
     {
       "id": "7786ecae-9625-4feb-aa19-081425d337d4",
@@ -18,7 +19,8 @@
       "stato": "Risposto",
       "created_at": "2026-09-04T17:20:49.188Z",
       "updated_at": "2026-09-04T17:20:49.557Z",
-      "last_message_at": "2026-09-04T17:20:49.524Z"
+      "last_message_at": "2026-09-04T17:20:49.524Z",
+      "admin_last_read_at": "2026-10-01T00:33:18.828Z"
     },
     {
       "id": "8313ed33-3330-4fdb-aaad-a4440bbd0a22",
@@ -38,7 +40,8 @@
       "stato": "Risposto",
       "created_at": "2026-09-30T15:27:28.476Z",
       "updated_at": "2026-09-30T15:27:28.503Z",
-      "last_message_at": "2026-09-30T15:27:28.502Z"
+      "last_message_at": "2026-09-30T15:27:28.502Z",
+      "admin_last_read_at": "2026-10-01T00:33:18.675Z"
     },
     {
       "id": "5cb99acc-1ee8-4b5c-a687-cbb2cf4fba7c",
@@ -131,6 +134,46 @@
       "attachment_type": null,
       "is_read": false,
       "created_at": "2026-09-30T15:27:28.501Z"
+    },
+    {
+      "id": 1790802456689,
+      "conversation_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "sender": "client",
+      "message": "Test messaggio cliente A",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-30T21:07:35.752Z"
+    },
+    {
+      "id": 1790802490672,
+      "conversation_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "sender": "admin",
+      "message": "Risposta test autorizzata",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-30T21:08:09.855Z"
+    },
+    {
+      "id": 1790802499296,
+      "conversation_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "sender": "client",
+      "message": "Nuovo messaggio inviato dal cliente dopo la lettura dell Admin!",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-09-30T21:08:18.500Z"
+    },
+    {
+      "id": 1790814801032,
+      "conversation_id": "738f2f95-f834-4908-a926-cef96b5627c7",
+      "sender": "client",
+      "message": "Nuovo messaggio di prova cliente!",
+      "attachment_url": null,
+      "attachment_type": null,
+      "is_read": false,
+      "created_at": "2026-10-01T00:33:20.098Z"
     }
   ]
 }
