@@ -1,0 +1,382 @@
+[
+  {
+    "name": "Manchester United",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Manchester City",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Arsenal F.C.",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Liverpool F.C.",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Chelsea F.C.",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Tottenham Hotspur",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Aston Villa",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Newcastle United",
+    "categoria": "Club",
+    "sezione": "Premier League"
+  },
+  {
+    "name": "Juventus",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "Inter",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "AC Milan",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "AS Roma",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "SS Lazio",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "SSC Napoli",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "Fiorentina",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "Atalanta",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "Bologna",
+    "categoria": "Club",
+    "sezione": "Serie A"
+  },
+  {
+    "name": "Real Madrid",
+    "categoria": "Club",
+    "sezione": "La Liga"
+  },
+  {
+    "name": "Barcellona",
+    "categoria": "Club",
+    "sezione": "La Liga"
+  },
+  {
+    "name": "Atletico Madrid",
+    "categoria": "Club",
+    "sezione": "La Liga"
+  },
+  {
+    "name": "Girona F.C.",
+    "categoria": "Club",
+    "sezione": "La Liga"
+  },
+  {
+    "name": "Siviglia",
+    "categoria": "Club",
+    "sezione": "La Liga"
+  },
+  {
+    "name": "Real Sociedad",
+    "categoria": "Club",
+    "sezione": "La Liga"
+  },
+  {
+    "name": "Bayern Monaco",
+    "categoria": "Club",
+    "sezione": "Bundesliga"
+  },
+  {
+    "name": "Borussia Dortmund",
+    "categoria": "Club",
+    "sezione": "Bundesliga"
+  },
+  {
+    "name": "Bayer Leverkusen",
+    "categoria": "Club",
+    "sezione": "Bundesliga"
+  },
+  {
+    "name": "Lipsia",
+    "categoria": "Club",
+    "sezione": "Bundesliga"
+  },
+  {
+    "name": "Stoccarda",
+    "categoria": "Club",
+    "sezione": "Bundesliga"
+  },
+  {
+    "name": "Eintracht Francoforte",
+    "categoria": "Club",
+    "sezione": "Bundesliga"
+  },
+  {
+    "name": "Paris Saint-Germain",
+    "categoria": "Club",
+    "sezione": "Ligue 1"
+  },
+  {
+    "name": "Olympique Marsiglia",
+    "categoria": "Club",
+    "sezione": "Ligue 1"
+  },
+  {
+    "name": "AS Monaco",
+    "categoria": "Club",
+    "sezione": "Ligue 1"
+  },
+  {
+    "name": "Inter Miami",
+    "categoria": "Club",
+    "sezione": "USA MLS"
+  },
+  {
+    "name": "LA Galaxy",
+    "categoria": "Club",
+    "sezione": "USA MLS"
+  },
+  {
+    "name": "Al Nassr",
+    "categoria": "Club",
+    "sezione": "Saudi League"
+  },
+  {
+    "name": "Al Hilal",
+    "categoria": "Club",
+    "sezione": "Saudi League"
+  },
+  {
+    "name": "Al Ittihad",
+    "categoria": "Club",
+    "sezione": "Saudi League"
+  },
+  {
+    "name": "Al Ahli Saudi",
+    "categoria": "Club",
+    "sezione": "Saudi League"
+  },
+  {
+    "name": "Al Ettifaq",
+    "categoria": "Club",
+    "sezione": "Saudi League"
+  },
+  {
+    "name": "Benfica",
+    "categoria": "Club",
+    "sezione": "Altri Club"
+  },
+  {
+    "name": "Boca Juniors",
+    "categoria": "Club",
+    "sezione": "Altri Club"
+  },
+  {
+    "name": "Ajax",
+    "categoria": "Club",
+    "sezione": "Altri Club"
+  },
+  {
+    "name": "Italia",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Francia",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Germania",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Spagna",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Svizzera",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Austria",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Inghilterra",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Portogallo",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Olanda",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Croazia",
+    "categoria": "Nazionali",
+    "sezione": "Europa"
+  },
+  {
+    "name": "Brasile",
+    "categoria": "Nazionali",
+    "sezione": "Sud America"
+  },
+  {
+    "name": "Argentina",
+    "categoria": "Nazionali",
+    "sezione": "Sud America"
+  },
+  {
+    "name": "Uruguay",
+    "categoria": "Nazionali",
+    "sezione": "Sud America"
+  },
+  {
+    "name": "Colombia",
+    "categoria": "Nazionali",
+    "sezione": "Sud America"
+  },
+  {
+    "name": "Stati Uniti",
+    "categoria": "Nazionali",
+    "sezione": "Nord America"
+  },
+  {
+    "name": "Messico",
+    "categoria": "Nazionali",
+    "sezione": "Nord America"
+  },
+  {
+    "name": "Giappone",
+    "categoria": "Nazionali",
+    "sezione": "Asia"
+  },
+  {
+    "name": "Corea del Sud",
+    "categoria": "Nazionali",
+    "sezione": "Asia"
+  },
+  {
+    "name": "Nuova Zelanda",
+    "categoria": "Nazionali",
+    "sezione": "Oceania"
+  },
+  {
+    "name": "Nigeria",
+    "categoria": "Nazionali",
+    "sezione": "Africa"
+  },
+  {
+    "name": "Marocco",
+    "categoria": "Nazionali",
+    "sezione": "Africa"
+  },
+  {
+    "name": "Senegal",
+    "categoria": "Nazionali",
+    "sezione": "Africa"
+  },
+  {
+    "name": "Boston Celtics",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference"
+  },
+  {
+    "name": "Milwaukee Bucks",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference"
+  },
+  {
+    "name": "Philadelphia 76ers",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference"
+  },
+  {
+    "name": "Miami Heat",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference"
+  },
+  {
+    "name": "New York Knicks",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference"
+  },
+  {
+    "name": "Cleveland Cavaliers",
+    "categoria": "NBA",
+    "sezione": "Eastern Conference"
+  },
+  {
+    "name": "Los Angeles Lakers",
+    "categoria": "NBA",
+    "sezione": "Western Conference"
+  },
+  {
+    "name": "Golden State Warriors",
+    "categoria": "NBA",
+    "sezione": "Western Conference"
+  },
+  {
+    "name": "Phoenix Suns",
+    "categoria": "NBA",
+    "sezione": "Western Conference"
+  },
+  {
+    "name": "Denver Nuggets",
+    "categoria": "NBA",
+    "sezione": "Western Conference"
+  },
+  {
+    "name": "Dallas Mavericks",
+    "categoria": "NBA",
+    "sezione": "Western Conference"
+  },
+  {
+    "name": "Los Angeles Clippers",
+    "categoria": "NBA",
+    "sezione": "Western Conference"
+  }
+]

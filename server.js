@@ -3314,6 +3314,7 @@ async function getProductsCatalogFromCacheOrFetch() {
       return {
         id: p.id,
         legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+        created_at: p.created_at || p.created_time || p.data_inserimento || null,
         squadra: p.squadra || '',
         categoria: categoria,
         target: target,
@@ -7067,6 +7068,7 @@ app.get('/api/products', async (req, res) => {
         return {
           id: p.id,
           legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+          created_at: p.created_at || p.created_time || p.data_inserimento || null,
           squadra: p.squadra || '',
           categoria: categoria,
           target: target,
@@ -10471,34 +10473,44 @@ async function getTeamProductCountsServer(supabase) {
 app.get('/api/teams', async (req, res) => {
   try {
     const supabase = getSupabaseClient();
-    if (!supabase) {
-      throw new Error("Supabase non è configurato.");
-    }
-    const { data, error } = await supabase
-      .from('teams')
-      .select('*')
-      .order('name', { ascending: true });
-      
-    if (error) {
-      console.error("⚠️ Supabase error on GET /api/teams:", error.message);
-      throw error;
+    let teams = [];
+
+    if (supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('*')
+          .order('name', { ascending: true });
+          
+        if (error) {
+          console.warn("⚠️ Supabase error on GET /api/teams, using local fallback:", error.message);
+          teams = getLocalTeams();
+        } else if (data && data.length > 0) {
+          teams = data;
+        } else {
+          console.log("Initializing teams table with default teams in Supabase...");
+          for (const team of DEFAULT_TEAMS) {
+            try {
+              await supabase.from('teams').insert(team);
+            } catch (e) {
+              console.warn("⚠️ Error inserting default team:", e.message);
+            }
+          }
+          const { data: freshData, error: freshErr } = await supabase.from('teams').select('*').order('name', { ascending: true });
+          if (!freshErr && freshData && freshData.length > 0) {
+            teams = freshData;
+          } else {
+            teams = getLocalTeams();
+          }
+        }
+      } catch (sbErr) {
+        console.warn("⚠️ Supabase client error on GET /api/teams, using local fallback:", sbErr.message);
+        teams = getLocalTeams();
+      }
+    } else {
+      teams = getLocalTeams();
     }
 
-    let teams = data || [];
-    if (teams.length === 0) {
-      console.log("Initializing teams table with default teams in Supabase...");
-      for (const team of DEFAULT_TEAMS) {
-        try {
-          await supabase.from('teams').insert(team);
-        } catch (e) {
-          console.warn("⚠️ Error inserting default team:", e.message);
-        }
-      }
-      const { data: freshData, error: freshErr } = await supabase.from('teams').select('*').order('name', { ascending: true });
-      if (!freshErr && freshData) {
-        teams = freshData;
-      }
-    }
     // Unifica PSG -> Paris Saint-Germain ed esclude record duplicati legacy
     teams = teams.filter(t => {
       const n = (t.name || '').trim();
@@ -10544,7 +10556,8 @@ app.get('/api/teams', async (req, res) => {
     });
   } catch (err) {
     console.error("⚠️ Errore GET /api/teams:", err.message);
-    return res.status(500).json({ success: false, error: err.message, teams: [] });
+    const fallbackTeams = getLocalTeams().map(t => ({ ...t, product_count: 0, has_products: false }));
+    return res.json({ success: true, error: err.message, teams: fallbackTeams, total_club_products: 0, total_nazionali_products: 0, product_counts: {} });
   }
 });
 
@@ -10556,46 +10569,56 @@ app.post('/api/teams', async (req, res) => {
       return res.status(400).json({ success: false, error: "Campi obbligatori mancanti: name, categoria, sezione" });
     }
 
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      throw new Error("Supabase non è configurato.");
-    }
-
     const nameNorm = normalizzaSpaziEFormato(name);
     const sezioneNorm = normalizzaSpaziEFormato(sezione);
     const categoriaNorm = normalizzaSpaziEFormato(categoria);
 
-    // 1. Controllo duplicati case-insensitive su tutte le squadre esistenti
-    const { data: allTeams, error: fetchError } = await supabase.from('teams').select('*');
-    if (fetchError) {
-      throw fetchError;
-    }
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      // 1. Controllo duplicati case-insensitive su tutte le squadre esistenti
+      const { data: allTeams, error: fetchError } = await supabase.from('teams').select('*');
+      if (fetchError) {
+        throw fetchError;
+      }
 
-    const giaPresente = allTeams.some(t => normalizzaSpaziEFormato(t.name).toLowerCase() === nameNorm.toLowerCase());
-    if (giaPresente) {
-      return res.status(400).json({ success: false, error: `La squadra "${nameNorm}" esiste già (anche se registrata con diversa capitalizzazione o spazi).` });
-    }
+      const giaPresente = allTeams.some(t => normalizzaSpaziEFormato(t.name).toLowerCase() === nameNorm.toLowerCase());
+      if (giaPresente) {
+        return res.status(400).json({ success: false, error: `La squadra "${nameNorm}" esiste già (anche se registrata con diversa capitalizzazione o spazi).` });
+      }
 
-    // 2. Canonizza anche la Sezione (Lega) se esiste già una versione simile
-    const existingLeagues = [...new Set(allTeams.map(t => t.sezione).filter(Boolean))];
-    const finalSezione = trovaValoreCanonicoGenerico(sezioneNorm, existingLeagues);
+      // 2. Canonizza anche la Sezione (Lega) se esiste già una versione simile
+      const existingLeagues = [...new Set(allTeams.map(t => t.sezione).filter(Boolean))];
+      const finalSezione = trovaValoreCanonicoGenerico(sezioneNorm, existingLeagues);
 
-    const { data, error } = await supabase
-      .from('teams')
-      .insert({ name: nameNorm, categoria: categoriaNorm, sezione: finalSezione })
-      .select();
+      const { data, error } = await supabase
+        .from('teams')
+        .insert({ name: nameNorm, categoria: categoriaNorm, sezione: finalSezione })
+        .select();
 
-    if (error) {
-      if (error.code === '23505') {
+      if (error) {
+        if (error.code === '23505') {
+          return res.status(400).json({ success: false, error: `La squadra "${nameNorm}" esiste già.` });
+        }
+        console.error("⚠️ Errore inserimento Supabase:", error.message);
+        throw error;
+      }
+
+      const createdTeam = data ? data[0] : null;
+      invalidateProductsCache();
+      return res.json({ success: true, team: createdTeam || { name: nameNorm, categoria: categoriaNorm, sezione: finalSezione } });
+    } else {
+      // Local fallback
+      const localTeams = getLocalTeams();
+      const giaPresente = localTeams.some(t => normalizzaSpaziEFormato(t.name).toLowerCase() === nameNorm.toLowerCase());
+      if (giaPresente) {
         return res.status(400).json({ success: false, error: `La squadra "${nameNorm}" esiste già.` });
       }
-      console.error("⚠️ Errore inserimento Supabase:", error.message);
-      throw error;
+      const newTeam = { id: Date.now().toString(), name: nameNorm, categoria: categoriaNorm, sezione: sezioneNorm };
+      localTeams.push(newTeam);
+      saveLocalTeams(localTeams);
+      invalidateProductsCache();
+      return res.json({ success: true, team: newTeam });
     }
-
-    const createdTeam = data ? data[0] : null;
-    invalidateProductsCache();
-    return res.json({ success: true, team: createdTeam || { name: nameNorm, categoria: categoriaNorm, sezione: finalSezione } });
   } catch (err) {
     console.error("⚠️ Errore POST /api/teams:", err.message);
     return res.status(500).json({ success: false, error: err.message });
@@ -10611,38 +10634,48 @@ app.put('/api/teams', async (req, res) => {
     }
 
     const supabase = getSupabaseClient();
-    if (!supabase) {
-      throw new Error("Supabase non è configurato.");
+    if (supabase) {
+      let updatedCount = 0;
+
+      // 1. Aggiorna in teams
+      const { error: teamErr } = await supabase
+        .from('teams')
+        .update({ name: newName })
+        .eq('name', oldName);
+        
+      if (teamErr) {
+        console.error("⚠️ Errore update team su Supabase:", teamErr.message);
+        throw teamErr;
+      }
+
+      // 2. Aggiorna in products
+      const { data: updatedProds, error: prodErr } = await supabase
+        .from('products')
+        .update({ squadra: newName })
+        .eq('squadra', oldName)
+        .select();
+
+      if (prodErr) {
+        console.warn("⚠️ Errore update prodotti su Supabase:", prodErr.message);
+      } else if (updatedProds) {
+        updatedCount = updatedProds.length;
+      }
+
+      invalidateProductsCache();
+      return res.json({ success: true, count: updatedCount });
+    } else {
+      const localTeams = getLocalTeams();
+      let updated = false;
+      localTeams.forEach(t => {
+        if (t.name === oldName) {
+          t.name = newName;
+          updated = true;
+        }
+      });
+      if (updated) saveLocalTeams(localTeams);
+      invalidateProductsCache();
+      return res.json({ success: true, count: updated ? 1 : 0 });
     }
-
-    let updatedCount = 0;
-
-    // 1. Aggiorna in teams
-    const { error: teamErr } = await supabase
-      .from('teams')
-      .update({ name: newName })
-      .eq('name', oldName);
-      
-    if (teamErr) {
-      console.error("⚠️ Errore update team su Supabase:", teamErr.message);
-      throw teamErr;
-    }
-
-    // 2. Aggiorna in products
-    const { data: updatedProds, error: prodErr } = await supabase
-      .from('products')
-      .update({ squadra: newName })
-      .eq('squadra', oldName)
-      .select();
-
-    if (prodErr) {
-      console.warn("⚠️ Errore update prodotti su Supabase:", prodErr.message);
-    } else if (updatedProds) {
-      updatedCount = updatedProds.length;
-    }
-
-    invalidateProductsCache();
-    return res.json({ success: true, count: updatedCount });
   } catch (err) {
     console.error("⚠️ Errore PUT /api/teams:", err.message);
     return res.status(500).json({ success: false, error: err.message });
@@ -10658,22 +10691,26 @@ app.delete('/api/teams', async (req, res) => {
     }
 
     const supabase = getSupabaseClient();
-    if (!supabase) {
-      throw new Error("Supabase non è configurato.");
-    }
+    if (supabase) {
+      const { error } = await supabase
+        .from('teams')
+        .delete()
+        .eq('name', name);
+        
+      if (error) {
+        console.error("⚠️ Errore delete team su Supabase:", error.message);
+        throw error;
+      }
 
-    const { error } = await supabase
-      .from('teams')
-      .delete()
-      .eq('name', name);
-      
-    if (error) {
-      console.error("⚠️ Errore delete team su Supabase:", error.message);
-      throw error;
+      invalidateProductsCache();
+      return res.json({ success: true });
+    } else {
+      let localTeams = getLocalTeams();
+      localTeams = localTeams.filter(t => t.name !== name);
+      saveLocalTeams(localTeams);
+      invalidateProductsCache();
+      return res.json({ success: true });
     }
-
-    invalidateProductsCache();
-    return res.json({ success: true });
   } catch (err) {
     console.error("⚠️ Errore DELETE /api/teams:", err.message);
     return res.status(500).json({ success: false, error: err.message });
