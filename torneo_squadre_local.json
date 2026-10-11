@@ -90,13 +90,6 @@
     "created_at": "2026-07-13T14:02:17.873865+00:00"
   },
   {
-    "id": 8,
-    "name": "Newcastle United",
-    "categoria": "Club",
-    "sezione": "Premier League",
-    "created_at": "2026-07-13T14:02:17.922415+00:00"
-  },
-  {
     "id": 9,
     "name": "Juventus",
     "categoria": "Club",

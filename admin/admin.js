@@ -7405,6 +7405,15 @@ function aggiornaMenuCategorieForm() {
     if (typeof generaOpzioniFiltri === 'function') {
         generaOpzioniFiltri();
     }
+
+    // Sincronizza i checkbox del modale squadra se aperto
+    const squadModal = document.getElementById('squadra-modal');
+    if (squadModal && !squadModal.classList.contains('hidden')) {
+        const checkedVals = Array.from(document.querySelectorAll('.squadra-cat-cb:checked')).map(cb => cb.value);
+        if (typeof popolaCheckboxesCategorieSquadra === 'function') {
+            popolaCheckboxesCategorieSquadra(checkedVals, false);
+        }
+    }
 }
 
 // Override fetch per aggiungere automaticamente l'Authorization header se non già applicato
@@ -26357,6 +26366,110 @@ function calcolaQuotaRimanentePerSquadra(squadraIdEsclusa = null) {
     return Math.max(0, quotaTotale - quotaAssegnataAltre);
 }
 
+/**
+ * Popola dinamicamente i checkbox delle categorie autorizzabili per la squadra
+ * basandosi sulle categorie configurate in "Impostazioni" -> "Regole Prezzi & Categorie (€)".
+ * Se categorieSelezionate è specificato (modifica squadra), ripristina fedelmente le autorizzazioni preesistenti.
+ * Se isNuovaSquadra è true o categorieSelezionate è null, applica la selezione di default (Standard: Kit, Player, Fan).
+ */
+async function popolaCheckboxesCategorieSquadra(categorieSelezionate = null, isNuovaSquadra = false) {
+    const container = document.getElementById('squadra-categorie-checkboxes');
+    if (!container) return;
+
+    // Assicura caricamento impostazioni se non ancora presenti
+    if (!window.appSettings || !Array.isArray(window.appSettings.categorie) || window.appSettings.categorie.length === 0) {
+        if (typeof caricaSettings === 'function') {
+            try {
+                await caricaSettings();
+            } catch (err) {
+                console.warn("Impossibile caricare settings per categorie squadra:", err);
+            }
+        }
+    }
+    if (typeof assicuratiCategorieDinamiche === 'function') {
+        assicuratiCategorieDinamiche();
+    }
+
+    // Elenco categorie da "Regole Prezzi & Categorie (€)" ordinate per 'ordine'
+    const catConfigurate = (window.appSettings && Array.isArray(window.appSettings.categorie))
+        ? window.appSettings.categorie.slice().sort((a, b) => (Number(a.ordine) || 0) - (Number(b.ordine) || 0))
+        : [];
+
+    const listaCats = [];
+    catConfigurate.forEach(c => {
+        if (c && c.nome && typeof c.nome === 'string' && c.nome.trim()) {
+            const nomeTrim = c.nome.trim();
+            if (!listaCats.some(x => x.toLowerCase() === nomeTrim.toLowerCase())) {
+                listaCats.push(nomeTrim);
+            }
+        }
+    });
+
+    // Se per qualche motivo la lista è vuota, fornisci categorie di base coerenti
+    if (listaCats.length === 0) {
+        ['Kit', 'Player', 'Fan', 'Retro', 'Kit Allenamento', 'Tuta', 'Polo', 'Smanicati', 'Maniche Lunghe', 'Kit Bambino', 'Portiere'].forEach(c => {
+            if (!listaCats.includes(c)) listaCats.push(c);
+        });
+    }
+
+    // Se la squadra esistente possiede categorie già autorizzate che non figurano
+    // nell'elenco configurato attuale (es. "Calzettoni" o altre), le includiamo per evitare
+    // che vengano azzerate o perse in modifica
+    const savedCats = Array.isArray(categorieSelezionate) ? categorieSelezionate : [];
+    savedCats.forEach(sc => {
+        if (typeof sc === 'string' && sc.trim()) {
+            const scTrim = sc.trim();
+            const exists = listaCats.some(c => {
+                if (c.toLowerCase() === scTrim.toLowerCase()) return true;
+                const normC = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(c).toLowerCase() : c.toLowerCase();
+                const normSc = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(scTrim).toLowerCase() : scTrim.toLowerCase();
+                return normC === normSc;
+            });
+            if (!exists) {
+                listaCats.push(scTrim);
+            }
+        }
+    });
+
+    // Determina se una categoria è selezionata
+    function isSelezionata(catNome) {
+        if (isNuovaSquadra || categorieSelezionate === null) {
+            // Standard default per nuova squadra
+            const std = ['kit', 'player', 'fan'];
+            const valLower = catNome.toLowerCase();
+            const valNorm = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(catNome).toLowerCase() : valLower;
+            return std.some(s => valLower === s || valNorm === s);
+        }
+        if (!Array.isArray(categorieSelezionate)) return false;
+        const valLower = catNome.toLowerCase();
+        // 1. Match diretto
+        if (categorieSelezionate.some(sc => typeof sc === 'string' && sc.trim().toLowerCase() === valLower)) {
+            return true;
+        }
+        // 2. Match normalizzato per retrocompatibilità (es. "Versione Player" vs "Player")
+        const valNorm = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(catNome).toLowerCase() : valLower;
+        return categorieSelezionate.some(sc => {
+            if (typeof sc !== 'string') return false;
+            const scNorm = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(sc).toLowerCase() : sc.trim().toLowerCase();
+            return valNorm && scNorm && valNorm === scNorm;
+        });
+    }
+
+    let html = '';
+    listaCats.forEach(catNome => {
+        const checked = isSelezionata(catNome);
+        const safeName = typeof escapeHtml === 'function' ? escapeHtml(catNome) : catNome;
+        html += `
+            <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200/60 cursor-pointer hover:border-brand-gold/50 transition-colors">
+                <input type="checkbox" value="${safeName}" class="squadra-cat-cb w-4 h-4 text-brand-gold rounded border-slate-300 focus:ring-brand-gold" ${checked ? 'checked' : ''}>
+                <span class="font-bold text-slate-800 truncate">${safeName}</span>
+            </label>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
 function impostaCategorieSquadraQuick(mode) {
     const cbs = document.querySelectorAll('.squadra-cat-cb');
     if (!cbs.length) return;
@@ -26365,14 +26478,17 @@ function impostaCategorieSquadraQuick(mode) {
     } else if (mode === 'nessuna') {
         cbs.forEach(cb => { cb.checked = false; });
     } else if (mode === 'standard') {
-        const std = ['Kit', 'Player', 'Fan'];
+        const stdList = ['kit', 'player', 'fan'];
         cbs.forEach(cb => {
-            cb.checked = std.includes(cb.value);
+            const val = (cb.value || '').trim().toLowerCase();
+            const normVal = typeof normalizzaCategoria === 'function' ? normalizzaCategoria(cb.value).toLowerCase() : val;
+            const isStd = stdList.some(s => val === s || normVal === s);
+            cb.checked = isStd;
         });
     }
 }
 
-function apriModalNuovaSquadra() {
+async function apriModalNuovaSquadra() {
     if (!torneoCorrenteDettaglio) {
         showToast("Nessun torneo selezionato.", "error");
         return;
@@ -26393,8 +26509,8 @@ function apriModalNuovaSquadra() {
     document.getElementById('squadra-form-perso-numero').checked = parentCfg.permetti_numero !== false;
     document.getElementById('squadra-form-perso-patch').checked = Boolean(parentCfg.permetti_patch);
 
-    // Categorie autorizzate default (Standard: Kit, Player, Fan)
-    impostaCategorieSquadraQuick('standard');
+    // Popola dinamicamente le categorie basandosi sulle Regole Prezzi & Categorie (€)
+    await popolaCheckboxesCategorieSquadra(null, true);
 
     document.getElementById('squadra-form-note').value = "";
 
@@ -26468,7 +26584,7 @@ function suggerisciCodiceSeVuoto() {
     }
 }
 
-function modificaSquadra(squadraId) {
+async function modificaSquadra(squadraId) {
     const s = squadreList.find(item => String(item.id) === String(squadraId));
     if (!s) {
         showToast("Squadra non trovata.", "error");
@@ -26489,12 +26605,9 @@ function modificaSquadra(squadraId) {
     document.getElementById('squadra-form-perso-numero').checked = cfg.permetti_numero !== false;
     document.getElementById('squadra-form-perso-patch').checked = Boolean(cfg.permetti_patch);
 
-    // Categorie autorizzate
+    // Categorie autorizzate dinamiche basate su Regole Prezzi & Categorie (€), preservando le selezioni esistenti
     const cats = Array.isArray(s.categorie_autorizzate) ? s.categorie_autorizzate : [];
-    const cbs = document.querySelectorAll('.squadra-cat-cb');
-    cbs.forEach(cb => {
-        cb.checked = cats.includes(cb.value);
-    });
+    await popolaCheckboxesCategorieSquadra(cats, false);
 
     document.getElementById('squadra-form-note').value = s.note || "";
 
@@ -26548,8 +26661,17 @@ async function salvaSquadra() {
         return;
     }
 
-    // Categorie autorizzate selezionate
-    const categorie_autorizzate = Array.from(document.querySelectorAll('.squadra-cat-cb:checked')).map(cb => cb.value);
+    // Categorie autorizzate selezionate (con salvaguardia anti-svuotamento accidentale)
+    const cbs = document.querySelectorAll('.squadra-cat-cb');
+    let categorie_autorizzate;
+    if (cbs.length > 0) {
+        categorie_autorizzate = Array.from(document.querySelectorAll('.squadra-cat-cb:checked')).map(cb => cb.value);
+    } else {
+        const existingTeam = id ? squadreList.find(item => String(item.id) === String(id)) : null;
+        categorie_autorizzate = (existingTeam && Array.isArray(existingTeam.categorie_autorizzate))
+            ? existingTeam.categorie_autorizzate
+            : [];
+    }
 
     // Controllo client-side quota
     const maxDisp = calcolaQuotaRimanentePerSquadra(id);

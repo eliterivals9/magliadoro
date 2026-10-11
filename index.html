@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&family=Material+Icons&display=swap" rel="stylesheet">
+    <link rel="prefetch" href="assets/homepage/Bambino.png" as="image">
+    <link rel="prefetch" href="assets/homepage/Tuta.png" as="image">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <!-- BOOTSTRAP PRE-DECLARATION & RESILIENCE PROXY -->
     <script>
@@ -1960,11 +1962,251 @@ body {
         }
 
         .modal-personalizza {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(6, 6, 6, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10002 !important; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(6, 6, 6, 0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 10002 !important; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
         }
         
         .modal-content {
             background-color: #151515; padding: 40px; border-radius: var(--radius-xl); width: 100%; max-width: 440px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), var(--gold-glow); position: relative; animation: apreModal 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box; border: 1px solid rgba(214, 164, 58, 0.25);
+        }
+
+        /* Scoped restyling: Modal Personalizzazione Completini */
+        #modal-personalizza {
+            background-color: rgba(0, 0, 0, 0.65) !important;
+            backdrop-filter: blur(6px) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+            padding: 24px !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #modal-personalizza .modal-content {
+            background-color: #FFFFFF !important;
+            color: #111111 !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            padding: 24px !important;
+            max-width: 460px !important;
+            width: 100% !important;
+            max-height: calc(100vh - 48px) !important;
+            max-height: calc(100dvh - 48px) !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        #modal-personalizza .btn-chiudi-modal {
+            position: absolute !important;
+            top: 16px !important;
+            right: 16px !important;
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            background: #F7F6F2 !important;
+            border: 1px solid #E8E7E2 !important;
+            color: #111111 !important;
+            font-size: 16px !important;
+            font-weight: 700 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+        }
+        #modal-personalizza .btn-chiudi-modal:hover {
+            background: #EAE8E1 !important;
+            color: #000000 !important;
+            border-color: #D3D1C9 !important;
+        }
+        #modal-personalizza .btn-chiudi-modal:focus-visible {
+            outline: 2px solid #111111 !important;
+            outline-offset: 2px !important;
+        }
+        #modal-personalizza .modal-header-box {
+            padding-right: 40px !important;
+            margin-bottom: 20px !important;
+        }
+        #modal-personalizza .modal-header-title {
+            margin: 0 0 4px 0 !important;
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #111111 !important;
+            line-height: 1.25 !important;
+            letter-spacing: -0.2px !important;
+            text-transform: none !important;
+        }
+        #modal-personalizza #modal-titolo-squadra {
+            font-size: 13.5px !important;
+            font-weight: 700 !important;
+            color: #4A4A45 !important;
+            margin: 0 !important;
+            line-height: 1.4 !important;
+            text-transform: none !important;
+        }
+        #modal-personalizza .modal-fields-container {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 14px !important;
+            margin-bottom: 16px !important;
+        }
+        #modal-personalizza .gruppo-form {
+            margin-bottom: 0 !important;
+        }
+        #modal-personalizza .gruppo-form label {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            font-weight: 700 !important;
+            font-size: 12.5px !important;
+            margin-bottom: 6px !important;
+            color: #111111 !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+        }
+        #modal-personalizza .gruppo-form label .label-opt-badge {
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            color: #666660 !important;
+            margin-left: 6px !important;
+        }
+        #modal-personalizza .gruppo-form label .badge-extra-cost {
+            font-weight: 700 !important;
+            font-size: 11.5px !important;
+            color: #4A4A45 !important;
+            background: #F7F6F2 !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 4px !important;
+            padding: 2px 7px !important;
+            letter-spacing: 0 !important;
+        }
+        #modal-personalizza .gruppo-form input[type="text"],
+        #modal-personalizza .gruppo-form input[type="number"],
+        #modal-personalizza .gruppo-form select {
+            width: 100% !important;
+            min-height: 44px !important;
+            padding: 10px 14px !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 8px !important;
+            box-sizing: border-box !important;
+            font-size: 14px !important;
+            font-family: inherit !important;
+            background-color: #FFFFFF !important;
+            color: #111111 !important;
+            outline: none !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        #modal-personalizza .gruppo-form input[type="text"]:focus,
+        #modal-personalizza .gruppo-form input[type="number"]:focus,
+        #modal-personalizza .gruppo-form select:focus {
+            border-color: #111111 !important;
+            box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.12) !important;
+            background-color: #FFFFFF !important;
+        }
+        #modal-personalizza .gruppo-form input[type="text"]::placeholder,
+        #modal-personalizza .gruppo-form input[type="number"]::placeholder {
+            color: #9C9A92 !important;
+        }
+        #modal-personalizza .gruppo-form input:disabled {
+            background-color: #F7F6F2 !important;
+            color: #8C8A82 !important;
+            cursor: not-allowed !important;
+            border-color: #E8E7E2 !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo {
+            background-color: #FAF9F6 !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 10px !important;
+            padding: 12px 14px !important;
+            margin-top: 4px !important;
+            margin-bottom: 16px !important;
+            box-sizing: border-box !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .riepilogo-dettagli {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+            padding-bottom: 10px !important;
+            margin-bottom: 10px !important;
+            border-bottom: 1px dashed #E8E7E2 !important;
+            font-size: 12.5px !important;
+            color: #4A4A45 !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .riepilogo-riga {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            line-height: 1.35 !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .riepilogo-riga.riepilogo-extra {
+            color: #111111 !important;
+            font-weight: 500 !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .blocco-prezzo-standard {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .blocco-prezzo-standard .label-totale {
+            font-size: 13.5px !important;
+            font-weight: 800 !important;
+            color: #111111 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.4px !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .prezzo-dinamico {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #111111 !important;
+            letter-spacing: -0.3px !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva {
+            background-color: #FAF9F6 !important;
+            border: 1px solid #E8E7E2 !important;
+            padding: 10px 14px !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva .badge-convenzione-testo {
+            color: #111111 !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva .badge-convenzione-check {
+            color: #10B981 !important;
+        }
+        #modal-personalizza .btn-conferma-carrello {
+            width: 100% !important;
+            min-height: 48px !important;
+            background: #111111 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #111111 !important;
+            border-radius: 8px !important;
+            padding: 13px 20px !important;
+            font-weight: 800 !important;
+            font-size: 14px !important;
+            cursor: pointer !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            box-shadow: none !important;
+            transition: background 0.15s ease, opacity 0.15s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+        }
+        #modal-personalizza .btn-conferma-carrello:hover {
+            background: #2A2A2A !important;
+            border-color: #2A2A2A !important;
+            filter: none !important;
+            transform: none !important;
+        }
+        #modal-personalizza .btn-conferma-carrello:focus-visible {
+            outline: 2px solid #111111 !important;
+            outline-offset: 2px !important;
+        }
+        #modal-personalizza .btn-conferma-carrello:disabled {
+            opacity: 0.65 !important;
+            cursor: not-allowed !important;
         }
         
         @keyframes apreModal { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -3950,6 +4192,43 @@ body {
                 margin-bottom: 16px !important;
             }
 
+            /* #modal-personalizza Mobile Rules */
+            #modal-personalizza {
+                padding: 12px !important;
+                align-items: center !important;
+                justify-content: center !important;
+                overflow-y: auto !important;
+            }
+            #modal-personalizza .modal-content {
+                width: calc(100vw - 24px) !important;
+                max-width: calc(100vw - 24px) !important;
+                padding: 16px !important;
+                margin: auto !important;
+                border-radius: 14px !important;
+                max-height: calc(100vh - 24px) !important;
+                max-height: calc(100dvh - 24px) !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            #modal-personalizza .modal-header-box {
+                margin-bottom: 16px !important;
+                padding-right: 36px !important;
+            }
+            #modal-personalizza .modal-header-title {
+                font-size: 18px !important;
+            }
+            #modal-personalizza #modal-titolo-squadra {
+                font-size: 13px !important;
+            }
+            #modal-personalizza .modal-fields-container {
+                gap: 12px !important;
+                margin-bottom: 14px !important;
+            }
+            #modal-personalizza .btn-conferma-carrello {
+                min-height: 46px !important;
+                padding: 12px 16px !important;
+            }
+
             /* Floating Bottom Cart Bar - Posizionata in basso senza coprire chat o footer */
             .barra-carrello-totale {
                 bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
@@ -5548,6 +5827,7 @@ body {
             width: 100% !important;
             max-width: 100% !important;
             overflow-x: auto !important;
+            overflow-y: hidden !important;
             scroll-behavior: auto !important;
             scroll-snap-type: none !important;
             scrollbar-width: none !important; /* Firefox */
@@ -5555,7 +5835,9 @@ body {
             padding: 8px 0 16px 0 !important;
             margin: 0 !important;
             box-sizing: border-box !important;
-            -webkit-overflow-scrolling: touch;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-x pan-y !important;
+            overscroll-behavior-x: contain;
         }
 
         .new-arrivals-carousel-container::-webkit-scrollbar {
@@ -8750,15 +9032,20 @@ body {
             display: inline-block !important;
         }
 
+        #pagina-club #input-cerca-club,
         #pagina-mondiali #input-cerca-nazionali {
             background: #FFFFFF !important;
-            border: 1px solid #DCD9D0 !important;
+            border: 1px solid #E8E7E2 !important;
             color: #111111 !important;
             border-radius: 8px !important;
-            padding: 6px 12px !important;
-            font-size: 12px !important;
+            padding: 8px 12px 8px 34px !important;
+            font-size: 12.5px !important;
             outline: none !important;
+            width: 220px !important;
+            box-sizing: border-box !important;
+            font-weight: 500 !important;
         }
+        #pagina-club #input-cerca-club:focus,
         #pagina-mondiali #input-cerca-nazionali:focus {
             border-color: #111111 !important;
             box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.08) !important;
@@ -8960,6 +9247,138 @@ body {
 
         /* SMARTPHONE (fino a 768px: testato su 320px, 375px, 390px, 393px, 412px, 430px) */
         @media (max-width: 768px) {
+            /* Fascia introduttiva Mobile Pagina CLUB */
+            #pagina-club .club-page-header {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                text-align: left !important;
+                padding: 12px !important;
+                margin-bottom: 12px !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-club .club-page-title,
+            #pagina-club #titolo-dinamico-club {
+                font-size: 24px !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                color: #111111 !important;
+                letter-spacing: -0.5px !important;
+                margin: 0 0 6px 0 !important;
+                padding: 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            #pagina-club .club-page-description {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                color: #666660 !important;
+                font-weight: 500 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Fascia introduttiva Mobile Pagina NAZIONALI */
+            #pagina-mondiali .club-page-header {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                text-align: left !important;
+                padding: 12px !important;
+                margin-bottom: 12px !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-mondiali .club-page-title,
+            #pagina-mondiali #titolo-dinamico-nazionali {
+                font-size: clamp(22px, 6vw, 24px) !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                color: #111111 !important;
+                letter-spacing: -0.5px !important;
+                margin: 0 0 6px 0 !important;
+                padding: 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            #pagina-mondiali .club-page-description {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                color: #666660 !important;
+                font-weight: 500 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            /* Fascia introduttiva Mobile Pagina ACCESSORI */
+            #pagina-accessori .club-page-header {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                text-align: left !important;
+                padding: 12px !important;
+                margin-bottom: 12px !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-accessori .club-page-title,
+            #pagina-accessori #titolo-dinamico-accessori {
+                font-size: 24px !important;
+                font-weight: 800 !important;
+                line-height: 1.15 !important;
+                color: #111111 !important;
+                letter-spacing: -0.5px !important;
+                margin: 0 0 6px 0 !important;
+                padding: 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            #pagina-accessori .club-page-description {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                color: #666660 !important;
+                font-weight: 500 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                text-align: left !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
             #pagina-club main,
             #pagina-mondiali main,
             #pagina-accessori main {
@@ -9171,9 +9590,11 @@ body {
                 padding: 0 !important;
             }
 
-            /* Griglia Club Mobile: 2 COLONNE PER RIGA */
+            /* Griglia Club e Nazionali Mobile: 2 COLONNE PER RIGA */
             #pagina-club #griglia-squadre-club.griglia-squadre-club,
-            #pagina-club .griglia-squadre-club {
+            #pagina-club .griglia-squadre-club,
+            #pagina-mondiali #griglia-squadre-nazionali,
+            #pagina-mondiali .griglia-squadre-club {
                 display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 10px !important;
@@ -9181,7 +9602,8 @@ body {
                 box-sizing: border-box !important;
             }
 
-            #pagina-club .card-club-item {
+            #pagina-club .card-club-item,
+            #pagina-mondiali .card-club-item {
                 padding: 12px 8px !important;
                 border-radius: 10px !important;
                 background: #FFFFFF !important;
@@ -9197,7 +9619,8 @@ body {
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
             }
 
-            #pagina-club .card-club-logo-box {
+            #pagina-club .card-club-logo-box,
+            #pagina-mondiali .card-club-logo-box {
                 width: 52px !important;
                 height: 52px !important;
                 margin: 0 auto 6px auto !important;
@@ -9209,7 +9632,8 @@ body {
                 padding: 0 !important;
             }
 
-            #pagina-club .card-club-logo-box img {
+            #pagina-club .card-club-logo-box img,
+            #pagina-mondiali .card-club-logo-box img {
                 width: auto !important;
                 height: auto !important;
                 max-width: 100% !important;
@@ -9218,7 +9642,8 @@ body {
                 filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06)) !important;
             }
 
-            #pagina-club .card-club-nome {
+            #pagina-club .card-club-nome,
+            #pagina-mondiali .card-club-nome {
                 font-size: 12px !important;
                 font-weight: 700 !important;
                 color: #111111 !important;
@@ -9235,9 +9660,7 @@ body {
 
             /* Overrides per layout prodotti in mobile */
             #pagina-club.in-vista-prodotti .layout-club-video-container,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) .layout-club-video-container,
-            #pagina-mondiali.in-vista-prodotti .layout-club-video-container,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .layout-club-video-container {
+            #pagina-mondiali.in-vista-prodotti .layout-club-video-container {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -9246,9 +9669,7 @@ body {
             }
 
             #pagina-club.in-vista-prodotti .sidebar-leghe-club,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) .sidebar-leghe-club,
-            #pagina-mondiali.in-vista-prodotti .sidebar-leghe-club,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .sidebar-leghe-club {
+            #pagina-mondiali.in-vista-prodotti .sidebar-leghe-club {
                 width: 100% !important;
                 max-width: 100% !important;
                 position: static !important;
@@ -9519,34 +9940,29 @@ body {
                VISTA PRODOTTI (#pagina-club, #pagina-mondiali) - Struttura Flex & Sidebar Unificata
                ========================================================================== */
             #pagina-club.in-vista-prodotti .layout-club-video-container,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) .layout-club-video-container,
-            #pagina-mondiali.in-vista-prodotti .layout-club-video-container,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .layout-club-video-container {
+            #pagina-mondiali.in-vista-prodotti .layout-club-video-container {
                 display: flex !important;
-                flex-direction: row !important;
-                align-items: flex-start !important;
-                gap: 20px !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 16px !important;
                 width: 100% !important;
                 box-sizing: border-box !important;
             }
 
             #pagina-club.in-vista-prodotti .area-destra-club,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) .area-destra-club,
-            #pagina-mondiali.in-vista-prodotti .area-destra-club,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .area-destra-club {
+            #pagina-mondiali.in-vista-prodotti .area-destra-club {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
-                flex: 1 1 0% !important;
+                flex: 1 1 100% !important;
                 min-width: 0 !important;
-                width: auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
                 gap: 16px !important;
             }
 
             #pagina-club.in-vista-prodotti #vista-prodotti-club,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) #vista-prodotti-club,
-            #pagina-mondiali.in-vista-prodotti #vista-prodotti-nazionali,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) #vista-prodotti-nazionali {
+            #pagina-mondiali.in-vista-prodotti #vista-prodotti-nazionali {
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
@@ -9555,9 +9971,7 @@ body {
             }
 
             #pagina-club.in-vista-prodotti .sidebar-leghe-club,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) .sidebar-leghe-club,
-            #pagina-mondiali.in-vista-prodotti .sidebar-leghe-club,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .sidebar-leghe-club {
+            #pagina-mondiali.in-vista-prodotti .sidebar-leghe-club {
                 display: block !important;
                 background: #FFFFFF !important;
                 border: 1px solid #E5E5E0 !important;
@@ -9566,8 +9980,7 @@ body {
                 color: #111111 !important;
             }
 
-            #pagina-club.in-vista-prodotti #blocco-superiore-destra-club,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) #blocco-superiore-destra-club {
+            #pagina-club.in-vista-prodotti #blocco-superiore-destra-club {
                 display: flex !important;
                 flex-direction: column !important;
                 gap: 12px !important;
@@ -9578,9 +9991,7 @@ body {
             }
 
             #pagina-club.in-vista-prodotti #barra-ordinamento-prodotti-club,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) #barra-ordinamento-prodotti-club,
-            #pagina-mondiali.in-vista-prodotti #barra-ordinamento-prodotti-nazionali,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) #barra-ordinamento-prodotti-nazionali {
+            #pagina-mondiali.in-vista-prodotti #barra-ordinamento-prodotti-nazionali {
                 display: flex !important;
                 align-items: center !important;
                 gap: 8px !important;
@@ -9594,14 +10005,18 @@ body {
             #vista-prodotti-club #contenitore-club-griglia,
             #pagina-club.in-vista-prodotti #contenitore-club-griglia.griglia-maglie,
             #pagina-club.in-vista-prodotti .griglia-maglie,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) #contenitore-club-griglia.griglia-maglie,
-            #pagina-club:has(#vista-prodotti-club:not([style*="display: none"])) .griglia-maglie,
             #pagina-mondiali #contenitore-nazionali-griglia,
             #vista-prodotti-nazionali #contenitore-nazionali-griglia,
             #pagina-mondiali.in-vista-prodotti #contenitore-nazionali-griglia.griglia-maglie,
-            #pagina-mondiali.in-vista-prodotti .griglia-maglie,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) #contenitore-nazionali-griglia.griglia-maglie,
-            #pagina-mondiali:has(#vista-prodotti-nazionali:not([style*="display: none"])) .griglia-maglie,
+            #pagina-mondiali.in-vista-prodotti .griglia-maglie {
+                width: 100% !important;
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 12px !important;
+                padding-bottom: 20px !important;
+                box-sizing: border-box !important;
+            }
+
             #pagina-accessori #contenitore-accessori-griglia,
             #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
             #pagina-accessori .griglia-maglie {
@@ -10133,7 +10548,7 @@ body {
             #pagina-accessori .btn-accessorio,
             #pagina-accessori #contenitore-accessori-griglia .btn-accessorio,
             #pagina-accessori .card-accessorio .btn-accessorio,
-            #pagina-accessori .card-accessorio button {
+            #pagina-accessori .card-accessorio button:not(.card-heart-btn):not(.wishlist-heart-btn) {
                 width: 100% !important;
                 max-width: 100% !important;
                 min-width: 0 !important;
@@ -10592,7 +11007,7 @@ body {
                 #pagina-accessori .btn-accessorio,
                 #pagina-accessori #contenitore-accessori-griglia .btn-accessorio,
                 #pagina-accessori .card-accessorio .btn-accessorio,
-                #pagina-accessori .card-accessorio button {
+                #pagina-accessori .card-accessorio button:not(.card-heart-btn):not(.wishlist-heart-btn) {
                     width: 100% !important;
                     max-width: 100% !important;
                     min-width: 0 !important;
@@ -10685,8 +11100,8 @@ body {
             #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
             #pagina-accessori .griglia-maglie {
                 display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
-                gap: clamp(5px, 1.6vw, 7px) !important;
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                gap: 14px !important;
                 width: 100% !important;
                 box-sizing: border-box !important;
             }
@@ -10721,7 +11136,8 @@ body {
            ========================================================================== */
         @media (max-width: 768px) {
             /* Adattamento e larghezza intera della pagina Home e della Hero */
-            #pagina-home {
+            #pagina-home,
+            #pagina-home main {
                 width: 100% !important;
                 max-width: 100% !important;
                 padding-left: 0 !important;
@@ -10738,6 +11154,7 @@ body {
                 padding: 0 !important;
                 background-size: cover !important;
                 background-position: 38% center !important;
+                box-sizing: border-box !important;
             }
             #pagina-home .hero-cinematic-container {
                 width: 100% !important;
@@ -10894,6 +11311,13 @@ body {
             }
 
             /* Nuovi Arrivi: Mostra ~2 card contemporaneamente nel carosello */
+            #pagina-home .new-arrivals-carousel-container {
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                touch-action: pan-x pan-y !important;
+                -webkit-overflow-scrolling: touch !important;
+                overscroll-behavior-x: contain;
+            }
             #pagina-home .new-arrivals-carousel-track .card-prodotto-editoriale {
                 flex: 0 0 calc((100cqw - 12px) / 2) !important;
                 width: calc((100cqw - 12px) / 2) !important;
@@ -10925,9 +11349,15 @@ body {
             }
 
             /* Manifesto Fotografico: Box nero e immagine Bayern a tutta larghezza (senza fasce chiare) */
+            #pagina-home .sezione-home-manifesto {
+                background-color: #111111 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
             #pagina-home .sezione-home-manifesto .home-container {
-                padding-left: 0 !important;
-                padding-right: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
             }
@@ -10938,17 +11368,21 @@ body {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
+                background: none !important;
             }
             #pagina-home .manifesto-desktop-banner::before {
+                content: "" !important;
+                display: block !important;
                 width: 100% !important;
+                height: 280px !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                display: block !important;
+                background: url('assets/homepage/Manifesto.png') right center / cover no-repeat !important;
             }
             #pagina-home .manifesto-content {
                 width: 100% !important;
                 max-width: 100% !important;
-                padding: 30px 20px 40px 20px !important;
+                padding: 20px !important; /* padding interno di circa 20px */
                 margin: 0 !important;
                 background-color: #111111 !important;
                 box-sizing: border-box !important;
@@ -11015,6 +11449,301 @@ body {
             }
             #pagina-home .hero-trust-item .material-icons {
                 font-size: 14px !important;
+            }
+        }
+
+        /* ==========================================================================
+           ACCESSORI — QUATTRO COLONNE SU PC E MOBILE
+           ========================================================================== */
+        #pagina-accessori #contenitore-accessori-griglia,
+        #pagina-accessori #contenitore-accessori-griglia.griglia-maglie,
+        #pagina-accessori .griglia-maglie {
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 14px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            align-items: stretch !important;
+        }
+
+        @media (max-width: 768px) {
+            #pagina-accessori #contenitore-accessori-griglia,
+            #pagina-accessori #contenitore-accessori-griglia.griglia-maglie {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 12px !important;
+            }
+
+            /* UNIFORMAZIONE CARD ACCESSORI MOBILE AL DESIGN DESKTOP */
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-editoriale.card-accessorio {
+                padding: 0 !important;
+                border-radius: 16px !important;
+                border: 1px solid #E7E5E0 !important;
+                background: #FFFFFF !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                overflow: visible !important;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-foto-box {
+                aspect-ratio: 4 / 5 !important;
+                width: 100% !important;
+                background: #FAF9F6 !important;
+                background-color: #FAF9F6 !important;
+                padding: 12px !important;
+                border-radius: 15px 15px 0 0 !important;
+                border-bottom: 1px solid #F0EFEA !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                position: relative !important;
+                height: auto !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-foto {
+                width: 100% !important;
+                height: 100% !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
+                object-fit: contain !important;
+                object-position: center !important;
+                filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.05)) !important;
+                display: block !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-info {
+                padding: 10px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex-grow: 1 !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-titolo {
+                font-size: 12px !important;
+                line-height: 1.35 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                white-space: normal !important;
+                word-break: break-word !important;
+                display: block !important;
+                margin: 4px 0 0 0 !important;
+                font-weight: 700 !important;
+                color: #111111 !important;
+                -webkit-text-fill-color: #111111 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-kicker {
+                font-size: 9.5px !important;
+                font-weight: 700 !important;
+                color: #777772 !important;
+                letter-spacing: 0.5px !important;
+                text-transform: uppercase !important;
+                margin: 0 !important;
+                display: block !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-footer {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                justify-content: flex-start !important;
+                gap: 8px !important;
+                margin-top: auto !important;
+                padding-top: 10px !important;
+                border-top: 1px solid #F0EEE9 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-prezzo-wrap {
+                display: flex !important;
+                align-items: baseline !important;
+                justify-content: flex-start !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                gap: 4px !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .card-prodotto-prezzo {
+                font-size: 13.5px !important;
+                font-weight: 900 !important;
+                color: #111111 !important;
+                -webkit-text-fill-color: #111111 !important;
+                white-space: nowrap !important;
+                text-align: left !important;
+            }
+
+            #pagina-accessori #contenitore-accessori-griglia .btn-card-personalizza.btn-accessorio {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                white-space: normal !important;
+                word-break: normal !important;
+                overflow-wrap: break-word !important;
+                height: auto !important;
+                min-height: 28px !important;
+                padding: 6px 4px !important;
+                font-size: 10.5px !important;
+                font-weight: 700 !important;
+                line-height: 1.25 !important;
+                text-transform: none !important;
+                letter-spacing: normal !important;
+                text-align: center !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: #111111 !important;
+                color: #FFFFFF !important;
+                border: none !important;
+                border-radius: 6px !important;
+                cursor: pointer !important;
+            }
+
+            /* Cuore bianco circolare su mobile per Accessories */
+            #pagina-accessori #contenitore-accessori-griglia .card-heart-btn,
+            #pagina-accessori #contenitore-accessori-griglia .wishlist-heart-btn {
+                position: absolute !important;
+                top: 8px !important;
+                right: 8px !important;
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 13px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+                border: 1px solid rgba(0, 0, 0, 0.08) !important;
+                border-radius: 50% !important;
+                z-index: 10 !important;
+                padding: 0 !important;
+                cursor: pointer !important;
+                line-height: 1 !important;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+                transition: transform 0.2s ease, background-color 0.2s ease !important;
+                margin: 0 !important;
+                transform: none !important;
+            }
+
+            /* ADATTAMENTI INTEGRATI PER GRIGLIA NAZIONALI E RICERCA CLUB SU MOBILE */
+            #pagina-club .header-lega-selezionata,
+            #pagina-mondiali .header-lega-selezionata {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-club .box-cerca-club-lega,
+            #pagina-mondiali .box-cerca-club-lega {
+                width: 100% !important;
+                max-width: 100% !important;
+                display: flex !important;
+            }
+
+            #pagina-club #input-cerca-club,
+            #pagina-mondiali #input-cerca-nazionali {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 38px !important;
+            }
+
+            #pagina-mondiali #griglia-squadre-nazionali,
+            #pagina-mondiali .griglia-squadre-club {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            #pagina-mondiali #griglia-squadre-nazionali .card-club-item,
+            #pagina-mondiali .card-club-item {
+                padding: 12px 8px !important;
+                border-radius: 10px !important;
+                background: #FFFFFF !important;
+                border: 1px solid #E5E5E0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                min-height: 105px !important;
+                box-sizing: border-box !important;
+                width: 100% !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            #pagina-mondiali #griglia-squadre-nazionali .card-club-logo-box,
+            #pagina-mondiali .card-club-logo-box {
+                width: 52px !important;
+                height: 52px !important;
+                margin: 0 auto 6px auto !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                padding: 0 !important;
+            }
+
+            #pagina-mondiali #griglia-squadre-nazionali .card-club-logo-box img,
+            #pagina-mondiali .card-club-logo-box img {
+                width: auto !important;
+                height: auto !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
+                object-fit: contain !important;
+            }
+
+            #pagina-mondiali #griglia-squadre-nazionali .card-club-nome,
+            #pagina-mondiali .card-club-nome {
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                color: #111111 !important;
+                line-height: 1.25 !important;
+                margin: 0 !important;
+                word-break: break-word !important;
+                text-align: center !important;
+                display: block !important;
+                white-space: normal !important;
+                overflow: visible !important;
+                -webkit-line-clamp: unset !important;
+                text-overflow: clip !important;
+            }
+        }
+
+        /* ==========================================================
+           EFFETTO SCROLL REVEAL PER LA SEZIONE HOME
+           ========================================================== */
+        .js-enabled #pagina-home .home-scroll-reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 1300ms cubic-bezier(0.16, 1, 0.3, 1), transform 1300ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+            will-change: opacity, transform;
+        }
+
+        .js-enabled #pagina-home .home-scroll-reveal.reveal-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .js-enabled #pagina-home .home-scroll-reveal {
+                opacity: 1 !important;
+                transform: none !important;
+                transition: none !important;
             }
         }
     </style>
@@ -11376,7 +12105,7 @@ body {
                         <!-- 1. Kit completi -->
                         <div class="card-categoria-editoriale" tabindex="0" role="button" aria-label="Visualizza Kit completi" onclick="apriCategoriaDaHome('Kit completi')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriCategoriaDaHome('Kit completi');}">
                             <div class="card-categoria-foto-box">
-                                <img src="assets/homepage/Kit Completi.png" alt="Kit completi" class="card-categoria-foto" loading="lazy" decoding="async">
+                                <img src="assets/homepage/Kit Completi.png" alt="Kit completi" class="card-categoria-foto" loading="eager" decoding="auto">
                             </div>
                             <div class="card-categoria-info">
                                 <h3 class="card-categoria-titolo">Kit completi</h3>
@@ -11387,7 +12116,7 @@ body {
                         <!-- 2. Kit allenamento -->
                         <div class="card-categoria-editoriale" tabindex="0" role="button" aria-label="Visualizza Kit allenamento" onclick="apriCategoriaDaHome('Kit allenamento')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriCategoriaDaHome('Kit allenamento');}">
                             <div class="card-categoria-foto-box">
-                                <img src="assets/homepage/Kit allenamento.png" alt="Kit allenamento" class="card-categoria-foto" loading="lazy" decoding="async">
+                                <img src="assets/homepage/Kit allenamento.png" alt="Kit allenamento" class="card-categoria-foto" loading="eager" decoding="auto">
                             </div>
                             <div class="card-categoria-info">
                                 <h3 class="card-categoria-titolo">Kit allenamento</h3>
@@ -11398,7 +12127,7 @@ body {
                         <!-- 3. Smanicato -->
                         <div class="card-categoria-editoriale" tabindex="0" role="button" aria-label="Visualizza Smanicato" onclick="apriCategoriaDaHome('Smanicato')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriCategoriaDaHome('Smanicato');}">
                             <div class="card-categoria-foto-box">
-                                <img src="assets/homepage/Smanicati.png" alt="Smanicato" class="card-categoria-foto" loading="lazy" decoding="async">
+                                <img src="assets/homepage/Smanicati.png" alt="Smanicato" class="card-categoria-foto" loading="eager" decoding="auto">
                             </div>
                             <div class="card-categoria-info">
                                 <h3 class="card-categoria-titolo">Smanicato</h3>
@@ -11409,7 +12138,7 @@ body {
                         <!-- 4. Kit bambino -->
                         <div class="card-categoria-editoriale" tabindex="0" role="button" aria-label="Visualizza Kit bambino" onclick="apriCategoriaDaHome('Kit bambino')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriCategoriaDaHome('Kit bambino');}">
                             <div class="card-categoria-foto-box">
-                                <img src="assets/homepage/Bambino.png" alt="Kit bambino" class="card-categoria-foto" loading="lazy" decoding="async">
+                                <img src="assets/homepage/Bambino.png" alt="Kit bambino" class="card-categoria-foto" loading="eager" decoding="auto">
                             </div>
                             <div class="card-categoria-info">
                                 <h3 class="card-categoria-titolo">Kit bambino</h3>
@@ -11420,7 +12149,7 @@ body {
                         <!-- 5. Retrò -->
                         <div class="card-categoria-editoriale" tabindex="0" role="button" aria-label="Visualizza Retrò" onclick="apriCategoriaDaHome('Retrò')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriCategoriaDaHome('Retrò');}">
                             <div class="card-categoria-foto-box">
-                                <img src="assets/homepage/Retro.png" alt="Retrò" class="card-categoria-foto" loading="lazy" decoding="async">
+                                <img src="assets/homepage/Retro.png" alt="Retrò" class="card-categoria-foto" loading="eager" decoding="auto">
                             </div>
                             <div class="card-categoria-info">
                                 <h3 class="card-categoria-titolo">Retrò</h3>
@@ -11431,7 +12160,7 @@ body {
                         <!-- 6. Tute -->
                         <div class="card-categoria-editoriale" tabindex="0" role="button" aria-label="Visualizza Tute" onclick="apriCategoriaDaHome('Tute')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriCategoriaDaHome('Tute');}">
                             <div class="card-categoria-foto-box">
-                                <img src="assets/homepage/Tuta.png" alt="Tute" class="card-categoria-foto" loading="lazy" decoding="async">
+                                <img src="assets/homepage/Tuta.png" alt="Tute" class="card-categoria-foto" loading="eager" decoding="auto">
                             </div>
                             <div class="card-categoria-info">
                                 <h3 class="card-categoria-titolo">Tute</h3>
@@ -11505,6 +12234,9 @@ body {
                             <div class="info-lega-attiva">
                                 <h2 id="titolo-lega-selezionata">Premier League</h2>
                                 <span id="conteggio-squadre-lega" class="badge-conteggio-squadre">28 club</span>
+                            </div>
+                            <div class="box-cerca-club-lega">
+                                <input type="text" id="input-cerca-club" placeholder="Cerca un club..." oninput="filtraClubInGriglia(this.value)">
                             </div>
                         </div>
 
@@ -11644,7 +12376,7 @@ body {
                                 <span id="conteggio-nazionali-categoria" class="badge-conteggio-squadre">0 Nazionali Ufficiali</span>
                             </div>
                             <div class="box-cerca-club-lega">
-                                <input type="text" id="input-cerca-nazionali" placeholder="🔍 Cerca nazionale..." oninput="filtraNazionaliInGriglia(this.value)">
+                                <input type="text" id="input-cerca-nazionali" placeholder=" Cerca nazionale..." oninput="filtraNazionaliInGriglia(this.value)">
                             </div>
                         </div>
 
@@ -13479,38 +14211,69 @@ body {
         </div>
     </div>
 
-    <div class="modal-personalizza" id="modal-personalizza" onclick="if(event.target === this) chiudiPersonalizzazione()">
+    <div class="modal-personalizza" id="modal-personalizza" role="dialog" aria-modal="true" aria-labelledby="modal-personalizza-titolo-principale" onclick="if(event.target === this) chiudiPersonalizzazione()">
         <div class="modal-content">
-            <button class="btn-chiudi-modal" onclick="chiudiPersonalizzazione()">✕</button>
-            <h4 id="modal-titolo-squadra">Personalizza il Kit</h4>
-            <div class="sottotitolo">Rendi unica la maglia inserendo i tuoi dettagli preferiti</div>
+            <button class="btn-chiudi-modal" id="btn-chiudi-modal-personalizza" onclick="chiudiPersonalizzazione()" aria-label="Chiudi personalizzazione" title="Chiudi (Esc)">✕</button>
+            <div class="modal-header-box">
+                <h4 class="modal-header-title" id="modal-personalizza-titolo-principale">Personalizza il tuo completino</h4>
+                <div class="sottotitolo" id="modal-titolo-squadra">Maglia Ufficiale</div>
+            </div>
 
-            <div class="gruppo-form" id="gruppo-modal-taglia">
-                <label id="label-modal-taglia">Seleziona Taglia</label>
-                <select id="modal-taglia">
-                    <option value="S">Taglia S</option>
-                    <option value="M" selected>Taglia M</option>
-                    <option value="L">Taglia L</option>
-                    <option value="XL">Taglia XL</option>
-                    <option value="XXL">Taglia XXL</option>
-                </select>
-            </div>
-            <div class="gruppo-form" id="gruppo-modal-nome">
-                <label id="label-modal-nome">Nome sulla maglia <span id="badge-modal-nome">+1,50€</span></label>
-                <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
-            </div>
-            <div class="gruppo-form" id="gruppo-modal-numero">
-                <label id="label-modal-numero">Numero sulla maglia <span id="badge-modal-numero">+1,50€</span></label>
-                <input type="number" id="modal-numero" min="1" max="99" placeholder="10" oninput="ricalcolaPrezzoPopup()">
-            </div>
-            <div class="gruppo-form" id="gruppo-modal-patch">
-                <label id="label-modal-patch">Patch <span id="badge-modal-patch">+1,00€</span></label>
-                <input type="text" id="modal-patch" placeholder="Es. Champions League, Serie A" oninput="ricalcolaPrezzoPopup()">
+            <div class="modal-fields-container">
+                <div class="gruppo-form" id="gruppo-modal-taglia">
+                    <label id="label-modal-taglia" for="modal-taglia"><span>Seleziona Taglia</span></label>
+                    <select id="modal-taglia">
+                        <option value="S">Taglia S</option>
+                        <option value="M" selected>Taglia M</option>
+                        <option value="L">Taglia L</option>
+                        <option value="XL">Taglia XL</option>
+                        <option value="XXL">Taglia XXL</option>
+                    </select>
+                </div>
+                <div class="gruppo-form" id="gruppo-modal-nome">
+                    <label id="label-modal-nome" for="modal-nome">
+                        <span>Nome sulla maglia <span class="label-opt-badge">(Facoltativo)</span></span>
+                        <span id="badge-modal-nome" class="badge-extra-cost">+1,50€</span>
+                    </label>
+                    <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
+                </div>
+                <div class="gruppo-form" id="gruppo-modal-numero">
+                    <label id="label-modal-numero" for="modal-numero">
+                        <span>Numero sulla maglia <span class="label-opt-badge">(Facoltativo)</span></span>
+                        <span id="badge-modal-numero" class="badge-extra-cost">+1,50€</span>
+                    </label>
+                    <input type="number" id="modal-numero" min="1" max="99" placeholder="10" oninput="ricalcolaPrezzoPopup()">
+                </div>
+                <div class="gruppo-form" id="gruppo-modal-patch">
+                    <label id="label-modal-patch" for="modal-patch">
+                        <span>Patch <span class="label-opt-badge">(Facoltativo)</span></span>
+                        <span id="badge-modal-patch" class="badge-extra-cost">+1,00€</span>
+                    </label>
+                    <input type="text" id="modal-patch" placeholder="Es. Champions League, Serie A" oninput="ricalcolaPrezzoPopup()">
+                </div>
             </div>
 
             <div class="box-anteprima-prezzo" id="box-anteprima-prezzo-modal">
+                <div class="riepilogo-dettagli" id="modal-riepilogo-dettagli">
+                    <div class="riepilogo-riga">
+                        <span id="riepilogo-label-base">Prezzo base</span>
+                        <span id="riepilogo-valore-base">23,99€</span>
+                    </div>
+                    <div class="riepilogo-riga riepilogo-extra" id="riepilogo-riga-nome" style="display: none;">
+                        <span id="riepilogo-label-nome">Extra Nome</span>
+                        <span id="riepilogo-valore-nome">+1,50€</span>
+                    </div>
+                    <div class="riepilogo-riga riepilogo-extra" id="riepilogo-riga-numero" style="display: none;">
+                        <span id="riepilogo-label-numero">Extra Numero</span>
+                        <span id="riepilogo-valore-numero">+1,50€</span>
+                    </div>
+                    <div class="riepilogo-riga riepilogo-extra" id="riepilogo-riga-patch" style="display: none;">
+                        <span id="riepilogo-label-patch">Extra Patch</span>
+                        <span id="riepilogo-valore-patch">+1,00€</span>
+                    </div>
+                </div>
                 <div class="blocco-prezzo-standard" id="blocco-prezzo-standard">
-                    <span>Totale Configurazione:</span>
+                    <span class="label-totale">Totale:</span>
                     <span class="prezzo-dinamico" id="modal-prezzo-anteprima">23,99€</span>
                 </div>
                 <div class="badge-convenzione-compatto" id="badge-convenzione-compatto" style="display: none;">
@@ -13518,7 +14281,7 @@ body {
                     <span class="badge-convenzione-testo">Configurazione inclusa nella convenzione</span>
                 </div>
             </div>
-            <button class="btn-conferma-carrello" onclick="aggiungiProdottoConfigurato()">Aggiungi al Carrello</button>
+            <button class="btn-conferma-carrello" id="btn-conferma-personalizza" onclick="aggiungiProdottoConfigurato()">Aggiungi al Carrello</button>
         </div>
     </div>
 
@@ -14201,6 +14964,13 @@ body {
         // Chiusura con tasto Esc
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' || e.key === 'Esc') {
+                const modalPers = document.getElementById("modal-personalizza");
+                if (modalPers && (modalPers.style.display === "flex" || window.getComputedStyle(modalPers).display === "flex")) {
+                    if (typeof chiudiPersonalizzazione === 'function') {
+                        chiudiPersonalizzazione();
+                        return;
+                    }
+                }
                 const modal = document.getElementById("modal-zoom-img");
                 if (modal && modal.style.display === "flex") {
                     chiudiZoomImmagine();
@@ -15407,11 +16177,11 @@ body {
             if (lower === 'fan' || lower.includes('fan') || lower.includes('tifoso')) {
                 return 'Fan';
             }
-            if (lower === 'kit' || lower === 'completo' || (lower.includes('kit') && !lower.includes('bambino')) || lower.includes('completo')) {
-                return 'Kit';
-            }
             if (lower === 'portiere' || lower.includes('portiere') || lower.includes('goalkeeper') || lower === 'gk' || lower.includes('keeper')) {
                 return 'Portiere';
+            }
+            if (lower === 'kit' || lower === 'completo' || (lower.includes('kit') && !lower.includes('bambino') && !lower.includes('portiere')) || lower.includes('completo')) {
+                return 'Kit';
             }
             
             return raw;
@@ -15429,7 +16199,14 @@ body {
             const catNorm = normalizzaCategoria(categoria);
             if (!catNorm) return false;
             const authNorm = categorieAutorizzate.map(c => normalizzaCategoria(c)).filter(Boolean);
-            return authNorm.some(auth => auth.toLowerCase() === catNorm.toLowerCase());
+            return authNorm.some(auth => {
+                if (auth.toLowerCase() === catNorm.toLowerCase()) return true;
+                const aL = auth.toLowerCase();
+                const cL = catNorm.toLowerCase();
+                if ((aL.includes('portiere') || aL.includes('goalkeeper')) && (cL.includes('portiere') || cL.includes('goalkeeper'))) return true;
+                if ((aL.includes('player') || aL.includes('giocatore')) && (cL.includes('player') || cL.includes('giocatore'))) return true;
+                return false;
+            });
         }
         window.isCategoriaAutorizzataTorneo = isCategoriaAutorizzataTorneo;
 
@@ -15868,6 +16645,9 @@ body {
                 }
                 if (typeof inizializzaCarouselNuoviArrivi === 'function') {
                     inizializzaCarouselNuoviArrivi();
+                }
+                if (typeof window.initHomeScrollReveal === 'function') {
+                    window.initHomeScrollReveal();
                 }
                 if (typeof reRenderizzaSezioneAttiva === 'function') {
                     reRenderizzaSezioneAttiva();
@@ -18294,7 +19074,7 @@ for (const cat in hierarchy) {
                 "Serie A": "assets/league-logos/italy_serie-a_64x64.football-logos.cc.png",
                 "La Liga": "assets/league-logos/spain_la-liga_64x64.football-logos.cc.png",
                 "Bundesliga": "assets/league-logos/germany_bundesliga_64x64.football-logos.cc1.png",
-                "Ligue 1": "assets/league-logos/france_ligue-1--white_64x64.football-logos.cc.png",
+                "Ligue 1": "assets/league-logos/france_ligue-1_64x64.football-logos.cc.png",
                 "USA MLS": "assets/league-logos/usa_mls_64x64.football-logos.cc.png",
                 "MLS": "assets/league-logos/usa_mls_64x64.football-logos.cc.png",
                 "Brasileirão Série A": "assets/league-logos/brazil_brazilian-serie-a_64x64.football-logos.cc.png",
@@ -18387,7 +19167,7 @@ for (const cat in hierarchy) {
             const vistaProdotti = document.getElementById('vista-prodotti-club');
             const barOrdProdotti = document.getElementById('barra-ordinamento-prodotti-club');
             if (!paginaClub) return;
-            const isProdotti = vistaProdotti && (vistaProdotti.style.display !== 'none' && getComputedStyle(vistaProdotti).display !== 'none');
+            const isProdotti = vistaProdotti && (vistaProdotti.style.display !== 'none');
             if (isProdotti) {
                 paginaClub.classList.add('in-vista-prodotti');
                 if (barOrdProdotti) barOrdProdotti.style.display = 'flex';
@@ -18639,31 +19419,12 @@ for (const cat in hierarchy) {
             if (!containerGriglia) return;
 
             const q = (query || '').trim().toLowerCase();
-            let baseLista = listaSquadreLegaCorrente;
+            let baseLista = listaSquadreLegaCorrente || [];
             
-            // Se la ricerca è globale o non ci sono risultati nella lega corrente, cerca su tutti i club con prodotti (supporta sia nome DB che nome visualizzato)
-            if (q.length >= 2) {
-                const matchInLega = baseLista.filter(c => {
-                    const orig = (c.name || '').toLowerCase();
-                    const disp = ottieniNomeVisualizzatoClub(c.name).toLowerCase();
-                    return orig.includes(q) || disp.includes(q);
-                });
-                if (matchInLega.length > 0) {
-                    baseLista = matchInLega;
-                } else {
-                    const clubsAll = (typeof ottieniSquadrePubblicheVisibili === 'function')
-                        ? ottieniSquadrePubblicheVisibili('Club')
-                        : (publicTeams || []).filter(t => (t.categoria || 'Club') === 'Club' && (typeof squadraHaProdottiVisibili === 'function' ? squadraHaProdottiVisibili(t.name) : true));
-                    baseLista = clubsAll.filter(c => {
-                        const orig = (c.name || '').toLowerCase();
-                        const disp = ottieniNomeVisualizzatoClub(c.name).toLowerCase();
-                        return orig.includes(q) || disp.includes(q);
-                    });
-                }
-            } else if (q.length > 0) {
+            if (q.length > 0) {
                 baseLista = baseLista.filter(c => {
                     const orig = (c.name || '').toLowerCase();
-                    const disp = ottieniNomeVisualizzatoClub(c.name).toLowerCase();
+                    const disp = (typeof ottieniNomeVisualizzatoClub === 'function' ? ottieniNomeVisualizzatoClub(c.name) : c.name || '').toLowerCase();
                     return orig.includes(q) || disp.includes(q);
                 });
             }
@@ -18674,8 +19435,8 @@ for (const cat in hierarchy) {
 
             if (baseLista.length === 0) {
                 containerGriglia.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: rgba(255,255,255,0.6);">
-                        <p style="font-size: 15px;">Nessun club corrispondente a "${query}".</p>
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #111111;">
+                        <p style="font-size: 15px; font-weight: 700; margin: 0;">Nessun club trovato</p>
                     </div>
                 `;
                 return;
@@ -18683,9 +19444,9 @@ for (const cat in hierarchy) {
 
             let html = '';
             baseLista.forEach(club => {
-                const logoUrl = ottieniLogoClub(club.name, club.sezione, club.id);
+                const logoUrl = typeof ottieniLogoClub === 'function' ? ottieniLogoClub(club.name, club.sezione, club.id) : '';
                 const safeName = (club.name || '').replace(/'/g, "\\'");
-                const displayName = ottieniNomeVisualizzatoClub(club.name);
+                const displayName = typeof ottieniNomeVisualizzatoClub === 'function' ? ottieniNomeVisualizzatoClub(club.name) : club.name;
                 html += `
                     <div class="card-club-item" onclick="apriProdottiSquadra('${safeName}')">
                         <div class="card-club-logo-box">
@@ -19345,7 +20106,7 @@ for (const cat in hierarchy) {
             const vistaProdotti = document.getElementById('vista-prodotti-nazionali');
             const barOrdProdotti = document.getElementById('barra-ordinamento-prodotti-nazionali');
             if (!paginaNaz) return;
-            const isProdotti = vistaProdotti && (vistaProdotti.style.display !== 'none' && getComputedStyle(vistaProdotti).display !== 'none');
+            const isProdotti = vistaProdotti && (vistaProdotti.style.display !== 'none');
             if (isProdotti) {
                 paginaNaz.classList.add('in-vista-prodotti');
                 if (barOrdProdotti) barOrdProdotti.style.display = 'flex';
@@ -19744,7 +20505,7 @@ for (const cat in hierarchy) {
                          aria-label="Visualizza e ingrandisci foto di ${safeNome}" 
                          onclick="gestisciClickFotoNuoviArrivi('${safeImg}', '${safeNome}', event)"
                          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();gestisciClickFotoNuoviArrivi('${safeImg}', '${safeNome}', event);}">
-                        <button class="card-heart-btn" id="${heartBtnId}" ${tabAttr} onclick="toggleWishlist('${idProdotto}', event)" title="${isSaved ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">
+                        <button class="card-heart-btn" id="${heartBtnId}" ${tabAttr} onclick="if(window.nuoviArriviDragMoved)return;toggleWishlist('${idProdotto}', event)" title="${isSaved ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">
                             ${heartIcon}
                         </button>
                         <img src="${immagineDaUsare}" alt="${safeNome}" class="card-prodotto-foto" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://placehold.co/280x280/FAF9F6/111111?text=Kit+Calcio'">
@@ -19755,11 +20516,11 @@ for (const cat in hierarchy) {
                     <div class="card-prodotto-info">
                         <div>
                             <span class="card-prodotto-kicker">${tagCompleto}</span>
-                            <h3 class="card-prodotto-titolo" onclick="apriPersonalizzazione('${safeNome}', '${safeImg}', ${prezzoNum}, '${idProdotto}', '${legacyIdProdotto}', '${safeTarget}', '${safeCat}')" role="button" ${tabAttr ? tabAttr : 'tabindex="0"'} onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriPersonalizzazione('${safeNome}', '${safeImg}', ${prezzoNum}, '${idProdotto}', '${legacyIdProdotto}', '${safeTarget}', '${safeCat}');}" style="cursor: pointer;">${nome}</h3>
+                            <h3 class="card-prodotto-titolo" onclick="if(window.nuoviArriviDragMoved)return;apriPersonalizzazione('${safeNome}', '${safeImg}', ${prezzoNum}, '${idProdotto}', '${legacyIdProdotto}', '${safeTarget}', '${safeCat}')" role="button" ${tabAttr ? tabAttr : 'tabindex="0"'} onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();apriPersonalizzazione('${safeNome}', '${safeImg}', ${prezzoNum}, '${idProdotto}', '${legacyIdProdotto}', '${safeTarget}', '${safeCat}');}" style="cursor: pointer;">${nome}</h3>
                         </div>
                         <div class="card-prodotto-footer">
                             <span class="card-prodotto-prezzo">${prezzoFormatted}</span>
-                            <button class="btn-card-personalizza" ${tabAttr} onclick="apriPersonalizzazione('${safeNome}', '${safeImg}', ${prezzoNum}, '${idProdotto}', '${legacyIdProdotto}', '${safeTarget}', '${safeCat}')">
+                            <button class="btn-card-personalizza" ${tabAttr} onclick="if(window.nuoviArriviDragMoved)return;apriPersonalizzazione('${safeNome}', '${safeImg}', ${prezzoNum}, '${idProdotto}', '${legacyIdProdotto}', '${safeTarget}', '${safeCat}')">
                                 Personalizza
                             </button>
                         </div>
@@ -20051,9 +20812,40 @@ for (const cat in hierarchy) {
             // Distinzione Drag vs Click su Mobile e Desktop
             let touchStartX = 0;
             let touchStartY = 0;
+            let touchResumeTimer = null;
+            let isTouchingCarousel = false;
+
+            const resetTouchResumeTimer = () => {
+                if (touchResumeTimer) {
+                    clearTimeout(touchResumeTimer);
+                    touchResumeTimer = null;
+                }
+            };
+
+            const scheduleAutoScrollResume = () => {
+                resetTouchResumeTimer();
+                touchResumeTimer = setTimeout(() => {
+                    if (!isTouchingCarousel) {
+                        window.nuoviArriviState.isInteracting = false;
+                        window.nuoviArriviScrollPos = scroller.scrollLeft;
+                        if (window.nuoviArriviSingleSetWidth > 0) {
+                            while (window.nuoviArriviScrollPos <= 0) {
+                                window.nuoviArriviScrollPos += window.nuoviArriviSingleSetWidth;
+                            }
+                            while (window.nuoviArriviScrollPos >= window.nuoviArriviSingleSetWidth * 2) {
+                                window.nuoviArriviScrollPos -= window.nuoviArriviSingleSetWidth;
+                            }
+                            scroller.scrollLeft = window.nuoviArriviScrollPos;
+                        }
+                        window.nuoviArriviLastTime = performance.now();
+                    }
+                }, 800);
+            };
 
             scroller.addEventListener('touchstart', (e) => {
+                isTouchingCarousel = true;
                 window.nuoviArriviState.isInteracting = true;
+                resetTouchResumeTimer();
                 if (e.touches && e.touches[0]) {
                     touchStartX = e.touches[0].clientX;
                     touchStartY = e.touches[0].clientY;
@@ -20072,21 +20864,40 @@ for (const cat in hierarchy) {
             }, { passive: true });
 
             scroller.addEventListener('touchend', () => {
-                window.nuoviArriviState.isInteracting = false;
+                isTouchingCarousel = false;
                 window.nuoviArriviScrollPos = scroller.scrollLeft;
-                if (window.nuoviArriviSingleSetWidth > 0) {
-                    while (window.nuoviArriviScrollPos <= 0) {
-                        window.nuoviArriviScrollPos += window.nuoviArriviSingleSetWidth;
-                    }
-                    while (window.nuoviArriviScrollPos >= window.nuoviArriviSingleSetWidth * 2) {
-                        window.nuoviArriviScrollPos -= window.nuoviArriviSingleSetWidth;
-                    }
-                    scroller.scrollLeft = window.nuoviArriviScrollPos;
-                }
-                window.nuoviArriviLastTime = performance.now();
+                scheduleAutoScrollResume();
                 setTimeout(() => {
                     window.nuoviArriviDragMoved = false;
-                }, 120);
+                }, 150);
+            }, { passive: true });
+
+            scroller.addEventListener('touchcancel', () => {
+                isTouchingCarousel = false;
+                scheduleAutoScrollResume();
+                setTimeout(() => {
+                    window.nuoviArriviDragMoved = false;
+                }, 150);
+            }, { passive: true });
+
+            // Sincronizzazione continua della posizione dello scroller
+            scroller.addEventListener('scroll', () => {
+                if (window.nuoviArriviState.isInteracting) {
+                    window.nuoviArriviScrollPos = scroller.scrollLeft;
+                    // Infinite wrap seamless durante lo scroll
+                    if (window.nuoviArriviSingleSetWidth > 0) {
+                        if (scroller.scrollLeft <= 50) {
+                            scroller.scrollLeft += window.nuoviArriviSingleSetWidth;
+                            window.nuoviArriviScrollPos = scroller.scrollLeft;
+                        } else if (scroller.scrollLeft >= window.nuoviArriviSingleSetWidth * 2 - 50) {
+                            scroller.scrollLeft -= window.nuoviArriviSingleSetWidth;
+                            window.nuoviArriviScrollPos = scroller.scrollLeft;
+                        }
+                    }
+                    if (!isTouchingCarousel) {
+                        scheduleAutoScrollResume();
+                    }
+                }
             }, { passive: true });
 
             let mouseStartX = 0;
@@ -20135,6 +20946,11 @@ for (const cat in hierarchy) {
             // Avvia loop di animazione fluido continuo (RAF)
             window.nuoviArriviLastTime = performance.now();
             window.nuoviArriviRafId = requestAnimationFrame(animazioneCaroselloNuoviArrivi);
+
+            // Assicura che Nuovi Arrivi sia agganciato al sistema di reveal anche dopo render dinamico
+            if (typeof window.initHomeScrollReveal === 'function') {
+                window.initHomeScrollReveal();
+            }
         }
         window.inizializzaCarouselNuoviArrivi = inizializzaCarouselNuoviArrivi;
 
@@ -20624,6 +21440,11 @@ for (const cat in hierarchy) {
             if (typeof inizializzaRoutingURL === 'function') {
                 inizializzaRoutingURL();
             }
+
+            // Inizializza l'effetto scroll reveal sulla home page
+            if (typeof window.initHomeScrollReveal === 'function') {
+                window.initHomeScrollReveal();
+            }
         };
 
         function avviaCountdownFittizio() {
@@ -20975,6 +21796,14 @@ for (const cat in hierarchy) {
             if (idSezione === 'home') {
                 if (typeof window.impostaAmbitoHomeCategoria === 'function') {
                     window.impostaAmbitoHomeCategoria('tutti');
+                }
+                if (typeof window.assicuraCaricamentoImmaginiCategorieHome === 'function') {
+                    window.assicuraCaricamentoImmaginiCategorieHome();
+                }
+                if (typeof window.initHomeScrollReveal === 'function') {
+                    setTimeout(() => {
+                        window.initHomeScrollReveal();
+                    }, 50);
                 }
             }
 
@@ -22389,29 +23218,50 @@ function renderizzaProdottiSquadraConFiltri() {
                 return true;
             });
 
-            // Titolo dinamico per vista combinata o filtrata
+            // Titolo dinamico per vista Tutti gli articoli o vista combinata o filtrata
+            const mappaNomiCategorieDisplay = {
+                'tutti': 'Tutti gli articoli',
+                'kit': 'Kit completi',
+                'kit completi': 'Kit completi',
+                'kit allenamento': 'Kit allenamento',
+                'smanicati': 'Smanicato',
+                'smanicato': 'Smanicato',
+                'kit bambino': 'Kit bambino',
+                'bambino': 'Kit bambino',
+                'retro': 'Retrò',
+                'retrò': 'Retrò',
+                'categoria_retro': 'Retrò',
+                'tuta': 'Tute',
+                'tute': 'Tute',
+                'categoria_tute': 'Tute',
+                'polo': 'Polo',
+                'portiere': 'Kit portiere',
+                'fan': 'Versione Fan',
+                'player': 'Versione Player',
+                'maniche lunghe': 'Manica Lunga'
+            };
+            const catLabel = mappaNomiCategorieDisplay[(filtroCategoriaCorrente || 'tutti').toLowerCase()] || filtroCategoriaCorrente;
+
             if (window.ambitoCatalogoCorrente === 'tutti' || squadraSelezionata === 'tutti_prodotti') {
                 const titClub = document.getElementById('titolo-dinamico-club');
                 if (titClub) {
-                    const mappaNomiCategorieDisplay = {
-                        'tutti': 'Tutti gli articoli',
-                        'kit': 'Kit completi',
-                        'kit completi': 'Kit completi',
-                        'kit allenamento': 'Kit allenamento',
-                        'smanicati': 'Smanicato',
-                        'smanicato': 'Smanicato',
-                        'kit bambino': 'Kit bambino',
-                        'bambino': 'Kit bambino',
-                        'retro': 'Retrò',
-                        'categoria_retro': 'Retrò',
-                        'tuta': 'Tute',
-                        'tute': 'Tute',
-                        'categoria_tute': 'Tute'
-                    };
-                    const catLabel = mappaNomiCategorieDisplay[(filtroCategoriaCorrente || 'tutti').toLowerCase()] || filtroCategoriaCorrente;
                     titClub.innerText = (filtroCategoriaCorrente && filtroCategoriaCorrente !== 'tutti')
                         ? `Tutti gli articoli · ${catLabel}`
                         : `Tutti gli articoli`;
+                }
+            } else if (modalitaClubCorrente === 'tutti-gli-articoli' || squadraSelezionata === 'tutti_club') {
+                const titClub = document.getElementById('titolo-dinamico-club');
+                if (titClub) {
+                    titClub.innerText = (filtroCategoriaCorrente && filtroCategoriaCorrente !== 'tutti')
+                        ? `Tutti gli articoli Club · ${catLabel}`
+                        : `TUTTI GLI ARTICOLI CLUB`;
+                }
+            } else if (modalitaNazionaliCorrente === 'tutti-gli-articoli' || squadraSelezionata === 'tutte_nazionali') {
+                const titNaz = document.getElementById('titolo-dinamico-nazionali');
+                if (titNaz) {
+                    titNaz.innerText = (filtroCategoriaCorrente && filtroCategoriaCorrente !== 'tutti')
+                        ? `Tutti gli articoli Nazionali · ${catLabel}`
+                        : `TUTTI GLI ARTICOLI NAZIONALI`;
                 }
             }
 
@@ -22982,6 +23832,43 @@ function renderizzaProdottiSquadraConFiltri() {
             if (selOrdRicerca && ordinamentoCorrente) {
                 selOrdRicerca.value = ordinamentoCorrente;
             }
+
+            // Sincronizza evidenziazione corretta nella sidebar dei cataloghi (Club & Nazionali)
+            const isClubTutti = (modalitaClubCorrente === 'tutti-gli-articoli');
+            document.querySelectorAll('#lista-leghe-sidebar .item-lega-sidebar').forEach(el => {
+                const dataLega = el.getAttribute('data-lega');
+                if (isClubTutti) {
+                    if (dataLega === 'tutti-gli-articoli') {
+                        el.classList.add('attivo');
+                    } else {
+                        el.classList.remove('attivo');
+                    }
+                } else {
+                    if (dataLega === (legaClubSelezionata || 'tutti')) {
+                        el.classList.add('attivo');
+                    } else {
+                        el.classList.remove('attivo');
+                    }
+                }
+            });
+
+            const isNazTutti = (modalitaNazionaliCorrente === 'tutti-gli-articoli');
+            document.querySelectorAll('#lista-nazionali-sidebar .item-lega-sidebar').forEach(el => {
+                const dataCat = el.getAttribute('data-cat');
+                if (isNazTutti) {
+                    if (dataCat === 'tutti-gli-articoli') {
+                        el.classList.add('attivo');
+                    } else {
+                        el.classList.remove('attivo');
+                    }
+                } else {
+                    if (dataCat === (categoriaNazionaliSelezionata || 'tutti')) {
+                        el.classList.add('attivo');
+                    } else {
+                        el.classList.remove('attivo');
+                    }
+                }
+            });
         }
 
         async function caricaSettingsEFiltriPubblici() {
@@ -23205,6 +24092,11 @@ function renderizzaProdottiSquadraConFiltri() {
             filtroStagioneCorrente = 'tutte';
             queryRicercaProdottiClub = '';
             queryRicercaProdottiNazionali = '';
+
+            // Reset delle selezioni di lega e confederazione sidebar
+            legaClubSelezionata = 'tutti';
+            categoriaNazionaliSelezionata = 'tutti';
+
             const config = (typeof trovaConfigurazioneFiltroCatalogo === 'function') ? trovaConfigurazioneFiltroCatalogo(categoria) : null;
             filtroCategoriaCorrente = config ? config.nome : (categoria || 'tutti');
 
@@ -23225,6 +24117,39 @@ function renderizzaProdottiSquadraConFiltri() {
                 squadraSelezionata = 'tutti_prodotti';
                 modalitaClubCorrente = 'tutti-gli-articoli';
                 mostraSezioneCompleta('club');
+            }
+
+            // Assicura rendering corretto della vista catalogo prodotti (non griglia squadre)
+            if (ambito === 'nazionali') {
+                const vistaGrigliaNaz = document.getElementById('vista-griglia-nazionali');
+                const vistaProdottiNaz = document.getElementById('vista-prodotti-nazionali');
+                if (vistaGrigliaNaz) vistaGrigliaNaz.style.display = 'none';
+                if (vistaProdottiNaz) vistaProdottiNaz.style.display = 'block';
+                const boxNavSingolaNaz = document.getElementById('box-nav-singola-nazionale');
+                const boxNavTuttiNaz = document.getElementById('box-nav-tutti-articoli-nazionali');
+                if (boxNavSingolaNaz) boxNavSingolaNaz.style.display = 'none';
+                if (boxNavTuttiNaz) boxNavTuttiNaz.style.display = 'flex';
+                if (typeof aggiornaStatoVistaProdottiNazionali === 'function') {
+                    aggiornaStatoVistaProdottiNazionali();
+                }
+                if (typeof renderizzaSidebarLegheNazionali === 'function') {
+                    renderizzaSidebarLegheNazionali();
+                }
+            } else {
+                const vistaGrigliaClub = document.getElementById('vista-griglia-club');
+                const vistaProdottiClub = document.getElementById('vista-prodotti-club');
+                if (vistaGrigliaClub) vistaGrigliaClub.style.display = 'none';
+                if (vistaProdottiClub) vistaProdottiClub.style.display = 'block';
+                const boxNavSingolaClub = document.getElementById('box-nav-singola-squadra');
+                const boxNavTuttiClub = document.getElementById('box-nav-tutti-articoli');
+                if (boxNavSingolaClub) boxNavSingolaClub.style.display = 'none';
+                if (boxNavTuttiClub) boxNavTuttiClub.style.display = 'flex';
+                if (typeof aggiornaStatoVistaProdottiClub === 'function') {
+                    aggiornaStatoVistaProdottiClub();
+                }
+                if (typeof renderizzaSidebarLegheClub === 'function') {
+                    renderizzaSidebarLegheClub();
+                }
             }
 
             renderizzaProdottiSquadraConFiltri();
@@ -24149,6 +25074,9 @@ function renderizzaProdottiSquadraConFiltri() {
             });
 
             container.innerHTML = cardsHTML;
+            if (typeof window.initHomeScrollReveal === 'function') {
+                window.initHomeScrollReveal();
+            }
         }
         window.renderizzaAnteprimaRecensioniHome = renderizzaAnteprimaRecensioniHome;
 
@@ -24887,8 +25815,18 @@ function renderizzaProdottiSquadraConFiltri() {
         let costoNomeAttivo = costoNome;
         let costoNumeroAttivo = costoNumero;
         let costoPatchAttivo = costoPatch;
+        let _modalPersonalizzaTriggerEl = null;
+        let _isAggiungendoProdottoConfigurato = false;
 
         function apriPersonalizzazione(nomeSquadra, urlImmagine, prezzo = 23.99, idProdotto = "", legacyIdProdotto = "", targetProdotto = "", categoriaProdotto = "", configFornitura = null) {
+            if (window.nuoviArriviDragMoved) {
+                return;
+            }
+            if (document.activeElement && typeof document.activeElement.focus === 'function') {
+                _modalPersonalizzaTriggerEl = document.activeElement;
+            } else {
+                _modalPersonalizzaTriggerEl = null;
+            }
             // FASE 6: Controllo categorie autorizzate per Convenzione Torneo
             const activeFornitura = configFornitura || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid ? window.fornituraTorneoAttiva : null);
             if (activeFornitura) {
@@ -25099,10 +26037,13 @@ function renderizzaProdottiSquadraConFiltri() {
         }
 
         function chiudiPersonalizzazione() { 
-            document.getElementById('modal-personalizza').style.display = 'none'; 
+            const modalEl = document.getElementById('modal-personalizza');
+            if (modalEl) modalEl.style.display = 'none'; 
             indexInModifica = null;
-            const btnConferma = document.querySelector('.btn-conferma-carrello');
+            _isAggiungendoProdottoConfigurato = false;
+            const btnConferma = document.querySelector('#modal-personalizza .btn-conferma-carrello') || document.querySelector('.btn-conferma-carrello');
             if (btnConferma) {
+                btnConferma.disabled = false;
                 if (window._isAdminPickerMode) {
                     btnConferma.innerText = `➕ Aggiungi all'Ordine #${window._adminPickerOrderId || ''}`;
                 } else {
@@ -25111,6 +26052,12 @@ function renderizzaProdottiSquadraConFiltri() {
             }
             if (typeof aggiornaGraficaConsigliatiHome === 'function') {
                 aggiornaGraficaConsigliatiHome();
+            }
+            if (_modalPersonalizzaTriggerEl && typeof _modalPersonalizzaTriggerEl.focus === 'function') {
+                try {
+                    _modalPersonalizzaTriggerEl.focus();
+                } catch(e) {}
+                _modalPersonalizzaTriggerEl = null;
             }
         }
 
@@ -25129,19 +26076,64 @@ function renderizzaProdottiSquadraConFiltri() {
             if (rawQ > 99) rawQ = 99;
             const quantita = rawQ;
 
+            const isFornitura = Boolean(fornituraInConfigurazione || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid));
+
+            let extraTotale = 0;
+            if (!isFornitura) {
+                if (nome) extraTotale += costoNomeAttivo;
+                if (numero) extraTotale += costoNumeroAttivo;
+                if (patch) extraTotale += costoPatchAttivo;
+            }
+
             let prezzoUnitario = prezzoBaseInConfigurazione;
-            if (nome) prezzoUnitario += costoNomeAttivo; 
-            if (numero) prezzoUnitario += costoNumeroAttivo; 
-            if (patch) prezzoUnitario += costoPatchAttivo;
+            if (!isFornitura) {
+                if (nome) prezzoUnitario += costoNomeAttivo; 
+                if (numero) prezzoUnitario += costoNumeroAttivo; 
+                if (patch) prezzoUnitario += costoPatchAttivo;
+            }
 
             const totaleConfigurazione = prezzoUnitario * quantita;
+
+            // Aggiorna righe di riepilogo
+            const valBaseEl = document.getElementById('riepilogo-valore-base');
+            if (valBaseEl) {
+                valBaseEl.innerText = Number(prezzoBaseInConfigurazione).toFixed(2).replace('.', ',') + '€' + (quantita > 1 ? ` (×${quantita})` : '');
+            }
+            const rigaNome = document.getElementById('riepilogo-riga-nome');
+            const valNome = document.getElementById('riepilogo-valore-nome');
+            if (rigaNome) {
+                if (nome && !isFornitura) {
+                    rigaNome.style.display = 'flex';
+                    if (valNome) valNome.innerText = `+${Number(costoNomeAttivo * quantita).toFixed(2).replace('.', ',')}€`;
+                } else {
+                    rigaNome.style.display = 'none';
+                }
+            }
+            const rigaNumero = document.getElementById('riepilogo-riga-numero');
+            const valNumero = document.getElementById('riepilogo-valore-numero');
+            if (rigaNumero) {
+                if (numero && !isFornitura) {
+                    rigaNumero.style.display = 'flex';
+                    if (valNumero) valNumero.innerText = `+${Number(costoNumeroAttivo * quantita).toFixed(2).replace('.', ',')}€`;
+                } else {
+                    rigaNumero.style.display = 'none';
+                }
+            }
+            const rigaPatch = document.getElementById('riepilogo-riga-patch');
+            const valPatch = document.getElementById('riepilogo-valore-patch');
+            if (rigaPatch) {
+                if (patch && !isFornitura) {
+                    rigaPatch.style.display = 'flex';
+                    if (valPatch) valPatch.innerText = `+${Number(costoPatchAttivo * quantita).toFixed(2).replace('.', ',')}€`;
+                } else {
+                    rigaPatch.style.display = 'none';
+                }
+            }
 
             const boxAnteprima = document.getElementById('box-anteprima-prezzo-modal');
             const bloccoStandard = document.getElementById('blocco-prezzo-standard');
             const badgeConvenzione = document.getElementById('badge-convenzione-compatto');
             const elAnteprima = document.getElementById('modal-prezzo-anteprima');
-
-            const isFornitura = Boolean(fornituraInConfigurazione || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid));
 
             if (isFornitura) {
                 if (boxAnteprima) boxAnteprima.classList.add('modal-convenzione-attiva');
@@ -25157,6 +26149,16 @@ function renderizzaProdottiSquadraConFiltri() {
         }
 
         function aggiungiProdottoConfigurato() {
+            if (_isAggiungendoProdottoConfigurato) {
+                return;
+            }
+            _isAggiungendoProdottoConfigurato = true;
+
+            const btnConfermaEl = document.querySelector('#modal-personalizza .btn-conferma-carrello') || document.querySelector('.btn-conferma-carrello');
+            if (btnConfermaEl) {
+                btnConfermaEl.disabled = true;
+            }
+
             // FASE 6: Controllo sicurezza Convenzione Torneo prima di aggiungere al carrello
             const activeFornitura = fornituraInConfigurazione || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid ? window.fornituraTorneoAttiva : null);
             if (activeFornitura) {
@@ -27551,11 +28553,166 @@ function renderizzaProdottiSquadraConFiltri() {
         }
         window.inizializzaSessioneCliente = inizializzaSessioneCliente;
 
+        // Caricamento autonomo e immediato delle immagini delle categorie Home (Kit bambino, Tute, ecc.)
+        function assicuraCaricamentoImmaginiCategorieHome() {
+            try {
+                const mappaImmagini = {
+                    'Kit bambino': 'assets/homepage/Bambino.png',
+                    'Tute': 'assets/homepage/Tuta.png',
+                    'Kit completi': 'assets/homepage/Kit Completi.png',
+                    'Kit allenamento': 'assets/homepage/Kit allenamento.png',
+                    'Smanicato': 'assets/homepage/Smanicati.png',
+                    'Retrò': 'assets/homepage/Retro.png'
+                };
+
+                const targetHome = document.getElementById('pagina-home');
+                if (!targetHome) return;
+
+                const cards = targetHome.querySelectorAll('.card-categoria-editoriale');
+                cards.forEach(card => {
+                    const titoloEl = card.querySelector('.card-categoria-titolo');
+                    const titolo = titoloEl ? titoloEl.textContent.trim() : '';
+                    const expectedUrl = mappaImmagini[titolo];
+                    if (expectedUrl) {
+                        const img = card.querySelector('.card-categoria-foto');
+                        if (img) {
+                            const curSrc = img.getAttribute('src');
+                            if (!curSrc || curSrc !== expectedUrl) {
+                                img.setAttribute('src', expectedUrl);
+                            }
+                            img.loading = 'eager';
+                            img.decoding = 'auto';
+                            // Avvia immediatamente il precaricamento se l'immagine non è ancora completa
+                            if (!img.complete) {
+                                const preloader = new Image();
+                                preloader.src = expectedUrl;
+                            }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.warn('Errore assicuraCaricamentoImmaginiCategorieHome:', e);
+            }
+        }
+        window.assicuraCaricamentoImmaginiCategorieHome = assicuraCaricamentoImmaginiCategorieHome;
+
+        // Esegui immediatamente per non attendere alcun evento utente
+        assicuraCaricamentoImmaginiCategorieHome();
+
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', inizializzaSessioneCliente);
+            document.addEventListener('DOMContentLoaded', () => {
+                inizializzaSessioneCliente();
+                assicuraCaricamentoImmaginiCategorieHome();
+            });
         } else {
             inizializzaSessioneCliente();
+            assicuraCaricamentoImmaginiCategorieHome();
         }
+
+        // Inizializza effetto scroll reveal per la Home page
+        function initHomeScrollReveal() {
+            // Garantisci il caricamento indipendente e autonomo delle immagini delle categorie
+            assicuraCaricamentoImmaginiCategorieHome();
+
+            // Se prefers-reduced-motion è attivo, non applicare le classi di animazione
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return;
+            }
+
+            try {
+                document.documentElement.classList.add('js-enabled');
+
+                const targetHome = document.getElementById('pagina-home');
+                if (!targetHome) return;
+
+                const isMobile = window.innerWidth <= 768;
+
+                // 1. Blocchi e sezioni semplici (incluso banner, titoli, sezioni editoriali e contenitore esterno caroselli)
+                const singleBlocks = [
+                    targetHome.querySelector('.sezione-home-promo'),
+                    targetHome.querySelector('.sezione-campionati-header'),
+                    targetHome.querySelector('.sezione-nuovi-arrivi-header'),
+                    targetHome.querySelector('#prodotti-in-evidenza'),
+                    targetHome.querySelector('.sezione-home-consigliati-wrap'),
+                    targetHome.querySelector('.sezione-categorie-header'),
+                    targetHome.querySelector('.sezione-home-manifesto'),
+                    targetHome.querySelector('.sezione-recensioni-header'),
+                    isMobile ? targetHome.querySelector('#griglia-anteprima-recensioni-home') : null
+                ].filter(Boolean);
+
+                // 2. Gruppi di card con stagger progressivo (max 200ms complessivi)
+                const groups = [
+                    {
+                        parent: targetHome.querySelector('.griglia-campionati-editoriale'),
+                        selector: '.card-campionato-editoriale'
+                    },
+                    {
+                        parent: targetHome.querySelector('.griglia-categorie-editoriale'),
+                        selector: '.card-categoria-editoriale'
+                    },
+                    !isMobile ? {
+                        parent: targetHome.querySelector('#griglia-anteprima-recensioni-home'),
+                        selector: '.card-recensione-editoriale'
+                    } : null
+                ].filter(g => g && g.parent);
+
+                // Singleton Intersection Observer per evitare osservatori duplicati
+                if (!window._homeScrollRevealObserver) {
+                    const observerOptions = {
+                        root: null,
+                        rootMargin: '0px',
+                        threshold: 0
+                    };
+                    window._homeScrollRevealObserver = new IntersectionObserver((entries, obs) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('reveal-visible');
+                                obs.unobserve(entry.target);
+                            }
+                        });
+                    }, observerOptions);
+                }
+                const observer = window._homeScrollRevealObserver;
+
+                const registraElemento = (el, delayMs = 0) => {
+                    if (!el) return;
+                    el.classList.add('home-scroll-reveal');
+                    if (el.classList.contains('reveal-visible')) {
+                        return; // Già mostrato: si anima una sola volta
+                    }
+                    if (delayMs > 0) {
+                        el.style.transitionDelay = `${delayMs}ms`;
+                    }
+                    const rect = el.getBoundingClientRect();
+                    // Se già visibile a schermo o sopra il viewport, mostra immediatamente
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        el.classList.add('reveal-visible');
+                    } else {
+                        observer.observe(el);
+                    }
+                };
+
+                singleBlocks.forEach(el => registraElemento(el));
+
+                groups.forEach(group => {
+                    const cards = Array.from(group.parent.querySelectorAll(group.selector));
+                    const totalCards = cards.length;
+                    if (totalCards === 0) return;
+
+                    const maxDelay = 200;
+                    const step = totalCards > 1 ? maxDelay / (totalCards - 1) : 0;
+
+                    cards.forEach((card, index) => {
+                        const delay = Math.round(index * step);
+                        registraElemento(card, delay);
+                    });
+                });
+            } catch (err) {
+                console.error('Inizializzazione scroll reveal fallita:', err);
+                document.documentElement.classList.remove('js-enabled');
+            }
+        }
+        window.initHomeScrollReveal = initHomeScrollReveal;
 
         // Register implementations and drain bootstrap queue
         window._selezionaEFiltraClub_impl = selezionaEFiltraClub;

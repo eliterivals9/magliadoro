@@ -446,6 +446,9 @@ function normalizzaCategoria(categoria, customSettings = null) {
     "kit bambino": "Kit Bambino",
     "bambino": "Kit Bambino",
     "portiere": "Portiere",
+    "kit portiere": "Portiere",
+    "goalkeeper": "Portiere",
+    "gk": "Portiere",
     "calzettoni": "Calzettoni",
     "calze": "Calzettoni",
     "calzettone": "Calzettoni",
@@ -14505,7 +14508,14 @@ async function validaPersonalizzazioneFornitura(item, reqBody = {}, providedProd
     const catProdNorm = normalizzaCategoria(rawProdCat);
     const authCatsNorm = rawCategorieAutorizzate.map(c => normalizzaCategoria(c)).filter(Boolean);
 
-    const isCatAuth = authCatsNorm.some(auth => auth.toLowerCase() === catProdNorm.toLowerCase());
+    const isCatAuth = authCatsNorm.some(auth => {
+      if (auth.toLowerCase() === catProdNorm.toLowerCase()) return true;
+      const aL = auth.toLowerCase();
+      const cL = catProdNorm.toLowerCase();
+      if ((aL.includes('portiere') || aL.includes('goalkeeper')) && (cL.includes('portiere') || cL.includes('goalkeeper'))) return true;
+      if ((aL.includes('player') || aL.includes('giocatore')) && (cL.includes('player') || cL.includes('giocatore'))) return true;
+      return false;
+    });
     if (!isCatAuth) {
       return {
         isFornitura: true,
