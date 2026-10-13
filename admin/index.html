@@ -1515,6 +1515,55 @@
                         </div>
                     </div>
 
+                    <!-- CARD: GESTIONE PATCH PERSONALIZZAZIONE -->
+                    <div id="card-gestione-patches" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-6 col-span-1 lg:col-span-2">
+                        <div class="space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-2xl">🏷️</span>
+                                    <div>
+                                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Gestione Patch Personalizzazione</h3>
+                                        <p class="text-xs text-slate-500">Configura le patch disponibili per i completini, inserendo nome, miniatura e supplemento di prezzo (precompilato a 1,00 €).</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                                    <div class="relative min-w-[200px]">
+                                        <input type="text" id="search-patches-input" oninput="renderPatchesTabella()" placeholder="🔍 Cerca patch..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                                    </div>
+                                    <button onclick="apriModalNuovaPatch()" type="button" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                                        <span>➕</span> Nuova Patch
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto border border-slate-100 rounded-2xl">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-4 py-3 w-16 text-center">Miniatura</th>
+                                        <th class="px-4 py-3">Nome Patch</th>
+                                        <th class="px-4 py-3 w-28">Prezzo (€)</th>
+                                        <th class="px-4 py-3 w-28 text-center">Stato</th>
+                                        <th class="px-4 py-3 text-center w-32">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="patches-tbody" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Popolato dinamicamente da admin.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex items-center justify-between gap-4 pt-2 border-t border-slate-100">
+                            <button onclick="apriModalNuovaPatch()" type="button" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                                ➕ Nuova Patch
+                            </button>
+                            <button onclick="salvaPatchesCatalogo()" type="button" class="px-6 py-2.5 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer">
+                                Salva Patch Catalogo
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- CARD 4: STRUMENTI E MODULI FUTURI CATALOGO -->
                     <div class="bg-slate-50 border border-dashed border-slate-300 rounded-3xl p-6 shadow-sm col-span-1 lg:col-span-2 space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
@@ -5246,6 +5295,19 @@
                         </div>
                     </div>
 
+                    <!-- Opzione Esclusione Profitto -->
+                    <div class="bg-[#0B0B0B] border border-[rgba(255,255,255,0.08)] p-4 rounded-2xl space-y-2">
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" id="gestione-ordine-escludi-profitto" onchange="if(typeof window.ricalcolaRiepilogoEconomicoOrdineModal==='function') window.ricalcolaRiepilogoEconomicoOrdineModal()" class="w-4 h-4 rounded border-slate-700 text-brand-gold focus:ring-brand-gold bg-[#111111] cursor-pointer">
+                            <label for="gestione-ordine-escludi-profitto" class="text-xs font-extrabold text-white cursor-pointer select-none">
+                                Escludi dal calcolo del profitto
+                            </label>
+                        </div>
+                        <p class="text-[10px] text-[rgba(255,255,255,0.55)] leading-tight">
+                            Se attivo, l'ordine contribuirà con 0 € a tutti i report, totali e suddivisioni del profitto, lasciando invariati fatturato, costi e dettaglio articoli.
+                        </p>
+                    </div>
+
                     <!-- Situazione Economica (Ricalcolata in tempo reale) -->
                     <div class="bg-[#0B0B0B] border border-[rgba(255,255,255,0.08)] p-4 sm:p-5 rounded-2xl space-y-3">
                         <h4 class="text-xs font-black text-white uppercase tracking-wider border-b border-[rgba(255,255,255,0.08)] pb-2">Riepilogo Economico</h4>
@@ -6824,6 +6886,198 @@
                 </button>
                 <button type="button" onclick="salvaRegolaJsonModal()" class="px-5 py-2 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all">
                     Salva Regola
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GESTIONE PATCH CATALOGO -->
+    <div id="modal-patch-catalogo" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+        <div class="bg-white border border-slate-200 rounded-3xl w-full max-w-lg p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-200 ease-out" id="modal-patch-container">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🏷️</span>
+                    <h3 class="text-base font-extrabold text-slate-900" id="modal-patch-title">Nuova Patch</h3>
+                </div>
+                <button type="button" onclick="chiudiModalPatch()" class="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                    <span>✕</span>
+                </button>
+            </div>
+            
+            <input type="hidden" id="modal-patch-id" value="">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Nome Patch *
+                    </label>
+                    <input type="text" id="modal-patch-nome" placeholder="Es. Champions League, Serie A, Respect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Immagine / Miniatura *
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <img id="modal-patch-preview" src="" alt="Preview" class="w-full h-full object-contain hidden">
+                            <span id="modal-patch-placeholder-icon" class="text-slate-300 text-xs font-bold">N/D</span>
+                        </div>
+                        <div class="flex-1 space-y-2">
+                            <input type="text" id="modal-patch-immagine" placeholder="/uploads/... o https://..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-slate-900" oninput="aggiornaPreviewPatchModal()">
+                            <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-lg cursor-pointer transition-all">
+                                <span>📷 Carica Immagine</span>
+                                <input type="file" id="modal-patch-file" accept="image/*" onchange="caricaImmaginePatchModal(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Prezzo (€) *
+                        </label>
+                        <input type="text" id="modal-patch-prezzo" value="1,00" placeholder="1,00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-slate-900">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Stato *
+                        </label>
+                        <select id="modal-patch-stato" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-slate-900">
+                            <option value="attivo">Attivo</option>
+                            <option value="disattivo">Disattivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SEZIONE DISPONIBILE PER -->
+                <div class="border-t border-slate-100 pt-3">
+                    <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-2">
+                        🎯 Disponibile per (Regole di Pertinenza)
+                    </label>
+
+                    <!-- CLUB SCOPE -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 mb-3 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <label class="inline-flex items-center gap-2 cursor-pointer font-extrabold text-xs text-slate-900">
+                                <input type="checkbox" id="modal-patch-club-enabled" onchange="togglePatchClubOptions()" class="w-4 h-4 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                <span>⚽ Abilita per Prodotti CLUB</span>
+                            </label>
+                        </div>
+
+                        <div id="modal-patch-club-container" class="space-y-2.5 pl-6 hidden">
+                            <div class="flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-club-scope" value="tutte" checked onchange="togglePatchClubScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Tutti i Club</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-club-scope" value="leghe" onchange="togglePatchClubScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Leghe specifiche</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-club-scope" value="squadre" onchange="togglePatchClubScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Squadre specifiche</span>
+                                </label>
+                            </div>
+                            <!-- LISTA LEGHE -->
+                            <div id="modal-patch-club-leghe-list" class="grid grid-cols-2 gap-1.5 pt-1 hidden max-h-36 overflow-y-auto border border-slate-200/80 rounded-xl p-2 bg-white text-xs font-semibold text-slate-800">
+                                <!-- Popolato dinamicamente -->
+                            </div>
+                            <!-- SELEZIONE SQUADRE SPECIFICHE -->
+                            <div id="modal-patch-club-squadre-box" class="space-y-2 pt-1 hidden">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span id="modal-patch-club-squadre-counter" class="text-[11px] font-extrabold text-slate-600">0 squadre selezionate</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="filter-modal-patch-club-squadre-search" oninput="filtraSquadrePatchModal()" placeholder="🔍 Cerca squadra..." class="text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 w-1/2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                                    <select id="filter-modal-patch-club-squadre-lega" onchange="filtraSquadrePatchModal()" class="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 w-1/2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                                        <option value="">Tutte le leghe</option>
+                                    </select>
+                                </div>
+                                <div id="modal-patch-club-squadre-list" class="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border border-slate-200/80 rounded-xl p-2 bg-white text-xs font-semibold text-slate-800">
+                                    <!-- Popolato dinamicamente con checkbox squadre -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NAZIONALI SCOPE -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <label class="inline-flex items-center gap-2 cursor-pointer font-extrabold text-xs text-slate-900">
+                                <input type="checkbox" id="modal-patch-nazionali-enabled" onchange="togglePatchNazionaliOptions()" class="w-4 h-4 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                <span>🌍 Abilita per Prodotti NAZIONALI</span>
+                            </label>
+                        </div>
+
+                        <div id="modal-patch-nazionali-container" class="space-y-2 pl-6 hidden">
+                            <div class="flex items-center gap-4 text-xs font-bold text-slate-700">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-nazionali-scope" value="tutte" checked onchange="togglePatchNazionaliScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Tutte le Nazionali</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-nazionali-scope" value="selezionate" onchange="togglePatchNazionaliScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Selezione specifica</span>
+                                </label>
+                            </div>
+
+                            <div id="modal-patch-nazionali-selezionate-box" class="space-y-2.5 pt-1 hidden">
+                                <div>
+                                    <span class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Confederazioni / Continenti</span>
+                                    <div id="modal-patch-confederazioni-list" class="grid grid-cols-2 gap-1.5 max-h-28 overflow-y-auto border border-slate-200/80 rounded-xl p-2 bg-white text-xs font-semibold text-slate-800">
+                                        <!-- Popolato dinamicamente -->
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Singole Nazionali</span>
+                                        <input type="text" id="filter-modal-patch-nazionali" oninput="filtraNazionaliPatchModal()" placeholder="🔍 Cerca..." class="text-[11px] bg-white border border-slate-200 rounded-lg px-2 py-0.5 w-28 text-slate-800">
+                                    </div>
+                                    <div id="modal-patch-nazionali-teams-list" class="grid grid-cols-2 gap-1.5 max-h-32 overflow-y-auto border border-slate-200/80 rounded-xl p-2 bg-white text-xs font-semibold text-slate-800">
+                                        <!-- Popolato dinamicamente -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORIE CONSENTITE SCOPE -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 mt-3 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-xs text-slate-900 flex items-center gap-1.5">
+                                <span>🏷️</span> <span>Categorie consentite</span>
+                            </span>
+                        </div>
+                        <div class="space-y-2 pl-1">
+                            <div class="flex items-center gap-4 text-xs font-bold text-slate-700">
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-categorie-scope" value="tutte" checked onchange="togglePatchCategorieScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Tutte le categorie</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="modal-patch-categorie-scope" value="selezionate" onchange="togglePatchCategorieScope()" class="text-slate-900 focus:ring-slate-900 cursor-pointer">
+                                    <span>Selezione specifica</span>
+                                </label>
+                            </div>
+                            <div id="modal-patch-categorie-list" class="grid grid-cols-2 gap-1.5 pt-1 hidden max-h-36 overflow-y-auto border border-slate-200/80 rounded-xl p-2 bg-white text-xs font-semibold text-slate-800">
+                                <!-- Popolato dinamicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                <button type="button" onclick="chiudiModalPatch()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                    Annulla
+                </button>
+                <button type="button" onclick="salvaPatchModal()" class="px-5 py-2 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer">
+                    Salva Patch
                 </button>
             </div>
         </div>

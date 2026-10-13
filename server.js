@@ -3487,6 +3487,7 @@ async function getDbOrders() {
           "Costo totale (EUR)": o.costo_totale_eur,
           "Profitto (EUR)": o.profitto_eur,
           is_archived: o.is_archived,
+          payment_status: o.payment_status || null,
           status: o.status || null,
           lotto_id: o.lotto_id,
           carrello: o.carrello,
@@ -3551,6 +3552,9 @@ async function getDbOrders() {
       const mergedNomeSquadra = dbo.nome_squadra || existing.nome_squadra || null;
       const mergedCodiceUnivoco = dbo.codice_univoco || existing.codice_univoco || null;
       const mergedIsConvenzione = (dbo.is_convenzione !== undefined) ? dbo.is_convenzione : existing.is_convenzione;
+      const mergedEscludiProfitto = (dbo.escludi_profitto !== undefined)
+        ? Boolean(dbo.escludi_profitto)
+        : Boolean(existing?.escludi_profitto || existing?.escludiProfitto || existing?.exclude_from_profit);
 
       return {
         ...existing,
@@ -3564,7 +3568,8 @@ async function getDbOrders() {
         torneo_nome: mergedTorneoNome,
         nome_squadra: mergedNomeSquadra,
         codice_univoco: mergedCodiceUnivoco,
-        is_convenzione: mergedIsConvenzione
+        is_convenzione: mergedIsConvenzione,
+        escludi_profitto: mergedEscludiProfitto
       };
     });
   } else {
@@ -4105,7 +4110,8 @@ const DEFAULT_SETTINGS = {
     { id: 'rule_15', valore_json: 'GK', categoria: 'Portiere' },
     { id: 'rule_16', valore_json: 'Keeper', categoria: 'Portiere' },
     { id: 'rule_17', valore_json: 'Portiere', categoria: 'Portiere' }
-  ]
+  ],
+  patches: []
 };
 
 let cachedSettings = null;
@@ -4184,7 +4190,8 @@ async function loadSettingsFromSupabase() {
     sicurezza: { ...DEFAULT_SETTINGS.sicurezza },
     categorie: JSON.parse(JSON.stringify(DEFAULT_SETTINGS.categorie)),
     filtriCatalogo: JSON.parse(JSON.stringify(DEFAULT_SETTINGS.filtriCatalogo)),
-    regoleImportazioneJson: JSON.parse(JSON.stringify(DEFAULT_SETTINGS.regoleImportazioneJson))
+    regoleImportazioneJson: JSON.parse(JSON.stringify(DEFAULT_SETTINGS.regoleImportazioneJson)),
+    patches: JSON.parse(JSON.stringify(DEFAULT_SETTINGS.patches))
   };
 
   // 1. Carica prima le impostazioni da file locale se esistente come fallback
@@ -4229,7 +4236,7 @@ async function loadSettingsFromSupabase() {
       }
 
       // Verifichiamo se occorre effettuare la configurazione iniziale di chiavi mancanti in catalog_settings
-      const keysToMigrate = ['categorie', 'filtriCatalogo', 'regoleImportazioneJson', 'spedizioneLotto'];
+      const keysToMigrate = ['categorie', 'filtriCatalogo', 'regoleImportazioneJson', 'spedizioneLotto', 'patches'];
       const missingKeys = keysToMigrate.filter(k => catalogMap[k] === undefined);
 
       if (missingKeys.length > 0) {
@@ -4280,6 +4287,9 @@ async function loadSettingsFromSupabase() {
       if (catalogMap.spedizioneLotto && typeof catalogMap.spedizioneLotto === 'object') {
         settings.spedizioneLotto = catalogMap.spedizioneLotto;
       }
+      if (Array.isArray(catalogMap.patches)) {
+        settings.patches = catalogMap.patches;
+      }
       if (catalogMap.sicurezza && typeof catalogMap.sicurezza === 'object') {
         settings.sicurezza = {
           conferma_elimina_prodotto: catalogMap.sicurezza.conferma_elimina_prodotto !== undefined
@@ -4321,9 +4331,46 @@ async function loadSettingsFromSupabase() {
     }
   }
 
+function assicuraMigrazionePatches(settings) {
+  if (!settings || !Array.isArray(settings.patches)) return;
+
+  const allCatsList = (Array.isArray(settings.categorie) && settings.categorie.length > 0)
+    ? settings.categorie.map(c => c.nome).filter(Boolean)
+    : ["Kit", "Player", "Fan", "Retro", "Kit Allenamento", "Tuta", "Polo", "Smanicato", "Maniche Lunghe", "Kit Bambino", "Portiere"];
+
+  const catsExceptTutaAntivento = allCatsList.filter(cName => {
+    const norm = typeof normalizzaChiaveCategoriaServer === 'function' ? normalizzaChiaveCategoriaServer(cName) : cName.toLowerCase();
+    return norm !== 'tuta' && norm !== 'antivento';
+  });
+
+  settings.patches.forEach(p => {
+    if (!p) return;
+    const hasCatCfg = Boolean(p.categorie_per || (p.disponibile_per && p.disponibile_per.categorie));
+    if (!hasCatCfg) {
+      const isSerieAPatch = (p.nome || p.name || '').toLowerCase().includes('serie a') || 
+        (p.disponibile_per && p.disponibile_per.club && Array.isArray(p.disponibile_per.club.leghe) && p.disponibile_per.club.leghe.some(l => String(l).toLowerCase().includes('serie a')));
+
+      const catCfg = {
+        tutte_categorie: !isSerieAPatch,
+        categorie: isSerieAPatch ? catsExceptTutaAntivento : []
+      };
+
+      p.categorie_per = catCfg;
+      if (!p.disponibile_per) p.disponibile_per = {};
+      p.disponibile_per.categorie = catCfg;
+    } else {
+      const catCfg = p.categorie_per || p.disponibile_per.categorie;
+      p.categorie_per = catCfg;
+      if (!p.disponibile_per) p.disponibile_per = {};
+      p.disponibile_per.categorie = catCfg;
+    }
+  });
+}
+
   assicuraMigrazioneCategorie(settings);
   assicuraMigrazioneFiltri(settings);
   assicuraMigrazioneRegoleImportazioneJson(settings);
+  assicuraMigrazionePatches(settings);
 
   cachedSettings = settings;
   return settings;
@@ -4352,7 +4399,8 @@ function getSettings() {
         },
         categorie: Array.isArray(data.categorie) ? data.categorie : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.categorie)),
         filtriCatalogo: Array.isArray(data.filtriCatalogo) ? data.filtriCatalogo : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.filtriCatalogo)),
-        regoleImportazioneJson: Array.isArray(data.regoleImportazioneJson) ? data.regoleImportazioneJson : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.regoleImportazioneJson))
+        regoleImportazioneJson: Array.isArray(data.regoleImportazioneJson) ? data.regoleImportazioneJson : JSON.parse(JSON.stringify(DEFAULT_SETTINGS.regoleImportazioneJson)),
+        patches: Array.isArray(data.patches) ? data.patches : []
       };
       assicuraMigrazioneCategorie(cachedSettings);
       assicuraMigrazioneFiltri(cachedSettings);
@@ -5513,6 +5561,9 @@ app.post('/api/settings', async (req, res) => {
     if (Array.isArray(incomingCopy.regoleImportazioneJson)) {
       settingsCopy.regoleImportazioneJson = incomingCopy.regoleImportazioneJson;
     }
+    if (Array.isArray(incomingCopy.patches)) {
+      settingsCopy.patches = incomingCopy.patches;
+    }
     if (incomingCopy.prezziPredefiniti && typeof incomingCopy.prezziPredefiniti === 'object') {
       settingsCopy.prezziPredefiniti = { ...settingsCopy.prezziPredefiniti, ...incomingCopy.prezziPredefiniti };
     }
@@ -5560,7 +5611,8 @@ app.post('/api/settings', async (req, res) => {
         const catalogRowsToUpsert = [
           { key: 'categorie', value: settingsCopy.categorie || [], updated_at: nowIso },
           { key: 'filtriCatalogo', value: settingsCopy.filtriCatalogo || [], updated_at: nowIso },
-          { key: 'regoleImportazioneJson', value: settingsCopy.regoleImportazioneJson || [], updated_at: nowIso }
+          { key: 'regoleImportazioneJson', value: settingsCopy.regoleImportazioneJson || [], updated_at: nowIso },
+          { key: 'patches', value: settingsCopy.patches || [], updated_at: nowIso }
         ];
 
         if (settingsCopy.spedizioneLotto !== undefined) {
@@ -14580,6 +14632,285 @@ async function validaPersonalizzazioneFornitura(item, reqBody = {}, providedProd
   }
 }
 
+function normalizzaStringaLegaServer(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .replace(/^(lega_|sezione_|continent_|confederazione_)/i, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+const CATEGORY_ALIAS_MAP_SERVER = {
+  'kit': 'kit',
+  'full kit': 'kit',
+  'kit completo': 'kit',
+  'kit completi': 'kit',
+  'completo': 'kit',
+  
+  'player': 'player',
+  'player version': 'player',
+  'versione player': 'player',
+  'player edition': 'player',
+  'maglia player': 'player',
+  'edizione player': 'player',
+
+  'fan': 'fan',
+  'fan version': 'fan',
+  'versione fan': 'fan',
+  'fan edition': 'fan',
+  'maglia fan': 'fan',
+  'edizione fan': 'fan',
+
+  'retro': 'retro',
+  'vintage': 'retro',
+  'maglia retro': 'retro',
+
+  'kit allenamento': 'kit allenamento',
+  'training kit': 'kit allenamento',
+  'vest': 'kit allenamento',
+  'allenamento': 'kit allenamento',
+
+  'tuta': 'tuta',
+  'tute': 'tuta',
+  'tracksuit': 'tuta',
+  'tuta rappresentanza': 'tuta',
+
+  'antivento': 'antivento',
+  'windbreaker': 'antivento',
+  'giaccavento': 'antivento',
+  'giacca antivento': 'antivento',
+
+  'polo': 'polo',
+  'polo ufficiale': 'polo',
+
+  'smanicato': 'smanicato',
+  'smanicati': 'smanicato',
+  'sleeveless': 'smanicato',
+
+  'maniche lunghe': 'maniche lunghe',
+  'manica lunga': 'maniche lunghe',
+  'maglia manica lunga': 'maniche lunghe',
+  'maglia maniche lunghe': 'maniche lunghe',
+  'long sleeve': 'maniche lunghe',
+
+  'kit bambino': 'kit bambino',
+  'kit bambini': 'kit bambino',
+  'bambino': 'kit bambino',
+  'bambini': 'kit bambino',
+  'kids': 'kit bambino',
+  'kid': 'kit bambino',
+
+  'portiere': 'portiere',
+  'kit portiere': 'portiere',
+  'goalkeeper': 'portiere',
+  'gk': 'portiere',
+  'keeper': 'portiere',
+
+  'pantaloncini': 'pantaloncini',
+  'shorts': 'pantaloncini'
+};
+
+function normalizzaChiaveCategoriaServer(catStr) {
+  if (!catStr) return '';
+  let str = String(catStr).toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/^(cat_|fil_|rule_)/i, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return CATEGORY_ALIAS_MAP_SERVER[str] || str;
+}
+
+function isCategoriaConsentitaPerPatchServer(patch, prod) {
+  if (!patch) return false;
+  const catCfg = patch.categorie_per || patch.disponibile_per?.categorie;
+  const isSerieAPatch = (patch.nome || patch.name || '').toLowerCase().includes('serie a') || 
+    (patch.disponibile_per?.club?.leghe && patch.disponibile_per.club.leghe.some(l => String(l).toLowerCase().includes('serie a')));
+
+  if (!catCfg) {
+    if (isSerieAPatch) {
+      const rawProdCat = (prod?.categoria || prod?.category || prod?.tipo || '').trim();
+      const prodTitle = (prod?.versione || prod?.nome || prod?.title || '').trim();
+      const normCat = normalizzaChiaveCategoriaServer(rawProdCat);
+      const normTitle = normalizzaChiaveCategoriaServer(prodTitle);
+      if (normCat === 'tuta' || normCat === 'antivento' || normTitle === 'tuta' || normTitle === 'antivento') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (catCfg.tutte_categorie !== false) {
+    return true;
+  }
+
+  const allowedArr = Array.isArray(catCfg.categorie) ? catCfg.categorie : [];
+  if (allowedArr.length === 0) {
+    return false;
+  }
+
+  const rawProdCat = (prod?.categoria || prod?.category || prod?.tipo || '').trim();
+  const prodTitle = (prod?.versione || prod?.nome || prod?.title || '').trim();
+
+  if (!rawProdCat && !prodTitle) {
+    return true;
+  }
+
+  const prodNormKey = normalizzaChiaveCategoriaServer(rawProdCat);
+  const prodTitleNorm = normalizzaChiaveCategoriaServer(prodTitle);
+
+  const allowedSet = new Set(allowedArr.map(allowedCat => normalizzaChiaveCategoriaServer(allowedCat)).filter(Boolean));
+
+  if (prodNormKey && allowedSet.has(prodNormKey)) {
+    return true;
+  }
+  if (prodTitleNorm && allowedSet.has(prodTitleNorm)) {
+    return true;
+  }
+
+  return false;
+}
+
+function isPatchCompatibileConProdottoServer(patch, prod, allTeams = []) {
+  if (!patch || patch.stato === 'disattivo' || patch.stato === false) return false;
+
+  if (!isCategoriaConsentitaPerPatchServer(patch, prod)) {
+    return false;
+  }
+
+  if (!patch.disponibile_per) return true;
+  const disp = patch.disponibile_per;
+  if (!prod) return true;
+
+  const squadName = (prod.squadra || prod.versione || prod.nome || '').trim();
+  const normSquadName = normalizzaStringaLegaServer(squadName);
+
+  const isClubProduct = typeof isClub === 'function' ? isClub(squadName) : true;
+  const isNazProduct = typeof isNazionale === 'function' ? isNazionale(squadName) : false;
+
+  const teamMatch = (allTeams || []).find(t => {
+    const tName = (t.name || '').trim().toLowerCase();
+    const sName = squadName.toLowerCase();
+    return tName === sName || normalizzaStringaLegaServer(tName) === normSquadName || (sName && sName.includes(tName)) || (tName && tName.includes(sName));
+  });
+
+  const prodLegaOrSezione = (prod.campionato || prod.sezione || prod.lega || (teamMatch ? (teamMatch.sezione || teamMatch.lega) : '') || '').trim();
+  const normProdLega = normalizzaStringaLegaServer(prodLegaOrSezione);
+
+  if (isClubProduct) {
+    if (!disp.club || disp.club.abilitato === false) return false;
+
+    const modalita = disp.club.modalita || (
+      disp.club.tutte_leghe !== false
+        ? 'tutte'
+        : (Array.isArray(disp.club.squadre) && disp.club.squadre.length > 0 ? 'squadre' : 'leghe')
+    );
+
+    if (modalita === 'squadre') {
+      const sqArr = Array.isArray(disp.club.squadre) ? disp.club.squadre : [];
+      if (sqArr.length === 0) return false;
+      const prodSquadLower = squadName.trim().toLowerCase();
+      return sqArr.some(sq => {
+        const sqLower = String(sq).trim().toLowerCase();
+        if (sqLower === prodSquadLower) return true;
+        const normSq = normalizzaStringaLegaServer(sq);
+        if (normSq && normSquadName && normSq === normSquadName) return true;
+        const sqClean = sqLower.replace(/\b(f\.?c\.?|a\.?c\.?|s\.?s\.?|c\.?d\.?)\b/gi, '').trim();
+        const prodClean = prodSquadLower.replace(/\b(f\.?c\.?|a\.?c\.?|s\.?s\.?|c\.?d\.?)\b/gi, '').trim();
+        if (sqClean && prodClean && sqClean === prodClean) return true;
+        return false;
+      });
+    }
+
+    if (modalita === 'leghe') {
+      const legheArr = Array.isArray(disp.club.leghe) ? disp.club.leghe : [];
+      if (legheArr.length === 0) return false;
+      if (!normProdLega) return false;
+      return legheArr.some(leg => {
+        const normLeg = normalizzaStringaLegaServer(leg);
+        if (!normLeg) return false;
+        return normLeg === normProdLega || normProdLega.includes(normLeg) || normLeg.includes(normProdLega);
+      });
+    }
+
+    return true;
+  } else if (isNazProduct) {
+    if (!disp.nazionali || disp.nazionali.abilitato === false) return false;
+    if (disp.nazionali.tutte_nazionali !== false) return true;
+
+    const confs = Array.isArray(disp.nazionali.confederazioni) ? disp.nazionali.confederazioni : [];
+    const nazs = Array.isArray(disp.nazionali.nazionali) ? disp.nazionali.nazionali : [];
+
+    if (confs.length === 0 && nazs.length === 0) return true;
+
+    if (!normProdLega && confs.length > 0) return true;
+
+    const matchConf = confs.some(c => {
+      const normC = normalizzaStringaLegaServer(c);
+      if (!normC) return false;
+      return normC === normProdLega || normProdLega.includes(normC) || normC.includes(normProdLega);
+    });
+    if (matchConf) return true;
+
+    const matchNaz = nazs.some(n => {
+      const normN = normalizzaStringaLegaServer(n);
+      if (!normN) return false;
+      return normN === normSquadName || normSquadName.includes(normN) || normN.includes(normSquadName);
+    });
+    return matchNaz;
+  }
+
+  return Boolean((disp.club && disp.club.abilitato) || (disp.nazionali && disp.nazionali.abilitato));
+}
+
+async function validaPatchProdottoServer(item, matchedProd) {
+  try {
+    if (!item || typeof item !== 'object') return { valid: true };
+
+    const custom = typeof extractCustomizationDetails === 'function' ? extractCustomizationDetails(item) : { patches: [] };
+    let patchVal = item.patch || (Array.isArray(custom.patches) && custom.patches.length > 0 ? custom.patches[0] : null);
+
+    if (!patchVal) return { valid: true };
+    const pStr = String(patchVal).trim();
+    if (!pStr || ["nessuna", "nessuno", "senza patch", "nessuna patch", "no", "false"].includes(pStr.toLowerCase())) {
+      return { valid: true };
+    }
+
+    const settings = await getSettings();
+    const allPatches = settings?.patches || [];
+    const patchFound = allPatches.find(p => String(p.id) === pStr || (p.nome || p.name || '').toLowerCase() === pStr.toLowerCase());
+
+    if (!patchFound) {
+      return { valid: true };
+    }
+
+    if (patchFound.stato === 'disattivo' || patchFound.stato === false) {
+      return {
+        valid: false,
+        error: `La patch "${patchFound.nome || patchFound.name}" non è più attiva.`
+      };
+    }
+
+    const allTeams = typeof getLocalTeams === 'function' ? getLocalTeams() : [];
+    const isCompatibile = isPatchCompatibileConProdottoServer(patchFound, matchedProd, allTeams);
+
+    if (!isCompatibile) {
+      return {
+        valid: false,
+        error: `La patch "${patchFound.nome || patchFound.name}" non è disponibile per il prodotto "${matchedProd?.squadra || matchedProd?.versione || 'selezionato'}".`
+      };
+    }
+
+    return { valid: true, patch: patchFound };
+  } catch (err) {
+    console.error("⚠️ Errore validaPatchProdottoServer:", err.message);
+    return { valid: true };
+  }
+}
+
 // Helper per calcolo quantita_ordinata dinamica di una squadra torneo dagli ordini reali
 async function calcolaQuantitaOrdinataSquadra(squadraParam, optionalId = null, optionalOrders = null) {
   if (!squadraParam) return 0;
@@ -15013,6 +15344,9 @@ async function saveDbProfitShares(data) {
 
 function parseOrderProfitValue(order) {
   if (!order) return 0;
+  if (Boolean(order.escludi_profitto || order.escludiProfitto || order.exclude_from_profit)) {
+    return 0;
+  }
   const raw = order["Profitto (EUR)"] !== undefined ? order["Profitto (EUR)"] : (order.profitto_eur !== undefined ? order.profitto_eur : order.profitto);
   return parseFlexibleDecimal(raw);
 }
@@ -15332,7 +15666,8 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
       items_text: productsSummary,
       items: orderItems,
       is_modified: isModified,
-      current_division: isModified ? mod.division : null
+      current_division: isModified ? mod.division : null,
+      escludi_profitto: Boolean(o.escludi_profitto || o.escludiProfitto || o.exclude_from_profit)
     });
   }
 
@@ -16412,6 +16747,22 @@ app.post('/api/orders', async (req, res) => {
         });
       }
 
+      // VALIDAZIONE PERTINENZA PATCH (SERVER-SIDE)
+      const valPatch = await validaPatchProdottoServer(item, matchedProd);
+      if (!valPatch.valid) {
+        console.error(`❌ [SERVER 400 Bad Request] Patch non pertinente o non attiva #${index + 1}:`, valPatch.error);
+        return res.status(400).json({
+          success: false,
+          error: valPatch.error,
+          reason: valPatch.error,
+          invalid_item: {
+            index: index + 1,
+            squadra: item.squadra || null,
+            patch: item.patch || null
+          }
+        });
+      }
+
       // FASE 10: Arricchimento autoritativo e persistenza completa dei metadati Convenzione Torneo
       if (valFornitura.isFornitura && valFornitura.squadra) {
         const sq = valFornitura.squadra;
@@ -16753,7 +17104,10 @@ app.post('/api/orders', async (req, res) => {
       coupon_code: coupon_code || null,
       coupon_discount: discount_eur,
       coupon_type: coupon_type || null,
-      coupon_value: coupon_value !== undefined ? Number(coupon_value) : null
+      coupon_value: coupon_value !== undefined ? Number(coupon_value) : null,
+
+      // Opzione esclusione dal calcolo del profitto (default: false)
+      escludi_profitto: Boolean(req.body && (req.body.escludi_profitto || req.body.escludiProfitto || req.body.exclude_from_profit))
     };
 
     // Includiamo il carrello strutturato per l'esportazione ad alta fedeltà
@@ -17948,9 +18302,25 @@ async function getDbOrdersMerged() {
     }
 
     const email = (custOrd && custOrd.email) || `${ord.nome.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
-    const paymentStatus = ord.payment_status 
-      ? ord.payment_status 
-      : (custOrd ? (custOrd.payment_status === 'paid' ? 'Pagato' : (custOrd.payment_status === 'refunded' ? 'Rimborso' : 'Da pagare')) : 'Da pagare');
+    let paymentStatus = 'Da pagare';
+    const rawPay = ord.payment_status ? String(ord.payment_status).trim() : null;
+    if (rawPay && (rawPay === 'Pagato' || rawPay === 'paid' || rawPay === 'PAGATO' || rawPay === 'succeeded')) {
+      paymentStatus = 'Pagato';
+    } else if (rawPay && (rawPay === 'Rimborso' || rawPay === 'refunded' || rawPay === 'RIMBORSO')) {
+      paymentStatus = 'Rimborso';
+    } else if (rawPay && (rawPay === 'Da pagare' || rawPay === 'pending' || rawPay === 'DA PAGARE' || rawPay === 'Non pagato')) {
+      if (custOrd && (custOrd.payment_status === 'paid' || custOrd.payment_status === 'Pagato')) {
+        paymentStatus = 'Pagato';
+      } else if (custOrd && (custOrd.payment_status === 'refunded' || custOrd.payment_status === 'Rimborso')) {
+        paymentStatus = 'Rimborso';
+      } else {
+        paymentStatus = 'Da pagare';
+      }
+    } else if (custOrd && (custOrd.payment_status === 'paid' || custOrd.payment_status === 'Pagato')) {
+      paymentStatus = 'Pagato';
+    } else if (custOrd && (custOrd.payment_status === 'refunded' || custOrd.payment_status === 'Rimborso')) {
+      paymentStatus = 'Rimborso';
+    }
 
     return {
       ...ord,
@@ -18329,7 +18699,10 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
       taglia,
       prezzo_fornitore,
       registered_name,
-      lotto_id
+      lotto_id,
+      escludi_profitto,
+      escludiProfitto,
+      exclude_from_profit
     } = req.body;
 
     if (!id) {
@@ -18362,6 +18735,16 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
     }
 
     const updateData = {};
+    if (payment_status !== undefined) {
+      const psNorm = String(payment_status).trim().toLowerCase();
+      if (psNorm === 'pagato' || psNorm === 'paid' || psNorm === 'succeeded' || psNorm === 'completed') {
+        updateData.payment_status = 'Pagato';
+      } else if (psNorm === 'rimborso' || psNorm === 'refunded') {
+        updateData.payment_status = 'Rimborso';
+      } else {
+        updateData.payment_status = 'Da pagare';
+      }
+    }
     if (carrello !== undefined) updateData.carrello = carrello;
     if (squadra !== undefined) updateData.squadra = squadra;
     if (personalizzazione !== undefined) updateData.personalizzazione = personalizzazione;
@@ -18372,9 +18755,12 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
         await ensureLottoExistsInDb(updateData.lotto_id);
       }
     }
+    if (escludi_profitto !== undefined || escludiProfitto !== undefined || exclude_from_profit !== undefined) {
+      updateData.escludi_profitto = Boolean(escludi_profitto || escludiProfitto || exclude_from_profit);
+    }
 
     // Solo se il carrello è effettivamente cambiato o se l'ordine non è ancora presente,
-    // andiamo ad aggiornare i dati economici sul database. In questo modo cambiano SOLO per modifiche reali al carrello.
+    // andiamo ad aggiornare i dati экономических sul database. In questo modo cambiano SOLO per modifiche reali al carrello.
     if (carrello !== undefined && (!existingOrder || hasCartChanged)) {
       if (totale !== undefined) updateData.totale = totale;
       if (costo_prodotti_usd !== undefined) updateData.costo_prodotti_usd = String(costo_prodotti_usd);
@@ -18385,20 +18771,34 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
       if (prezzo_fornitore !== undefined) updateData.prezzo_fornitore = prezzo_fornitore;
     }
 
-    if (supabase && Object.keys(updateData).length > 0) {
-      try {
-        const { error: ordErr } = await supabase
-          .from('orders')
-          .update(updateData)
-          .eq('id', id);
-
-        if (ordErr) {
-          console.error(`❌ Errore aggiornamento ordine #${id} in Supabase:`, ordErr.message);
-        } else {
-          console.log(`✅ Ordine #${id} aggiornato con successo in Supabase 'orders'`);
+    if (supabase) {
+      const supabaseUpdateData = {};
+      const validOrdersColumns = [
+        'carrello', 'squadra', 'personalizzazione', 'taglia', 'lotto_id',
+        'totale', 'costo_prodotti_usd', 'costo_spedizione_usd', 'costo_totale_usd',
+        'costo_totale_eur', 'profitto_eur', 'prezzo_fornitore', 'payment_status'
+      ];
+      for (const col of validOrdersColumns) {
+        if (updateData[col] !== undefined) {
+          supabaseUpdateData[col] = updateData[col];
         }
-      } catch (e) {
-        console.error(`⚠️ Eccezione aggiornamento ordine #${id} in Supabase:`, e.message);
+      }
+
+      if (Object.keys(supabaseUpdateData).length > 0) {
+        try {
+          const { error: ordErr } = await supabase
+            .from('orders')
+            .update(supabaseUpdateData)
+            .eq('id', id);
+
+          if (ordErr) {
+            console.error(`❌ Errore aggiornamento ordine #${id} in Supabase:`, ordErr.message);
+          } else {
+            console.log(`✅ Ordine #${id} aggiornato con successo in Supabase 'orders'`);
+          }
+        } catch (e) {
+          console.error(`⚠️ Eccezione aggiornamento ordine #${id} in Supabase:`, e.message);
+        }
       }
     }
 

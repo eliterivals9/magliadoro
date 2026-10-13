@@ -50,7 +50,8 @@
     "costo_totale_usd": "30,99",
     "costo_totale_eur": "26,53",
     "profitto_eur": "26,45",
-    "user_id": null
+    "user_id": null,
+    "payment_status": "Pagato"
   },
   {
     "id": 148,

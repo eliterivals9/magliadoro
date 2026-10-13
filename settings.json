@@ -168,8 +168,24 @@
       "nome": "Portiere",
       "stato": "attivo",
       "ordine": 11,
-      "prezzo_adulto": 26.99,
+      "prezzo_adulto": 23.99,
       "prezzo_bambino": 21.99
+    },
+    {
+      "id": "cat_1789223206278",
+      "nome": "Antivento",
+      "stato": "attivo",
+      "ordine": 12,
+      "prezzo_adulto": 45.99,
+      "prezzo_bambino": 42.99
+    },
+    {
+      "id": "cat_1789734454432",
+      "nome": "Pantaloncini",
+      "stato": "attivo",
+      "ordine": 13,
+      "prezzo_adulto": 20.99,
+      "prezzo_bambino": 19.99
     }
   ],
   "filtriCatalogo": [
@@ -181,80 +197,81 @@
       "categorieTarget": [
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Kit"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Player"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Fan"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Retro"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Kit Allenamento"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Tuta"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Polo"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Smanicati"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Maniche Lunghe"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Kit Bambino"
         },
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Portiere"
+        },
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Antivento"
+        },
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Pantaloncini"
         }
       ],
       "categorie_associate": [
@@ -268,12 +285,14 @@
         "Smanicati",
         "Maniche Lunghe",
         "Kit Bambino",
-        "Portiere"
+        "Portiere",
+        "Antivento",
+        "Pantaloncini"
       ]
     },
     {
       "id": "fil_1788554198610",
-      "nome": "KIt",
+      "nome": "Kit Completi",
       "stato": "attivo",
       "ordine": 2,
       "categorieTarget": [
@@ -319,7 +338,7 @@
     },
     {
       "id": "fil_1788554268389",
-      "nome": "Portiere",
+      "nome": "Kit Portiere",
       "stato": "attivo",
       "ordine": 6,
       "categorieTarget": [
@@ -336,14 +355,13 @@
     },
     {
       "id": "fil_1788554283312",
-      "nome": "Tuta",
+      "nome": "Tute",
       "stato": "attivo",
       "ordine": 7,
       "categorieTarget": [
         {
           "target": [
-            "Adulto",
-            "Bambino"
+            "Adulto"
           ],
           "categoria": "Tuta"
         }
@@ -354,7 +372,7 @@
     },
     {
       "id": "fil_1788554303416",
-      "nome": "Retrò",
+      "nome": "Versione Retrò",
       "stato": "attivo",
       "ordine": 8,
       "categorieTarget": [
@@ -405,7 +423,7 @@
     },
     {
       "id": "fil_1788554340634",
-      "nome": "Polo",
+      "nome": "Versione Polo",
       "stato": "attivo",
       "ordine": 11
     },
@@ -486,6 +504,18 @@
             "Bambino"
           ],
           "categoria": "Portiere"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Antivento"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Pantaloncini"
         }
       ],
       "categorie_associate": [
@@ -499,8 +529,16 @@
         "Smanicati",
         "Maniche Lunghe",
         "Kit Bambino",
-        "Portiere"
+        "Portiere",
+        "Antivento",
+        "Pantaloncini"
       ]
+    },
+    {
+      "id": "fil_1789734460764",
+      "nome": "Pantaloncini",
+      "stato": "attivo",
+      "ordine": 14
     }
   ],
   "regoleImportazioneJson": [
@@ -588,6 +626,572 @@
       "id": "rule_17",
       "categoria": "Portiere",
       "valore_json": "Portiere"
+    },
+    {
+      "id": "rule_1789223095963",
+      "categoria": "Fan",
+      "valore_json": "Fan"
+    },
+    {
+      "id": "rule_1789224650450",
+      "categoria": "Antivento",
+      "valore_json": "Antivento"
+    },
+    {
+      "id": "rule_1789224658438",
+      "categoria": "Antivento",
+      "valore_json": "windbreaker"
+    }
+  ],
+  "patches": [
+    {
+      "id": "patch_1791737754700_d97ya",
+      "nome": "Serie A",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791737745036-Serie_A_patch.jpg",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Retro",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "Serie A"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Retro",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791761423056_w7em4",
+      "nome": "La liga",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791761420590-la_liga_patch.png",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Retro",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "La Liga"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Retro",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762002760_cpvvu",
+      "nome": "Ligue 1",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791761975894-Ligue_1_patch.jpeg",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere",
+          "Pantaloncini"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "Ligue 1"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere",
+            "Pantaloncini"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762034254_fdwb8",
+      "nome": "Bundesliga",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791762008749-Bundesliga_patch.jpg",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "Bundesliga"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762067996_rc644",
+      "nome": "Premier League",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791762041478-Premier_league_patch.webp",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Retro",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "Premier League"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Retro",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762105289_fiavi",
+      "nome": "Mls Casa",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791762078923-Home_mls_patch.webp",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "USA MLS"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762136064_1pdvf",
+      "nome": "Fuori Casa Mls",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791762113286-patch_away_mls.jpeg",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "USA MLS"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762161433_bln12",
+      "nome": "Saudi League",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791762142988-Saudi_league_patch.jpg",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "Saudi League"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791762189273_qm50l",
+      "nome": "Liga Mx",
+      "stato": "attivo",
+      "prezzo": 1,
+      "immagine": "/uploads/1791762167262-liga_mx_patch.webp",
+      "categorie_per": {
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino"
+        ],
+        "tutte_categorie": false
+      },
+      "disponibile_per": {
+        "club": {
+          "leghe": [
+            "Liga Mx"
+          ],
+          "abilitato": true,
+          "tutte_leghe": false
+        },
+        "categorie": {
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino"
+          ],
+          "tutte_categorie": false
+        },
+        "nazionali": {
+          "abilitato": false,
+          "nazionali": [],
+          "confederazioni": [],
+          "tutte_nazionali": true
+        }
+      }
+    },
+    {
+      "id": "patch_1791763032538_brmft",
+      "nome": "Champions League",
+      "immagine": "/uploads/1791763016828-champions_league_patch.webp",
+      "prezzo": 1,
+      "stato": "attivo",
+      "disponibile_per": {
+        "club": {
+          "abilitato": true,
+          "modalita": "squadre",
+          "tutte_leghe": false,
+          "leghe": [],
+          "squadre": [
+            "AC Milan",
+            "Inter",
+            "Juventus",
+            "SSC Napoli",
+            "AS Roma",
+            "Lazio",
+            "Atalanta",
+            "Fiorentina",
+            "Bologna",
+            "Parma",
+            "Como",
+            "Arsenal F.C.",
+            "Chelsea F.C.",
+            "Liverpool F.C.",
+            "Manchester United",
+            "Manchester City",
+            "Tottenham Hotspur",
+            "Newcastle United",
+            "Aston Villa",
+            "Leicester City",
+            "Leeds United",
+            "Real Madrid",
+            "Barcellona",
+            "Atletico Madrid",
+            "Valencia",
+            "Siviglia",
+            "Villarreal",
+            "Real Sociedad",
+            "Athletic Club",
+            "Real Betis",
+            "Deportivo La Coruña",
+            "Celta Vigo",
+            "Málaga",
+            "Girona F.C.",
+            "Bayern Monaco",
+            "Borussia Dortmund",
+            "Bayer Leverkusen",
+            "Lipsia",
+            "Schalke 04",
+            "Borussia Mönchengladbach",
+            "Stoccarda",
+            "Eintracht Francoforte",
+            "Union Berlino",
+            "Hamburger SV",
+            "Paris Saint-Germain",
+            "Olympique Marsiglia",
+            "Olympique Lione (Lyon)",
+            "AS Monaco",
+            "Lens",
+            "FC Nantes",
+            "Stade Rennais",
+            "Benfica",
+            "FC Porto",
+            "Sporting Lisbona (Sporting CP)",
+            "Ajax",
+            "Eindhoven",
+            "Feyenoord",
+            "Celtic",
+            "Rangers",
+            "Club Brugge",
+            "Galatasaray",
+            "Red Star Belgrade"
+          ]
+        },
+        "nazionali": {
+          "abilitato": false,
+          "tutte_nazionali": true,
+          "confederazioni": [],
+          "nazionali": []
+        },
+        "categorie": {
+          "tutte_categorie": false,
+          "categorie": [
+            "Kit",
+            "Player",
+            "Fan",
+            "Kit Allenamento",
+            "Polo",
+            "Maniche Lunghe",
+            "Kit Bambino",
+            "Portiere"
+          ]
+        }
+      },
+      "categorie_per": {
+        "tutte_categorie": false,
+        "categorie": [
+          "Kit",
+          "Player",
+          "Fan",
+          "Kit Allenamento",
+          "Polo",
+          "Maniche Lunghe",
+          "Kit Bambino",
+          "Portiere"
+        ]
+      }
     }
   ]
 }

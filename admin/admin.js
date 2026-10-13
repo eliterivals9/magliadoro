@@ -2743,8 +2743,11 @@ function aggiornaStatisticheDashboard(force = false) {
         const costoStr = o["Costo totale (EUR)"] || o.costo_totale_eur || '0';
         costoFornitoreLottoEur += parseFlexibleDecimal(costoStr);
 
-        const profittoStr = o["Profitto (EUR)"] || o.profitto_eur || '0';
-        profittoOrdiniLottoEur += parseFlexibleDecimal(profittoStr);
+        const isExcluded = Boolean(o.escludi_profitto || o.escludiProfitto || o.exclude_from_profit);
+        if (!isExcluded) {
+            const profittoStr = o["Profitto (EUR)"] || o.profitto_eur || '0';
+            profittoOrdiniLottoEur += parseFlexibleDecimal(profittoStr);
+        }
 
         articoliLottoCorrente += estraiNumeroArticoli(o);
     });
@@ -2775,7 +2778,10 @@ function aggiornaStatisticheDashboard(force = false) {
     }
 
     const costoTotaleLottoEur = costoFornitoreLottoEur + alibabaFeeEur + speseExtraEur;
-    const profittoRealeLotto = Math.max(-999999, incassoLottoCorrente - costoTotaleLottoEur);
+    const hasAnyExcludedOrder = activeOrders.some(o => Boolean(o.escludi_profitto || o.escludiProfitto || o.exclude_from_profit));
+    const profittoRealeLotto = hasAnyExcludedOrder
+        ? Math.max(-999999, profittoOrdiniLottoEur - alibabaFeeEur - speseExtraEur)
+        : Math.max(-999999, incassoLottoCorrente - costoTotaleLottoEur);
 
     // Calcolo Incasso Effettivo integrato con Suddivisione Profitto
     const cashflow = calcolaIncassoEffettivo(incassoLottoCorrente);
@@ -2865,11 +2871,17 @@ function aggiornaStatisticheLottoCorrente() {
     const activeOrders = ordini.filter(isOrderActive);
     let incassoPrevisto = 0;
     let costoFornitoreEur = 0;
+    let profittoOrdiniPrevisto = 0;
 
     activeOrders.forEach(o => {
         incassoPrevisto += parseFlexibleDecimal(o.totale || '');
         const cStr = o["Costo totale (EUR)"] || o.costo_totale_eur || '0';
         costoFornitoreEur += parseFlexibleDecimal(cStr);
+        const isExcluded = Boolean(o.escludi_profitto || o.escludiProfitto || o.exclude_from_profit);
+        if (!isExcluded) {
+            const pStr = o["Profitto (EUR)"] || o.profitto_eur || '0';
+            profittoOrdiniPrevisto += parseFlexibleDecimal(pStr);
+        }
     });
 
     let alibabaFeeUsd = 0;
@@ -2893,7 +2905,10 @@ function aggiornaStatisticheLottoCorrente() {
     }
 
     const costoTotaleEur = costoFornitoreEur + alibabaFeeEur + speseExtraEur;
-    const profittoPrevisto = incassoPrevisto - costoTotaleEur;
+    const hasAnyExcludedOrder = activeOrders.some(o => Boolean(o.escludi_profitto || o.escludiProfitto || o.exclude_from_profit));
+    const profittoPrevisto = hasAnyExcludedOrder
+        ? (profittoOrdiniPrevisto - alibabaFeeEur - speseExtraEur)
+        : (incassoPrevisto - costoTotaleEur);
 
     const cashflowLotto = calcolaIncassoEffettivo(incassoPrevisto);
     const incassoPrevistoEffettivo = cashflowLotto.incasso_effettivo;
@@ -6059,7 +6074,17 @@ function calcolaRiepilogoFinanziarioOrdine(order) {
         totaleIncassato = Math.max(0, subtotaleProdotti + spedizioneCliente - couponDiscount);
     }
 
-    const profittoEur = (isFornitoreCoupon || (isAllPrezzoFornitore && Math.abs(totaleIncassato - costoTotaleEur) < 0.02)) ? 0.00 : Number((totaleIncassato - costoTotaleEur).toFixed(2));
+    const isExcludedFromProfit = Boolean(
+        order && (
+            order.escludi_profitto ||
+            order.escludiProfitto ||
+            order.exclude_from_profit ||
+            (window.currentGestioneOrderId && Number(window.currentGestioneOrderId) === Number(order.id) && document.getElementById('gestione-ordine-escludi-profitto')?.checked)
+        )
+    );
+
+    const calculatedProfitEur = (isFornitoreCoupon || (isAllPrezzoFornitore && Math.abs(totaleIncassato - costoTotaleEur) < 0.02)) ? 0.00 : Number((totaleIncassato - costoTotaleEur).toFixed(2));
+    const profittoEur = isExcludedFromProfit ? 0.00 : calculatedProfitEur;
 
     return {
         subtotaleProdotti,
@@ -6073,6 +6098,8 @@ function calcolaRiepilogoFinanziarioOrdine(order) {
         cambioValuta,
         costoTotaleEur,
         profittoEur,
+        calculatedProfitEur,
+        isExcludedFromProfit,
         spedInfo
     };
 }
@@ -6400,10 +6427,12 @@ function renderOrdini() {
             const statusClass = isArchived 
                 ? 'bg-[#0B0B0B] text-[rgba(255,255,255,0.88)] border-[rgba(255,255,255,0.08)]' 
                 : 'bg-emerald-950/20 text-emerald-400 border-emerald-900/30';
+            const isExcludedFromProfit = Boolean(order.escludi_profitto || order.escludiProfitto || order.exclude_from_profit);
+            const excludedBadge = isExcludedFromProfit ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-extrabold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider font-sans">🚫 Escluso dal profitto</span>` : '';
             const hasOrderAgreedPrice = Array.isArray(order.carrello) && order.carrello.some(ci => ci.ha_prezzo_concordato || ci.prezzo_concordato || (Array.isArray(ci.fasce_prezzo) && ci.fasce_prezzo.length > 0));
             const agreedBadge = hasOrderAgreedPrice ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/30 uppercase tracking-wider font-sans">🏷️ Prezzo Concordato</span>` : '';
             const convBadge = isConvenzioneTorneo ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-black rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/40 uppercase tracking-wider font-sans">🏆 Convenzione Torneo</span>` : '';
-            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${convBadge}${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
+            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${excludedBadge}${convBadge}${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
         }
 
         const costoFornitoreEur = order["Costo totale (EUR)"] || order.costo_totale_eur || '';
@@ -6584,12 +6613,23 @@ function renderOrdini() {
                                     </span>
                                 </div>
                                 <!-- Margine Reale (Profitto) -->
+                                ${fin.isExcludedFromProfit ? `
+                                <div class="flex justify-between items-center p-2 bg-amber-950/20 rounded-lg border border-amber-900/30 mt-2">
+                                    <span class="text-amber-400 font-extrabold text-xs uppercase tracking-tight flex items-center gap-1">
+                                        <span>🚫</span> Profitto Escluso:
+                                    </span>
+                                    <span class="font-mono font-black text-amber-400 text-sm">
+                                        € 0,00 <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal font-sans">(Calcolato: € ${fin.calculatedProfitEur.toFixed(2).replace('.', ',')})</span>
+                                    </span>
+                                </div>
+                                ` : `
                                 <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
                                     <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
                                     <span class="font-mono font-black text-emerald-400 text-sm">
                                         ${sign}€ ${fin.profittoEur.toFixed(2).replace('.', ',')}
                                     </span>
                                 </div>
+                                `}
                                 `;
                             })()}
                         </div>
@@ -6723,6 +6763,7 @@ function popolaSettingsUI() {
     aggiornaMenuCategorieForm();
     renderFiltriCatalogoTabella();
     renderRegoleImportazioneJsonTabella();
+    if (typeof renderPatchesTabella === 'function') renderPatchesTabella();
 
     // Aggiorna select per rinomina squadre
     aggiornaSquadreDropdown();
@@ -12991,10 +13032,12 @@ async function apriGestioneOrdineModal(id) {
     const inputEmail = document.getElementById('gestione-ordine-cliente-email');
     const selectPagamento = document.getElementById('gestione-ordine-payment-status');
     const inputNotes = document.getElementById('gestione-ordine-notes');
+    const chkEscludiProfitto = document.getElementById('gestione-ordine-escludi-profitto');
     
     if (inputEmail) inputEmail.value = ord.email || '';
     if (selectPagamento) selectPagamento.value = ord.payment_status || 'Da pagare';
     if (inputNotes) inputNotes.value = ord.notes || '';
+    if (chkEscludiProfitto) chkEscludiProfitto.checked = Boolean(ord.escludi_profitto || ord.escludiProfitto || ord.exclude_from_profit);
 
     // Lotto Associato dropdown population
     const selectLotto = document.getElementById('gestione-ordine-lotto-id');
@@ -14115,12 +14158,20 @@ async function calcolaESituazioneEconomica() {
     if (rateEl) rateEl.innerText = exchangeRate.toFixed(4);
     if (costTotEUREl) costTotEUREl.innerText = `€${costoTotaleEUR.toFixed(2).replace('.', ',')}`;
     
+    const isExcludedCheck = Boolean(document.getElementById('gestione-ordine-escludi-profitto')?.checked);
     if (profitEl) {
-        profitEl.innerText = `€${profittoEUR.toFixed(2).replace('.', ',')}`;
-        if (profittoEUR >= 0) {
-            profitEl.className = "text-sm font-black font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200/50";
+        if (isExcludedCheck) {
+            profitEl.innerText = `€0,00 (Escluso)`;
+            profitEl.title = `Profitto calcolato ma escluso: €${profittoEUR.toFixed(2).replace('.', ',')}`;
+            profitEl.className = "text-sm font-black font-mono text-amber-400 bg-amber-950/20 px-2.5 py-1 rounded-xl border border-amber-900/30";
         } else {
-            profitEl.className = "text-sm font-black font-mono text-rose-600 bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200/50";
+            profitEl.innerText = `€${profittoEUR.toFixed(2).replace('.', ',')}`;
+            profitEl.title = '';
+            if (profittoEUR >= 0) {
+                profitEl.className = "text-sm font-black font-mono text-emerald-400 bg-emerald-950/20 px-2.5 py-1 rounded-xl border border-emerald-900/30";
+            } else {
+                profitEl.className = "text-sm font-black font-mono text-rose-400 bg-rose-950/20 px-2.5 py-1 rounded-xl border border-rose-900/30";
+            }
         }
     }
 
@@ -15054,6 +15105,8 @@ window.salvaTuttiModificheOrdine = async function() {
     const notes = document.getElementById('gestione-ordine-notes').value.trim();
     const lottoIdVal = document.getElementById('gestione-ordine-lotto-id')?.value;
     const lotto_id = lottoIdVal ? Number(lottoIdVal) : null;
+    const chkEscludi = document.getElementById('gestione-ordine-escludi-profitto');
+    const escludi_profitto = chkEscludi ? chkEscludi.checked : false;
 
     const payload = {
         id: window.currentGestioneOrderId,
@@ -15061,6 +15114,7 @@ window.salvaTuttiModificheOrdine = async function() {
         payment_status: payment_status,
         notes: notes,
         lotto_id: lotto_id,
+        escludi_profitto: escludi_profitto,
         carrello: window.currentOrdineProdotti
     };
 
@@ -17626,6 +17680,737 @@ window.setFiltroAnteprima = setFiltroAnteprima;
 window.aggiornaStatoFiltroVisivo = aggiornaStatoFiltroVisivo;
 window.apriPreviewImmagineOrdine = apriPreviewImmagineOrdine;
 window.chiudiPreviewImmagineOrdine = chiudiPreviewImmagineOrdine;
+
+// -------------------------------------------------------------------------
+// MODULO GESTIONE PATCH CATALOGO (PERSONALIZZAZIONE COMPLETINI)
+// -------------------------------------------------------------------------
+
+function togglePatchClubOptions() {
+    const isChecked = document.getElementById('modal-patch-club-enabled')?.checked;
+    const container = document.getElementById('modal-patch-club-container');
+    if (container) {
+        container.classList.toggle('hidden', !isChecked);
+    }
+}
+
+function togglePatchClubScope() {
+    const scope = document.querySelector('input[name="modal-patch-club-scope"]:checked')?.value || 'tutte';
+    const legheContainer = document.getElementById('modal-patch-club-leghe-list');
+    const squadreContainer = document.getElementById('modal-patch-club-squadre-box');
+    
+    if (legheContainer) {
+        legheContainer.classList.toggle('hidden', scope !== 'leghe' && scope !== 'selezionate');
+    }
+    if (squadreContainer) {
+        squadreContainer.classList.toggle('hidden', scope !== 'squadre');
+    }
+}
+
+function filtraSquadrePatchModal() {
+    const searchVal = (document.getElementById('filter-modal-patch-club-squadre-search')?.value || '').toLowerCase().trim();
+    const legaVal = (document.getElementById('filter-modal-patch-club-squadre-lega')?.value || '').toLowerCase().trim();
+    
+    document.querySelectorAll('#modal-patch-club-squadre-list label.item-squadra-patch').forEach(item => {
+        const name = (item.getAttribute('data-name') || '').toLowerCase();
+        const lega = (item.getAttribute('data-lega') || '').toLowerCase();
+        const matchSearch = !searchVal || name.includes(searchVal);
+        const matchLega = !legaVal || lega === legaVal;
+        
+        item.style.display = (matchSearch && matchLega) ? 'inline-flex' : 'none';
+    });
+}
+
+function aggiornaConteggioSquadrePatchModal() {
+    const checked = document.querySelectorAll('input[name="patch-club-squadra-item"]:checked');
+    const counterEl = document.getElementById('modal-patch-club-squadre-counter');
+    if (counterEl) {
+        counterEl.innerText = `${checked.length} squadr${checked.length === 1 ? 'a selezionata' : 'e selezionate'}`;
+    }
+}
+
+function togglePatchNazionaliOptions() {
+    const isChecked = document.getElementById('modal-patch-nazionali-enabled')?.checked;
+    const container = document.getElementById('modal-patch-nazionali-container');
+    if (container) {
+        container.classList.toggle('hidden', !isChecked);
+    }
+}
+
+function togglePatchNazionaliScope() {
+    const selected = document.querySelector('input[name="modal-patch-nazionali-scope"]:checked')?.value;
+    const box = document.getElementById('modal-patch-nazionali-selezionate-box');
+    if (box) {
+        box.classList.toggle('hidden', selected !== 'selezionate');
+    }
+}
+
+function togglePatchCategorieScope() {
+    const selected = document.querySelector('input[name="modal-patch-categorie-scope"]:checked')?.value;
+    const box = document.getElementById('modal-patch-categorie-list');
+    if (box) {
+        box.classList.toggle('hidden', selected !== 'selezionate');
+    }
+}
+
+function filtraNazionaliPatchModal() {
+    const search = (document.getElementById('filter-modal-patch-nazionali')?.value || '').toLowerCase().trim();
+    const items = document.querySelectorAll('#modal-patch-nazionali-teams-list label');
+    items.forEach(item => {
+        const txt = item.textContent.toLowerCase();
+        item.style.display = (!search || txt.includes(search)) ? 'inline-flex' : 'none';
+    });
+}
+
+async function popolaOpzioniDisponibilitaModalPatch() {
+    let teams = window.squadreCatalogo || window.publicTeams || [];
+    if (!teams || teams.length === 0) {
+        try {
+            const res = await fetch('/api/teams');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.teams)) {
+                    teams = data.teams;
+                    window.squadreCatalogo = teams;
+                }
+            }
+        } catch(e) {}
+    }
+
+    let prods = window.databaseProdotti || [];
+    if (!prods || prods.length === 0) {
+        try {
+            const res = await fetch('/api/products');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) prods = data;
+                else if (data && Array.isArray(data.products)) prods = data.products;
+            }
+        } catch(e) {}
+    }
+
+    const setLegheClub = new Set(["Premier League", "Serie A", "La Liga", "Ligue 1", "Bundesliga", "Saudi League", "Liga MX", "USA MLS", "Brasileirao", "J-League", "Altri Club"]);
+    const setConfederazioni = new Set(["Europa", "Sud America", "Nord America", "Africa", "Asia", "Oceania"]);
+    const setNazionali = new Set();
+    const clubMap = new Map();
+
+    const isNazName = (n) => {
+        const lower = (n || '').toLowerCase().trim();
+        const commonNaz = ["italia", "francia", "spagna", "germania", "inghilterra", "brasile", "argentina", "portogallo", "olanda", "croazia", "giappone", "messico", "stati uniti", "albania", "algeria", "arabia saudita", "marocco", "senegal", "uruguay", "colombia", "svizzera", "belgio", "danimarca", "svezia"];
+        return commonNaz.includes(lower);
+    };
+
+    if (Array.isArray(teams)) {
+        teams.forEach(t => {
+            const cat = (t.categoria || 'Club').trim().toLowerCase();
+            const sez = (t.sezione || t.lega || '').trim();
+            const name = (t.name || '').trim();
+
+            if (cat === 'club') {
+                if (sez && sez !== 'Club' && sez !== 'Generale') setLegheClub.add(sez);
+                if (name && !isNazName(name)) {
+                    clubMap.set(name.toLowerCase(), { name, lega: sez || 'Altri Club' });
+                }
+            } else if (cat === 'nazionali' || cat === 'nazionale') {
+                if (sez && sez !== 'Nazionali' && sez !== 'Generale') setConfederazioni.add(sez);
+                if (name) setNazionali.add(name);
+            }
+        });
+    }
+
+    if (Array.isArray(prods)) {
+        prods.forEach(p => {
+            const squad = (p.squadra || '').trim();
+            if (squad && !isNazName(squad) && p.campionato !== 'Nazionali' && p.sezione !== 'Nazionali' && p.categoria !== 'Nazionali') {
+                const key = squad.toLowerCase();
+                const lega = (p.campionato || p.sezione || p.lega || 'Altri Club').trim();
+                if (lega && lega !== 'Altri Club') setLegheClub.add(lega);
+                if (!clubMap.has(key)) {
+                    clubMap.set(key, { name: squad, lega: lega || 'Altri Club' });
+                } else {
+                    const existing = clubMap.get(key);
+                    if (existing.lega === 'Altri Club' && lega && lega !== 'Altri Club') {
+                        existing.lega = lega;
+                    }
+                }
+            }
+        });
+    }
+
+    const arrLeghe = Array.from(setLegheClub).sort();
+
+    const legheContainer = document.getElementById('modal-patch-club-leghe-list');
+    if (legheContainer) {
+        legheContainer.innerHTML = arrLeghe.map(leg => `
+            <label class="inline-flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                <input type="checkbox" name="patch-club-lega-item" value="${escapeHtml(leg)}" class="w-3.5 h-3.5 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                <span class="truncate">${escapeHtml(leg)}</span>
+            </label>
+        `).join('');
+    }
+
+    const selectLegaSquadre = document.getElementById('filter-modal-patch-club-squadre-lega');
+    if (selectLegaSquadre) {
+        const curVal = selectLegaSquadre.value;
+        selectLegaSquadre.innerHTML = `<option value="">Tutte le leghe</option>` +
+            arrLeghe.map(leg => `<option value="${escapeHtml(leg)}">${escapeHtml(leg)}</option>`).join('');
+        selectLegaSquadre.value = curVal;
+    }
+
+    const squadreContainer = document.getElementById('modal-patch-club-squadre-list');
+    if (squadreContainer) {
+        const sortedClubs = Array.from(clubMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+        window.allCatalogClubs = sortedClubs;
+
+        const previouslyChecked = new Set(Array.from(document.querySelectorAll('input[name="patch-club-squadra-item"]:checked')).map(cb => cb.value));
+
+        squadreContainer.innerHTML = sortedClubs.map(c => {
+            const isChecked = previouslyChecked.has(c.name);
+            return `
+            <label class="item-squadra-patch inline-flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors" data-name="${escapeHtml(c.name)}" data-lega="${escapeHtml(c.lega)}">
+                <input type="checkbox" name="patch-club-squadra-item" value="${escapeHtml(c.name)}" ${isChecked ? 'checked' : ''} onchange="aggiornaConteggioSquadrePatchModal()" class="w-3.5 h-3.5 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                <span class="truncate">${escapeHtml(c.name)} <span class="text-[10px] text-slate-400 font-normal">(${escapeHtml(c.lega)})</span></span>
+            </label>
+            `;
+        }).join('');
+    }
+
+    const confContainer = document.getElementById('modal-patch-confederazioni-list');
+    if (confContainer) {
+        const arrConfs = Array.from(setConfederazioni).sort();
+        confContainer.innerHTML = arrConfs.map(conf => `
+            <label class="inline-flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                <input type="checkbox" name="patch-confederazione-item" value="${escapeHtml(conf)}" class="w-3.5 h-3.5 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                <span class="truncate">${escapeHtml(conf)}</span>
+            </label>
+        `).join('');
+    }
+
+    const nazContainer = document.getElementById('modal-patch-nazionali-teams-list');
+    if (nazContainer) {
+        const arrNaz = Array.from(setNazionali).sort();
+        nazContainer.innerHTML = arrNaz.map(naz => `
+            <label class="inline-flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                <input type="checkbox" name="patch-nazionale-team-item" value="${escapeHtml(naz)}" class="w-3.5 h-3.5 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                <span class="truncate">${escapeHtml(naz)}</span>
+            </label>
+        `).join('');
+    }
+
+    const catContainer = document.getElementById('modal-patch-categorie-list');
+    if (catContainer) {
+        let catList = [];
+        if (typeof getListaCategorieRegolePrezzi === 'function') {
+            catList = getListaCategorieRegolePrezzi();
+        } else if (window.appSettings && Array.isArray(window.appSettings.categorie)) {
+            catList = window.appSettings.categorie.map(c => c.nome).filter(Boolean);
+        }
+
+        const standardCats = ["Kit", "Player", "Fan", "Retro", "Kit Allenamento", "Tuta", "Antivento", "Polo", "Smanicato", "Maniche Lunghe", "Kit Bambino", "Portiere"];
+        standardCats.forEach(sc => {
+            if (!catList.some(c => c.toLowerCase().trim() === sc.toLowerCase().trim())) {
+                catList.push(sc);
+            }
+        });
+
+        catContainer.innerHTML = catList.map(cat => `
+            <label class="inline-flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors">
+                <input type="checkbox" name="patch-categoria-item" value="${escapeHtml(cat)}" class="w-3.5 h-3.5 rounded text-slate-900 focus:ring-slate-900 cursor-pointer">
+                <span class="truncate">${escapeHtml(cat)}</span>
+            </label>
+        `).join('');
+    }
+}
+
+async function apriModalNuovaPatch() {
+    await popolaOpzioniDisponibilitaModalPatch();
+
+    const titleEl = document.getElementById('modal-patch-title');
+    const idEl = document.getElementById('modal-patch-id');
+    const nomeEl = document.getElementById('modal-patch-nome');
+    const imgEl = document.getElementById('modal-patch-immagine');
+    const prezzoEl = document.getElementById('modal-patch-prezzo');
+    const statoEl = document.getElementById('modal-patch-stato');
+
+    if (titleEl) titleEl.innerText = "Nuova Patch";
+    if (idEl) idEl.value = "";
+    if (nomeEl) nomeEl.value = "";
+    if (imgEl) imgEl.value = "";
+    if (prezzoEl) prezzoEl.value = "1,00";
+    if (statoEl) statoEl.value = "attivo";
+
+    const clubEnabled = document.getElementById('modal-patch-club-enabled');
+    if (clubEnabled) clubEnabled.checked = true;
+    const clubRadioTutte = document.querySelector('input[name="modal-patch-club-scope"][value="tutte"]');
+    if (clubRadioTutte) clubRadioTutte.checked = true;
+
+    const nazEnabled = document.getElementById('modal-patch-nazionali-enabled');
+    if (nazEnabled) nazEnabled.checked = true;
+    const nazRadioTutte = document.querySelector('input[name="modal-patch-nazionali-scope"][value="tutte"]');
+    if (nazRadioTutte) nazRadioTutte.checked = true;
+
+    document.querySelectorAll('input[name="patch-club-lega-item"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="patch-club-squadra-item"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="patch-confederazione-item"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="patch-nazionale-team-item"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="patch-categoria-item"]').forEach(cb => cb.checked = false);
+
+    if (document.getElementById('filter-modal-patch-club-squadre-search')) document.getElementById('filter-modal-patch-club-squadre-search').value = '';
+    if (document.getElementById('filter-modal-patch-club-squadre-lega')) document.getElementById('filter-modal-patch-club-squadre-lega').value = '';
+    filtraSquadrePatchModal();
+    aggiornaConteggioSquadrePatchModal();
+
+    const catRadioTutte = document.querySelector('input[name="modal-patch-categorie-scope"][value="tutte"]');
+    if (catRadioTutte) catRadioTutte.checked = true;
+
+    togglePatchClubOptions();
+    togglePatchClubScope();
+    togglePatchNazionaliOptions();
+    togglePatchNazionaliScope();
+    togglePatchCategorieScope();
+
+    aggiornaPreviewPatchModal();
+
+    const overlay = document.getElementById('modal-patch-catalogo');
+    const container = document.getElementById('modal-patch-container');
+    if (overlay && container) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+}
+
+async function apriModalModificaPatch(id) {
+    const patches = window.appSettings?.patches || [];
+    const patch = patches.find(p => String(p.id) === String(id));
+    if (!patch) return;
+
+    await popolaOpzioniDisponibilitaModalPatch();
+
+    const titleEl = document.getElementById('modal-patch-title');
+    const idEl = document.getElementById('modal-patch-id');
+    const nomeEl = document.getElementById('modal-patch-nome');
+    const imgEl = document.getElementById('modal-patch-immagine');
+    const prezzoEl = document.getElementById('modal-patch-prezzo');
+    const statoEl = document.getElementById('modal-patch-stato');
+
+    if (titleEl) titleEl.innerText = "Modifica Patch";
+    if (idEl) idEl.value = patch.id || "";
+    if (nomeEl) nomeEl.value = patch.nome || patch.name || "";
+    if (imgEl) imgEl.value = patch.immagine || patch.image || "";
+    const pVal = (patch.prezzo !== undefined && patch.prezzo !== null) ? Number(patch.prezzo) : 1.0;
+    if (prezzoEl) prezzoEl.value = pVal.toFixed(2).replace('.', ',');
+    if (statoEl) statoEl.value = (patch.stato === 'disattivo' || patch.stato === false) ? "disattivo" : "attivo";
+
+    const disp = patch.disponibile_per || {
+        club: { abilitato: true, tutte_leghe: true, leghe: [], squadre: [] },
+        nazionali: { abilitato: true, tutte_nazionali: true, confederazioni: [], nazionali: [] }
+    };
+
+    const isClubEnabled = Boolean(disp.club && disp.club.abilitato !== false);
+    let clubScopeVal = 'tutte';
+    if (disp.club) {
+        if (disp.club.modalita) {
+            clubScopeVal = disp.club.modalita === 'selezionate' ? 'leghe' : disp.club.modalita;
+        } else if (Array.isArray(disp.club.squadre) && disp.club.squadre.length > 0 && !disp.club.tutte_leghe) {
+            clubScopeVal = 'squadre';
+        } else if (Array.isArray(disp.club.leghe) && disp.club.leghe.length > 0 && !disp.club.tutte_leghe) {
+            clubScopeVal = 'leghe';
+        } else if (disp.club.tutte_leghe === false) {
+            clubScopeVal = 'leghe';
+        }
+    }
+
+    const clubEnabledEl = document.getElementById('modal-patch-club-enabled');
+    if (clubEnabledEl) clubEnabledEl.checked = isClubEnabled;
+
+    const clubRadioScope = document.querySelector(`input[name="modal-patch-club-scope"][value="${clubScopeVal}"]`);
+    if (clubRadioScope) clubRadioScope.checked = true;
+
+    const clubLegheArr = (disp.club && Array.isArray(disp.club.leghe)) ? disp.club.leghe : [];
+    document.querySelectorAll('input[name="patch-club-lega-item"]').forEach(cb => {
+        cb.checked = clubLegheArr.includes(cb.value);
+    });
+
+    const clubSquadreArr = (disp.club && Array.isArray(disp.club.squadre)) ? disp.club.squadre : [];
+    document.querySelectorAll('input[name="patch-club-squadra-item"]').forEach(cb => {
+        cb.checked = clubSquadreArr.includes(cb.value);
+    });
+
+    if (document.getElementById('filter-modal-patch-club-squadre-search')) document.getElementById('filter-modal-patch-club-squadre-search').value = '';
+    if (document.getElementById('filter-modal-patch-club-squadre-lega')) document.getElementById('filter-modal-patch-club-squadre-lega').value = '';
+    filtraSquadrePatchModal();
+    aggiornaConteggioSquadrePatchModal();
+
+    const isNazEnabled = Boolean(disp.nazionali && disp.nazionali.abilitato !== false);
+    const isNazTutte = Boolean(!disp.nazionali || disp.nazionali.tutte_nazionali !== false);
+    const confsArr = (disp.nazionali && Array.isArray(disp.nazionali.confederazioni)) ? disp.nazionali.confederazioni : [];
+    const nazsArr = (disp.nazionali && Array.isArray(disp.nazionali.nazionali)) ? disp.nazionali.nazionali : [];
+
+    const nazEnabledEl = document.getElementById('modal-patch-nazionali-enabled');
+    if (nazEnabledEl) nazEnabledEl.checked = isNazEnabled;
+
+    const nazRadioScope = document.querySelector(`input[name="modal-patch-nazionali-scope"][value="${isNazTutte ? 'tutte' : 'selezionate'}"]`);
+    if (nazRadioScope) nazRadioScope.checked = true;
+
+    document.querySelectorAll('input[name="patch-confederazione-item"]').forEach(cb => {
+        cb.checked = confsArr.includes(cb.value);
+    });
+
+    document.querySelectorAll('input[name="patch-nazionale-team-item"]').forEach(cb => {
+        cb.checked = nazsArr.includes(cb.value);
+    });
+
+    const catCfg = patch.categorie_per || patch.disponibile_per?.categorie;
+    const isSerieAPatch = (patch.nome || patch.name || '').toLowerCase().includes('serie a') || 
+      (patch.disponibile_per?.club?.leghe && patch.disponibile_per.club.leghe.some(l => String(l).toLowerCase().includes('serie a')));
+
+    const isTutteCat = catCfg ? Boolean(catCfg.tutte_categorie !== false) : (!isSerieAPatch);
+    const catRadioScope = document.querySelector(`input[name="modal-patch-categorie-scope"][value="${isTutteCat ? 'tutte' : 'selezionate'}"]`);
+    if (catRadioScope) catRadioScope.checked = true;
+
+    let selectedCatsArr = catCfg && Array.isArray(catCfg.categorie) ? catCfg.categorie : [];
+    if (!catCfg && isSerieAPatch) {
+        selectedCatsArr = ["Kit", "Player", "Fan", "Retro", "Kit Allenamento", "Polo", "Smanicato", "Maniche Lunghe", "Kit Bambino", "Portiere"];
+    }
+
+    document.querySelectorAll('input[name="patch-categoria-item"]').forEach(cb => {
+        const val = cb.value;
+        cb.checked = selectedCatsArr.some(sc => {
+            const scLower = String(sc).toLowerCase().trim();
+            const valLower = String(val).toLowerCase().trim();
+            if (scLower === valLower) return true;
+            if (scLower === 'portiere' && (valLower === 'portiere' || valLower === 'kit portiere')) return true;
+            if (scLower === 'kit portiere' && (valLower === 'portiere' || valLower === 'kit portiere')) return true;
+            return false;
+        });
+    });
+
+    togglePatchClubOptions();
+    togglePatchClubScope();
+    togglePatchNazionaliOptions();
+    togglePatchNazionaliScope();
+    togglePatchCategorieScope();
+
+    aggiornaPreviewPatchModal();
+
+    const overlay = document.getElementById('modal-patch-catalogo');
+    const container = document.getElementById('modal-patch-container');
+    if (overlay && container) {
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            container.classList.remove('scale-95', 'opacity-0');
+            container.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+}
+
+function chiudiModalPatch() {
+    const overlay = document.getElementById('modal-patch-catalogo');
+    const container = document.getElementById('modal-patch-container');
+    if (overlay && container) {
+        container.classList.remove('scale-100', 'opacity-100');
+        container.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+        }, 200);
+    }
+}
+
+function aggiornaPreviewPatchModal() {
+    const imgUrl = document.getElementById('modal-patch-immagine')?.value?.trim();
+    const previewEl = document.getElementById('modal-patch-preview');
+    const placeholderEl = document.getElementById('modal-patch-placeholder-icon');
+    if (imgUrl && previewEl && placeholderEl) {
+        previewEl.src = imgUrl;
+        previewEl.classList.remove('hidden');
+        placeholderEl.classList.add('hidden');
+    } else if (previewEl && placeholderEl) {
+        previewEl.src = "";
+        previewEl.classList.add('hidden');
+        placeholderEl.classList.remove('hidden');
+    }
+}
+
+async function caricaImmaginePatchModal(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const base64 = e.target.result;
+        try {
+            if (typeof showToast === 'function') showToast("Caricamento immagine patch in corso...", "info");
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file.name, base64 })
+            });
+            const data = await res.json();
+            if (data.success && data.filePath) {
+                const inputEl = document.getElementById('modal-patch-immagine');
+                if (inputEl) inputEl.value = data.filePath;
+                aggiornaPreviewPatchModal();
+                if (typeof showToast === 'function') showToast("✅ Immagine caricata con successo!", "success");
+            } else {
+                if (typeof showToast === 'function') showToast("Errore caricamento immagine: " + (data.error || 'Generico'), "error");
+            }
+        } catch (err) {
+            if (typeof showToast === 'function') showToast("Errore di caricamento: " + err.message, "error");
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+async function salvaPatchModal() {
+    const id = document.getElementById('modal-patch-id')?.value?.trim() || '';
+    const nome = document.getElementById('modal-patch-nome')?.value?.trim() || '';
+    const immagine = document.getElementById('modal-patch-immagine')?.value?.trim() || '';
+    const rawPrezzo = document.getElementById('modal-patch-prezzo')?.value || '1,00';
+    const stato = document.getElementById('modal-patch-stato')?.value || 'attivo';
+
+    if (!nome) {
+        if (typeof showToast === 'function') showToast("⚠️ Inserisci un nome per la patch.", "warning");
+        return;
+    }
+    if (!immagine) {
+        if (typeof showToast === 'function') showToast("⚠️ Inserisci un'immagine o carica un file per la patch.", "warning");
+        return;
+    }
+
+    const strPrezzo = String(rawPrezzo).replace(',', '.').trim();
+    const prezzoNum = parseFloat(strPrezzo);
+    if (isNaN(prezzoNum) || prezzoNum < 0) {
+        if (typeof showToast === 'function') showToast("⚠️ Il prezzo deve essere un numero positivo o zero.", "warning");
+        return;
+    }
+
+    const isClubEnabled = Boolean(document.getElementById('modal-patch-club-enabled')?.checked);
+    const clubScope = document.querySelector('input[name="modal-patch-club-scope"]:checked')?.value || 'tutte';
+    const checkedLeghe = Array.from(document.querySelectorAll('input[name="patch-club-lega-item"]:checked')).map(cb => cb.value);
+    const checkedClubSquadre = Array.from(document.querySelectorAll('input[name="patch-club-squadra-item"]:checked')).map(cb => cb.value);
+
+    const isNazEnabled = Boolean(document.getElementById('modal-patch-nazionali-enabled')?.checked);
+    const nazScope = document.querySelector('input[name="modal-patch-nazionali-scope"]:checked')?.value || 'tutte';
+    const checkedConfs = Array.from(document.querySelectorAll('input[name="patch-confederazione-item"]:checked')).map(cb => cb.value);
+    const checkedNazs = Array.from(document.querySelectorAll('input[name="patch-nazionale-team-item"]:checked')).map(cb => cb.value);
+
+    const catScope = document.querySelector('input[name="modal-patch-categorie-scope"]:checked')?.value || 'tutte';
+    const isTutteCat = catScope === 'tutte';
+    const checkedCategorie = isTutteCat ? [] : Array.from(document.querySelectorAll('input[name="patch-categoria-item"]:checked')).map(cb => cb.value);
+
+    const categoriePer = {
+        tutte_categorie: isTutteCat,
+        categorie: checkedCategorie
+    };
+
+    const disponibile_per = {
+        club: {
+            abilitato: isClubEnabled,
+            modalita: clubScope,
+            tutte_leghe: clubScope === 'tutte',
+            leghe: clubScope === 'leghe' ? checkedLeghe : [],
+            squadre: clubScope === 'squadre' ? checkedClubSquadre : []
+        },
+        nazionali: {
+            abilitato: isNazEnabled,
+            tutte_nazionali: nazScope === 'tutte',
+            confederazioni: nazScope === 'tutte' ? [] : checkedConfs,
+            nazionali: nazScope === 'tutte' ? [] : checkedNazs
+        },
+        categorie: categoriePer
+    };
+
+    if (!window.appSettings) window.appSettings = {};
+    if (!Array.isArray(window.appSettings.patches)) window.appSettings.patches = [];
+
+    const patchData = {
+        nome,
+        immagine,
+        prezzo: Number(prezzoNum.toFixed(2)),
+        stato,
+        disponibile_per,
+        categorie_per: categoriePer
+    };
+
+    if (id) {
+        const idx = window.appSettings.patches.findIndex(p => String(p.id) === String(id));
+        if (idx !== -1) {
+            window.appSettings.patches[idx] = {
+                ...window.appSettings.patches[idx],
+                ...patchData
+            };
+        }
+    } else {
+        const newPatch = {
+            id: 'patch_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            ...patchData
+        };
+        window.appSettings.patches.push(newPatch);
+    }
+
+    chiudiModalPatch();
+    renderPatchesTabella();
+    await salvaPatchesCatalogo();
+}
+
+async function salvaPatchesCatalogo() {
+    if (!window.appSettings) window.appSettings = {};
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(window.appSettings)
+        });
+        const data = await response.json();
+        if (data.success) {
+            if (typeof showToast === 'function') showToast("✅ Patch del catalogo salvate con successo.", "success");
+        } else {
+            if (typeof showToast === 'function') showToast("⚠️ Errore durante il salvataggio: " + (data.error || 'Generico'), "error");
+        }
+    } catch (err) {
+        if (typeof showToast === 'function') showToast("⚠️ Errore di rete salvataggio patch: " + err.message, "error");
+    }
+}
+
+async function eliminaPatchCatalogo(id) {
+    if (!window.appSettings || !Array.isArray(window.appSettings.patches)) return;
+    if (!confirm("Sei sicuro di voler eliminare questa patch dal catalogo?")) return;
+
+    window.appSettings.patches = window.appSettings.patches.filter(p => String(p.id) !== String(id));
+    renderPatchesTabella();
+    await salvaPatchesCatalogo();
+}
+
+async function toggleStatoPatch(id) {
+    if (!window.appSettings || !Array.isArray(window.appSettings.patches)) return;
+    const patch = window.appSettings.patches.find(p => String(p.id) === String(id));
+    if (patch) {
+        patch.stato = patch.stato === 'disattivo' ? 'attivo' : 'disattivo';
+        renderPatchesTabella();
+        await salvaPatchesCatalogo();
+    }
+}
+
+function renderPatchesTabella() {
+    const tbody = document.getElementById('patches-tbody');
+    if (!tbody) return;
+
+    const patches = window.appSettings?.patches || [];
+    const searchVal = (document.getElementById('search-patches-input')?.value || '').toLowerCase().trim();
+
+    const filtered = patches.filter(p => {
+        if (!searchVal) return true;
+        return (p.nome || p.name || '').toLowerCase().includes(searchVal);
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-slate-400 text-xs italic">
+                    ${searchVal ? 'Nessuna patch trovata per la ricerca.' : 'Nessuna patch configurata. Clicca su "➕ Nuova Patch" per aggiungerne una.'}
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(p => {
+        const isAttiva = p.stato !== 'disattivo';
+        const pVal = (p.prezzo !== undefined && p.prezzo !== null) ? Number(p.prezzo) : 1.0;
+        const prezzoFmt = pVal.toFixed(2).replace('.', ',') + ' €';
+        const imgHtml = p.immagine ? `<img src="${p.immagine}" alt="${escapeHtml(p.nome || '')}" class="w-8 h-8 object-contain mx-auto rounded border border-slate-200">` : `<span class="text-xs text-slate-300 font-bold">N/D</span>`;
+
+        let dispSummary = "Tutti i prodotti";
+        if (p.disponibile_per) {
+            const parts = [];
+            if (p.disponibile_per.club?.abilitato) {
+                const modalita = p.disponibile_per.club.modalita || (
+                    p.disponibile_per.club.tutte_leghe !== false
+                        ? 'tutte'
+                        : (Array.isArray(p.disponibile_per.club.squadre) && p.disponibile_per.club.squadre.length > 0 ? 'squadre' : 'leghe')
+                );
+                if (modalita === 'tutte') {
+                    parts.push("Club (Tutti)");
+                } else if (modalita === 'squadre') {
+                    const sqs = p.disponibile_per.club.squadre || [];
+                    if (sqs.length === 0) {
+                        parts.push("Club (Nessuna squadra)");
+                    } else if (sqs.length <= 3) {
+                        parts.push(`Club (${sqs.join(', ')})`);
+                    } else {
+                        parts.push(`Club (${sqs.length} squadre: ${sqs.slice(0, 3).join(', ')}...)`);
+                    }
+                } else {
+                    const lgs = p.disponibile_per.club.leghe || [];
+                    parts.push(`Club (${lgs.join(', ') || 'Nessuna lega'})`);
+                }
+            }
+            if (p.disponibile_per.nazionali?.abilitato) {
+                if (p.disponibile_per.nazionali.tutte_nazionali) parts.push("Nazionali (Tutte)");
+                else {
+                    const nParts = [];
+                    if (p.disponibile_per.nazionali.confederazioni?.length) nParts.push(p.disponibile_per.nazionali.confederazioni.join(', '));
+                    if (p.disponibile_per.nazionali.nazionali?.length) nParts.push(p.disponibile_per.nazionali.nazionali.join(', '));
+                    parts.push(`Nazionali (${nParts.join(', ') || 'Nessuna'})`);
+                }
+            }
+            if (parts.length > 0) {
+                const catCfg = p.categorie_per || p.disponibile_per?.categorie;
+                if (catCfg && catCfg.tutte_categorie === false) {
+                    parts.push(`Cat: ${Array.isArray(catCfg.categorie) && catCfg.categorie.length > 0 ? catCfg.categorie.join(', ') : 'Nessuna'}`);
+                }
+                dispSummary = parts.join(" • ");
+            } else dispSummary = "Disabilitato per tutti";
+        }
+
+        return `
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-4 py-3 text-center">${imgHtml}</td>
+                <td class="px-4 py-3">
+                    <div class="font-bold text-slate-900">${escapeHtml(p.nome || p.name || '')}</div>
+                    <div class="text-[10px] text-slate-500 font-medium mt-0.5">${escapeHtml(dispSummary)}</div>
+                </td>
+                <td class="px-4 py-3 font-mono text-slate-700">${prezzoFmt}</td>
+                <td class="px-4 py-3 text-center">
+                    <button onclick="toggleStatoPatch('${p.id}')" type="button" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider cursor-pointer transition-all ${isAttiva ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
+                        ${isAttiva ? '● Attivo' : '○ Disattivo'}
+                    </button>
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <button onclick="apriModalModificaPatch('${p.id}')" type="button" title="Modifica Patch" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                            ✏️
+                        </button>
+                        <button onclick="eliminaPatchCatalogo('${p.id}')" type="button" title="Elimina Patch" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-all cursor-pointer">
+                            🗑️
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+window.apriModalNuovaPatch = apriModalNuovaPatch;
+window.apriModalModificaPatch = apriModalModificaPatch;
+window.chiudiModalPatch = chiudiModalPatch;
+window.aggiornaPreviewPatchModal = aggiornaPreviewPatchModal;
+window.caricaImmaginePatchModal = caricaImmaginePatchModal;
+window.salvaPatchModal = salvaPatchModal;
+window.salvaPatchesCatalogo = salvaPatchesCatalogo;
+window.eliminaPatchCatalogo = eliminaPatchCatalogo;
+window.toggleStatoPatch = toggleStatoPatch;
+window.renderPatchesTabella = renderPatchesTabella;
+window.togglePatchClubOptions = togglePatchClubOptions;
+window.togglePatchClubScope = togglePatchClubScope;
+window.togglePatchNazionaliOptions = togglePatchNazionaliOptions;
+window.togglePatchNazionaliScope = togglePatchNazionaliScope;
+window.togglePatchCategorieScope = togglePatchCategorieScope;
+window.filtraNazionaliPatchModal = filtraNazionaliPatchModal;
+window.filtraSquadrePatchModal = filtraSquadrePatchModal;
+window.aggiornaConteggioSquadrePatchModal = aggiornaConteggioSquadrePatchModal;
 
 // ============================================================================
 // MODULO JAVASCRIPT: SUDDIVISIONE CONTI & CASSA ACCANTONAMENTI

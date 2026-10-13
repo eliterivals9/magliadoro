@@ -1969,14 +1969,212 @@ body {
             background-color: #151515; padding: 40px; border-radius: var(--radius-xl); width: 100%; max-width: 440px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), var(--gold-glow); position: relative; animation: apreModal 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box; border: 1px solid rgba(214, 164, 58, 0.25);
         }
 
-        /* Scoped restyling: Modal Personalizzazione Completini */
+        /* Scoped styling: Modal Configurazione Accessori */
+        #modal-accessorio-dettaglio {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            height: 100dvh !important;
+            inset: 0 !important;
+            background-color: rgba(0, 0, 0, 0.65) !important;
+            backdrop-filter: blur(6px) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+            padding: 20px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            z-index: 10002 !important;
+            box-sizing: border-box !important;
+        }
+        #modal-accessorio-dettaglio .modal-acc-card {
+            background-color: #FFFFFF !important;
+            color: #111111 !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            padding: 32px 32px 28px 32px !important;
+            width: 100% !important;
+            max-width: 480px !important;
+            max-height: calc(100vh - 40px) !important;
+            max-height: calc(100dvh - 40px) !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            position: relative !important;
+            box-sizing: border-box !important;
+            animation: apreModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        #modal-accessorio-dettaglio .btn-chiudi-modal {
+            position: absolute !important;
+            top: 22px !important;
+            right: 22px !important;
+            background: none !important;
+            border: none !important;
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            cursor: pointer !important;
+            color: #8C8A82 !important;
+            transition: color 0.15s ease !important;
+            padding: 4px !important;
+            line-height: 1 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: auto !important;
+            height: auto !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        #modal-accessorio-dettaglio .btn-chiudi-modal:hover {
+            color: #111111 !important;
+            background: none !important;
+            border: none !important;
+        }
+        #modal-accessorio-dettaglio .btn-chiudi-modal:focus-visible {
+            outline: 2px solid #111111 !important;
+            outline-offset: 2px !important;
+        }
+        #modal-accessorio-dettaglio .modal-acc-img-wrapper {
+            width: 100% !important;
+            height: 220px !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            background-color: #F7F6F2 !important;
+            margin-bottom: 18px !important;
+            border: 1px solid #E8E7E2 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #modal-accessorio-dettaglio .modal-acc-img-wrapper img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+        }
+        #modal-accessorio-dettaglio #modal-acc-categoria {
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            color: #8C8A82 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            display: block !important;
+            margin-bottom: 4px !important;
+        }
+        #modal-accessorio-dettaglio #modal-acc-nome {
+            font-size: 20px !important;
+            font-weight: 900 !important;
+            color: #111111 !important;
+            margin: 0 0 8px 0 !important;
+            line-height: 1.25 !important;
+            letter-spacing: -0.2px !important;
+            text-transform: uppercase !important;
+            padding-right: 28px !important;
+        }
+        #modal-accessorio-dettaglio #modal-acc-descrizione {
+            font-size: 13px !important;
+            color: #666660 !important;
+            line-height: 1.5 !important;
+            margin-bottom: 18px !important;
+        }
+        #modal-accessorio-dettaglio label {
+            color: #111111 !important;
+            font-weight: 700 !important;
+            font-size: 12px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.3px !important;
+        }
+        #modal-accessorio-dettaglio input[type="text"],
+        #modal-accessorio-dettaglio select {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 10px 14px !important;
+            min-height: 44px !important;
+            border-radius: 8px !important;
+            background-color: #FFFFFF !important;
+            border: 1px solid #E8E7E2 !important;
+            color: #111111 !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            font-family: inherit !important;
+            outline: none !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        #modal-accessorio-dettaglio input[type="text"]::placeholder {
+            color: #8C8A82 !important;
+            font-weight: 400 !important;
+        }
+        #modal-accessorio-dettaglio input[type="text"]:focus,
+        #modal-accessorio-dettaglio select:focus {
+            border-color: #111111 !important;
+            box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.12) !important;
+        }
+        #modal-accessorio-dettaglio .box-anteprima-prezzo-acc {
+            background-color: #F7F6F2 !important;
+            padding: 12px 14px !important;
+            border-radius: 8px !important;
+            margin-top: 14px !important;
+            margin-bottom: 14px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            border: 1px solid #E8E7E2 !important;
+            box-sizing: border-box !important;
+            color: #111111 !important;
+        }
+        #modal-accessorio-dettaglio .box-anteprima-prezzo-acc span:first-child {
+            font-size: 13.5px !important;
+            font-weight: 700 !important;
+            color: #111111 !important;
+        }
+        #modal-accessorio-dettaglio #modal-acc-prezzo {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #111111 !important;
+            letter-spacing: -0.3px !important;
+        }
+        #modal-accessorio-dettaglio #btn-conferma-modal-acc {
+            width: 100% !important;
+            min-height: 48px !important;
+            background: #111111 !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            padding: 15px !important;
+            border-radius: 8px !important;
+            font-weight: 800 !important;
+            font-size: 14px !important;
+            cursor: pointer !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            box-shadow: none !important;
+            transition: background 0.15s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            box-sizing: border-box !important;
+        }
+        #modal-accessorio-dettaglio #btn-conferma-modal-acc:hover {
+            background: #2A2A2A !important;
+            filter: none !important;
+            transform: none !important;
+        }
+        #modal-accessorio-dettaglio #btn-conferma-modal-acc:focus-visible {
+            outline: 2px solid #111111 !important;
+            outline-offset: 2px !important;
+        }
+
+        /* Scoped styling: Modal Personalizzazione Completini */
         #modal-personalizza {
             background-color: rgba(0, 0, 0, 0.65) !important;
             backdrop-filter: blur(6px) !important;
             -webkit-backdrop-filter: blur(6px) !important;
-            padding: 24px !important;
+            padding: 20px !important;
             align-items: center !important;
             justify-content: center !important;
+            z-index: 10002 !important;
+            box-sizing: border-box !important;
         }
         #modal-personalizza .modal-content {
             background-color: #FFFFFF !important;
@@ -1984,110 +2182,88 @@ body {
             border: 1px solid #E8E7E2 !important;
             border-radius: 16px !important;
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-            padding: 24px !important;
-            max-width: 460px !important;
+            padding: 40px !important;
             width: 100% !important;
-            max-height: calc(100vh - 48px) !important;
-            max-height: calc(100dvh - 48px) !important;
-            overflow-y: auto !important;
-            overscroll-behavior: contain !important;
+            max-width: 440px !important;
             position: relative !important;
             box-sizing: border-box !important;
-            display: flex !important;
-            flex-direction: column !important;
+            animation: apreModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
         #modal-personalizza .btn-chiudi-modal {
             position: absolute !important;
-            top: 16px !important;
-            right: 16px !important;
-            width: 36px !important;
-            height: 36px !important;
-            border-radius: 50% !important;
-            background: #F7F6F2 !important;
-            border: 1px solid #E8E7E2 !important;
-            color: #111111 !important;
-            font-size: 16px !important;
+            top: 22px !important;
+            right: 22px !important;
+            background: none !important;
+            border: none !important;
+            font-size: 20px !important;
             font-weight: 700 !important;
+            cursor: pointer !important;
+            color: #8C8A82 !important;
+            transition: color 0.15s ease !important;
+            padding: 4px !important;
+            line-height: 1 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            cursor: pointer !important;
-            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
-            padding: 0 !important;
-            line-height: 1 !important;
+            width: auto !important;
+            height: auto !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
         }
         #modal-personalizza .btn-chiudi-modal:hover {
-            background: #EAE8E1 !important;
-            color: #000000 !important;
-            border-color: #D3D1C9 !important;
+            color: #111111 !important;
+            background: none !important;
+            border: none !important;
         }
         #modal-personalizza .btn-chiudi-modal:focus-visible {
             outline: 2px solid #111111 !important;
             outline-offset: 2px !important;
         }
-        #modal-personalizza .modal-header-box {
-            padding-right: 40px !important;
-            margin-bottom: 20px !important;
-        }
-        #modal-personalizza .modal-header-title {
-            margin: 0 0 4px 0 !important;
-            font-size: 20px !important;
+        #modal-personalizza .modal-content h4 {
+            margin: 0 0 8px 0 !important;
+            font-size: 22px !important;
             font-weight: 900 !important;
+            text-transform: uppercase !important;
+            padding-right: 28px !important;
             color: #111111 !important;
             line-height: 1.25 !important;
             letter-spacing: -0.2px !important;
-            text-transform: none !important;
         }
-        #modal-personalizza #modal-titolo-squadra {
-            font-size: 13.5px !important;
-            font-weight: 700 !important;
-            color: #4A4A45 !important;
-            margin: 0 !important;
-            line-height: 1.4 !important;
-            text-transform: none !important;
-        }
-        #modal-personalizza .modal-fields-container {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 14px !important;
-            margin-bottom: 16px !important;
+        #modal-personalizza .modal-content .sottotitolo {
+            color: #666660 !important;
+            font-size: 13px !important;
+            margin-bottom: 25px !important;
+            line-height: 1.5 !important;
         }
         #modal-personalizza .gruppo-form {
-            margin-bottom: 0 !important;
+            margin-bottom: 20px !important;
         }
         #modal-personalizza .gruppo-form label {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
             font-weight: 700 !important;
-            font-size: 12.5px !important;
-            margin-bottom: 6px !important;
+            font-size: 13px !important;
+            margin-bottom: 8px !important;
+            color: #111111 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+        }
+        #modal-personalizza .gruppo-form label span {
+            font-weight: 700 !important;
             color: #111111 !important;
             text-transform: none !important;
             letter-spacing: normal !important;
-        }
-        #modal-personalizza .gruppo-form label .label-opt-badge {
-            font-size: 11px !important;
-            font-weight: 500 !important;
-            color: #666660 !important;
-            margin-left: 6px !important;
-        }
-        #modal-personalizza .gruppo-form label .badge-extra-cost {
-            font-weight: 700 !important;
-            font-size: 11.5px !important;
-            color: #4A4A45 !important;
-            background: #F7F6F2 !important;
-            border: 1px solid #E8E7E2 !important;
-            border-radius: 4px !important;
-            padding: 2px 7px !important;
-            letter-spacing: 0 !important;
+            background: none !important;
+            border: none !important;
+            padding: 0 !important;
         }
         #modal-personalizza .gruppo-form input[type="text"],
         #modal-personalizza .gruppo-form input[type="number"],
         #modal-personalizza .gruppo-form select {
             width: 100% !important;
+            padding: 12px 16px !important;
             min-height: 44px !important;
-            padding: 10px 14px !important;
             border: 1px solid #E8E7E2 !important;
             border-radius: 8px !important;
             box-sizing: border-box !important;
@@ -2107,7 +2283,7 @@ body {
         }
         #modal-personalizza .gruppo-form input[type="text"]::placeholder,
         #modal-personalizza .gruppo-form input[type="number"]::placeholder {
-            color: #9C9A92 !important;
+            color: #8C8A82 !important;
         }
         #modal-personalizza .gruppo-form input:disabled {
             background-color: #F7F6F2 !important;
@@ -2115,78 +2291,190 @@ body {
             cursor: not-allowed !important;
             border-color: #E8E7E2 !important;
         }
-        #modal-personalizza .box-anteprima-prezzo {
-            background-color: #FAF9F6 !important;
-            border: 1px solid #E8E7E2 !important;
-            border-radius: 10px !important;
-            padding: 12px 14px !important;
-            margin-top: 4px !important;
-            margin-bottom: 16px !important;
+        /* Custom Patch Dropdown */
+        #modal-personalizza .custom-patch-dropdown {
+            position: relative !important;
+            width: 100% !important;
             box-sizing: border-box !important;
         }
-        #modal-personalizza .box-anteprima-prezzo .riepilogo-dettagli {
+        #modal-personalizza .custom-patch-trigger {
+            width: 100% !important;
+            padding: 10px 14px !important;
+            min-height: 44px !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 8px !important;
+            box-sizing: border-box !important;
+            font-size: 14px !important;
+            font-family: inherit !important;
+            background-color: #FFFFFF !important;
+            color: #111111 !important;
+            outline: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        #modal-personalizza .custom-patch-trigger:focus,
+        #modal-personalizza .custom-patch-trigger:focus-visible {
+            border-color: #111111 !important;
+            box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.12) !important;
+        }
+        #modal-personalizza .custom-patch-trigger:disabled {
+            background-color: #F7F6F2 !important;
+            color: #8C8A82 !important;
+            cursor: not-allowed !important;
+            border-color: #E8E7E2 !important;
+        }
+        #modal-personalizza .patch-trigger-content {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+        #modal-personalizza .patch-trigger-img,
+        #modal-personalizza .patch-option-img {
+            width: 32px !important;
+            height: 32px !important;
+            object-fit: contain !important;
+            border-radius: 4px !important;
+            flex-shrink: 0 !important;
+        }
+        #modal-personalizza .patch-trigger-arrow {
+            color: #8C8A82 !important;
+            transition: transform 0.2s ease !important;
+            flex-shrink: 0 !important;
+            margin-left: 8px !important;
+        }
+        #modal-personalizza .custom-patch-dropdown.open .patch-trigger-arrow {
+            transform: rotate(180deg) !important;
+        }
+        #modal-personalizza .custom-patch-options {
+            position: absolute !important;
+            top: calc(100% + 4px) !important;
+            left: 0 !important;
+            right: 0 !important;
+            background-color: #FFFFFF !important;
+            border: 1px solid #E8E7E2 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 4px 10px -2px rgba(0,0,0,0.04) !important;
+            z-index: 100 !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            padding: 4px !important;
+            box-sizing: border-box !important;
+        }
+        #modal-personalizza .custom-patch-option {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 10px 12px !important;
+            font-size: 14px !important;
+            color: #111111 !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            transition: background-color 0.15s ease !important;
+        }
+        #modal-personalizza .patch-option-text {
+            flex: 1 !important;
+            font-weight: 500 !important;
+        }
+        #modal-personalizza .patch-option-price {
+            font-weight: 700 !important;
+            color: #111111 !important;
+            font-size: 13px !important;
+            margin-left: auto !important;
+        }
+        #modal-personalizza .custom-patch-option:hover,
+        #modal-personalizza .custom-patch-option:focus,
+        #modal-personalizza .custom-patch-option.selected {
+            background-color: #F7F6F2 !important;
+            outline: none !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo {
+            background-color: #F7F6F2 !important;
+            padding: 12px 14px !important;
+            border-radius: 8px !important;
+            margin-top: 14px !important;
+            margin-bottom: 12px !important;
             display: flex !important;
             flex-direction: column !important;
+            justify-content: center !important;
+            align-items: stretch !important;
             gap: 6px !important;
-            padding-bottom: 10px !important;
-            margin-bottom: 10px !important;
-            border-bottom: 1px dashed #E8E7E2 !important;
-            font-size: 12.5px !important;
-            color: #4A4A45 !important;
-        }
-        #modal-personalizza .box-anteprima-prezzo .riepilogo-riga {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            line-height: 1.35 !important;
-        }
-        #modal-personalizza .box-anteprima-prezzo .riepilogo-riga.riepilogo-extra {
+            border: 1px solid #E8E7E2 !important;
+            font-size: 13.5px !important;
+            box-sizing: border-box !important;
             color: #111111 !important;
-            font-weight: 500 !important;
+            height: auto !important;
+            min-height: 0 !important;
         }
         #modal-personalizza .box-anteprima-prezzo .blocco-prezzo-standard {
             display: flex !important;
             justify-content: space-between !important;
             align-items: center !important;
             width: 100% !important;
-        }
-        #modal-personalizza .box-anteprima-prezzo .blocco-prezzo-standard .label-totale {
-            font-size: 13.5px !important;
-            font-weight: 800 !important;
+            font-weight: 700 !important;
             color: #111111 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.4px !important;
+            flex-wrap: wrap !important;
+            gap: 4px !important;
         }
         #modal-personalizza .box-anteprima-prezzo .prezzo-dinamico {
             font-size: 20px !important;
-            font-weight: 900 !important;
+            font-weight: 800 !important;
             color: #111111 !important;
             letter-spacing: -0.3px !important;
         }
-        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva {
-            background-color: #FAF9F6 !important;
-            border: 1px solid #E8E7E2 !important;
-            padding: 10px 14px !important;
+        #modal-personalizza .box-anteprima-prezzo .badge-convenzione-compatto {
+            display: none !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 6px !important;
+            width: 100% !important;
+            text-align: left !important;
+            margin-top: 2px !important;
+            padding-top: 4px !important;
+            border-top: 1px dashed #E2E0D8 !important;
         }
-        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva .badge-convenzione-testo {
-            color: #111111 !important;
+        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva .badge-convenzione-compatto {
+            display: flex !important;
         }
-        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva .badge-convenzione-check {
+        #modal-personalizza .box-anteprima-prezzo .badge-convenzione-testo {
+            color: #4B5563 !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+            line-height: 1.3 !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo .badge-convenzione-check {
             color: #10B981 !important;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            flex-shrink: 0 !important;
+        }
+        #modal-personalizza .box-anteprima-prezzo.modal-convenzione-attiva {
+            background-color: #F7F6F2 !important;
+            border: 1px solid #E8E7E2 !important;
+            padding: 12px 14px !important;
         }
         #modal-personalizza .btn-conferma-carrello {
             width: 100% !important;
             min-height: 48px !important;
             background: #111111 !important;
             color: #FFFFFF !important;
-            border: 1px solid #111111 !important;
+            border: none !important;
+            padding: 15px !important;
             border-radius: 8px !important;
-            padding: 13px 20px !important;
             font-weight: 800 !important;
             font-size: 14px !important;
             cursor: pointer !important;
-            text-transform: none !important;
-            letter-spacing: normal !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
             box-shadow: none !important;
             transition: background 0.15s ease, opacity 0.15s ease !important;
             display: flex !important;
@@ -2196,7 +2484,6 @@ body {
         }
         #modal-personalizza .btn-conferma-carrello:hover {
             background: #2A2A2A !important;
-            border-color: #2A2A2A !important;
             filter: none !important;
             transform: none !important;
         }
@@ -4197,12 +4484,11 @@ body {
                 padding: 12px !important;
                 align-items: center !important;
                 justify-content: center !important;
-                overflow-y: auto !important;
             }
             #modal-personalizza .modal-content {
-                width: calc(100vw - 24px) !important;
+                width: 100% !important;
                 max-width: calc(100vw - 24px) !important;
-                padding: 16px !important;
+                padding: 24px 18px !important;
                 margin: auto !important;
                 border-radius: 14px !important;
                 max-height: calc(100vh - 24px) !important;
@@ -4210,23 +4496,76 @@ body {
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch !important;
             }
-            #modal-personalizza .modal-header-box {
-                margin-bottom: 16px !important;
-                padding-right: 36px !important;
+            #modal-personalizza .btn-chiudi-modal {
+                top: 16px !important;
+                right: 16px !important;
             }
-            #modal-personalizza .modal-header-title {
-                font-size: 18px !important;
+            #modal-personalizza .modal-content h4 {
+                font-size: 19px !important;
+                margin-bottom: 6px !important;
+                padding-right: 28px !important;
             }
-            #modal-personalizza #modal-titolo-squadra {
-                font-size: 13px !important;
+            #modal-personalizza .modal-content .sottotitolo {
+                font-size: 12.5px !important;
+                margin-bottom: 18px !important;
             }
-            #modal-personalizza .modal-fields-container {
-                gap: 12px !important;
+            #modal-personalizza .gruppo-form {
                 margin-bottom: 14px !important;
             }
+            #modal-personalizza .gruppo-form label {
+                font-size: 12px !important;
+                margin-bottom: 6px !important;
+            }
+            #modal-personalizza .gruppo-form input[type="text"],
+            #modal-personalizza .gruppo-form input[type="number"],
+            #modal-personalizza .gruppo-form select {
+                padding: 11px 13px !important;
+                min-height: 44px !important;
+                font-size: 14px !important;
+            }
+            #modal-personalizza .box-anteprima-prezzo {
+                margin-top: 10px !important;
+                margin-bottom: 12px !important;
+                padding: 10px 12px !important;
+                font-size: 13px !important;
+            }
+            #modal-personalizza .box-anteprima-prezzo .prezzo-dinamico {
+                font-size: 18px !important;
+            }
             #modal-personalizza .btn-conferma-carrello {
+                padding: 13px !important;
+                font-size: 13.5px !important;
                 min-height: 46px !important;
-                padding: 12px 16px !important;
+            }
+
+            /* #modal-accessorio-dettaglio Mobile Rules */
+            #modal-accessorio-dettaglio {
+                padding: 12px !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            #modal-accessorio-dettaglio .modal-acc-card {
+                width: 100% !important;
+                max-width: calc(100vw - 24px) !important;
+                padding: 24px 18px !important;
+                margin: auto !important;
+                border-radius: 14px !important;
+                max-height: calc(100vh - 24px) !important;
+                max-height: calc(100dvh - 24px) !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            #modal-accessorio-dettaglio .modal-acc-img-wrapper {
+                height: 180px !important;
+                margin-bottom: 14px !important;
+            }
+            #modal-accessorio-dettaglio #modal-acc-nome {
+                font-size: 18px !important;
+            }
+            #modal-accessorio-dettaglio #btn-conferma-modal-acc {
+                padding: 13px !important;
+                font-size: 13.5px !important;
+                min-height: 46px !important;
             }
 
             /* Floating Bottom Cart Bar - Posizionata in basso senza coprire chat o footer */
@@ -12352,7 +12691,7 @@ body {
             <!-- TESTATA INTEGRATA EDITORIALE NAZIONALI -->
             <header class="club-page-header">
                 <h1 class="club-page-title" id="titolo-dinamico-nazionali">Maglie delle Nazionali</h1>
-                <p class="club-page-description">Indossa la leggenda del tuo Paese. I kit ufficiali e le maglie storiche delle nazionali più gloriose del mondo.</p>
+                <p class="club-page-description">Indossa la leggenda del tuo Paese. I kit e le maglie storiche delle nazionali.</p>
             </header>
 
             <div class="layout-club-video-container">
@@ -12488,7 +12827,7 @@ body {
             <!-- TESTATA INTEGRATA EDITORIALE ACCESSORI -->
             <header class="club-page-header">
                 <h1 class="club-page-title" id="titolo-dinamico-accessori">Accessori</h1>
-                <p class="club-page-description">Calze tecniche, calzettoni gara, palloni, guanti, cappellini e accessori di alta qualità per completare il tuo stile sportivo.</p>
+                <p class="club-page-description">Qui troverai tutti gli accessori, come calzettoni e molto altro.</p>
             </header>
 
             <div class="layout-club-video-container" id="layout-accessori-container">
@@ -14182,98 +14521,88 @@ body {
 
     
     <!-- MODAL DETTAGLIO ACCESSORIO (SEPARATO E INDIPENDENTE) -->
-    <div id="modal-accessorio-dettaglio" onclick="if(event.target === this) chiudiAccessorioModal()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
-        <div style="background: linear-gradient(145deg, #181818 0%, #111111 100%); border: 1px solid rgba(214, 164, 58, 0.3); border-radius: var(--radius-xl); max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-sizing: border-box; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
-            <button onclick="chiudiAccessorioModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: 700;">✕</button>
-            <div style="width: 100%; height: 260px; border-radius: var(--radius-l); overflow: hidden; background: #0a0a0a; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">
-                <img id="modal-acc-img" src="" alt="Accessorio" style="width: 100%; height: 100%; object-fit: contain;">
+    <div id="modal-accessorio-dettaglio" onclick="if(event.target === this) chiudiAccessorioModal()" style="display: none; position: fixed; inset: 0; top: 0; left: 0; width: 100%; height: 100%; z-index: 10002;">
+        <div class="modal-acc-card">
+            <button class="btn-chiudi-modal" onclick="chiudiAccessorioModal()" aria-label="Chiudi" title="Chiudi (Esc)">✕</button>
+            <div class="modal-acc-img-wrapper">
+                <img id="modal-acc-img" src="" alt="Accessorio">
             </div>
-            <span id="modal-acc-categoria" style="font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;"></span>
-            <h3 id="modal-acc-nome" style="font-size: 20px; font-weight: 900; color: #fff; margin: 0 0 10px 0; line-height: 1.3;"></h3>
-            <div id="modal-acc-prezzo" style="font-size: 22px; font-weight: 900; color: var(--primary); margin-bottom: 14px;"></div>
-            <p id="modal-acc-descrizione" style="font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.5; margin-bottom: 20px;"></p>
+            <span id="modal-acc-categoria"></span>
+            <h3 id="modal-acc-nome"></h3>
+            <p id="modal-acc-descrizione"></p>
             
-            <div id="modal-acc-opzioni-container" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;"></div>
+            <div id="modal-acc-opzioni-container" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px;"></div>
             
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px;">
-                <label style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.8);">Quantità</label>
-                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: var(--radius-m); border: 1px solid rgba(255,255,255,0.1);">
-                    <button onclick="modificaModalAccQty(-1)" style="background: none; border: none; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; padding: 4px 8px;">-</button>
-                    <span id="modal-acc-qty" style="font-size: 14px; font-weight: 800; color: #fff; min-width: 20px; text-align: center;">1</span>
-                    <button onclick="modificaModalAccQty(1)" style="background: none; border: none; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; padding: 4px 8px;">+</button>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase;">Quantità</label>
+                <div style="display: flex; align-items: center; gap: 10px; background: #F7F6F2; padding: 4px 10px; border-radius: 8px; border: 1px solid #E8E7E2;">
+                    <button type="button" onclick="modificaModalAccQty(-1)" style="background: none; border: none; color: #111111; font-size: 16px; font-weight: 800; cursor: pointer; padding: 4px 8px;" aria-label="Riduci quantità">-</button>
+                    <span id="modal-acc-qty" style="font-size: 14px; font-weight: 800; color: #111111; min-width: 24px; text-align: center;">1</span>
+                    <button type="button" onclick="modificaModalAccQty(1)" style="background: none; border: none; color: #111111; font-size: 16px; font-weight: 800; cursor: pointer; padding: 4px 8px;" aria-label="Aumenta quantità">+</button>
                 </div>
             </div>
 
-            <button id="btn-conferma-modal-acc" onclick="confermaAggiungiAccessorioCarrello()" style="width: 100%; background: var(--gold-gradient); color: #000; border: none; padding: 14px; border-radius: var(--radius-m); font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(214, 164, 58, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
-                <span class="material-icons" style="font-size: 18px;">shopping_cart</span>
-                <span id="btn-conferma-modal-acc-text">Aggiungi al Carrello</span>
+            <div class="box-anteprima-prezzo-acc">
+                <span>Totale:</span>
+                <span id="modal-acc-prezzo"></span>
+            </div>
+
+            <button id="btn-conferma-modal-acc" onclick="confermaAggiungiAccessorioCarrello()">
+                <span class="material-icons" style="font-size: 18px; color: #FFFFFF;">shopping_cart</span>
+                <span id="btn-conferma-modal-acc-text">AGGIUNGI AL CARRELLO</span>
             </button>
         </div>
     </div>
 
-    <div class="modal-personalizza" id="modal-personalizza" role="dialog" aria-modal="true" aria-labelledby="modal-personalizza-titolo-principale" onclick="if(event.target === this) chiudiPersonalizzazione()">
+    <div class="modal-personalizza" id="modal-personalizza" role="dialog" aria-modal="true" aria-labelledby="modal-titolo-squadra" onclick="if(event.target === this) chiudiPersonalizzazione()">
         <div class="modal-content">
             <button class="btn-chiudi-modal" id="btn-chiudi-modal-personalizza" onclick="chiudiPersonalizzazione()" aria-label="Chiudi personalizzazione" title="Chiudi (Esc)">✕</button>
-            <div class="modal-header-box">
-                <h4 class="modal-header-title" id="modal-personalizza-titolo-principale">Personalizza il tuo completino</h4>
-                <div class="sottotitolo" id="modal-titolo-squadra">Maglia Ufficiale</div>
-            </div>
+            <h4 id="modal-titolo-squadra">Maglia Ufficiale</h4>
+            <div class="sottotitolo">Rendi unica la maglia inserendo i tuoi dettagli preferiti</div>
 
-            <div class="modal-fields-container">
-                <div class="gruppo-form" id="gruppo-modal-taglia">
-                    <label id="label-modal-taglia" for="modal-taglia"><span>Seleziona Taglia</span></label>
-                    <select id="modal-taglia">
-                        <option value="S">Taglia S</option>
-                        <option value="M" selected>Taglia M</option>
-                        <option value="L">Taglia L</option>
-                        <option value="XL">Taglia XL</option>
-                        <option value="XXL">Taglia XXL</option>
-                    </select>
+            <div class="gruppo-form" id="gruppo-modal-taglia">
+                <label id="label-modal-taglia" for="modal-taglia">SELEZIONA TAGLIA</label>
+                <select id="modal-taglia">
+                    <option value="S">Taglia S</option>
+                    <option value="M" selected>Taglia M</option>
+                    <option value="L">Taglia L</option>
+                    <option value="XL">Taglia XL</option>
+                    <option value="XXL">Taglia XXL</option>
+                </select>
+            </div>
+            <div class="gruppo-form" id="gruppo-modal-nome">
+                <label id="label-modal-nome" for="modal-nome">NOME SULLA MAGLIA <span id="badge-modal-nome">+1,50€</span></label>
+                <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
+            </div>
+            <div class="gruppo-form" id="gruppo-modal-numero">
+                <label id="label-modal-numero" for="modal-numero">NUMERO SULLA MAGLIA <span id="badge-modal-numero">+1,50€</span></label>
+                <input type="number" id="modal-numero" min="1" max="99" placeholder="10" oninput="ricalcolaPrezzoPopup()">
+            </div>
+            <div class="gruppo-form" id="gruppo-modal-patch">
+                <label id="label-modal-patch" for="custom-patch-trigger">PATCH <span id="badge-modal-patch">+1,00€</span></label>
+                <input type="hidden" id="modal-patch" value="" onchange="ricalcolaPrezzoPopup()">
+                <div class="custom-patch-dropdown" id="custom-patch-dropdown">
+                    <button type="button" class="custom-patch-trigger" id="custom-patch-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="togglePatchDropdown()" onkeydown="handlePatchTriggerKeydown(event)">
+                        <span class="patch-trigger-content" id="patch-trigger-content">
+                            <img id="patch-trigger-img" class="patch-trigger-img" src="" alt="" style="display: none;">
+                            <span id="patch-trigger-text" class="patch-trigger-text">Nessuna patch</span>
+                        </span>
+                        <svg class="patch-trigger-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <div class="custom-patch-options" id="custom-patch-options" role="listbox" aria-labelledby="label-modal-patch" style="display: none;"></div>
                 </div>
-                <div class="gruppo-form" id="gruppo-modal-nome">
-                    <label id="label-modal-nome" for="modal-nome">
-                        <span>Nome sulla maglia <span class="label-opt-badge">(Facoltativo)</span></span>
-                        <span id="badge-modal-nome" class="badge-extra-cost">+1,50€</span>
-                    </label>
-                    <input type="text" id="modal-nome" placeholder="Es. Totti o tuo Nome" oninput="ricalcolaPrezzoPopup()">
-                </div>
-                <div class="gruppo-form" id="gruppo-modal-numero">
-                    <label id="label-modal-numero" for="modal-numero">
-                        <span>Numero sulla maglia <span class="label-opt-badge">(Facoltativo)</span></span>
-                        <span id="badge-modal-numero" class="badge-extra-cost">+1,50€</span>
-                    </label>
-                    <input type="number" id="modal-numero" min="1" max="99" placeholder="10" oninput="ricalcolaPrezzoPopup()">
-                </div>
-                <div class="gruppo-form" id="gruppo-modal-patch">
-                    <label id="label-modal-patch" for="modal-patch">
-                        <span>Patch <span class="label-opt-badge">(Facoltativo)</span></span>
-                        <span id="badge-modal-patch" class="badge-extra-cost">+1,00€</span>
-                    </label>
-                    <input type="text" id="modal-patch" placeholder="Es. Champions League, Serie A" oninput="ricalcolaPrezzoPopup()">
+            </div>
+            <div class="gruppo-form" id="gruppo-modal-patch-custom" style="display: none; margin-top: 10px;">
+                <label id="label-modal-patch-custom" for="modal-patch-custom">SCRIVI LA PATCH DESIDERATA <span style="color: #ef4444; font-weight: bold;">*</span></label>
+                <input type="text" id="modal-patch-custom" placeholder="Es. nome della competizione o della patch" oninput="validaAltraPatchOnInput()">
+                <div id="errore-modal-patch-custom" style="display: none; color: #ef4444; font-size: 11px; font-weight: 600; margin-top: 4px;">
+                    Selezionando "Altra Patch" il campo non può essere vuoto.
                 </div>
             </div>
 
             <div class="box-anteprima-prezzo" id="box-anteprima-prezzo-modal">
-                <div class="riepilogo-dettagli" id="modal-riepilogo-dettagli">
-                    <div class="riepilogo-riga">
-                        <span id="riepilogo-label-base">Prezzo base</span>
-                        <span id="riepilogo-valore-base">23,99€</span>
-                    </div>
-                    <div class="riepilogo-riga riepilogo-extra" id="riepilogo-riga-nome" style="display: none;">
-                        <span id="riepilogo-label-nome">Extra Nome</span>
-                        <span id="riepilogo-valore-nome">+1,50€</span>
-                    </div>
-                    <div class="riepilogo-riga riepilogo-extra" id="riepilogo-riga-numero" style="display: none;">
-                        <span id="riepilogo-label-numero">Extra Numero</span>
-                        <span id="riepilogo-valore-numero">+1,50€</span>
-                    </div>
-                    <div class="riepilogo-riga riepilogo-extra" id="riepilogo-riga-patch" style="display: none;">
-                        <span id="riepilogo-label-patch">Extra Patch</span>
-                        <span id="riepilogo-valore-patch">+1,00€</span>
-                    </div>
-                </div>
                 <div class="blocco-prezzo-standard" id="blocco-prezzo-standard">
-                    <span class="label-totale">Totale:</span>
+                    <span>Totale Configurazione:</span>
                     <span class="prezzo-dinamico" id="modal-prezzo-anteprima">23,99€</span>
                 </div>
                 <div class="badge-convenzione-compatto" id="badge-convenzione-compatto" style="display: none;">
@@ -14281,7 +14610,7 @@ body {
                     <span class="badge-convenzione-testo">Configurazione inclusa nella convenzione</span>
                 </div>
             </div>
-            <button class="btn-conferma-carrello" id="btn-conferma-personalizza" onclick="aggiungiProdottoConfigurato()">Aggiungi al Carrello</button>
+            <button class="btn-conferma-carrello" id="btn-conferma-personalizza" onclick="aggiungiProdottoConfigurato()">AGGIUNGI AL CARRELLO</button>
         </div>
     </div>
 
@@ -15628,6 +15957,9 @@ body {
         window.accessorioIndexInModifica = null;
 
         async function apriAccessorioModal(id, editIndex = null) {
+            if (document.activeElement && typeof document.activeElement.focus === 'function') {
+                window._modalAccessorioTriggerEl = document.activeElement;
+            }
             if ((!databaseAccessori || databaseAccessori.length === 0) && typeof caricaAccessori === 'function') {
                 try {
                     await caricaAccessori();
@@ -15693,12 +16025,13 @@ body {
             if (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid && isCalzModal && window.fornituraTorneoAttiva.prezzo_calzettoni !== null && window.fornituraTorneoAttiva.prezzo_calzettoni !== undefined && window.fornituraTorneoAttiva.prezzo_calzettoni !== '') {
                 priceToDisplayModal = Number(window.fornituraTorneoAttiva.prezzo_calzettoni);
             }
-            if (prezzoEl) prezzoEl.innerText = `${priceToDisplayModal.toFixed(2).replace('.', ',')}€`;
+            window.modalAccUnitPrice = priceToDisplayModal;
+            if (prezzoEl) prezzoEl.innerText = `${(priceToDisplayModal * accessorioQtySelezionata).toFixed(2).replace('.', ',')}€`;
             if (descEl) descEl.innerText = item.descrizione || '';
             if (qtyEl) qtyEl.innerText = String(accessorioQtySelezionata);
 
             if (btnTextEl) {
-                btnTextEl.innerText = accessorioIndexInModifica !== null ? "Salva Modifiche" : "Aggiungi al Carrello";
+                btnTextEl.innerText = accessorioIndexInModifica !== null ? "SALVA MODIFICHE" : "AGGIUNGI AL CARRELLO";
             }
 
             if (opzioniContainer) {
@@ -15708,12 +16041,12 @@ body {
                 if (isManuale) {
                     opzHtml += `
                         <div id="box-taglia-manuale-acc" style="margin-bottom: 6px;">
-                            <label for="modal-acc-input-taglia" style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                            <label for="modal-acc-input-taglia" style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 8px;">
                                 <span>TAGLIA <span style="color: #ef4444;">*</span></span>
-                                <span style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: none;">Inserimento manuale</span>
+                                <span style="font-size: 11px; color: #666660; font-weight: 600; text-transform: none;">Inserimento manuale</span>
                             </label>
                             <div style="position: relative;">
-                                <input type="text" id="modal-acc-input-taglia" placeholder="Scrivi la taglia" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: var(--radius-m); background: #121212; border: 1.5px solid rgba(214, 164, 58, 0.4); color: #ffffff; font-size: 14px; font-weight: 700; outline: none; transition: all 0.2s;" oninput="const err = document.getElementById('modal-acc-taglia-errore'); if(err) err.style.display='none'; this.style.borderColor='var(--primary)';" onkeydown="if(event.key==='Enter'){event.preventDefault(); confermaAggiungiAccessorioCarrello();}">
+                                <input type="text" id="modal-acc-input-taglia" placeholder="Scrivi la taglia" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 10px 14px; min-height: 44px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E8E7E2; color: #111111; font-size: 14px; font-weight: 600; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;" oninput="const err = document.getElementById('modal-acc-taglia-errore'); if(err) err.style.display='none'; this.style.borderColor='#111111';" onkeydown="if(event.key==='Enter'){event.preventDefault(); confermaAggiungiAccessorioCarrello();}">
                             </div>
                             <div id="modal-acc-taglia-errore" style="display: none; color: #ef4444; font-size: 12px; font-weight: 700; margin-top: 6px;">
                                 Inserisci la taglia prima di procedere.
@@ -15723,8 +16056,8 @@ body {
                 } else if (item.opzioni && Array.isArray(item.opzioni.taglie) && item.opzioni.taglie.length > 0) {
                     opzHtml += `
                         <div>
-                            <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Seleziona Misura / Taglia</label>
-                            <select id="modal-acc-select-taglia" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-m); background: #1c1c1c; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 13px; outline: none;">
+                            <label style="display: block; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 6px;">Seleziona Misura / Taglia</label>
+                            <select id="modal-acc-select-taglia" style="width: 100%; padding: 10px 14px; min-height: 44px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E8E7E2; color: #111111; font-size: 14px; font-weight: 600; outline: none;">
                                 ${item.opzioni.taglie.map(t => `<option value="${t}">${t}</option>`).join('')}
                             </select>
                         </div>
@@ -15732,8 +16065,8 @@ body {
                 } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
                     opzHtml += `
                         <div>
-                            <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Taglia</label>
-                            <div style="padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-m); color: #fff; font-size: 13px; font-weight: 600;">
+                            <label style="display: block; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 6px;">Taglia</label>
+                            <div style="padding: 10px 14px; background: #F7F6F2; border: 1px solid #E8E7E2; border-radius: 8px; color: #111111; font-size: 14px; font-weight: 600;">
                                 ${item.taglia}
                             </div>
                         </div>
@@ -15743,8 +16076,8 @@ body {
                 if (item.opzioni && Array.isArray(item.opzioni.colori) && item.opzioni.colori.length > 0) {
                     opzHtml += `
                         <div>
-                            <label style="display: block; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.7); text-transform: uppercase; margin-bottom: 6px;">Seleziona Variante Colore</label>
-                            <select id="modal-acc-select-colore" style="width: 100%; padding: 10px 12px; border-radius: var(--radius-m); background: #1c1c1c; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 13px; outline: none;">
+                            <label style="display: block; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 6px;">Seleziona Variante Colore</label>
+                            <select id="modal-acc-select-colore" style="width: 100%; padding: 10px 14px; min-height: 44px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E8E7E2; color: #111111; font-size: 14px; font-weight: 600; outline: none;">
                                 ${item.opzioni.colori.map(c => `<option value="${c}">${c}</option>`).join('')}
                             </select>
                         </div>
@@ -15772,12 +16105,17 @@ body {
                 }
             }
 
+            document.body.style.overflow = 'hidden';
             modal.style.display = 'flex';
             // Auto focus input taglia se presente
             setTimeout(() => {
                 const inp = document.getElementById('modal-acc-input-taglia');
                 if (inp) {
-                    inp.focus();
+                    try {
+                        inp.focus({ preventScroll: true });
+                    } catch(e) {
+                        inp.focus();
+                    }
                     if (inp.value) {
                         inp.select();
                     }
@@ -15788,12 +16126,19 @@ body {
         function chiudiAccessorioModal() {
             const modal = document.getElementById('modal-accessorio-dettaglio');
             if (modal) modal.style.display = 'none';
+            document.body.style.overflow = '';
             accessorioInDettaglio = null;
             accessorioIndexInModifica = null;
             window.accessorioIndexInModifica = null;
             const btnTextEl = document.getElementById('btn-conferma-modal-acc-text');
             if (btnTextEl) {
-                btnTextEl.innerText = "Aggiungi al Carrello";
+                btnTextEl.innerText = "AGGIUNGI AL CARRELLO";
+            }
+            if (window._modalAccessorioTriggerEl && typeof window._modalAccessorioTriggerEl.focus === 'function') {
+                try {
+                    window._modalAccessorioTriggerEl.focus({ preventScroll: true });
+                } catch(e) {}
+                window._modalAccessorioTriggerEl = null;
             }
         }
 
@@ -15801,6 +16146,11 @@ body {
             accessorioQtySelezionata = Math.max(1, accessorioQtySelezionata + delta);
             const qtyEl = document.getElementById('modal-acc-qty');
             if (qtyEl) qtyEl.innerText = accessorioQtySelezionata;
+            const prezzoEl = document.getElementById('modal-acc-prezzo');
+            if (prezzoEl && typeof window.modalAccUnitPrice === 'number') {
+                const tot = window.modalAccUnitPrice * accessorioQtySelezionata;
+                prezzoEl.innerText = `${tot.toFixed(2).replace('.', ',')}€`;
+            }
         }
 
         function confermaAggiungiAccessorioCarrello() {
@@ -17614,9 +17964,25 @@ for (const cat in hierarchy) {
         }
         window.squadraHaProdottiVisibili = squadraHaProdottiVisibili;
 
+        let _cacheSquadreVisibiliClub = null;
+        let _cacheSquadreVisibiliNaz = null;
+        let _leagueTeamsMapCache = null;
+        let _continentTeamsMapCache = null;
+
+        function invalidaCacheSquadreVisibili() {
+            _cacheSquadreVisibiliClub = null;
+            _cacheSquadreVisibiliNaz = null;
+            _leagueTeamsMapCache = null;
+            _continentTeamsMapCache = null;
+        }
+        window.invalidaCacheSquadreVisibili = invalidaCacheSquadreVisibili;
+
         function ottieniSquadrePubblicheVisibili(categoria = null) {
+            if (categoria === 'Club' && Array.isArray(_cacheSquadreVisibiliClub)) return _cacheSquadreVisibiliClub;
+            if (categoria === 'Nazionali' && Array.isArray(_cacheSquadreVisibiliNaz)) return _cacheSquadreVisibiliNaz;
+
             const teams = Array.isArray(publicTeams) ? publicTeams : [];
-            return teams.filter(t => {
+            const result = teams.filter(t => {
                 if (!t || !t.name) return false;
                 if (categoria && (t.categoria || 'Club') !== categoria) return false;
                 if (typeof databaseInizializzato !== 'undefined' && databaseInizializzato && Array.isArray(databaseProdotti) && databaseProdotti.length > 0) {
@@ -17626,6 +17992,11 @@ for (const cat in hierarchy) {
                 if (t.has_products !== undefined) return t.has_products;
                 return squadraHaProdottiVisibili(t.name);
             });
+
+            if (categoria === 'Club') _cacheSquadreVisibiliClub = result;
+            if (categoria === 'Nazionali') _cacheSquadreVisibiliNaz = result;
+
+            return result;
         }
         window.ottieniSquadrePubblicheVisibili = ottieniSquadrePubblicheVisibili;
 
@@ -19041,9 +19412,11 @@ for (const cat in hierarchy) {
             // Calcolo conteggio totale prodotti club in O(1)
             const totaleArticoliClub = (typeof window.totaleArticoliClub === 'number' && window.totaleArticoliClub > 0)
                 ? window.totaleArticoliClub
-                : ((Array.isArray(databaseProdotti) && databaseProdotti.length > 0)
-                    ? databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isClub(p.squadra)).length
-                    : (typeof window.totaleArticoliClub === 'number' ? window.totaleArticoliClub : 0));
+                : ((window._catalogIndicesCache && typeof window._catalogIndicesCache.totalClubProducts === 'number')
+                    ? window._catalogIndicesCache.totalClubProducts
+                    : ((Array.isArray(databaseProdotti) && databaseProdotti.length > 0)
+                        ? databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isClub(p.squadra)).length
+                        : (typeof window.totaleArticoliClub === 'number' ? window.totaleArticoliClub : 0)));
 
             // Raggruppa per sezione (lega)
             const conteggiLeghe = {};
@@ -19298,14 +19671,22 @@ for (const cat in hierarchy) {
             if (!nomeLega || nomeLega === 'tutte' || nomeLega === 'tutti') {
                 return clubs;
             }
-            let res = clubs.filter(t => (t.sezione || '').toLowerCase() === nomeLega.toLowerCase());
+            if (!_leagueTeamsMapCache) {
+                _leagueTeamsMapCache = new Map();
+            }
+            const key = nomeLega.toLowerCase();
+            if (_leagueTeamsMapCache.has(key)) {
+                return _leagueTeamsMapCache.get(key);
+            }
+            let res = clubs.filter(t => (t.sezione || '').toLowerCase() === key);
             if (res.length === 0) {
                 res = clubs.filter(t => {
                     const s1 = (t.sezione || '').toLowerCase();
-                    const s2 = nomeLega.toLowerCase();
+                    const s2 = key;
                     return s1.includes(s2) || s2.includes(s1) || (s1.includes('brasil') && s2.includes('brasil'));
                 });
             }
+            _leagueTeamsMapCache.set(key, res);
             return res;
         }
         window.ottieniSquadreDellaLega = ottieniSquadreDellaLega;
@@ -20008,9 +20389,11 @@ for (const cat in hierarchy) {
             // Calcolo conteggio totale prodotti nazionali in O(1)
             const totaleArticoliNaz = (typeof window.totaleArticoliNazionali === 'number' && window.totaleArticoliNazionali > 0)
                 ? window.totaleArticoliNazionali
-                : ((Array.isArray(databaseProdotti) && databaseProdotti.length > 0)
-                    ? databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isNazionale(p.squadra)).length
-                    : (typeof window.totaleArticoliNazionali === 'number' ? window.totaleArticoliNazionali : 0));
+                : ((window._catalogIndicesCache && typeof window._catalogIndicesCache.totalNazionaliProducts === 'number')
+                    ? window._catalogIndicesCache.totalNazionaliProducts
+                    : ((Array.isArray(databaseProdotti) && databaseProdotti.length > 0)
+                        ? databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isNazionale(p.squadra)).length
+                        : (typeof window.totaleArticoliNazionali === 'number' ? window.totaleArticoliNazionali : 0)));
 
             // Raggruppa per sezione / confederazione
             const conteggiCategorie = {};
@@ -20221,11 +20604,19 @@ for (const cat in hierarchy) {
             if (!nomeCat || nomeCat === 'tutte' || nomeCat === 'tutti') {
                 return nazionali;
             }
+            if (!_continentTeamsMapCache) {
+                _continentTeamsMapCache = new Map();
+            }
+            const key = nomeCat.toLowerCase();
+            if (_continentTeamsMapCache.has(key)) {
+                return _continentTeamsMapCache.get(key);
+            }
             let res = nazionali.filter(t => {
                 let s = t.sezione || 'Altre Nazioni';
                 if (s === 'Nazionali') s = 'Europa';
-                return s.toLowerCase() === nomeCat.toLowerCase();
+                return s.toLowerCase() === key;
             });
+            _continentTeamsMapCache.set(key, res);
             return res;
         }
         window.ottieniNazionaliDellaCategoria = ottieniNazionaliDellaCategoria;
@@ -22791,19 +23182,50 @@ for (const cat in hierarchy) {
             }
             const map = window.indiceProdottiPerSquadra;
             map.clear();
+            
+            const clubProducts = [];
+            const nazionaliProducts = [];
+            const retroProducts = [];
+            const tuteProducts = [];
+            const squadCounts = new Map();
+            const seasonsClubSet = new Set();
+            const seasonsNazSet = new Set();
 
-            if (!Array.isArray(databaseProdotti)) return;
+            if (Array.isArray(databaseProdotti)) {
+                databaseProdotti.forEach(p => {
+                    if (!p || !p.squadra) return;
+                    const normP = p._normalizedSquadra || (p._normalizedSquadra = normalizzaNomeSquadra(p.squadra));
+                    if (!map.has(normP)) {
+                        map.set(normP, []);
+                    }
+                    map.get(normP).push(p);
 
-            // 1. Primo ciclo: indicizza ciascun prodotto tramite p._normalizedSquadra o calcolalo se assente
-            databaseProdotti.forEach(p => {
-                if (!p || !p.squadra) return;
-                const normP = p._normalizedSquadra || (p._normalizedSquadra = normalizzaNomeSquadra(p.squadra));
+                    const isValid = isProdottoValidoPubblico(p);
+                    if (isValid) {
+                        squadCounts.set(normP, (squadCounts.get(normP) || 0) + 1);
+                        const isClb = isClub(p.squadra);
 
-                if (!map.has(normP)) {
-                    map.set(normP, []);
-                }
-                map.get(normP).push(p);
-            });
+                        if (isClb) {
+                            clubProducts.push(p);
+                            if (p.stagione && p.stagione.toString().trim()) {
+                                seasonsClubSet.add(p.stagione.toString().trim().replace(/\s+/g, ' '));
+                            }
+                        } else {
+                            nazionaliProducts.push(p);
+                            if (p.stagione && p.stagione.toString().trim()) {
+                                seasonsNazSet.add(p.stagione.toString().trim().replace(/\s+/g, ' '));
+                            }
+                        }
+
+                        const catLower = (p.categoria || '').toLowerCase();
+                        if (catLower === 'retro') {
+                            retroProducts.push(p);
+                        } else if (catLower === 'tuta' || catLower === 'tute') {
+                            tuteProducts.push(p);
+                        }
+                    }
+                });
+            }
 
             // 2. Uniforma gli alias noti di Paris Saint-Germain affinche' ogni alias restituisca il catalogo completo
             const psgAliases = ['paris saint germain', 'paris saint-germain', 'psg'];
@@ -22819,6 +23241,29 @@ for (const cat in hierarchy) {
                 psgAliases.forEach(alias => {
                     map.set(alias, combined);
                 });
+            }
+
+            const seasonsClub = typeof ottieniStagioniDeduplicateEOrdinate === 'function' ? ottieniStagioniDeduplicateEOrdinate(clubProducts) : Array.from(seasonsClubSet);
+            const seasonsNazionali = typeof ottieniStagioniDeduplicateEOrdinate === 'function' ? ottieniStagioniDeduplicateEOrdinate(nazionaliProducts) : Array.from(seasonsNazSet);
+
+            _mappaConteggiCache = squadCounts;
+            window.totaleArticoliClub = clubProducts.length;
+            window.totaleArticoliNazionali = nazionaliProducts.length;
+
+            window._catalogIndicesCache = {
+                clubProducts,
+                nazionaliProducts,
+                retroProducts,
+                tuteProducts,
+                totalClubProducts: clubProducts.length,
+                totalNazionaliProducts: nazionaliProducts.length,
+                squadCounts,
+                seasonsClub,
+                seasonsNazionali
+            };
+
+            if (typeof invalidaCacheSquadreVisibili === 'function') {
+                invalidaCacheSquadreVisibili();
             }
         }
         window.aggiornaIndiceProdottiPerSquadra = aggiornaIndiceProdottiPerSquadra;
@@ -22865,7 +23310,7 @@ for (const cat in hierarchy) {
             }
 
             // Lazy initialization di sicurezza per l'indice se vuoto
-            if (databaseInizializzato && (!window.indiceProdottiPerSquadra || window.indiceProdottiPerSquadra.size === 0) && databaseProdotti.length > 0) {
+            if (databaseInizializzato && (!window.indiceProdottiPerSquadra || window.indiceProdottiPerSquadra.size === 0 || !window._catalogIndicesCache) && databaseProdotti.length > 0) {
                 aggiornaIndiceProdottiPerSquadra();
             }
             
@@ -22875,13 +23320,13 @@ for (const cat in hierarchy) {
             if (nomeSquadra === 'tutti_prodotti') {
                 filtrati = [...databaseProdotti];
             } else if (nomeSquadra === 'tutti_club') {
-                filtrati = databaseProdotti.filter(p => isClub(p.squadra));
+                filtrati = (window._catalogIndicesCache && window._catalogIndicesCache.clubProducts) ? window._catalogIndicesCache.clubProducts : databaseProdotti.filter(p => isClub(p.squadra));
             } else if (nomeSquadra === 'tutte_nazionali') {
-                filtrati = databaseProdotti.filter(p => isNazionale(p.squadra));
+                filtrati = (window._catalogIndicesCache && window._catalogIndicesCache.nazionaliProducts) ? window._catalogIndicesCache.nazionaliProducts : databaseProdotti.filter(p => isNazionale(p.squadra));
             } else if (nsLower === 'categoria_retro') {
-                filtrati = databaseProdotti.filter(p => (p.categoria || '').toLowerCase() === 'retro');
+                filtrati = (window._catalogIndicesCache && window._catalogIndicesCache.retroProducts) ? window._catalogIndicesCache.retroProducts : databaseProdotti.filter(p => (p.categoria || '').toLowerCase() === 'retro');
             } else if (nsLower === 'categoria_tute') {
-                filtrati = databaseProdotti.filter(p => {
+                filtrati = (window._catalogIndicesCache && window._catalogIndicesCache.tuteProducts) ? window._catalogIndicesCache.tuteProducts : databaseProdotti.filter(p => {
                     const catLower = (p.categoria || '').toLowerCase();
                     return catLower === 'tuta' || catLower === 'tute';
                 });
@@ -23358,7 +23803,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     if (selectStagioneClub) {
                         const keyStagioneClub = `tutti_${filtroStagioneCorrente}`;
                         if (selectStagioneClub._lastStateKey !== keyStagioneClub) {
-                            const stagioniArr = ottieniStagioniDeduplicateEOrdinate(databaseProdotti.filter(p => isClub(p.squadra) && isProdottoValidoPubblico(p)));
+                            const stagioniArr = (window._catalogIndicesCache && window._catalogIndicesCache.seasonsClub) ? window._catalogIndicesCache.seasonsClub : ottieniStagioniDeduplicateEOrdinate(databaseProdotti.filter(p => isClub(p.squadra) && isProdottoValidoPubblico(p)));
 
                             let optionsStag = `<option value="tutte">Tutte le stagioni</option>`;
                             stagioniArr.forEach(st => {
@@ -23475,7 +23920,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     if (selectStagioneNaz) {
                         const keyStagioneNaz = `tutti_${filtroStagioneCorrente}`;
                         if (selectStagioneNaz._lastStateKey !== keyStagioneNaz) {
-                            const stagioniArr = ottieniStagioniDeduplicateEOrdinate(databaseProdotti.filter(p => isNazionale(p.squadra) && isProdottoValidoPubblico(p)));
+                            const stagioniArr = (window._catalogIndicesCache && window._catalogIndicesCache.seasonsNazionali) ? window._catalogIndicesCache.seasonsNazionali : ottieniStagioniDeduplicateEOrdinate(databaseProdotti.filter(p => isNazionale(p.squadra) && isProdottoValidoPubblico(p)));
 
                             let optionsStag = `<option value="tutte" style="background-color: #111; color: #fff;">Tutte le stagioni</option>`;
                             stagioniArr.forEach(st => {
@@ -23589,7 +24034,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
                 const badgeSidebarTotale = document.getElementById('badge-totale-articoli-club');
                 if (badgeSidebarTotale) {
-                    const totClub = databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isClub(p.squadra)).length;
+                    const totClub = (typeof window.totaleArticoliClub === 'number' && window.totaleArticoliClub > 0) ? window.totaleArticoliClub : (window._catalogIndicesCache ? window._catalogIndicesCache.totalClubProducts : databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isClub(p.squadra)).length);
                     badgeSidebarTotale.innerText = totClub;
                 }
             } else {
@@ -23599,7 +24044,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
                 const badgeSidebarTotaleNaz = document.getElementById('badge-totale-articoli-nazionali');
                 if (badgeSidebarTotaleNaz) {
-                    const totNaz = databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isNazionale(p.squadra)).length;
+                    const totNaz = (typeof window.totaleArticoliNazionali === 'number' && window.totaleArticoliNazionali > 0) ? window.totaleArticoliNazionali : (window._catalogIndicesCache ? window._catalogIndicesCache.totalNazionaliProducts : databaseProdotti.filter(p => isProdottoValidoPubblico(p) && isNazionale(p.squadra)).length);
                     badgeSidebarTotaleNaz.innerText = totNaz;
                 }
             }
@@ -23882,6 +24327,9 @@ function renderizzaProdottiSquadraConFiltri() {
                 console.warn("⚠️ Impossibile caricare filtri catalogo da /api/settings (uso fallback locale):", e);
             }
             renderizzaFiltriCatalogoPubblici();
+            if (typeof renderPatchOptions === 'function') {
+                renderPatchOptions();
+            }
         }
         window.caricaSettingsEFiltriPubblici = caricaSettingsEFiltriPubblici;
 
@@ -25808,6 +26256,633 @@ function renderizzaProdottiSquadraConFiltri() {
             renderConvenzioneCarrello();
         }
         window.aggiornaBannerFornitura = aggiornaBannerFornitura;
+
+        // List of patches - Dynamic catalog data source with product availability filtering
+        function getProdottoInConfigurazioneCorrente() {
+            if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
+                if (idInConfigurazione) {
+                    const pById = databaseProdotti.find(p => String(p.id) === String(idInConfigurazione));
+                    if (pById) return pById;
+                }
+                if (legacyIdInConfigurazione) {
+                    const pByLegacy = databaseProdotti.find(p => String(p.legacy_id) === String(legacyIdInConfigurazione));
+                    if (pByLegacy) return pByLegacy;
+                }
+            }
+            return {
+                squadra: squadraInConfigurazione || '',
+                categoria: categoriaInConfigurazione || '',
+                id: idInConfigurazione || '',
+                legacy_id: legacyIdInConfigurazione || ''
+            };
+        }
+
+        function normalizzaStringaLega(str) {
+            if (!str) return '';
+            return String(str)
+                .toLowerCase()
+                .replace(/^(lega_|sezione_|continent_|confederazione_)/i, '')
+                .replace(/[-_]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        const CATEGORY_ALIAS_MAP_FRONTEND = {
+            'kit': 'kit',
+            'full kit': 'kit',
+            'kit completo': 'kit',
+            'kit completi': 'kit',
+            'completo': 'kit',
+            
+            'player': 'player',
+            'player version': 'player',
+            'versione player': 'player',
+            'player edition': 'player',
+            'maglia player': 'player',
+            'edizione player': 'player',
+
+            'fan': 'fan',
+            'fan version': 'fan',
+            'versione fan': 'fan',
+            'fan edition': 'fan',
+            'maglia fan': 'fan',
+            'edizione fan': 'fan',
+
+            'retro': 'retro',
+            'vintage': 'retro',
+            'maglia retro': 'retro',
+
+            'kit allenamento': 'kit allenamento',
+            'training kit': 'kit allenamento',
+            'vest': 'kit allenamento',
+            'allenamento': 'kit allenamento',
+
+            'tuta': 'tuta',
+            'tute': 'tuta',
+            'tracksuit': 'tuta',
+            'tuta rappresentanza': 'tuta',
+
+            'antivento': 'antivento',
+            'windbreaker': 'antivento',
+            'giaccavento': 'antivento',
+            'giacca antivento': 'antivento',
+
+            'polo': 'polo',
+            'polo ufficiale': 'polo',
+
+            'smanicato': 'smanicato',
+            'smanicati': 'smanicato',
+            'sleeveless': 'smanicato',
+
+            'maniche lunghe': 'maniche lunghe',
+            'manica lunga': 'maniche lunghe',
+            'maglia manica lunga': 'maniche lunghe',
+            'maglia maniche lunghe': 'maniche lunghe',
+            'long sleeve': 'maniche lunghe',
+
+            'kit bambino': 'kit bambino',
+            'kit bambini': 'kit bambino',
+            'bambino': 'kit bambino',
+            'bambini': 'kit bambino',
+            'kids': 'kit bambino',
+            'kid': 'kit bambino',
+
+            'portiere': 'portiere',
+            'kit portiere': 'portiere',
+            'goalkeeper': 'portiere',
+            'gk': 'portiere',
+            'keeper': 'portiere',
+
+            'pantaloncini': 'pantaloncini',
+            'shorts': 'pantaloncini'
+        };
+
+        function normalizzaChiaveCategoria(catStr) {
+            if (!catStr) return '';
+            let str = String(catStr).toLowerCase().trim()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/^(cat_|fil_|rule_)/i, '')
+                .replace(/[-_]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            return CATEGORY_ALIAS_MAP_FRONTEND[str] || str;
+        }
+
+        function isCategoriaConsentitaPerPatch(patch, prod) {
+            if (!patch) return false;
+            const catCfg = patch.categorie_per || patch.disponibile_per?.categorie;
+            
+            const isSerieAPatch = (patch.nome || patch.name || '').toLowerCase().includes('serie a') || 
+              (patch.disponibile_per?.club?.leghe && patch.disponibile_per.club.leghe.some(l => String(l).toLowerCase().includes('serie a')));
+
+            if (!catCfg) {
+                if (isSerieAPatch) {
+                    const rawProdCat = (prod?.categoria || prod?.category || prod?.tipo || (typeof categoriaInConfigurazione !== 'undefined' ? categoriaInConfigurazione : '') || '').trim();
+                    const prodTitle = (prod?.versione || prod?.nome || prod?.title || '').trim();
+                    const normCat = normalizzaChiaveCategoria(rawProdCat);
+                    const normTitle = normalizzaChiaveCategoria(prodTitle);
+                    if (normCat === 'tuta' || normCat === 'antivento' || normTitle === 'tuta' || normTitle === 'antivento') {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            if (catCfg.tutte_categorie !== false) {
+                return true;
+            }
+
+            const allowedArr = Array.isArray(catCfg.categorie) ? catCfg.categorie : [];
+            if (allowedArr.length === 0) {
+                return false;
+            }
+
+            const rawProdCat = (prod?.categoria || prod?.category || prod?.tipo || (typeof categoriaInConfigurazione !== 'undefined' ? categoriaInConfigurazione : '') || '').trim();
+            const prodTitle = (prod?.versione || prod?.nome || prod?.title || '').trim();
+
+            if (!rawProdCat && !prodTitle) {
+                return true;
+            }
+
+            const prodNormKey = normalizzaChiaveCategoria(rawProdCat);
+            const prodTitleNorm = normalizzaChiaveCategoria(prodTitle);
+
+            const allowedSet = new Set(allowedArr.map(allowedCat => normalizzaChiaveCategoria(allowedCat)).filter(Boolean));
+
+            if (prodNormKey && allowedSet.has(prodNormKey)) {
+                return true;
+            }
+            if (prodTitleNorm && allowedSet.has(prodTitleNorm)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function isPatchCompatibileConProdotto(patch, prod) {
+            if (!patch || patch.stato === 'disattivo' || patch.stato === false) return false;
+
+            if (!isCategoriaConsentitaPerPatch(patch, prod)) {
+                return false;
+            }
+
+            if (!patch.disponibile_per) return true;
+            const disp = patch.disponibile_per;
+            if (!prod) return true;
+
+            const squadName = (prod.squadra || prod.versione || prod.nome || (typeof squadraInConfigurazione !== 'undefined' ? squadraInConfigurazione : '') || '').trim();
+            const normSquadName = normalizzaStringaLega(squadName);
+
+            const isClubProduct = typeof isClub === 'function' ? isClub(squadName) : true;
+            const isNazProduct = typeof isNazionale === 'function' ? isNazionale(squadName) : false;
+
+            const teamsList = window.publicTeams || window.squadreCatalogo || [];
+            let teamMatch = teamsList.find(t => {
+                const tName = (t.name || '').trim().toLowerCase();
+                const sName = squadName.toLowerCase();
+                return tName === sName || normalizzaStringaLega(tName) === normSquadName || (sName && sName.includes(tName)) || (tName && tName.includes(sName));
+            });
+
+            let prodLegaOrSezione = (prod.campionato || prod.sezione || prod.lega || (teamMatch ? (teamMatch.sezione || teamMatch.lega) : '') || '').trim();
+
+            if (!prodLegaOrSezione && typeof databaseClub !== 'undefined' && Array.isArray(databaseClub)) {
+                const dbClub = databaseClub.find(c => {
+                    const cName = (c.nome || '').toLowerCase();
+                    const sName = squadName.toLowerCase();
+                    return cName.includes(sName) || sName.includes(cName.split(' - ')[0].trim().toLowerCase());
+                });
+                if (dbClub) {
+                    const mappaLega = {
+                        'premier-league': 'Premier League',
+                        'bundesliga': 'Bundesliga',
+                        'serie-a': 'Serie A',
+                        'la-liga': 'La Liga',
+                        'ligue-1': 'Ligue 1',
+                        'saudi-league': 'Saudi League',
+                        'usa-mls': 'USA MLS',
+                        'brasileiro': 'Brasileiro Serie A',
+                        'j-league': 'J-League',
+                        'altri-club': 'Altri Club'
+                    };
+                    prodLegaOrSezione = mappaLega[dbClub.lega] || dbClub.lega;
+                }
+            }
+
+            const normProdLega = normalizzaStringaLega(prodLegaOrSezione);
+
+            if (isClubProduct) {
+                if (!disp.club || disp.club.abilitato === false) return false;
+
+                const modalita = disp.club.modalita || (
+                    disp.club.tutte_leghe !== false
+                        ? 'tutte'
+                        : (Array.isArray(disp.club.squadre) && disp.club.squadre.length > 0 ? 'squadre' : 'leghe')
+                );
+
+                if (modalita === 'squadre') {
+                    const sqArr = Array.isArray(disp.club.squadre) ? disp.club.squadre : [];
+                    if (sqArr.length === 0) return false;
+                    const prodSquadLower = squadName.trim().toLowerCase();
+                    return sqArr.some(sq => {
+                        const sqLower = String(sq).trim().toLowerCase();
+                        if (sqLower === prodSquadLower) return true;
+                        const normSq = normalizzaStringaLega(sq);
+                        if (normSq && normSquadName && normSq === normSquadName) return true;
+                        const sqClean = sqLower.replace(/\b(f\.?c\.?|a\.?c\.?|s\.?s\.?|c\.?d\.?)\b/gi, '').trim();
+                        const prodClean = prodSquadLower.replace(/\b(f\.?c\.?|a\.?c\.?|s\.?s\.?|c\.?d\.?)\b/gi, '').trim();
+                        if (sqClean && prodClean && sqClean === prodClean) return true;
+                        return false;
+                    });
+                }
+
+                if (modalita === 'leghe') {
+                    const legheArr = Array.isArray(disp.club.leghe) ? disp.club.leghe : [];
+                    if (legheArr.length === 0) return false;
+                    if (!normProdLega) return false;
+                    return legheArr.some(leg => {
+                        const normLeg = normalizzaStringaLega(leg);
+                        if (!normLeg) return false;
+                        return normLeg === normProdLega || normProdLega.includes(normLeg) || normLeg.includes(normProdLega);
+                    });
+                }
+
+                return true;
+            } else if (isNazProduct) {
+                if (!disp.nazionali || disp.nazionali.abilitato === false) return false;
+                if (disp.nazionali.tutte_nazionali !== false) return true;
+
+                const confs = Array.isArray(disp.nazionali.confederazioni) ? disp.nazionali.confederazioni : [];
+                const nazs = Array.isArray(disp.nazionali.nazionali) ? disp.nazionali.nazionali : [];
+
+                if (confs.length === 0 && nazs.length === 0) return true;
+
+                if (!normProdLega && confs.length > 0) return true;
+
+                const matchConf = confs.some(c => {
+                    const normC = normalizzaStringaLega(c);
+                    if (!normC) return false;
+                    return normC === normProdLega || normProdLega.includes(normC) || normC.includes(normProdLega);
+                });
+                if (matchConf) return true;
+
+                const matchNaz = nazs.some(n => {
+                    const normN = normalizzaStringaLega(n);
+                    if (!normN) return false;
+                    return normN === normSquadName || normSquadName.includes(normN) || normN.includes(normSquadName);
+                });
+                return matchNaz;
+            }
+
+            return Boolean((disp.club && disp.club.abilitato) || (disp.nazionali && disp.nazionali.abilitato));
+        }
+
+        function getActivePatchesList(prodottoOverride = null) {
+            const list = [{ id: "", name: "Nessuna patch", image: "", prezzo: 0 }];
+            const patchesConfig = window.appSettings?.patches || [];
+            const prod = prodottoOverride || getProdottoInConfigurazioneCorrente();
+
+            if (Array.isArray(patchesConfig)) {
+                patchesConfig.forEach(p => {
+                    const isAttiva = p.stato === undefined || p.stato === 'attivo' || p.stato === true || p.attiva === true;
+                    if (isAttiva) {
+                        if (!prod || isPatchCompatibileConProdotto(p, prod)) {
+                            const priceNum = parseFloat(p.prezzo);
+                            const valPrezzo = isNaN(priceNum) || priceNum < 0 ? 0 : priceNum;
+                            list.push({
+                                id: p.id || p.nome,
+                                name: p.nome || p.name,
+                                image: p.immagine || p.image || p.image_url || p.foto || '',
+                                prezzo: valPrezzo,
+                                disponibile_per: p.disponibile_per || null
+                            });
+                        }
+                    }
+                });
+            }
+
+            if (!prod || isCategoriaConsentitaPerPatch(prod)) {
+                const patchPriceGeneric = parseFloat(window.appSettings?.supplementoPatch || window.appSettings?.prezzoPatch || window.appSettings?.patch_price || 1.00);
+                const valPrezzo = isNaN(patchPriceGeneric) || patchPriceGeneric < 0 ? 1.00 : patchPriceGeneric;
+                list.push({
+                    id: "altra_patch",
+                    name: "Altra Patch",
+                    image: "",
+                    prezzo: valPrezzo,
+                    isAltraPatch: true
+                });
+            }
+
+            return list;
+        }
+
+        function getDettaglioPatchSelezionata(rawPatchVal) {
+            const patchStr = rawPatchVal !== undefined && rawPatchVal !== null ? String(rawPatchVal).trim() : '';
+            if (!patchStr || ["nessuna", "nessuno", "senza patch", "nessuna patch", "no", "false"].includes(patchStr.toLowerCase())) {
+                return null;
+            }
+
+            if (patchStr === "altra_patch" || patchStr === "__altra_patch__") {
+                const elCustom = document.getElementById('modal-patch-custom');
+                const customText = (elCustom && !elCustom.disabled) ? elCustom.value.trim() : '';
+                const patchPriceGeneric = parseFloat(window.appSettings?.supplementoPatch || window.appSettings?.prezzoPatch || window.appSettings?.patch_price || 1.00);
+                const valPrezzo = isNaN(patchPriceGeneric) || patchPriceGeneric < 0 ? 1.00 : patchPriceGeneric;
+                return {
+                    id: "altra_patch",
+                    nome: customText ? `Altra Patch: ${customText}` : "Altra Patch",
+                    prezzo: valPrezzo,
+                    immagine: '',
+                    isAltraPatch: true,
+                    customText: customText
+                };
+            }
+
+            const activeList = getActivePatchesList();
+            let found = activeList.find(p => String(p.id) === patchStr || p.name.toLowerCase() === patchStr.toLowerCase());
+
+            if (found && found.id !== "") {
+                return {
+                    id: found.id,
+                    nome: found.name,
+                    prezzo: found.prezzo,
+                    immagine: found.image || found.immagine || found.image_url || ''
+                };
+            }
+
+            const allPatches = window.appSettings?.patches || [];
+            const inAll = allPatches.find(p => String(p.id) === patchStr || (p.nome || p.name || '').toLowerCase() === patchStr.toLowerCase());
+            if (inAll) {
+                const priceNum = parseFloat(inAll.prezzo);
+                return {
+                    id: inAll.id,
+                    nome: inAll.nome || inAll.name,
+                    prezzo: isNaN(priceNum) || priceNum < 0 ? 0 : priceNum,
+                    immagine: inAll.immagine || inAll.image || ''
+                };
+            }
+
+            return {
+                id: patchStr,
+                nome: patchStr,
+                prezzo: 1.00,
+                immagine: ''
+            };
+        }
+
+        function renderPatchOptions() {
+            const container = document.getElementById('custom-patch-options');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const activeList = getActivePatchesList();
+
+            activeList.forEach((item) => {
+                const opt = document.createElement('div');
+                opt.className = 'custom-patch-option';
+                opt.setAttribute('role', 'option');
+                opt.setAttribute('tabindex', '0');
+                opt.setAttribute('data-id', item.id);
+                opt.setAttribute('aria-selected', item.id === '' ? 'true' : 'false');
+
+                let imgHtml = '';
+                if (item.image) {
+                    imgHtml = `<img src="${item.image}" alt="${item.name}" class="patch-option-img" onerror="this.style.display='none';" onload="this.style.display='inline-block';">`;
+                }
+
+                let priceText = '';
+                if (item.prezzo > 0) {
+                    priceText = `<span class="patch-option-price">+${item.prezzo.toFixed(2).replace('.', ',')} €</span>`;
+                }
+
+                opt.innerHTML = `${imgHtml}<span class="patch-option-text">${item.name}</span>${priceText}`;
+
+                opt.onclick = (e) => {
+                    e.stopPropagation();
+                    selezionaPatch(item.id);
+                };
+
+                opt.onkeydown = (e) => {
+                    handlePatchOptionKeydown(e, item.id);
+                };
+
+                container.appendChild(opt);
+            });
+        }
+
+        function validaAltraPatchOnInput() {
+            const customInput = document.getElementById('modal-patch-custom');
+            const customErr = document.getElementById('errore-modal-patch-custom');
+            if (customInput && customErr) {
+                if (customInput.value.trim() !== '') {
+                    customErr.style.display = 'none';
+                }
+            }
+            if (typeof ricalcolaPrezzoPopup === 'function') {
+                ricalcolaPrezzoPopup();
+            }
+        }
+
+        function selezionaPatch(patchIdOrName) {
+            const inputHidden = document.getElementById('modal-patch');
+            const triggerText = document.getElementById('patch-trigger-text');
+            const triggerImg = document.getElementById('patch-trigger-img');
+            const badgePatch = document.getElementById('badge-modal-patch');
+            const optionsContainer = document.getElementById('custom-patch-options');
+            const dropdownContainer = document.getElementById('custom-patch-dropdown');
+            const triggerBtn = document.getElementById('custom-patch-trigger');
+            const customGroup = document.getElementById('gruppo-modal-patch-custom');
+            const customInput = document.getElementById('modal-patch-custom');
+            const customErr = document.getElementById('errore-modal-patch-custom');
+
+            const patchStr = patchIdOrName !== undefined && patchIdOrName !== null ? String(patchIdOrName).trim() : '';
+            const activeList = getActivePatchesList();
+
+            let found = activeList.find(p => String(p.id) === patchStr || p.name.toLowerCase() === patchStr.toLowerCase());
+
+            let patchName = "Nessuna patch";
+            let patchVal = "";
+            let patchImg = "";
+            let patchPrice = 0;
+
+            if (found) {
+                patchVal = found.id === "" ? "" : (found.id || found.name);
+                patchName = found.name;
+                patchImg = found.image;
+                patchPrice = found.prezzo;
+            } else if (patchStr && !["nessuna", "nessuno", "senza patch", "nessuna patch", "no", "false"].includes(patchStr.toLowerCase())) {
+                patchVal = patchStr;
+                patchName = patchStr;
+                patchImg = "";
+                patchPrice = 1.00;
+            }
+
+            if (inputHidden) {
+                inputHidden.value = patchVal;
+            }
+
+            if (patchVal === 'altra_patch' || patchVal === '__altra_patch__') {
+                if (customGroup) customGroup.style.display = 'block';
+                if (customErr) customErr.style.display = 'none';
+                if (customInput) {
+                    setTimeout(() => { try { customInput.focus(); } catch(e){} }, 50);
+                }
+            } else {
+                if (customGroup) customGroup.style.display = 'none';
+                if (customInput) customInput.value = '';
+                if (customErr) customErr.style.display = 'none';
+            }
+
+            if (triggerText) {
+                triggerText.innerText = patchName;
+            }
+
+            if (triggerImg) {
+                if (patchImg) {
+                    triggerImg.style.display = 'inline-block';
+                    triggerImg.onerror = function() {
+                        this.style.display = 'none';
+                    };
+                    triggerImg.onload = function() {
+                        this.style.display = 'inline-block';
+                    };
+                    triggerImg.src = patchImg;
+                    triggerImg.alt = patchName;
+                } else {
+                    triggerImg.removeAttribute('src');
+                    triggerImg.alt = '';
+                    triggerImg.style.display = 'none';
+                }
+            }
+
+            if (badgePatch) {
+                if (fornituraInConfigurazione) {
+                    badgePatch.innerText = "Incluso";
+                } else if (patchPrice > 0) {
+                    badgePatch.innerText = `+${patchPrice.toFixed(2).replace('.', ',')}€`;
+                    badgePatch.style.display = 'inline-block';
+                } else {
+                    badgePatch.innerText = "+0,00€";
+                }
+            }
+
+            if (optionsContainer) {
+                const options = optionsContainer.querySelectorAll('.custom-patch-option');
+                options.forEach(opt => {
+                    const optId = opt.getAttribute('data-id');
+                    const isSelected = (found && optId === found.id) || (!found && patchVal === '' && optId === '');
+                    opt.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    opt.classList.toggle('selected', isSelected);
+                });
+            }
+
+            if (optionsContainer) optionsContainer.style.display = 'none';
+            if (dropdownContainer) dropdownContainer.classList.remove('open');
+            if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'false');
+
+            if (typeof ricalcolaPrezzoPopup === 'function') {
+                ricalcolaPrezzoPopup();
+            }
+        }
+
+        function togglePatchDropdown() {
+            const inputHidden = document.getElementById('modal-patch');
+            const triggerBtn = document.getElementById('custom-patch-trigger');
+            if (inputHidden && inputHidden.disabled) return;
+            if (triggerBtn && triggerBtn.disabled) return;
+
+            const optionsContainer = document.getElementById('custom-patch-options');
+            const dropdownContainer = document.getElementById('custom-patch-dropdown');
+            if (!optionsContainer) return;
+
+            const isExpanded = optionsContainer.style.display === 'block';
+            if (isExpanded) {
+                optionsContainer.style.display = 'none';
+                if (dropdownContainer) dropdownContainer.classList.remove('open');
+                if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'false');
+            } else {
+                if (typeof caricaSettingsEFiltriPubblici === 'function') {
+                    caricaSettingsEFiltriPubblici().then(() => renderPatchOptions());
+                } else {
+                    renderPatchOptions();
+                }
+                optionsContainer.style.display = 'block';
+                if (dropdownContainer) dropdownContainer.classList.add('open');
+                if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        function impostaDisabilitatoPatch(disabled) {
+            const inputHidden = document.getElementById('modal-patch');
+            const triggerBtn = document.getElementById('custom-patch-trigger');
+            const dropdownContainer = document.getElementById('custom-patch-dropdown');
+            const grPatch = document.getElementById('gruppo-modal-patch');
+
+            if (inputHidden) inputHidden.disabled = disabled;
+            if (triggerBtn) triggerBtn.disabled = disabled;
+            if (dropdownContainer) dropdownContainer.classList.toggle('disabled', disabled);
+            if (grPatch) grPatch.style.opacity = disabled ? "0.45" : "1";
+
+            if (disabled) {
+                selezionaPatch('');
+            }
+        }
+
+        function handlePatchTriggerKeydown(e) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                togglePatchDropdown();
+                const optionsContainer = document.getElementById('custom-patch-options');
+                if (optionsContainer) {
+                    const firstOpt = optionsContainer.querySelector('.custom-patch-option');
+                    if (firstOpt) firstOpt.focus();
+                }
+            } else if (e.key === 'Escape') {
+                const optionsContainer = document.getElementById('custom-patch-options');
+                const dropdownContainer = document.getElementById('custom-patch-dropdown');
+                const triggerBtn = document.getElementById('custom-patch-trigger');
+                if (optionsContainer) optionsContainer.style.display = 'none';
+                if (dropdownContainer) dropdownContainer.classList.remove('open');
+                if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function handlePatchOptionKeydown(e, patchId) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selezionaPatch(patchId);
+                const triggerBtn = document.getElementById('custom-patch-trigger');
+                if (triggerBtn) triggerBtn.focus();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const next = e.currentTarget.nextElementSibling;
+                if (next) next.focus();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prev = e.currentTarget.previousElementSibling;
+                if (prev) {
+                    prev.focus();
+                } else {
+                    const triggerBtn = document.getElementById('custom-patch-trigger');
+                    if (triggerBtn) triggerBtn.focus();
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                selezionaPatch('');
+                const triggerBtn = document.getElementById('custom-patch-trigger');
+                if (triggerBtn) triggerBtn.focus();
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('custom-patch-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                const optionsContainer = document.getElementById('custom-patch-options');
+                const triggerBtn = document.getElementById('custom-patch-trigger');
+                if (optionsContainer) optionsContainer.style.display = 'none';
+                if (dropdown) dropdown.classList.remove('open');
+                if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
         
         let prezzoBaseInConfigurazione = 23.99;
         let prezzoOriginaleCatalogoInConfigurazione = 23.99;
@@ -25852,7 +26927,7 @@ function renderizzaProdottiSquadraConFiltri() {
             prezzoBaseInConfigurazione = prezzo;
             prezzoOriginaleCatalogoInConfigurazione = Number(prezzo) || 23.99;
             if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
-                const pFound = databaseProdotti.find(p => (idProdotto && String(p.id) === String(idProdotto)) || (legacyIdProdotto && String(p.legacy_id) === String(legacyIdProdotto)) || (p.versione && p.versione.toLowerCase() === String(nomeSquadra).toLowerCase()));
+                const pFound = databaseProdotti.find(p => (idProdotto && String(p.id) === String(idProdotto)) || (legacyIdProdotto && String(p.legacy_id) === String(legacyIdProdotto)));
                 if (pFound && pFound.prezzo) {
                     prezzoOriginaleCatalogoInConfigurazione = Number(pFound.prezzo);
                 }
@@ -25959,12 +27034,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
 
                 // Configurazione Campo Patch
-                if (elPatch) {
-                    elPatch.disabled = !permettiPatch;
-                    elPatch.value = '';
-                    elPatch.placeholder = permettiPatch ? "Es. Champions League, Serie A" : "Non consentita dalla convenzione";
-                }
-                if (grPatch) grPatch.style.opacity = permettiPatch ? "1" : "0.45";
+                impostaDisabilitatoPatch(!permettiPatch);
                 if (badgePatch) {
                     badgePatch.innerText = permettiPatch ? "Incluso" : "Non consentita";
                     badgePatch.style.color = permettiPatch ? "#10b981" : "#ef4444";
@@ -25998,17 +27068,15 @@ function renderizzaProdottiSquadraConFiltri() {
                     badgeNumero.style.color = "";
                 }
 
-                if (elPatch) {
-                    elPatch.disabled = false;
-                    elPatch.value = '';
-                    elPatch.placeholder = "Es. Champions League, Serie A";
-                }
-                if (grPatch) grPatch.style.opacity = "1";
+                impostaDisabilitatoPatch(false);
                 if (badgePatch) {
                     badgePatch.innerText = "+1,00€";
                     badgePatch.style.color = "";
                 }
             }
+
+            renderPatchOptions();
+            selezionaPatch('');
 
             const qEl = document.getElementById('modal-quantita');
             if (qEl) {
@@ -26026,7 +27094,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 if (window._isAdminPickerMode) {
                     btnConferma.innerText = `➕ Aggiungi all'Ordine #${window._adminPickerOrderId || ''}`;
                 } else {
-                    btnConferma.innerText = (indexInModifica !== null) ? "Aggiorna Articolo" : "Aggiungi al Carrello";
+                    btnConferma.innerText = (indexInModifica !== null) ? "AGGIORNA ARTICOLO" : "AGGIUNGI AL CARRELLO";
                 }
             }
 
@@ -26040,6 +27108,7 @@ function renderizzaProdottiSquadraConFiltri() {
             const modalEl = document.getElementById('modal-personalizza');
             if (modalEl) modalEl.style.display = 'none'; 
             indexInModifica = null;
+            fornituraInConfigurazione = null;
             _isAggiungendoProdottoConfigurato = false;
             const btnConferma = document.querySelector('#modal-personalizza .btn-conferma-carrello') || document.querySelector('.btn-conferma-carrello');
             if (btnConferma) {
@@ -26047,7 +27116,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 if (window._isAdminPickerMode) {
                     btnConferma.innerText = `➕ Aggiungi all'Ordine #${window._adminPickerOrderId || ''}`;
                 } else {
-                    btnConferma.innerText = "Aggiungi al Carrello";
+                    btnConferma.innerText = "AGGIUNGI AL CARRELLO";
                 }
             }
             if (typeof aggiornaGraficaConsigliatiHome === 'function') {
@@ -26069,66 +27138,38 @@ function renderizzaProdottiSquadraConFiltri() {
 
             const nome = (elNome && !elNome.disabled) ? elNome.value.trim() : '';
             const numero = (elNumero && !elNumero.disabled) ? elNumero.value.trim() : '';
-            const patch = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
+            const rawPatchVal = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
+            const patchObj = getDettaglioPatchSelezionata(rawPatchVal);
 
             let rawQ = elQuantita ? parseInt(elQuantita.value, 10) : 1;
             if (isNaN(rawQ) || rawQ < 1) rawQ = 1;
             if (rawQ > 99) rawQ = 99;
             const quantita = rawQ;
 
-            const isFornitura = Boolean(fornituraInConfigurazione || (typeof window !== 'undefined' && window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid));
+            const isFornitura = Boolean(
+                fornituraInConfigurazione &&
+                typeof fornituraInConfigurazione === "object" &&
+                fornituraInConfigurazione.valid !== false &&
+                Object.keys(fornituraInConfigurazione).length > 0
+            );
 
             let extraTotale = 0;
+            const costoPatchCalcolato = patchObj ? patchObj.prezzo : 0;
+
             if (!isFornitura) {
                 if (nome) extraTotale += costoNomeAttivo;
                 if (numero) extraTotale += costoNumeroAttivo;
-                if (patch) extraTotale += costoPatchAttivo;
+                if (patchObj) extraTotale += costoPatchCalcolato;
             }
 
             let prezzoUnitario = prezzoBaseInConfigurazione;
             if (!isFornitura) {
                 if (nome) prezzoUnitario += costoNomeAttivo; 
                 if (numero) prezzoUnitario += costoNumeroAttivo; 
-                if (patch) prezzoUnitario += costoPatchAttivo;
+                if (patchObj) prezzoUnitario += costoPatchCalcolato;
             }
 
             const totaleConfigurazione = prezzoUnitario * quantita;
-
-            // Aggiorna righe di riepilogo
-            const valBaseEl = document.getElementById('riepilogo-valore-base');
-            if (valBaseEl) {
-                valBaseEl.innerText = Number(prezzoBaseInConfigurazione).toFixed(2).replace('.', ',') + '€' + (quantita > 1 ? ` (×${quantita})` : '');
-            }
-            const rigaNome = document.getElementById('riepilogo-riga-nome');
-            const valNome = document.getElementById('riepilogo-valore-nome');
-            if (rigaNome) {
-                if (nome && !isFornitura) {
-                    rigaNome.style.display = 'flex';
-                    if (valNome) valNome.innerText = `+${Number(costoNomeAttivo * quantita).toFixed(2).replace('.', ',')}€`;
-                } else {
-                    rigaNome.style.display = 'none';
-                }
-            }
-            const rigaNumero = document.getElementById('riepilogo-riga-numero');
-            const valNumero = document.getElementById('riepilogo-valore-numero');
-            if (rigaNumero) {
-                if (numero && !isFornitura) {
-                    rigaNumero.style.display = 'flex';
-                    if (valNumero) valNumero.innerText = `+${Number(costoNumeroAttivo * quantita).toFixed(2).replace('.', ',')}€`;
-                } else {
-                    rigaNumero.style.display = 'none';
-                }
-            }
-            const rigaPatch = document.getElementById('riepilogo-riga-patch');
-            const valPatch = document.getElementById('riepilogo-valore-patch');
-            if (rigaPatch) {
-                if (patch && !isFornitura) {
-                    rigaPatch.style.display = 'flex';
-                    if (valPatch) valPatch.innerText = `+${Number(costoPatchAttivo * quantita).toFixed(2).replace('.', ',')}€`;
-                } else {
-                    rigaPatch.style.display = 'none';
-                }
-            }
 
             const boxAnteprima = document.getElementById('box-anteprima-prezzo-modal');
             const bloccoStandard = document.getElementById('blocco-prezzo-standard');
@@ -26137,13 +27178,13 @@ function renderizzaProdottiSquadraConFiltri() {
 
             if (isFornitura) {
                 if (boxAnteprima) boxAnteprima.classList.add('modal-convenzione-attiva');
-                if (bloccoStandard) bloccoStandard.style.display = 'none';
-                if (badgeConvenzione) badgeConvenzione.style.display = 'flex';
+                if (bloccoStandard) bloccoStandard.style.display = 'flex';
+                if (badgeConvenzione) badgeConvenzione.style.setProperty('display', 'flex', 'important');
                 if (elAnteprima) elAnteprima.innerText = 'Incluso';
             } else {
                 if (boxAnteprima) boxAnteprima.classList.remove('modal-convenzione-attiva');
                 if (bloccoStandard) bloccoStandard.style.display = 'flex';
-                if (badgeConvenzione) badgeConvenzione.style.display = 'none';
+                if (badgeConvenzione) badgeConvenzione.style.setProperty('display', 'none', 'important');
                 if (elAnteprima) elAnteprima.innerText = totaleConfigurazione.toFixed(2).replace('.', ',') + '€';
             }
         }
@@ -26186,7 +27227,25 @@ function renderizzaProdottiSquadraConFiltri() {
 
             const nomeInput = (elNome && !elNome.disabled) ? elNome.value.trim().toUpperCase() : '';
             const numeroInput = (elNumero && !elNumero.disabled) ? elNumero.value.trim() : '';
-            const patchScelta = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
+            const rawPatchVal = (elPatch && !elPatch.disabled) ? elPatch.value.trim() : '';
+
+            if (rawPatchVal === 'altra_patch' || rawPatchVal === '__altra_patch__') {
+                const elCustomPatch = document.getElementById('modal-patch-custom');
+                const customVal = elCustomPatch ? elCustomPatch.value.trim() : '';
+                if (!customVal) {
+                    const customErr = document.getElementById('errore-modal-patch-custom');
+                    if (customErr) customErr.style.display = 'block';
+                    if (elCustomPatch) elCustomPatch.focus();
+                    _isAggiungendoProdottoConfigurato = false;
+                    if (btnConfermaEl) btnConfermaEl.disabled = false;
+                    return;
+                }
+            }
+
+            const patchObj = getDettaglioPatchSelezionata(rawPatchVal);
+            const patchScelta = patchObj ? patchObj.nome : '';
+            const patchId = patchObj ? patchObj.id : '';
+            const patchPrezzo = patchObj ? patchObj.prezzo : 0;
             const tagliaScelta = document.getElementById('modal-taglia').value;
 
             let prezzoFinaleOggetto = prezzoBaseInConfigurazione;
@@ -26197,7 +27256,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 // Modalità normale con normali supplementi
                 if (nomeInput) prezzoFinaleOggetto += costoNomeAttivo;
                 if (numeroInput) prezzoFinaleOggetto += costoNumeroAttivo;
-                if (patchScelta) prezzoFinaleOggetto += costoPatchAttivo;
+                if (patchObj) prezzoFinaleOggetto += patchPrezzo;
             }
 
             let personalizzazioneTesto = "Nessuna";
@@ -26229,6 +27288,8 @@ function renderizzaProdottiSquadraConFiltri() {
                     customName: nomeInput || '',
                     customNumber: numeroInput || '',
                     patch: patchScelta || '',
+                    patch_id: patchId || '',
+                    patch_prezzo: patchPrezzo || 0,
                     patches: patchScelta ? [patchScelta] : [],
                     imgUrl: urlImmagineInConfigurazione || ''
                 };
@@ -26264,6 +27325,9 @@ function renderizzaProdottiSquadraConFiltri() {
                 carrello[indexInModifica].id = idInConfigurazione;
                 carrello[indexInModifica].legacy_id = legacyIdInConfigurazione;
                 carrello[indexInModifica].categoria = categoriaInConfigurazione || '';
+                carrello[indexInModifica].patch = patchScelta || '';
+                carrello[indexInModifica].patch_id = patchId || '';
+                carrello[indexInModifica].patch_prezzo = patchPrezzo || 0;
                 if (fornituraInConfigurazione) {
                     carrello[indexInModifica].fornitura = fornituraInConfigurazione;
                     carrello[indexInModifica].ha_prezzo_concordato = true;
@@ -26280,7 +27344,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 indexInModifica = null;
                 const btnConferma = document.querySelector('.btn-conferma-carrello');
                 if (btnConferma) {
-                    btnConferma.innerText = "Aggiungi al Carrello";
+                    btnConferma.innerText = "AGGIUNGI AL CARRELLO";
                 }
                 
                 // Ricalcola lo sconto del coupon in background se applicato
@@ -26302,7 +27366,10 @@ function renderizzaProdottiSquadraConFiltri() {
                     imgUrl: urlImmagineInConfigurazione,
                     id: idInConfigurazione,
                     legacy_id: legacyIdInConfigurazione,
-                    categoria: categoriaInConfigurazione || ''
+                    categoria: categoriaInConfigurazione || '',
+                    patch: patchScelta || '',
+                    patch_id: patchId || '',
+                    patch_prezzo: patchPrezzo || 0
                 };
                 if (fornituraInConfigurazione) {
                     nuovaMaglia.fornitura = fornituraInConfigurazione;
@@ -26473,7 +27540,7 @@ function renderizzaProdottiSquadraConFiltri() {
             if (item.ha_prezzo_concordato && item.prezzo_concordato !== undefined) {
                 basePrice = Number(item.prezzo_concordato);
             } else if (typeof databaseProdotti !== 'undefined' && Array.isArray(databaseProdotti)) {
-                const prod = databaseProdotti.find(p => String(p.id) === String(item.id) || p.versione === item.squadra);
+                const prod = databaseProdotti.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)));
                 if (prod) {
                     basePrice = prod.prezzo || 23.99;
                     target = prod.target || "";
@@ -26519,7 +27586,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
             if (elNome && !elNome.disabled) elNome.value = nome;
             if (elNumero && !elNumero.disabled) elNumero.value = numero;
-            if (elPatch && !elPatch.disabled) elPatch.value = patch;
+            if (elPatch && !elPatch.disabled) selezionaPatch(patch);
             if (elTaglia) elTaglia.value = item.taglia;
             if (elQuantita) elQuantita.value = Math.max(1, parseInt(item.quantita, 10) || 1);
             
