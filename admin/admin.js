@@ -1416,7 +1416,7 @@ function inizializzaLottoAction() {
                 const response = await fetch('/api/lotto/archive', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        ...getAdminAuthHeaders(),
                         'Accept': 'text/event-stream'
                     },
                     body: JSON.stringify({ archived_at: clientTimestamp, stream: true })
@@ -1940,13 +1940,17 @@ async function caricaLotto() {
 
                 const btnExcelCorrente = document.getElementById('btn-scarica-excel-lotto-corrente');
                 if (btnExcelCorrente) {
-                    btnExcelCorrente.href = lottoExcelUrl;
-                    btnExcelCorrente.setAttribute('download', lottoFilename);
+                    btnExcelCorrente.onclick = (e) => {
+                        e.preventDefault();
+                        downloadAuthenticatedFile(lottoExcelUrl, lottoFilename);
+                    };
                 }
                 const btnHeaderExcel = document.getElementById('btn-header-scarica-excel-lotto');
                 if (btnHeaderExcel) {
-                    btnHeaderExcel.href = lottoExcelUrl;
-                    btnHeaderExcel.setAttribute('download', lottoFilename);
+                    btnHeaderExcel.onclick = (e) => {
+                        e.preventDefault();
+                        downloadAuthenticatedFile(lottoExcelUrl, lottoFilename);
+                    };
                 }
                 const titleHeader = document.getElementById('lotto-corrente-title-header');
                 if (titleHeader && lotto.id) {
@@ -1970,7 +1974,9 @@ let cronologiaLotti = [];
 
 async function caricaCronologiaLotti() {
     try {
-        const response = await fetch('/api/lotto/archive');
+        const response = await fetch('/api/lotto/archive', {
+            headers: getAdminAuthHeaders()
+        });
         if (response.ok) {
             const ct = response.headers.get('content-type') || '';
             if (!ct.includes('application/json')) {
@@ -2047,9 +2053,9 @@ function renderCronologiaLotti() {
                     <button onclick="ripristinaLotto(${l.id})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 hover:text-amber-800 font-bold text-[10px] rounded-lg transition-all border border-amber-200/60 cursor-pointer" title="Riporta tutti gli ordini di questo lotto negli Ordini Attivi">
                         📥 Ripristina
                     </button>
-                    <a href="/api/lotto/${l.id}/excel" download="${lottoFilename}" class="inline-flex items-center px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 font-bold text-[10px] rounded-lg transition-all border border-emerald-100/50">
+                    <button onclick="downloadAuthenticatedFile('/api/lotto/${l.id}/excel', '${lottoFilename}')" class="inline-flex items-center px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 font-bold text-[10px] rounded-lg transition-all border border-emerald-100/50 cursor-pointer">
                         🟢 Excel Fornitore
-                    </a>
+                    </button>
                     <button onclick="chiediEliminaLotto(${l.id})" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-[10px] rounded-lg transition-all cursor-pointer">
                         🗑️ Elimina
                     </button>
@@ -2134,7 +2140,8 @@ window.eseguiRipristinaLotto = async function(id) {
 
     try {
         const response = await fetch(url, {
-            method: method
+            method: method,
+            headers: getAdminAuthHeaders()
         });
         
         console.log(`[LOTTO RESTORE DEBUG]\nFETCH RESPONSE\nHTTP STATUS: ${response.status}`);
@@ -2236,7 +2243,8 @@ async function eseguiEliminaLotto(id, lotName) {
     showToast(`Eliminazione ${lotName} e ordini associati in corso...`, "info");
     try {
         const response = await fetch(`/api/lotto/archive/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAdminAuthHeaders()
         });
         const result = await response.json();
         if (response.ok && result && result.success) {
@@ -2349,8 +2357,11 @@ window.apriDettaglioLotto = function(id) {
     if (excelEl) {
         const lottoNumStr = String(lotto.id || 1).padStart(4, '0');
         const lottoFilename = `LOTTO_${lottoNumStr}.xlsx`;
-        excelEl.href = `/api/lotto/${lotto.id}/excel`;
-        excelEl.setAttribute('download', lottoFilename);
+        const lottoUrl = `/api/lotto/${lotto.id}/excel`;
+        excelEl.onclick = (e) => {
+            e.preventDefault();
+            downloadAuthenticatedFile(lottoUrl, lottoFilename);
+        };
         excelEl.classList.remove('hidden');
     }
 
@@ -4652,9 +4663,10 @@ async function salvaProdotto() {
         if (cleanBase && !isSupabaseStorageUrl(cleanBase)) {
             showToast("Persistenza immagine su Supabase Storage in corso...", "info");
             try {
+                const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
                 const storeRes = await fetch('/api/admin/store-image', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
                     body: JSON.stringify({
                         productId: isModifica ? id : null,
                         originalUrl: cleanBase.startsWith('data:') ? null : cleanBase,
@@ -5003,7 +5015,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     currentActiveTab = tabId;
 
     // Sezioni appartenenti all'Area Secondaria
-    const secondaryTabs = ['recensioni', 'coupon', 'suddivisione-conti', 'marketing', 'gestione-catalogo', 'impostazioni', 'performance', 'strumenti'];
+    const secondaryTabs = ['recensioni', 'coupon', 'suddivisione-conti', 'gestione-catalogo', 'impostazioni', 'performance', 'strumenti'];
 
     let activeMainTab = tabId;
     let activeSecondarySubTab = null;
@@ -5017,8 +5029,8 @@ function switchTab(tabId, preserveSelectionMode = false) {
     const sections = [
         'dashboard', 'prodotti', 'ordini', 'lotto', 
         'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 
-        'marketing', 'recensioni', 'coupon', 'fornitura-tornei', 
-        'suddivisione-conti', 'chat', 'performance', 'strumenti'
+        'recensioni', 'coupon', 'fornitura-tornei', 
+        'suddivisione-conti', 'performance', 'strumenti'
     ];
     
     // Mappa dei titoli dell'header
@@ -5031,12 +5043,11 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'tracking': 'Tracking Spedizioni',
         'impostazioni': 'Impostazioni Negozio',
         'gestione-catalogo': 'Gestione Catalogo',
-        'marketing': 'Gestione Promo Home',
         'recensioni': 'Moderazione Recensioni',
         'coupon': 'Gestione Coupon Sconto',
         'fornitura-tornei': 'Fornitura Tornei & Eventi',
         'suddivisione-conti': 'Suddivisione Conti (Sergio & Riccardo)',
-        'chat': 'Chat Assistenza Live',
+        
         'performance': 'Performance Sito Pubblico',
         'strumenti': 'Strumenti & Utilità'
     };
@@ -5064,7 +5075,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     });
 
     // Aggiorna classi della sidebar principale
-    const sidebarNavIds = ['dashboard', 'prodotti', 'ordini', 'gestione-ordini', 'lotto', 'chat', 'fornitura-tornei', 'strumenti'];
+    const sidebarNavIds = ['dashboard', 'prodotti', 'ordini', 'gestione-ordini', 'lotto', 'fornitura-tornei', 'strumenti'];
     sidebarNavIds.forEach(sec => {
         const navEl = document.getElementById(`nav-${sec}`);
         if (navEl) {
@@ -5080,7 +5091,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
 
     // Aggiorna classi della sotto-navigazione dell'Area Secondaria
     if (activeMainTab === 'strumenti' && activeSecondarySubTab) {
-        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'marketing', 'gestione-catalogo', 'impostazioni', 'performance'];
+        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'gestione-catalogo', 'impostazioni', 'performance'];
         subnavIds.forEach(sub => {
             const subnavEl = document.getElementById(`subnav-${sub}`);
             if (subnavEl) {
@@ -5130,8 +5141,6 @@ function switchTab(tabId, preserveSelectionMode = false) {
         if (typeof caricaRegisteredAccounts === 'function') {
             caricaRegisteredAccounts();
         }
-    } else if (tabId === 'marketing') {
-        loadMarketingPromo();
     } else if (tabId === 'recensioni' || (tabId === 'strumenti' && activeSecondarySubTab === 'recensioni')) {
         caricaRecensioniAdmin();
     } else if (tabId === 'coupon') {
@@ -5147,29 +5156,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     } else if (tabId === 'lotto') {
         if (typeof caricaLotto === 'function') caricaLotto();
         if (typeof caricaCronologiaLotti === 'function') caricaCronologiaLotti();
-    } else if (tabId === 'chat') {
-        const listCol = document.getElementById('admin-chat-list-column');
-        const activeCol = document.getElementById('admin-chat-active-column');
-        if (listCol && activeCol) {
-            if (window.innerWidth >= 1024) {
-                listCol.classList.remove('hidden');
-                activeCol.classList.remove('hidden');
-                activeCol.classList.add('flex');
-            } else {
-                if (conversazioneSelezionataId) {
-                    listCol.classList.add('hidden');
-                    activeCol.classList.remove('hidden');
-                    activeCol.classList.add('flex');
-                } else {
-                    listCol.classList.remove('hidden');
-                    activeCol.classList.add('hidden');
-                    activeCol.classList.remove('flex');
-                }
-            }
-        }
-        if (typeof caricaConversazioniAdmin === 'function') {
-            caricaConversazioniAdmin();
-        }
+    
     }
 
     // Chiude sidebar su mobile dopo la selezione
@@ -5354,7 +5341,9 @@ async function caricaOrdini(maxTentativi = 3) {
             const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
             const timeoutId = controller ? setTimeout(() => controller.abort(), 12000) : null;
 
+            const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
             const response = await fetch('/api/orders', {
+                headers: authHeaders,
                 signal: controller ? controller.signal : undefined
             });
             if (timeoutId) clearTimeout(timeoutId);
@@ -5374,7 +5363,15 @@ async function caricaOrdini(maxTentativi = 3) {
                     console.warn("Nessun ordine restituito o formato non valido:", result);
                 }
             } else {
-                console.warn(`Tentativo ${tentativo}/${maxTentativi} - Risposta HTTP ${response.status} per /api/orders`);
+                const errData = await response.json().catch(() => ({}));
+                const errMsg = errData.error || `Errore HTTP ${response.status}: Non autorizzato`;
+                console.warn(`Tentativo ${tentativo}/${maxTentativi} - Risposta HTTP ${response.status} per /api/orders:`, errMsg);
+                if (response.status === 401 || response.status === 403) {
+                    if (typeof showToast === 'function') {
+                        showToast(`⚠️ Impossibile caricare ordini: ${errMsg}`, 'error');
+                    }
+                    break; // Non riprovare se si tratta di un errore di permessi/autenticazione
+                }
             }
         } catch (err) {
             ultimoErrore = err;
@@ -5440,15 +5437,40 @@ window.switchSubTabOrdini = function(tab) {
 /**
  * Gestisce l'archiviazione e disarchiviazione
  */
-window.gestisciArchiviazione = async function(dataKey, isArchived) {
+window.gestisciArchiviazione = async function(orderIdOrData, dataKeyOrIsArchived, isArchivedOpt) {
+    let orderId = null;
+    let dataKey = null;
+    let isArchived = false;
+
+    if (typeof dataKeyOrIsArchived === 'boolean') {
+        // Legacy call format: gestisciArchiviazione(dataKey, isArchived)
+        dataKey = String(orderIdOrData || '').trim();
+        isArchived = dataKeyOrIsArchived;
+    } else {
+        // New call format: gestisciArchiviazione(orderId, dataKey, isArchived)
+        orderId = (orderIdOrData !== undefined && orderIdOrData !== null && String(orderIdOrData).trim() !== '' && String(orderIdOrData) !== 'undefined' && String(orderIdOrData) !== 'null')
+            ? String(orderIdOrData).trim()
+            : null;
+        dataKey = (dataKeyOrIsArchived !== undefined && dataKeyOrIsArchived !== null && String(dataKeyOrIsArchived).trim() !== '' && String(dataKeyOrIsArchived) !== 'undefined' && String(dataKeyOrIsArchived) !== 'null')
+            ? String(dataKeyOrIsArchived).trim()
+            : null;
+        isArchived = Boolean(isArchivedOpt);
+    }
+
     const endpoint = isArchived ? '/api/orders/unarchive' : '/api/orders/archive';
     const actionLabel = isArchived ? 'ripristinato negli Ordini Attivi' : 'archiviato';
-    
+
     try {
+        const payload = {
+            id: orderId,
+            order_id: orderId,
+            data: dataKey
+        };
+
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: dataKey })
+            headers: getAdminAuthHeaders(),
+            body: JSON.stringify(payload)
         });
         const result = await response.json();
         if (result && result.success) {
@@ -5458,11 +5480,13 @@ window.gestisciArchiviazione = async function(dataKey, isArchived) {
                 typeof caricaGestioneOrdini === 'function' ? caricaGestioneOrdini() : Promise.resolve()
             ]);
         } else {
-            showToast("Errore durante l'operazione: " + (result.error || "errore sconosciuto"), "error");
+            showToast("Errore durante l'operazione: " + (result ? (result.error || "errore sconosciuto") : "errore sconosciuto"), "error");
+            await caricaOrdini();
         }
     } catch (err) {
         console.error("Errore archiviazione:", err);
-        showToast("Errore di connessione.", "error");
+        showToast("Errore di connessione durante l'operazione.", "error");
+        await caricaOrdini();
     }
 };
 
@@ -5509,7 +5533,7 @@ window.gestisciEliminazione = async function(orderIdOrKey, optionalDataKey) {
 
         const response = await fetch('/api/orders/delete', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(payload)
         });
         const result = await response.json();
@@ -6305,7 +6329,7 @@ function renderOrdini() {
 
     // Filtra gli ordini in base al sotto-tab corrente o alla modalità di selezione
     const ordiniFiltrati = ordini.filter(order => {
-        const isArchived = archivedKeys.includes(order.data);
+        const isArchived = Boolean(order.is_archived === true || (order.data && archivedKeys.includes(order.data)));
         const tabMatch = isSelectionMode
             ? (!isArchived && !isOrderCanceled(order))
             : (subTabOrdini === 'archiviati' ? isArchived : (!isArchived && !isOrderCanceled(order)));
@@ -6478,7 +6502,7 @@ function renderOrdini() {
                             <span>✏️ Prezzo</span>
                         </button>
                     ` : ''}
-                    <button onclick="gestisciArchiviazione('${order.data}', ${isArchived})" class="flex-1 py-1.5 bg-[#111111] hover:bg-[#0B0B0B] text-[rgba(255,255,255,0.88)] font-bold text-[10px] rounded-xl transition-all border border-[rgba(255,255,255,0.08)] flex items-center justify-center gap-1 font-sans cursor-pointer">
+                    <button onclick="gestisciArchiviazione('${order.id || ''}', '${order.data || ''}', ${isArchived})" class="flex-1 py-1.5 bg-[#111111] hover:bg-[#0B0B0B] text-[rgba(255,255,255,0.88)] font-bold text-[10px] rounded-xl transition-all border border-[rgba(255,255,255,0.08)] flex items-center justify-center gap-1 font-sans cursor-pointer">
                         <span>${isArchived ? '📥 Ripristina' : '🗄️ Archivia'}</span>
                     </button>
                     <button onclick="gestisciEliminazione('${orderNumericId}', '${orderDateKey}')" class="px-3 py-1.5 bg-red-950/20 hover:bg-red-900/40 text-red-400 font-bold text-[10px] rounded-xl transition-all border border-red-900/30 flex items-center justify-center gap-1 font-sans cursor-pointer" title="Elimina Ordine">
@@ -6988,9 +7012,10 @@ async function salvaRegoleImportazioneJson() {
     if (!window.appSettings) return;
     
     try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const res = await fetch('/api/settings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ settings: window.appSettings })
         });
         const data = await res.json();
@@ -7134,9 +7159,10 @@ async function salvaSezioneSettings(sezione) {
     }
 
     try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const response = await fetch('/api/settings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify(window.appSettings)
         });
 
@@ -7553,11 +7579,13 @@ async function salvaRegolePrezzi(applyToExisting = false) {
 
     window.appSettings.regolePrezzi = rules;
 
+    const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+
     if (applyToExisting) {
         try {
             const response = await fetch('/api/settings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({
                     applyToExisting: true,
                     settings: window.appSettings,
@@ -7593,7 +7621,7 @@ async function salvaRegolePrezzi(applyToExisting = false) {
     try {
         const response = await fetch('/api/settings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({
                 applyToExisting: false,
                 settings: window.appSettings,
@@ -7941,7 +7969,7 @@ async function processaArrayProdottiScansionati(productsArray, totalFiles = 1) {
     if (selectAllCheckbox) selectAllCheckbox.checked = false;
 
     const tempProdottiInAnteprima = [];
-    const chunkMinSize = 50;
+    const chunkMinSize = 5;
 
     const categorieNonRiconosciuteSet = new Set();
     const regoleImport = getRegoleImportazioneJson();
@@ -7962,7 +7990,11 @@ async function processaArrayProdottiScansionati(productsArray, totalFiles = 1) {
             }
         }
 
-        let rawImg = p.image || p.product_image || p.immagine || p.imgUrl || p.img || '';
+        const urlProdottoSource = (p.url_prodotto || p.product_url || p.url || p.link || p.href || '').toString().trim();
+        let rawImg = p.image || p.product_image || p.immagine || p.imgUrl || p.img || p.foto || p.picture || p.image_url || p.imageUrl || p.foto_prodotto || p.src || p.media || '';
+        if (Array.isArray(p.images) && p.images.length > 0 && !rawImg) {
+            rawImg = p.images[0];
+        }
         let imgUrl = '';
         if (Array.isArray(rawImg)) {
             imgUrl = rawImg.length > 0 ? String(rawImg[0]) : '';
@@ -8015,6 +8047,7 @@ async function processaArrayProdottiScansionati(productsArray, totalFiles = 1) {
 
         const mappedProd = {
             id_anteprima: index,
+            url_prodotto: urlProdottoSource,
             immagine: imgUrl,
             nome_finale: nomeFinale,
             squadra: squadra,
@@ -11116,151 +11149,242 @@ function aggiornaConteggiAnteprima() {
 }
 
 async function eseguiImportazioneSottoConferma() {
+    if (window._isImportBatchRunning) {
+        showToast("Importazione già in corso, attendere il completamento...", "warning");
+        return;
+    }
+
     const prodottiValidi = prodottiInAnteprima.filter(p => {
         if (p._errors === undefined) p._errors = validaProdotto(p);
         return p._errors.length === 0;
     });
+
     if (prodottiValidi.length === 0) {
         showToast("Nessun prodotto valido pronto per l'importazione.", "error");
         return;
     }
 
+    window._isImportBatchRunning = true;
     const confirmBtn = document.getElementById('confirm-import-btn');
     if (confirmBtn) {
         confirmBtn.disabled = true;
         confirmBtn.innerText = "Salvataggio...";
     }
 
-    // Mostra la finestra di avanzamento nello stato "Salvataggio..."
-    mostraProgressoImportazione(
-        "Salvataggio nel Database",
-        `Salvataggio di ${prodottiValidi.length} prodotti nel database in corso...`,
-        50,
-        `Prodotti: 0/${prodottiValidi.length}`
-    );
+    const BATCH_SIZE = 5;
+    let totalImportati = 0;
+    let totalDuplicati = 0;
+    let totalErrori = 0;
+    let totalAnalizzati = prodottiValidi.length;
+    let allDuplicatiDettagli = [];
+    let allErroriDettagli = [];
 
     showToast("Importazione in corso...", "info");
 
     try {
-        const res = await fetch('/api/settings/products/import_batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ products: prodottiValidi })
-        });
+        for (let i = 0; i < prodottiValidi.length; i += BATCH_SIZE) {
+            const chunk = prodottiValidi.slice(i, i + BATCH_SIZE);
+            
+            // Deduplica preventiva rispetto al catalogo già presente in memoria
+            const chunkDaInviare = [];
+            chunk.forEach((p, idx) => {
+                const pId = p.id || p.legacy_id;
+                const pImg = (p.immagine || "").trim().toLowerCase();
+                const pSquadra = (p.squadra || "").trim().toLowerCase();
+                const pVersione = (p.versione || p.nome_finale || "").trim().toLowerCase();
 
-        if (res.ok) {
-            const result = await res.json();
-            if (result.success && (!result.errori || result.errori === 0)) {
-                // Intercettazione completamento: tutte le Promise di salvataggio sono concluse con successo
-                const countImportati = result.importati || prodottiValidi.length;
-                mostraProgressoImportazione(
-                    "✅ Importazione completata",
-                    `✅ ${countImportati} prodotti salvati correttamente nel database.`,
-                    100,
-                    `Completato: ${countImportati}/${prodottiValidi.length}`
-                );
-                if (confirmBtn) {
-                    confirmBtn.innerText = "✅ Importazione completata";
+                const giaInDb = Array.isArray(prodotti) && prodotti.some(exist => {
+                    const existImg = (exist.immagine || "").trim().toLowerCase();
+                    if (pId && (String(exist.id) === String(pId) || String(exist.legacy_id) === String(pId))) return true;
+                    if (pImg && existImg && pImg === existImg) return true;
+                    if (pSquadra && pVersione && (exist.squadra || "").trim().toLowerCase() === pSquadra && (exist.versione || exist.nome_finale || "").trim().toLowerCase() === pVersione) return true;
+                    return false;
+                });
+
+                if (giaInDb) {
+                    totalDuplicati++;
+                    allDuplicatiDettagli.push({
+                        id: pId,
+                        squadra: p.squadra,
+                        versione: p.versione || p.nome_finale,
+                        motivo: "Prodotto già presente nel catalogo (rilevato prima dell'invio)"
+                    });
+                } else {
+                    chunkDaInviare.push(p);
                 }
+            });
 
-                // Attende circa 1 secondo per consentire la lettura del messaggio di successo
-                await new Promise(resolve => setTimeout(resolve, 1000));
+            if (chunkDaInviare.length === 0) {
+                // Tutti i prodotti di questo batch risultavano già presenti
+                continue;
+            }
 
-                // Chiude automaticamente la finestra di avanzamento e la modal di anteprima
-                nascondiProgressoImportazione();
-                closeImportPreviewModal();
-                
-                // Aggiornamento report di importazione
-                const elAnalizzati = document.getElementById('res-analizzati');
-                if (elAnalizzati) elAnalizzati.innerText = result.analizzati || prodottiValidi.length;
+            const processedSoFar = totalImportati + totalDuplicati + totalErrori;
+            const pct = Math.round(50 + ((processedSoFar / prodottiValidi.length) * 48));
+            mostraProgressoImportazione(
+                "Salvataggio nel Database",
+                `Salvataggio prodotti ${processedSoFar + 1}-${Math.min(processedSoFar + chunkDaInviare.length, prodottiValidi.length)} di ${prodottiValidi.length}...`,
+                pct,
+                `Salvati: ${totalImportati}/${prodottiValidi.length} (${totalDuplicati} duplicati)`
+            );
 
-                const elValidi = document.getElementById('res-validi');
-                if (elValidi) elValidi.innerText = result.validi || prodottiValidi.length;
-
-                const elImportati = document.getElementById('res-importati');
-                if (elImportati) elImportati.innerText = result.importati || 0;
-
-                const elDuplicati = document.getElementById('res-duplicati');
-                if (elDuplicati) elDuplicati.innerText = result.duplicati || 0;
-
-                const elEsclusi = document.getElementById('res-esclusi');
-                if (elEsclusi) elEsclusi.innerText = result.esclusi || 0;
-
-                const elErrori = document.getElementById('res-errori');
-                if (elErrori) elErrori.innerText = result.errori || 0;
-
-                const errContainer = document.getElementById('import-errors-log-container');
-                const errLog = document.getElementById('import-errors-log');
-                if (errLog) {
-                    errLog.innerHTML = '';
-                    if (result.errori_dettagli && result.errori_dettagli.length > 0) {
-                        if (errContainer) errContainer.classList.remove('hidden');
-                        result.errori_dettagli.forEach(err => {
-                            const div = document.createElement('div');
-                            div.className = 'border-b border-slate-200/55 pb-1.5 mb-1.5 last:border-0 last:pb-0 last:mb-0 text-left';
-                            div.innerHTML = `<span class="font-bold text-slate-700">Riga ${err.riga}:</span> <span class="text-red-500 font-semibold">${escapeHtml(err.errore)}</span>`;
-                            errLog.appendChild(div);
-                        });
-                    } else {
-                        if (errContainer) errContainer.classList.add('hidden');
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+                const res = await fetch('/api/settings/products/import_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...authHeaders },
+                    body: JSON.stringify({ products: chunkDaInviare }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (res.ok) {
+                    const result = await res.json();
+                    totalImportati += Number(result.importati) || 0;
+                    totalDuplicati += Number(result.duplicati) || 0;
+                    totalErrori += Number(result.errori) || 0;
+                    if (Array.isArray(result.duplicati_dettagli)) {
+                        allDuplicatiDettagli.push(...result.duplicati_dettagli);
                     }
+                    if (Array.isArray(result.errori_dettagli)) {
+                        allErroriDettagli.push(...result.errori_dettagli);
+                    }
+                } else {
+                    const errData = await res.json().catch(() => ({}));
+                    const errMsg = errData.error || `Errore HTTP ${res.status} durante il salvataggio batch`;
+                    totalErrori += chunkDaInviare.length;
+                    chunkDaInviare.forEach((p, idx) => {
+                        allErroriDettagli.push({
+                            riga: p.__riga || (i + idx + 1),
+                            squadra: p.squadra || 'Sconosciuta',
+                            errore: errMsg
+                        });
+                    });
                 }
-
-                openImportResultsModal();
-                showToast("Importazione batch completata con successo!", "success");
-
-                // Aggiorna la tabella dei prodotti nel database / catalogo
-                if (typeof caricaDati === 'function') {
-                    await caricaDati();
-                }
-                if (typeof caricaSquadre === 'function') {
-                    await caricaSquadre();
-                }
-
-                // Sincronizzazione automatica disattivata: Supabase Storage è la sorgente persistente
-                // Le immagini dei prodotti importati rimangono persistenti senza sovrascritture su filesystem locale.
-            } else {
-                // In caso di errore o prodotti non salvati, NON chiudiamo automaticamente la finestra
-                const countImportati = result.importati || 0;
-                const countErrori = result.errori || 1;
-                const msgError = result.error || `${countImportati} prodotti importati, ${countErrori} falliti.`;
-
+            } catch (chunkErr) {
+                console.warn("Batch interrotto o in timeout. Riconciliazione in corso con il database...", chunkErr);
                 mostraProgressoImportazione(
-                    "❌ Errore durante l'importazione",
-                    `⚠️ Importati: ${countImportati} | Falliti: ${countErrori}. ${msgError}`,
-                    100,
-                    `Errori: ${countErrori}`
+                    "Riconciliazione Database",
+                    `Verifica stato prodotti nel database dopo interruzione/timeout...`,
+                    pct,
+                    `Riconciliazione in corso...`
                 );
+                try {
+                    const reconRes = await fetch('/api/settings/products/reconcile_batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ products: chunkDaInviare })
+                    });
+                    if (reconRes.ok) {
+                        const reconData = await reconRes.json();
+                        const savedCount = Number(reconData.countSaved) || 0;
+                        const missingCount = Number(reconData.countMissing) || 0;
+                        totalImportati += savedCount;
+                        totalErrori += missingCount;
 
-                showToast("Errore di importazione: " + msgError, "error");
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerText = "Conferma Importazione";
+                        if (Array.isArray(reconData.missing)) {
+                            reconData.missing.forEach((p, idx) => {
+                                allErroriDettagli.push({
+                                    riga: p.__riga || (i + idx + 1),
+                                    squadra: p.squadra || Sconosciuta,
+                                    errore: `Timeout/errore di rete: prodotto non trovato nel database (${chunkErr.message}).`
+                                });
+                            });
+                        }
+                    } else {
+                        totalErrori += chunkDaInviare.length;
+                        chunkDaInviare.forEach((p, idx) => {
+                            allErroriDettagli.push({
+                                riga: p.__riga || (i + idx + 1),
+                                squadra: p.squadra || Sconosciuta,
+                                errore: `Errore di rete/timeout non riconciliabile: ${chunkErr.message}`
+                            });
+                        });
+                    }
+                } catch (reconErr) {
+                    totalErrori += chunkDaInviare.length;
+                    chunkDaInviare.forEach((p, idx) => {
+                        allErroriDettagli.push({
+                            riga: p.__riga || (i + idx + 1),
+                            squadra: p.squadra || Sconosciuta,
+                            errore: `Errore di rete/timeout: ${chunkErr.message}`
+                        });
+                    });
                 }
             }
-        } else {
-            // Errore HTTP Server
-            mostraProgressoImportazione(
-                "❌ Errore Comunicazione Server",
-                "Impossibile completare il salvataggio nel database.",
-                100,
-                "Errore HTTP"
-            );
-            showToast("Errore di comunicazione col server.", "error");
-            if (confirmBtn) {
-                confirmBtn.disabled = false;
-                confirmBtn.innerText = "Conferma Importazione";
+            await new Promise(r => setTimeout(r, 50));
+        }
+
+        // Completamento dell'importazione
+        mostraProgressoImportazione(
+            "✅ Importazione completata",
+            `✅ ${totalImportati} prodotti salvati, ${totalDuplicati} duplicati, ${totalErrori} falliti.`,
+            100,
+            `Completato: ${totalImportati}/${prodottiValidi.length}`
+        );
+
+        if (confirmBtn) {
+            confirmBtn.innerText = "✅ Importazione completata";
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        nascondiProgressoImportazione();
+        closeImportPreviewModal();
+
+        // Aggiornamento report dettagliato di importazione
+        const elAnalizzati = document.getElementById('res-analizzati');
+        if (elAnalizzati) elAnalizzati.innerText = totalAnalizzati;
+        const elValidi = document.getElementById('res-validi');
+        if (elValidi) elValidi.innerText = totalAnalizzati;
+        const elImportati = document.getElementById('res-importati');
+        if (elImportati) elImportati.innerText = totalImportati;
+        const elDuplicati = document.getElementById('res-duplicati');
+        if (elDuplicati) elDuplicati.innerText = totalDuplicati;
+        const elEsclusi = document.getElementById('res-esclusi');
+        if (elEsclusi) elEsclusi.innerText = (initialImportCount || totalAnalizzati) - totalAnalizzati;
+        const elErrori = document.getElementById('res-errori');
+        if (elErrori) elErrori.innerText = totalErrori;
+
+        const errContainer = document.getElementById('import-errors-log-container');
+        const errLog = document.getElementById('import-errors-log');
+        if (errLog) {
+            errLog.innerHTML = '';
+            if (allErroriDettagli.length > 0) {
+                if (errContainer) errContainer.classList.remove('hidden');
+                allErroriDettagli.forEach(err => {
+                    const div = document.createElement('div');
+                    div.className = 'border-b border-slate-200/55 pb-1.5 mb-1.5 last:border-0 last:pb-0 last:mb-0 text-left';
+                    div.innerHTML = `<span class="font-bold text-slate-700">Riga ${err.riga || '-'}:</span> <span class="text-red-500 font-semibold">${escapeHtml(err.errore)}</span>`;
+                    errLog.appendChild(div);
+                });
+            } else {
+                if (errContainer) errContainer.classList.add('hidden');
             }
         }
+
+        openImportResultsModal();
+        if (totalImportati > 0) {
+            showToast(`Importazione completata! ${totalImportati} prodotti salvati.`, "success");
+        } else if (totalDuplicati > 0) {
+            showToast(`Importazione conclusa: tutti i ${totalDuplicati} prodotti erano già presenti nel database.`, "info");
+        } else {
+            showToast("Nessun prodotto è stato importato. Verifica i dettagli degli errori.", "error");
+        }
+
+        if (typeof caricaDati === 'function') {
+            await caricaDati();
+        }
+        if (typeof caricaSquadre === 'function') {
+            await caricaSquadre();
+        }
     } catch (err) {
-        // Errore eccezione di rete
-        mostraProgressoImportazione(
-            "❌ Errore Inaspettato",
-            "Errore durante l'importazione: " + err.message,
-            100,
-            "Errore"
-        );
+        console.error("Errore generale durante l'importazione:", err);
+        mostraProgressoImportazione("❌ Errore Inaspettato", "Errore durante l'importazione: " + err.message, 100, "Errore");
         showToast("Errore: " + err.message, "error");
+    } finally {
+        window._isImportBatchRunning = false;
         if (confirmBtn) {
             confirmBtn.disabled = false;
             confirmBtn.innerText = "Conferma Importazione";
@@ -12528,8 +12652,10 @@ async function avviaTraduzioneMassiva() {
 
     try {
         showToast("Traduzione e normalizzazione globale del catalogo in corso...", "info");
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const res = await fetch('/api/settings/products/translate_all', {
-            method: 'POST'
+            method: 'POST',
+            headers: authHeaders
         });
         const data = await res.json();
         
@@ -12745,9 +12871,9 @@ async function caricaGestioneOrdini(preselezionaLottoId = null) {
     try {
         // Carica in parallelo ordini, cronologia lotti e stato lotto attivo
         const [ordersRes, archiveRes, lottoRes] = await Promise.all([
-            fetch('/api/admin/gestione-ordini').catch(() => null),
-            fetch('/api/lotto/archive').catch(() => null),
-            fetch('/api/lotto').catch(() => null)
+            fetch('/api/admin/gestione-ordini', { headers: getAdminAuthHeaders() }),
+            fetch('/api/lotto/archive', { headers: getAdminAuthHeaders() }),
+            fetch('/api/lotto')
         ]);
 
         if (archiveRes && archiveRes.ok) {
@@ -13029,13 +13155,19 @@ async function apriGestioneOrdineModal(id) {
     }
 
     // Valorizza campi form nel modal
+    window._userChangedPaymentStatus = false;
     const inputEmail = document.getElementById('gestione-ordine-cliente-email');
     const selectPagamento = document.getElementById('gestione-ordine-payment-status');
     const inputNotes = document.getElementById('gestione-ordine-notes');
     const chkEscludiProfitto = document.getElementById('gestione-ordine-escludi-profitto');
     
     if (inputEmail) inputEmail.value = ord.email || '';
-    if (selectPagamento) selectPagamento.value = ord.payment_status || 'Da pagare';
+    if (selectPagamento) {
+        selectPagamento.value = ord.payment_status || 'Da pagare';
+        selectPagamento.onchange = function() {
+            window._userChangedPaymentStatus = true;
+        };
+    }
     if (inputNotes) inputNotes.value = ord.notes || '';
     if (chkEscludiProfitto) chkEscludiProfitto.checked = Boolean(ord.escludi_profitto || ord.escludiProfitto || ord.exclude_from_profit);
 
@@ -13697,7 +13829,7 @@ window.confermaSalvaModificaArticolo = async function(e) {
     try {
         const response = await fetch(`/api/admin/orders/${orderId}/items/update`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({
                 item_index: idx,
                 taglia: taglia,
@@ -13818,7 +13950,7 @@ window.eseguiEliminaArticoloConfermato = async function() {
     try {
         const response = await fetch(`/api/admin/orders/${orderId}/items/delete`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ item_index: idx })
         });
 
@@ -14947,7 +15079,7 @@ async function confermaAggiungiProdottoPickerAdmin(e) {
     try {
         const response = await fetch(`/api/admin/orders/${orderId}/items/add`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(itemPayload)
         });
         const resData = await response.json();
@@ -15004,7 +15136,7 @@ window.aggiungiArticoloAdOrdineAdmin = async function(orderId, item) {
     try {
         const response = await fetch(`/api/admin/orders/${orderId}/items/add`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(item)
         });
         const resData = await response.json();
@@ -15101,7 +15233,6 @@ window.salvaTuttiModificheOrdine = async function() {
     if (!window.currentGestioneOrderId) return;
 
     const email = document.getElementById('gestione-ordine-cliente-email').value.trim();
-    const payment_status = document.getElementById('gestione-ordine-payment-status').value;
     const notes = document.getElementById('gestione-ordine-notes').value.trim();
     const lottoIdVal = document.getElementById('gestione-ordine-lotto-id')?.value;
     const lotto_id = lottoIdVal ? Number(lottoIdVal) : null;
@@ -15111,25 +15242,41 @@ window.salvaTuttiModificheOrdine = async function() {
     const payload = {
         id: window.currentGestioneOrderId,
         email: email,
-        payment_status: payment_status,
         notes: notes,
         lotto_id: lotto_id,
         escludi_profitto: escludi_profitto,
         carrello: window.currentOrdineProdotti
     };
 
+    if (window._userChangedPaymentStatus) {
+        const payment_status = document.getElementById('gestione-ordine-payment-status').value;
+        payload.payment_status = payment_status;
+    }
+
     showToast("Salvataggio modifiche in corso...", "info");
 
     try {
         const response = await fetch('/api/admin/gestione-ordini/update', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(payload)
         });
 
         const resData = await response.json();
         if (response.ok && resData.success) {
             showToast("Ordine salvato e sincronizzato!", "success");
+            window._userChangedPaymentStatus = false;
+
+            if (resData.order && Array.isArray(window.gestioneOrdiniList)) {
+                const idx = window.gestioneOrdiniList.findIndex(o => Number(o.id) === Number(window.currentGestioneOrderId));
+                if (idx !== -1) {
+                    window.gestioneOrdiniList[idx] = {
+                        ...window.gestioneOrdiniList[idx],
+                        ...resData.order
+                    };
+                }
+            }
+
             chiudiGestioneOrdineModal();
             if (typeof caricaGestioneOrdini === 'function') {
                 await caricaGestioneOrdini();
@@ -15181,583 +15328,9 @@ async function sincronizzaTuttiTrackingBackend() {
     }
 }
 
-window.currentPromoId = null;
-
-let promoPreviewTimerInterval = null;
-let currentPreviewDevice = 'desktop';
-
-function initMarketingPromoLiveListeners() {
-    const form = document.getElementById('form-marketing-promo');
-    if (!form) return;
-
-    // Listener tempo reale su tutti i campi del form
-    const inputs = form.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        input.removeEventListener('input', updateLivePromoPreview);
-        input.removeEventListener('change', updateLivePromoPreview);
-        input.removeEventListener('keyup', updateLivePromoPreview);
-
-        input.addEventListener('input', updateLivePromoPreview);
-        input.addEventListener('change', updateLivePromoPreview);
-        input.addEventListener('keyup', updateLivePromoPreview);
-    });
-
-    // Listener speciale per Upload File Immagine con FileReader
-    const fileInput = document.getElementById('promo-immagine-file');
-    if (fileInput) {
-        fileInput.addEventListener('change', async function(e) {
-            const file = e.target.files && e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const dataUrl = event.target.result;
-                    const urlInput = document.getElementById('promo-immagine');
-                    if (urlInput) urlInput.value = dataUrl;
-                    
-                    const thumb = document.getElementById('promo-form-img-thumb');
-                    const thumbContainer = document.getElementById('promo-form-img-preview-container');
-                    const nameEl = document.getElementById('promo-form-img-name');
-                    if (thumb && thumbContainer && nameEl) {
-                        thumb.src = dataUrl;
-                        nameEl.textContent = file.name;
-                        thumbContainer.classList.remove('hidden');
-                    }
-                    updateLivePromoPreview();
-                };
-                reader.readAsDataURL(file);
-
-                // Auto-upload su backend se disponibile
-                try {
-                    const formData = new FormData();
-                    formData.append('immagine', file);
-                    const uploadRes = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const uploadData = await uploadRes.json();
-                    if (uploadData.success && uploadData.filePath) {
-                        document.getElementById('promo-immagine').value = uploadData.filePath;
-                        updateLivePromoPreview();
-                    }
-                } catch (err) {
-                    console.log("ℹ️ Immagine anteprima in locale tramite Data URL");
-                }
-            }
-        });
-    }
-
-    // Sincronizzazione miniatura URL
-    const urlInput = document.getElementById('promo-immagine');
-    if (urlInput) {
-        urlInput.addEventListener('input', function() {
-            const val = this.value.trim();
-            const thumbContainer = document.getElementById('promo-form-img-preview-container');
-            const thumb = document.getElementById('promo-form-img-thumb');
-            const nameEl = document.getElementById('promo-form-img-name');
-            if (val) {
-                if (thumb) thumb.src = val;
-                if (nameEl) nameEl.textContent = "URL Esterno";
-                if (thumbContainer) thumbContainer.classList.remove('hidden');
-            } else {
-                if (thumbContainer) thumbContainer.classList.add('hidden');
-            }
-        });
-    }
-
-    // Avvio Ticker per Countdown Timer
-    if (!promoPreviewTimerInterval) {
-        promoPreviewTimerInterval = setInterval(() => {
-            const timerChecked = document.getElementById('promo-mostra-timer')?.checked;
-            if (timerChecked) {
-                updateLiveCountdownDigits();
-            }
-        }, 1000);
-    }
-
-    updateLivePromoPreview();
-}
-
-function clearPromoImage() {
-    const fileInput = document.getElementById('promo-immagine-file');
-    const urlInput = document.getElementById('promo-immagine');
-    const thumbContainer = document.getElementById('promo-form-img-preview-container');
-    
-    if (fileInput) fileInput.value = '';
-    if (urlInput) urlInput.value = '';
-    if (thumbContainer) thumbContainer.classList.add('hidden');
-    
-    updateLivePromoPreview();
-}
-
-function resetPromoForm() {
-    const form = document.getElementById('form-marketing-promo');
-    if (form) form.reset();
-    clearPromoImage();
-    updateLivePromoPreview();
-}
-
-function setPromoPreviewDevice(device) {
-    currentPreviewDevice = device;
-    const viewport = document.getElementById('promo-preview-viewport');
-    const topBar = document.getElementById('promo-device-top-bar');
-    const btnDesktop = document.getElementById('btn-device-desktop');
-    const btnTablet = document.getElementById('btn-device-tablet');
-    const btnMobile = document.getElementById('btn-device-mobile');
-
-    if (!viewport) return;
-
-    [btnDesktop, btnTablet, btnMobile].forEach(btn => {
-        if (btn) {
-            btn.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
-        }
-    });
-
-    if (device === 'desktop') {
-        viewport.className = "w-full transition-all duration-300 mx-auto";
-        if (topBar) topBar.classList.add('hidden');
-        if (btnDesktop) btnDesktop.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 bg-brand-gold text-slate-900 shadow-sm";
-    } else if (device === 'tablet') {
-        viewport.className = "w-full max-w-[440px] transition-all duration-300 mx-auto";
-        if (topBar) topBar.classList.remove('hidden');
-        if (btnTablet) btnTablet.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 bg-brand-gold text-slate-900 shadow-sm";
-    } else if (device === 'mobile') {
-        viewport.className = "w-full max-w-[340px] transition-all duration-300 mx-auto";
-        if (topBar) topBar.classList.remove('hidden');
-        if (btnMobile) btnMobile.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1.5 bg-brand-gold text-slate-900 shadow-sm";
-    }
-
-    updateLivePromoPreview();
-}
-
-function updateLivePromoPreview() {
-    const target = document.getElementById('promo-card-preview-target');
-    const validationContainer = document.getElementById('preview-validation-container');
-    const statusBadge = document.getElementById('promo-status-badge');
-    const positionLabel = document.getElementById('promo-preview-position-label');
-
-    if (!target) return;
-
-    // Lettura valori dinamici dal form
-    const attiva = document.getElementById('promo-attiva')?.checked || false;
-    const badge = document.getElementById('promo-badge')?.value?.trim() || '';
-    const titolo = document.getElementById('promo-titolo')?.value?.trim() || '';
-    const sottotitolo = document.getElementById('promo-sottotitolo')?.value?.trim() || '';
-    const codiceSconto = document.getElementById('promo-codice-sconto')?.value?.trim() || '';
-    const descrizione = document.getElementById('promo-descrizione')?.value?.trim() || '';
-    const immagine = document.getElementById('promo-immagine')?.value?.trim() || '';
-    const bottoneTesto = document.getElementById('promo-bottone-testo')?.value?.trim() || 'Scopri Ora';
-    const bottoneLink = document.getElementById('promo-bottone-link')?.value?.trim() || '#';
-    const tema = document.getElementById('promo-tema')?.value || 'gold';
-    const posizione = document.getElementById('promo-posizione')?.value || 'right';
-    const mostraTimer = document.getElementById('promo-mostra-timer')?.checked || false;
-
-    const dataInizio = document.getElementById('promo-data-inizio')?.value || '';
-    const oraInizio = document.getElementById('promo-ora-inizio')?.value || '';
-    const dataFine = document.getElementById('promo-data-fine')?.value || '';
-    const oraFine = document.getElementById('promo-ora-fine')?.value || '';
-
-    // Aggiornamento Badge di Stato nel form
-    if (statusBadge) {
-        if (attiva) {
-            statusBadge.className = "px-2.5 py-1 text-[10px] font-bold uppercase rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200";
-            statusBadge.textContent = "Attiva";
-        } else {
-            statusBadge.className = "px-2.5 py-1 text-[10px] font-bold uppercase rounded-lg bg-slate-200 text-slate-700 border border-slate-300";
-            statusBadge.textContent = "Disattivata";
-        }
-    }
-
-    // Label Posizione Hero
-    if (positionLabel) {
-        if (posizione === 'left') {
-            positionLabel.textContent = "Posizione: Sinistra (Hero)";
-        } else if (posizione === 'center') {
-            positionLabel.textContent = "Posizione: Centro (Hero)";
-        } else {
-            positionLabel.textContent = "Posizione: Destra (Hero)";
-        }
-    }
-
-    // 1. Engine Validazione Live
-    const alerts = [];
-
-    if (!titolo) {
-        alerts.push({
-            type: 'error',
-            msg: '⚠️ Campo Obbligatorio Mancante: Inserisci il Titolo della Promozione'
-        });
-    }
-
-    if (mostraTimer && (!dataFine || !oraFine)) {
-        alerts.push({
-            type: 'warning',
-            msg: '⚠️ Countdown Attivo: Specifica Data e Ora di Fine per mostrare il timer'
-        });
-    }
-
-    if (dataInizio && dataFine && oraInizio && oraFine) {
-        const startTs = new Date(`${dataInizio}T${oraInizio}`).getTime();
-        const endTs = new Date(`${dataFine}T${oraFine}`).getTime();
-        const nowTs = Date.now();
-
-        if (endTs <= startTs) {
-            alerts.push({
-                type: 'error',
-                msg: '⚠️ Errore Date: La Data di Fine deve essere successiva alla Data di Inizio'
-            });
-        } else if (nowTs < startTs) {
-            alerts.push({
-                type: 'info',
-                msg: `📅 Promo Programmata: Inizierà il ${new Date(startTs).toLocaleString('it-IT')}`
-            });
-        } else if (nowTs > endTs) {
-            alerts.push({
-                type: 'warning',
-                msg: '⌛ Promo Scaduta: La data di fine è già passata'
-            });
-        }
-    }
-
-    if (!attiva) {
-        alerts.push({
-            type: 'neutral',
-            msg: '⏸️ Promozione disattivata. Spunta "Attiva Promozione" per renderla visibile.'
-        });
-    }
-
-    if (titolo && attiva && alerts.filter(a => a.type === 'error').length === 0) {
-        alerts.push({
-            type: 'success',
-            msg: '✅ Promozione valida e pronta per la pubblicazione in Home Page'
-        });
-    }
-
-    // Render Avvisi Validazione
-    if (validationContainer) {
-        validationContainer.innerHTML = alerts.map(a => {
-            let bgClass = "bg-amber-500/20 text-amber-300 border-amber-500/30";
-            if (a.type === 'error') bgClass = "bg-red-500/20 text-red-300 border-red-500/30";
-            if (a.type === 'success') bgClass = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
-            if (a.type === 'info') bgClass = "bg-blue-500/20 text-blue-300 border-blue-500/30";
-            if (a.type === 'neutral') bgClass = "bg-slate-800 text-slate-300 border-slate-700";
-
-            return `<div class="px-3 py-1.5 rounded-xl border text-[11px] font-semibold flex items-center gap-2 ${bgClass}">
-                <span>${a.msg}</span>
-            </div>`;
-        }).join('');
-    }
-
-    // 2. Mappatura Stili Temi
-    let themeConfig = {
-        cardBg: "bg-slate-900/95 border-amber-500/40 text-white shadow-amber-500/10",
-        badgeBg: "bg-brand-gold text-slate-950 font-black",
-        accentText: "text-brand-gold",
-        btnClass: "bg-brand-gold text-slate-950 hover:bg-yellow-400 shadow-amber-500/20",
-        timerBg: "bg-black/60 border-amber-500/30 text-amber-400"
-    };
-
-    if (tema === 'red') {
-        themeConfig = {
-            cardBg: "bg-slate-950/95 border-red-500/40 text-white shadow-red-500/10",
-            badgeBg: "bg-red-600 text-white font-black",
-            accentText: "text-red-400",
-            btnClass: "bg-red-600 text-white hover:bg-red-500 shadow-red-600/20",
-            timerBg: "bg-black/60 border-red-500/30 text-red-400"
-        };
-    } else if (tema === 'blue') {
-        themeConfig = {
-            cardBg: "bg-slate-950/95 border-blue-500/40 text-white shadow-blue-500/10",
-            badgeBg: "bg-blue-600 text-white font-black",
-            accentText: "text-blue-400",
-            btnClass: "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20",
-            timerBg: "bg-black/60 border-blue-500/30 text-blue-400"
-        };
-    } else if (tema === 'green') {
-        themeConfig = {
-            cardBg: "bg-slate-950/95 border-emerald-500/40 text-white shadow-emerald-500/10",
-            badgeBg: "bg-emerald-500 text-slate-950 font-black",
-            accentText: "text-emerald-400",
-            btnClass: "bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-emerald-500/20",
-            timerBg: "bg-black/60 border-emerald-500/30 text-emerald-400"
-        };
-    } else if (tema === 'dark') {
-        themeConfig = {
-            cardBg: "bg-slate-950 border-slate-800 text-slate-100 shadow-black/40",
-            badgeBg: "bg-slate-800 text-slate-200 border border-slate-700 font-black",
-            accentText: "text-slate-300",
-            btnClass: "bg-white text-slate-950 hover:bg-slate-200 shadow-white/10",
-            timerBg: "bg-slate-900 border-slate-800 text-white"
-        };
-    } else if (tema === 'purple') {
-        themeConfig = {
-            cardBg: "bg-slate-950/95 border-purple-500/40 text-white shadow-purple-500/10",
-            badgeBg: "bg-purple-600 text-white font-black",
-            accentText: "text-purple-300",
-            btnClass: "bg-purple-600 text-white hover:bg-purple-500 shadow-purple-600/20",
-            timerBg: "bg-black/60 border-purple-500/30 text-purple-300"
-        };
-    }
-
-    // 3. Render Card Promo HTML
-    const displayTitle = titolo || "Edizione Limitata Oro";
-    const displayBadge = badge || "OFFERTA FLASH";
-    const displaySub = sottotitolo || "Sottotitolo promozionale";
-    const displayDesc = descrizione || "Descrizione completa dell'offerta speciale per i clienti.";
-
-    target.innerHTML = `
-        <div class="relative rounded-2xl p-5 border backdrop-blur-md transition-all duration-300 shadow-2xl ${themeConfig.cardBg}">
-            
-            <!-- Top Header Badge & Image -->
-            <div class="flex items-start justify-between gap-4 mb-3">
-                <div class="space-y-1.5 min-w-0 flex-1">
-                    <span class="inline-block px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg shadow-sm ${themeConfig.badgeBg}">
-                        ${displayBadge}
-                    </span>
-                    <h3 class="text-base sm:text-lg font-black tracking-tight leading-tight text-white">
-                        ${displayTitle}
-                    </h3>
-                    ${displaySub ? `<p class="text-xs font-semibold ${themeConfig.accentText}">${displaySub}</p>` : ''}
-                </div>
-
-                ${immagine ? `
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-white/10 shrink-0 bg-slate-800 shadow-md">
-                        <img src="${immagine}" alt="Promo" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center text-xs text-slate-500\'>🖼️ Img</div>';">
-                    </div>
-                ` : ''}
-            </div>
-
-            <!-- Descrizione -->
-            ${displayDesc ? `<p class="text-xs text-slate-300/90 line-clamp-3 mb-3 leading-relaxed">${displayDesc}</p>` : ''}
-
-            <!-- Codice Sconto Box -->
-            ${codiceSconto ? `
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono font-bold text-amber-300 mb-3 select-all">
-                    <span>🎟️ CODICE SCONTO:</span>
-                    <span class="tracking-widest bg-amber-400/20 px-2 py-0.5 rounded border border-amber-400/30 text-white">${codiceSconto}</span>
-                </div>
-            ` : ''}
-
-            <!-- Live Timer Container -->
-            ${mostraTimer ? `
-                <div class="mb-4 p-3 rounded-xl border ${themeConfig.timerBg}">
-                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-1 flex items-center justify-between">
-                        <span>⏳ Offerta a Tempo Limitato</span>
-                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                    </div>
-                    <div id="live-promo-countdown-digits" class="grid grid-cols-4 gap-1.5 text-center font-mono">
-                        <!-- Digits inseriti da updateLiveCountdownDigits() -->
-                    </div>
-                </div>
-            ` : ''}
-
-            <!-- Button CTA -->
-            <div class="pt-1 flex items-center justify-between gap-3">
-                <a href="${bottoneLink}" onclick="event.preventDefault();" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all shadow-md hover:scale-[1.02] ${themeConfig.btnClass}">
-                    <span>${bottoneTesto}</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                </a>
-                <span class="text-[10px] text-slate-500 font-mono hidden sm:inline truncate max-w-[120px]" title="${bottoneLink}">${bottoneLink}</span>
-            </div>
-
-        </div>
-    `;
-
-    if (mostraTimer) {
-        updateLiveCountdownDigits();
-    }
-}
-
-function updateLiveCountdownDigits() {
-    const digitsTarget = document.getElementById('live-promo-countdown-digits');
-    if (!digitsTarget) return;
-
-    const dataFine = document.getElementById('promo-data-fine')?.value;
-    const oraFine = document.getElementById('promo-ora-fine')?.value;
-
-    if (!dataFine || !oraFine) {
-        digitsTarget.innerHTML = `
-            <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-bold block text-white">00</span><span class="text-[8px] text-slate-400 block font-bold">GIORNI</span></div>
-            <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-bold block text-white">00</span><span class="text-[8px] text-slate-400 block font-bold">ORE</span></div>
-            <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-bold block text-white">00</span><span class="text-[8px] text-slate-400 block font-bold">MIN</span></div>
-            <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-bold block text-white">00</span><span class="text-[8px] text-slate-400 block font-bold">SEC</span></div>
-        `;
-        return;
-    }
-
-    const targetDate = new Date(`${dataFine}T${oraFine}`).getTime();
-    const now = Date.now();
-    const diff = targetDate - now;
-
-    if (diff <= 0) {
-        digitsTarget.innerHTML = `
-            <div class="col-span-4 py-1 text-center text-xs font-bold text-red-400 bg-red-500/10 rounded-lg border border-red-500/20">
-                ⌛ PROMOZIONE SCADUTA
-            </div>
-        `;
-        return;
-    }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    const pad = (n) => String(n).padStart(2, '0');
-
-    digitsTarget.innerHTML = `
-        <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-black block text-white">${pad(days)}</span><span class="text-[8px] text-slate-400 block font-bold">GIORNI</span></div>
-        <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-black block text-white">${pad(hours)}</span><span class="text-[8px] text-slate-400 block font-bold">ORE</span></div>
-        <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-black block text-white">${pad(minutes)}</span><span class="text-[8px] text-slate-400 block font-bold">MIN</span></div>
-        <div class="bg-black/40 p-1.5 rounded-lg border border-white/5"><span class="text-xs font-black block text-amber-400 animate-pulse">${pad(seconds)}</span><span class="text-[8px] text-slate-400 block font-bold">SEC</span></div>
-    `;
-}
-
-async function loadMarketingPromo() {
-    try {
-        const res = await fetch('/api/marketing-promos');
-        const data = await res.json();
-        
-        if (data.success && data.promos && data.promos.length > 0) {
-            const promo = data.promos.find(p => p.pagina === 'home') || data.promos[0];
-            window.currentPromoId = promo.id;
-            
-            if (document.getElementById('promo-attiva')) document.getElementById('promo-attiva').checked = Boolean(promo.attiva);
-            if (document.getElementById('promo-badge')) document.getElementById('promo-badge').value = promo.badge || '';
-            if (document.getElementById('promo-titolo')) document.getElementById('promo-titolo').value = promo.titolo || '';
-            if (document.getElementById('promo-sottotitolo')) document.getElementById('promo-sottotitolo').value = promo.sottotitolo || '';
-            if (document.getElementById('promo-codice-sconto')) document.getElementById('promo-codice-sconto').value = promo.codice_sconto || '';
-            if (document.getElementById('promo-descrizione')) document.getElementById('promo-descrizione').value = promo.descrizione || '';
-            if (document.getElementById('promo-immagine')) document.getElementById('promo-immagine').value = promo.immagine || '';
-            if (document.getElementById('promo-bottone-testo')) document.getElementById('promo-bottone-testo').value = promo.bottone_testo || '';
-            if (document.getElementById('promo-bottone-link')) document.getElementById('promo-bottone-link').value = promo.bottone_link || '';
-            if (document.getElementById('promo-tema')) document.getElementById('promo-tema').value = promo.tema || 'gold';
-            if (document.getElementById('promo-mostra-timer')) document.getElementById('promo-mostra-timer').checked = Boolean(promo.mostra_timer);
-            if (document.getElementById('promo-posizione')) document.getElementById('promo-posizione').value = promo.posizione || 'right';
-            
-            const pad = (n) => String(n).padStart(2, '0');
-            const splitTimestamp = (tsStr) => {
-                if (!tsStr) return { date: '', time: '' };
-                const d = new Date(tsStr);
-                if (isNaN(d.getTime())) return { date: '', time: '' };
-                const year = d.getFullYear();
-                const month = pad(d.getMonth() + 1);
-                const day = pad(d.getDate());
-                const hours = pad(d.getHours());
-                const minutes = pad(d.getMinutes());
-                return {
-                    date: `${year}-${month}-${day}`,
-                    time: `${hours}:${minutes}`
-                };
-            };
-            
-            const start = splitTimestamp(promo.data_inizio);
-            if (document.getElementById('promo-data-inizio')) document.getElementById('promo-data-inizio').value = start.date;
-            if (document.getElementById('promo-ora-inizio')) document.getElementById('promo-ora-inizio').value = start.time;
-            
-            const end = splitTimestamp(promo.data_fine);
-            if (document.getElementById('promo-data-fine')) document.getElementById('promo-data-fine').value = end.date;
-            if (document.getElementById('promo-ora-fine')) document.getElementById('promo-ora-fine').value = end.time;
-
-            // Thumbnail preview if image exists
-            if (promo.immagine) {
-                const thumb = document.getElementById('promo-form-img-thumb');
-                const thumbContainer = document.getElementById('promo-form-img-preview-container');
-                const nameEl = document.getElementById('promo-form-img-name');
-                if (thumb && thumbContainer) {
-                    thumb.src = promo.immagine;
-                    if (nameEl) nameEl.textContent = "Immagine Salvata";
-                    thumbContainer.classList.remove('hidden');
-                }
-            }
-        } else {
-            window.currentPromoId = null;
-        }
-
-        initMarketingPromoLiveListeners();
-    } catch (err) {
-        console.error("⚠️ Errore caricamento promo:", err);
-        showToast("Errore durante il caricamento della promo", "error");
-    }
-}
-
-async function saveMarketingPromo() {
-    try {
-        const dateInizio = document.getElementById('promo-data-inizio')?.value || '';
-        const oraInizio = document.getElementById('promo-ora-inizio')?.value || '';
-        const dateFine = document.getElementById('promo-data-fine')?.value || '';
-        const oraFine = document.getElementById('promo-ora-fine')?.value || '';
-        
-        const data_inizio = dateInizio && oraInizio ? new Date(`${dateInizio}T${oraInizio}`).toISOString() : null;
-        const data_fine = dateFine && oraFine ? new Date(`${dateFine}T${oraFine}`).toISOString() : null;
-        
-        if (data_inizio && data_fine && new Date(data_inizio) >= new Date(data_fine)) {
-            showToast("La data di fine deve essere successiva alla data di inizio!", "error");
-            return;
-        }
-        
-        const payload = {
-            id: window.currentPromoId,
-            pagina: 'home',
-            attiva: document.getElementById('promo-attiva')?.checked || false,
-            badge: document.getElementById('promo-badge')?.value || '',
-            titolo: document.getElementById('promo-titolo')?.value || '',
-            sottotitolo: document.getElementById('promo-sottotitolo')?.value || '',
-            codice_sconto: document.getElementById('promo-codice-sconto')?.value || '',
-            descrizione: document.getElementById('promo-descrizione')?.value || '',
-            immagine: document.getElementById('promo-immagine')?.value || '',
-            bottone_testo: document.getElementById('promo-bottone-testo')?.value || '',
-            bottone_link: document.getElementById('promo-bottone-link')?.value || '',
-            tema: document.getElementById('promo-tema')?.value || 'gold',
-            mostra_timer: document.getElementById('promo-mostra-timer')?.checked || false,
-            posizione: document.getElementById('promo-posizione')?.value || 'right',
-            data_inizio,
-            data_fine
-        };
-        
-        const res = await fetch('/api/marketing-promos', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        const data = await res.json();
-        if (data.success) {
-            showToast("Promozione salvata con successo!", "success");
-            if (data.promo && data.promo.id) window.currentPromoId = data.promo.id;
-            if (data.promo && data.promo.immagine) {
-                const imgInput = document.getElementById('promo-immagine');
-                if (imgInput) imgInput.value = data.promo.immagine;
-                const thumb = document.getElementById('promo-form-img-thumb');
-                const thumbContainer = document.getElementById('promo-form-img-preview-container');
-                const nameEl = document.getElementById('promo-form-img-name');
-                if (thumb && thumbContainer) {
-                    thumb.src = data.promo.immagine;
-                    if (nameEl) nameEl.textContent = "Immagine Ottimizzata WebP";
-                    thumbContainer.classList.remove('hidden');
-                }
-            }
-            updateLivePromoPreview();
-        } else {
-            showToast("Errore durante il salvataggio della promo: " + (data.error || ""), "error");
-        }
-    } catch (err) {
-        console.error("⚠️ Errore salvataggio promo:", err);
-        showToast("Impossibile salvare la promozione", "error");
-    }
-}
-
 window.sincronizzaTuttiTrackingBackend = sincronizzaTuttiTrackingBackend;
-window.loadMarketingPromo = loadMarketingPromo;
-window.saveMarketingPromo = saveMarketingPromo;
-window.initMarketingPromoLiveListeners = initMarketingPromoLiveListeners;
-window.updateLivePromoPreview = updateLivePromoPreview;
-window.setPromoPreviewDevice = setPromoPreviewDevice;
-window.clearPromoImage = clearPromoImage;
-window.resetPromoForm = resetPromoForm;
 
-// =========================================================================
+// =========================================================================// =========================================================================
 // STABILIZZAZIONE ESPLICITA FUNZIONI GLOBALI GESTISCI ORDINE PER LA UI
 // =========================================================================
 function closeGestioneOrdineModal() {
@@ -16267,679 +15840,16 @@ window.moderaRecensione = moderaRecensione;
 window.eliminaRecensioneUI = eliminaRecensioneUI;
 
 
-// ==========================================================================
-// LOGICA CHAT ASSISTENZA AMMINISTRATORE (MAGLIA D'ORO PREMIUM)
-// ==========================================================================
-
-let conversazioniAdminList = [];
-let conversazioneSelezionataId = null;
-let adminChatPollingInterval = null;
-let adminGlobalBadgePollingInterval = null;
-let adminChatAllegatoCorrente = null;
-
-async function caricaConversazioniAdmin(silente = false) {
-    try {
-        const res = await fetch('/api/admin/chats', { headers: getAdminAuthHeaders() });
-        if (!res.ok) {
-            if (!silente) console.warn("Risposta non OK da /api/admin/chats:", res.status);
-            return;
-        }
-        const data = await res.json();
-        if (data && data.success) {
-            conversazioniAdminList = data.conversations || [];
-            
-            // Assicura che le colonne abbiano le classi corrette se siamo nella tab chat
-            if (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'chat') {
-                const listCol = document.getElementById('admin-chat-list-column');
-                const activeCol = document.getElementById('admin-chat-active-column');
-                if (listCol && activeCol) {
-                    if (window.innerWidth >= 1024) {
-                        listCol.classList.remove('hidden');
-                        activeCol.classList.remove('hidden');
-                        activeCol.classList.add('flex');
-                    } else {
-                        if (conversazioneSelezionataId) {
-                            listCol.classList.add('hidden');
-                            activeCol.classList.remove('hidden');
-                            activeCol.classList.add('flex');
-                        } else {
-                            listCol.classList.remove('hidden');
-                            activeCol.classList.add('hidden');
-                            activeCol.classList.remove('flex');
-                        }
-                    }
-                }
-                renderConversazioniLista();
-            }
-            
-            // Calcola il badge delle chat con messaggi non letti dal cliente
-            const chatDaLeggere = conversazioniAdminList.filter(c => (c.unreadCount && c.unreadCount > 0)).length;
-            const badgeEl = document.getElementById('admin-chat-badge');
-            if (badgeEl) {
-                if (chatDaLeggere > 0) {
-                    badgeEl.innerText = chatDaLeggere;
-                    badgeEl.classList.remove('hidden');
-                } else {
-                    badgeEl.classList.add('hidden');
-                }
-            }
-
-            // Se c'è una conversazione attiva selezionata, ricarica i messaggi
-            if (conversazioneSelezionataId) {
-                await caricaMessaggiConversazioneCorrente(silente);
-                
-                // Aggiorna anche i dati in tempo reale del record selezionato (nel caso cambi lo stato)
-                const convCorrente = conversazioniAdminList.find(c => c.id === conversazioneSelezionataId);
-                if (convCorrente) {
-                    const selectEl = document.getElementById('admin-chat-stato-select');
-                    if (selectEl && selectEl.value !== convCorrente.stato) {
-                        selectEl.value = convCorrente.stato;
-                    }
-                }
-            }
-        }
-    } catch (err) {
-        if (!silente) {
-            console.warn("Avviso caricaConversazioniAdmin:", err);
-        }
-    }
-}
-
-function renderConversazioniLista() {
-    const container = document.getElementById('admin-conversazioni-lista');
-    if (!container) return;
-
-    if (conversazioniAdminList.length === 0) {
-        container.innerHTML = `
-            <div class="p-8 text-center text-slate-500 text-xs">
-                Nessuna conversazione di assistenza registrata.
-            </div>
-        `;
-        return;
-    }
-
-    let html = '';
-    conversazioniAdminList.forEach(conv => {
-        const isSelezionata = conv.id === conversazioneSelezionataId;
-        const bgClass = isSelezionata ? 'bg-slate-800/50 border-l-4 border-brand-gold' : 'hover:bg-slate-800/20 border-l-4 border-transparent';
-        
-        // Colori in base allo stato
-        let statoBadgeHtml = '';
-        if (conv.stato === 'Nuova') {
-            statoBadgeHtml = `<span class="px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 font-extrabold text-[9px] rounded-full uppercase">Nuova</span>`;
-        } else if (conv.stato === 'In attesa') {
-            statoBadgeHtml = `<span class="px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-extrabold text-[9px] rounded-full uppercase">In attesa</span>`;
-        } else if (conv.stato === 'Risposto') {
-            statoBadgeHtml = `<span class="px-2 py-0.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 font-extrabold text-[9px] rounded-full uppercase">Risposto</span>`;
-        } else if (conv.stato === 'Chiusa') {
-            statoBadgeHtml = `<span class="px-2 py-0.5 bg-slate-500/15 border border-slate-500/30 text-slate-400 font-extrabold text-[9px] rounded-full uppercase">Chiusa</span>`;
-        }
-
-        // Unread Badge
-        const unreadBadge = conv.unreadCount > 0 
-            ? `<span class="px-1.5 py-0.5 bg-red-600 text-white text-[9px] font-black rounded-full animate-pulse min-w-[16px] text-center">${conv.unreadCount}</span>` 
-            : '';
-
-        // Formatta data
-        let dataStr = '';
-        if (conv.last_message_at) {
-            const dataObj = new Date(conv.last_message_at);
-            dataStr = dataObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + dataObj.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
-        }
-
-        // Nome pulito
-        const nomeCliente = conv.nome || 'Cliente Anonimo';
-
-        html += `
-            <div onclick="selezionaConversazioneAdmin('${conv.id}')" class="p-4 cursor-pointer transition-all flex flex-col gap-1.5 ${bgClass}">
-                <div class="flex items-center justify-between">
-                    <span class="text-white font-extrabold text-xs tracking-wide">${nomeCliente}</span>
-                    <span class="text-[9px] text-slate-500 font-mono font-medium">${dataStr}</span>
-                </div>
-                <div class="flex items-center justify-between gap-2">
-                    <p class="text-slate-400 text-[11px] truncate max-w-[180px]">${conv.email || ''}</p>
-                    <div class="flex items-center gap-1.5">
-                        ${statoBadgeHtml}
-                        ${unreadBadge}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-}
-
-async function selezionaConversazioneAdmin(id) {
-    conversazioneSelezionataId = id;
-    renderConversazioniLista();
-
-    const conv = conversazioniAdminList.find(c => c.id === id);
-    if (!conv) return;
-
-    // Gestione reattiva layout mobile/desktop
-    const listCol = document.getElementById('admin-chat-list-column');
-    const activeCol = document.getElementById('admin-chat-active-column');
-    if (listCol && activeCol) {
-        if (window.innerWidth < 1024) {
-            listCol.classList.add('hidden');
-            activeCol.classList.remove('hidden');
-            activeCol.classList.add('flex');
-        } else {
-            listCol.classList.remove('hidden');
-            activeCol.classList.remove('hidden');
-            activeCol.classList.add('flex');
-        }
-    }
-
-    // Mostra l'interfaccia di chat attiva
-    const emptyState = document.getElementById('admin-chat-empty-state');
-    const activeContainer = document.getElementById('admin-chat-active-container');
-    if (emptyState) emptyState.classList.add('hidden');
-    if (activeContainer) activeContainer.classList.remove('hidden');
-
-    // Imposta info del cliente
-    const nomeEl = document.getElementById('admin-chat-cliente-nome');
-    const emailEl = document.getElementById('admin-chat-cliente-email');
-    const statoSelect = document.getElementById('admin-chat-stato-select');
-    if (nomeEl) nomeEl.innerText = conv.nome || 'Cliente Anonimo';
-    if (emailEl) emailEl.innerText = conv.email || 'Nessuna email fornita';
-    if (statoSelect) statoSelect.value = conv.stato;
-
-    // Imposta metadata degli ordini e lotti
-    const ordCountEl = document.getElementById('admin-chat-meta-ordini-count');
-    if (ordCountEl) ordCountEl.innerText = `${conv.orderCount || 0} ordini`;
-    
-    const ultimoOrdineInfoEl = document.getElementById('admin-chat-meta-ultimo-ordine-info');
-    if (ultimoOrdineInfoEl) {
-        if (conv.lastOrder) {
-            ultimoOrdineInfoEl.innerText = `${conv.lastOrder.order_number} (${new Date(conv.lastOrder.data).toLocaleDateString()}) - ${conv.lastOrder.status} - €${parseFloat(conv.lastOrder.totale).toFixed(2)}`;
-        } else {
-            ultimoOrdineInfoEl.innerText = 'Nessun ordine effettuato';
-        }
-    }
-
-    const lottoEl = document.getElementById('admin-chat-meta-lotto');
-    if (lottoEl) {
-        if (conv.lottoId) {
-            lottoEl.innerText = `Lotto #${conv.lottoId}`;
-            lottoEl.className = "text-emerald-400 font-extrabold uppercase tracking-wide";
-        } else {
-            lottoEl.innerText = 'Nessuno';
-            lottoEl.className = "text-slate-400 font-medium";
-        }
-    }
-
-    // Segna i messaggi del cliente come letti
-    try {
-        const res = await fetch('/api/admin/chat/mark-read', {
-            method: 'POST',
-            headers: getAdminAuthHeaders(),
-            body: JSON.stringify({ conversation_id: id })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data && data.success) {
-                const convIdx = conversazioniAdminList.findIndex(c => c.id === id);
-                if (convIdx !== -1) {
-                    conversazioniAdminList[convIdx].admin_last_read_at = new Date().toISOString();
-                    conversazioniAdminList[convIdx].unreadCount = 0; // Reset local count
-                    renderConversazioniLista(); // Re-render to update badge immediately
-                }
-            }
-        }
-    } catch (err) {
-        console.error("Errore mark-read:", err);
-    }
-
-    // Carica messaggi
-    await caricaMessaggiConversazioneCorrente(false);
-    
-    // Attiva polling per la chat attiva ogni 4 secondi (solo se tab visibile)
-    if (adminChatPollingInterval) {
-        clearInterval(adminChatPollingInterval);
-        adminChatPollingInterval = null;
-    }
-    if (!document.hidden) {
-        adminChatPollingInterval = setInterval(() => {
-            if (!document.hidden && conversazioneSelezionataId) {
-                caricaMessaggiConversazioneCorrente(true);
-            }
-        }, 4000);
-    }
-}
-
-function tornaAListaConversazioniAdmin() {
-    conversazioneSelezionataId = null;
-    if (adminChatPollingInterval) {
-        clearInterval(adminChatPollingInterval);
-        adminChatPollingInterval = null;
-    }
-
-    const listCol = document.getElementById('admin-chat-list-column');
-    const activeCol = document.getElementById('admin-chat-active-column');
-    if (listCol && activeCol) {
-        listCol.classList.remove('hidden');
-        if (window.innerWidth < 1024) {
-            activeCol.classList.add('hidden');
-            activeCol.classList.remove('flex');
-        } else {
-            activeCol.classList.remove('hidden');
-            activeCol.classList.add('flex');
-        }
-    }
-
-    const emptyState = document.getElementById('admin-chat-empty-state');
-    const activeContainer = document.getElementById('admin-chat-active-container');
-    if (emptyState) emptyState.classList.remove('hidden');
-    if (activeContainer) activeContainer.classList.add('hidden');
-
-    renderConversazioniLista();
-}
-
-function tornaAListaConversazioniMobile() {
-    tornaAListaConversazioniAdmin();
-}
-
-window.addEventListener('resize', () => {
-    if (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'chat') {
-        const listCol = document.getElementById('admin-chat-list-column');
-        const activeCol = document.getElementById('admin-chat-active-column');
-        if (listCol && activeCol) {
-            if (window.innerWidth >= 1024) {
-                listCol.classList.remove('hidden');
-                activeCol.classList.remove('hidden');
-                activeCol.classList.add('flex');
-            } else {
-                if (conversazioneSelezionataId) {
-                    listCol.classList.add('hidden');
-                    activeCol.classList.remove('hidden');
-                    activeCol.classList.add('flex');
-                } else {
-                    listCol.classList.remove('hidden');
-                    activeCol.classList.add('hidden');
-                    activeCol.classList.remove('flex');
-                }
-            }
-        }
-    }
-});
-
-async function caricaMessaggiConversazioneCorrente(silente = false) {
-    if (!conversazioneSelezionataId) return;
-    try {
-        const res = await fetch(`/api/admin/chat/${conversazioneSelezionataId}/messages`, { headers: getAdminAuthHeaders() });
-        if (!res.ok) {
-            if (!silente) console.warn("Risposta non OK messaggi chat:", res.status);
-            return;
-        }
-        const data = await res.json();
-        if (data && data.success) {
-            renderMessaggiAdmin(data.messages || [], silente);
-        }
-    } catch (err) {
-        if (!silente) {
-            console.warn("Avviso caricaMessaggiConversazioneCorrente:", err);
-        }
-    }
-}
-
-function renderMessaggiAdmin(messages, silente = false) {
-    const stream = document.getElementById('admin-chat-messaggi-stream');
-    if (!stream) return;
-
-    let html = '';
-    messages.forEach(msg => {
-        const isAdmin = msg.sender === 'admin';
-        const bubbleBg = isAdmin 
-            ? 'bg-gradient-to-r from-[#D6A43A]/20 to-[#B8860B]/25 border border-[#D6A43A]/30 text-white ml-auto rounded-2xl rounded-tr-none' 
-            : 'bg-slate-800/80 border border-slate-700/50 text-white mr-auto rounded-2xl rounded-tl-none';
-        
-        const timestamp = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Gestisci allegato
-        let allegatoHtml = '';
-        if (msg.attachment_url) {
-            if (msg.attachment_type === 'pdf') {
-                allegatoHtml = `
-                    <div class="my-2 p-2.5 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center gap-2">
-                        <span class="text-xl">📄</span>
-                        <div class="text-[10px] truncate max-w-[150px]">
-                            <p class="text-white font-extrabold truncate">Allegato PDF</p>
-                            <a href="${msg.attachment_url}" download class="text-brand-gold hover:underline font-bold">Scarica Documento</a>
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Immagine
-                allegatoHtml = `
-                    <div class="my-2 max-w-[220px] rounded-xl overflow-hidden border border-slate-800/60 shadow-md">
-                        <img src="${msg.attachment_url}" alt="Allegato" loading="lazy" decoding="async" onclick="window.open('${msg.attachment_url}')" class="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-all">
-                    </div>
-                `;
-            }
-        }
-
-        // Sostituisce i newline con br
-        const formattedText = msg.message ? msg.message.replace(/\n/g, '<br>') : '';
-
-        html += `
-            <div class="flex flex-col max-w-[85%] ${isAdmin ? 'ml-auto' : 'mr-auto'}">
-                <div class="p-3.5 ${bubbleBg} shadow-md">
-                    ${formattedText ? `<p class="text-xs font-medium leading-relaxed select-text">${formattedText}</p>` : ''}
-                    ${allegatoHtml}
-                </div>
-                <span class="text-[9px] text-slate-500 font-mono mt-1 ${isAdmin ? 'text-right' : 'text-left'}">${timestamp}</span>
-            </div>
-        `;
-    });
-
-    const isAtBottom = stream.scrollHeight - stream.scrollTop <= stream.clientHeight + 100;
-    stream.innerHTML = html;
-
-    // Scorri in basso se era già in fondo o se non è un aggiornamento silente
-    if (!silente || isAtBottom) {
-        stream.scrollTop = stream.scrollHeight;
-    }
-}
-
-async function cambiaStatoConversazioneSelezionata(nuovoStato) {
-    if (!conversazioneSelezionataId) return;
-    try {
-        const res = await fetch('/api/admin/chat/update-status', {
-            method: 'POST',
-            headers: getAdminAuthHeaders(),
-            body: JSON.stringify({ conversation_id: conversazioneSelezionataId, stato: nuovoStato })
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.success) {
-                showToast(`Stato conversazione aggiornato a "${nuovoStato}".`, "success");
-                await caricaConversazioniAdmin(true);
-            } else {
-                showToast("Errore aggiornamento stato: " + data.error, "error");
-            }
-        } else {
-            showToast("Errore di autorizzazione nell'aggiornamento dello stato", "error");
-        }
-    } catch (err) {
-        console.error("Errore cambiaStatoConversazioneSelezionata:", err);
-    }
-}
-
-async function inviaMessaggioAdmin() {
-    if (!conversazioneSelezionataId) return;
-    
-    const inputEl = document.getElementById('admin-chat-input-text');
-    const text = inputEl.value.trim();
-
-    if (!text && !adminChatAllegatoCorrente) {
-        return; // Niente da inviare
-    }
-
-    try {
-        const payload = {
-            conversation_id: conversazioneSelezionataId,
-            message: text,
-            attachment_url: adminChatAllegatoCorrente ? adminChatAllegatoCorrente.url : null,
-            attachment_type: adminChatAllegatoCorrente ? adminChatAllegatoCorrente.type : null
-        };
-
-        const res = await fetch('/api/admin/chat/respond', {
-            method: 'POST',
-            headers: getAdminAuthHeaders(),
-            body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.success) {
-                inputEl.value = '';
-                annullaAllegatoAdmin();
-                await caricaMessaggiConversazioneCorrente(false);
-                await caricaConversazioniAdmin(true);
-            } else {
-                showToast("Errore invio messaggio: " + data.error, "error");
-            }
-        } else {
-            showToast("Errore di autorizzazione nell'invio del messaggio", "error");
-        }
-    } catch (err) {
-        console.error("Errore inviaMessaggioAdmin:", err);
-        showToast("Impossibile inviare il messaggio.", "error");
-    }
-}
-
-function comprimiImmagine(file, maxDim, quality, callback) {
-    if (!file.type.startsWith('image/')) {
-        callback(null);
-        return;
-    }
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            let w = img.width;
-            let h = img.height;
-            
-            if (w > h) {
-                if (w > maxDim) {
-                    h = Math.round((h * maxDim) / w);
-                    w = maxDim;
-                }
-            } else {
-                if (h > maxDim) {
-                    w = Math.round((w * maxDim) / h);
-                    h = maxDim;
-                }
-            }
-            
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, w, h);
-            
-            const base64 = canvas.toDataURL('image/jpeg', quality);
-            callback(base64);
-        };
-        img.onerror = function() {
-            callback(null);
-        };
-        img.src = e.target.result;
-    };
-    reader.onerror = function() {
-        callback(null);
-    };
-    reader.readAsDataURL(file);
-}
-
-function comprimiImmagineAsync(file, maxDim, quality) {
-    return new Promise((resolve) => {
-        comprimiImmagine(file, maxDim, quality, (base64) => {
-            resolve(base64);
-        });
-    });
-}
-
-async function gestisciAllegatoAdmin(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const isPdf = file.type === 'application/pdf';
-    const isImage = file.type.startsWith('image/');
-
-    if (!isPdf && !isImage) {
-        showToast("Tipo di file non supportato. Carica un'immagine o un file PDF.", "error");
-        input.value = '';
-        return;
-    }
-
-    const previewBox = document.getElementById('admin-chat-attachment-preview-box');
-    const nameEl = document.getElementById('admin-chat-attachment-name');
-    const typeEl = document.getElementById('admin-chat-attachment-type-lbl');
-    const thumbEl = document.getElementById('admin-chat-attachment-thumb');
-
-    // Mostra indicatore caricamento nell'anteprima
-    if (previewBox) previewBox.classList.remove('hidden');
-    if (nameEl) nameEl.innerText = "Elaborazione...";
-    if (typeEl) typeEl.innerText = isPdf ? "Documento PDF" : "Immagine";
-    if (thumbEl) thumbEl.innerText = "⏳";
-
-    // Mostra l'anteprima immediata dell'immagine localmente
-    if (isImage && thumbEl) {
-        const localReader = new FileReader();
-        localReader.onload = (e) => {
-            thumbEl.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-        };
-        localReader.readAsDataURL(file);
-    }
-
-    try {
-        let base64ToSend = '';
-        if (isImage) {
-            if (nameEl) nameEl.innerText = "Compressione...";
-            base64ToSend = await comprimiImmagineAsync(file, 1000, 0.75);
-        }
-        
-        if (!base64ToSend) {
-            base64ToSend = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = () => resolve('');
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        if (!base64ToSend) {
-            throw new Error("Impossibile leggere il file.");
-        }
-
-        if (nameEl) nameEl.innerText = "Caricamento...";
-        
-        // Caricamento con XHR asincrono e aggiornamento in tempo reale
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/upload', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        
-        xhr.upload.onprogress = function(e) {
-            if (e.lengthComputable && nameEl) {
-                const percent = Math.round((e.loaded / e.total) * 100);
-                nameEl.innerText = `Caricamento... ${percent}%`;
-            }
-        };
-        
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                try {
-                    const uploadData = JSON.parse(xhr.responseText);
-                    if (uploadData.success && (uploadData.url || uploadData.filePath)) {
-                        const targetUrl = uploadData.url || uploadData.filePath;
-                        adminChatAllegatoCorrente = {
-                            url: targetUrl,
-                            type: isPdf ? 'pdf' : 'image',
-                            name: file.name
-                        };
-                        if (nameEl) nameEl.innerText = file.name;
-                        if (thumbEl) {
-                            if (isPdf) {
-                                thumbEl.innerText = "📄";
-                            } else {
-                                thumbEl.innerHTML = `<img src="${targetUrl}" class="w-full h-full object-cover">`;
-                            }
-                        }
-                        showToast("File caricato correttamente e pronto all'invio.", "success");
-                    } else {
-                        throw new Error("Upload fallito");
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showToast("Errore caricamento file.", "error");
-                    annullaAllegatoAdmin();
-                }
-            } else {
-                showToast("Errore caricamento file.", "error");
-                annullaAllegatoAdmin();
-            }
-        };
-        
-        xhr.onerror = function() {
-            showToast("Errore di rete durante il caricamento.", "error");
-            annullaAllegatoAdmin();
-        };
-        
-        xhr.send(JSON.stringify({ filename: file.name, base64: base64ToSend }));
-
-    } catch (err) {
-        console.error("Errore gestisciAllegatoAdmin upload:", err);
-        showToast("Errore di rete durante il caricamento.", "error");
-        annullaAllegatoAdmin();
-    }
-}
-
-function annullaAllegatoAdmin() {
-    adminChatAllegatoCorrente = null;
-    document.getElementById('admin-chat-file-input').value = '';
-    document.getElementById('admin-chat-attachment-preview-box').classList.add('hidden');
-}
-
-// Inizializza il polling globale dei badge in background per l'amministratore (ogni 30 secondi con gestione visibility)
-function avviaPollingGlobaleBadgeAdmin() {
-    if (adminGlobalBadgePollingInterval) {
-        clearInterval(adminGlobalBadgePollingInterval);
-        adminGlobalBadgePollingInterval = null;
-    }
-    
-    // Se la scheda non è visibile, non avviare il timer
-    if (document.hidden) return;
-
-    // Esegui subito al caricamento iniziale o al ritorno visibile
-    caricaConversazioniAdmin(true);
-    caricaRecensioniAdmin(true);
-
-    adminGlobalBadgePollingInterval = setInterval(() => {
-        if (!document.hidden) {
-            caricaConversazioniAdmin(true);
-            caricaRecensioniAdmin(true);
-        }
-    }, 30000);
-}
-
-// Gestore singleton Visibility API per Admin
-if (!window._adminVisibilityListenerAttached) {
-    window._adminVisibilityListenerAttached = true;
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            // Sospendi polling globale badge
-            if (adminGlobalBadgePollingInterval) {
-                clearInterval(adminGlobalBadgePollingInterval);
-                adminGlobalBadgePollingInterval = null;
-            }
-            // Sospendi polling chat attiva
-            if (adminChatPollingInterval) {
-                clearInterval(adminChatPollingInterval);
-                adminChatPollingInterval = null;
-            }
-        } else {
-            // Al ritorno visibile:
-            // 1. Riavvia badge globale (refresh immediato + timer 30s)
-            avviaPollingGlobaleBadgeAdmin();
-            
-            // 2. Se una conversazione è attualmente aperta, refresh immediato e riavvio polling 4s
-            if (conversazioneSelezionataId) {
-                caricaMessaggiConversazioneCorrente(true);
-                if (adminChatPollingInterval) clearInterval(adminChatPollingInterval);
-                adminChatPollingInterval = setInterval(() => {
-                    if (!document.hidden && conversazioneSelezionataId) {
-                        caricaMessaggiConversazioneCorrente(true);
-                    }
-                }, 4000);
-            }
-        }
-    });
-}
-
-// Polling avviato in bootstrapAdminApp solo dopo avvenuta verifica di autenticazione
-// avviaPollingGlobaleBadgeAdmin();
+// LOGICA CHAT ASSISTENZA AMMINISTRATORE RIMOOSSA (RIMOZIONE ADMIN CHAT)
+function caricaConversazioniAdmin() { return Promise.resolve(); }
+function selezionaConversazioneAdmin() {}
+function tornaAListaConversazioniAdmin() {}
+function tornaAListaConversazioniMobile() {}
+function cambiaStatoConversazioneSelezionata() {}
+function inviaMessaggioAdmin() {}
+function gestisciAllegatoAdmin() {}
+function annullaAllegatoAdmin() {}
+function avviaPollingGlobaleBadgeAdmin() {}
 
 // ==========================================
 // FUNZIONALITÀ GESTIONE COUPON SCONTO (ADMIN)
@@ -17641,9 +16551,10 @@ async function salvaFiltriCatalogo() {
     assicuratiFiltriDinamici();
 
     try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const response = await fetch('/api/settings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({
                 settings: window.appSettings
             })
@@ -18123,9 +17034,19 @@ function aggiornaPreviewPatchModal() {
     const previewEl = document.getElementById('modal-patch-preview');
     const placeholderEl = document.getElementById('modal-patch-placeholder-icon');
     if (imgUrl && previewEl && placeholderEl) {
+        previewEl.onerror = function() {
+            previewEl.classList.add('hidden');
+            placeholderEl.classList.remove('hidden');
+        };
+        previewEl.onload = function() {
+            previewEl.classList.remove('hidden');
+            placeholderEl.classList.add('hidden');
+        };
         previewEl.src = imgUrl;
-        previewEl.classList.remove('hidden');
-        placeholderEl.classList.add('hidden');
+        if (previewEl.complete && previewEl.naturalWidth > 0) {
+            previewEl.classList.remove('hidden');
+            placeholderEl.classList.add('hidden');
+        }
     } else if (previewEl && placeholderEl) {
         previewEl.src = "";
         previewEl.classList.add('hidden');
@@ -18137,27 +17058,72 @@ async function caricaImmaginePatchModal(event) {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Controllo dimensione massima: 5 MB
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+        if (typeof showToast === 'function') {
+            showToast("⚠️ Il file supera il limite massimo di 5 MB (" + (file.size / (1024 * 1024)).toFixed(1) + " MB).", "error");
+        }
+        event.target.value = '';
+        return;
+    }
+
+    // Controllo formato: solo JPEG, PNG, WebP
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    const lowerName = file.name.toLowerCase();
+    const isExtensionValid = lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.png') || lowerName.endsWith('.webp');
+    if (!validMimes.includes(file.type.toLowerCase()) && !isExtensionValid) {
+        if (typeof showToast === 'function') {
+            showToast("⚠️ Formato file non supportato. Sono consentiti esclusivamente file JPEG, PNG o WebP.", "error");
+        }
+        event.target.value = '';
+        return;
+    }
+
+    const previousUrl = document.getElementById('modal-patch-immagine')?.value || '';
+
     const reader = new FileReader();
     reader.onload = async function(e) {
         const base64 = e.target.result;
         try {
-            if (typeof showToast === 'function') showToast("Caricamento immagine patch in corso...", "info");
-            const res = await fetch('/api/upload', {
+            if (typeof showToast === 'function') showToast("Caricamento immagine patch su Supabase Storage...", "info");
+            
+            let authHeaders = {};
+            if (typeof getAdminAuthHeaders === 'function') {
+                authHeaders = getAdminAuthHeaders();
+            }
+
+            const res = await fetch('/api/admin/patches/upload-image', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders
+                },
                 body: JSON.stringify({ filename: file.name, base64 })
             });
+
             const data = await res.json();
-            if (data.success && data.filePath) {
+            if (res.ok && data.success && data.publicUrl) {
                 const inputEl = document.getElementById('modal-patch-immagine');
-                if (inputEl) inputEl.value = data.filePath;
+                if (inputEl) inputEl.value = data.publicUrl;
                 aggiornaPreviewPatchModal();
-                if (typeof showToast === 'function') showToast("✅ Immagine caricata con successo!", "success");
+                if (typeof showToast === 'function') showToast("✅ Immagine patch salvata nel bucket Supabase!", "success");
             } else {
-                if (typeof showToast === 'function') showToast("Errore caricamento immagine: " + (data.error || 'Generico'), "error");
+                // In caso di errore: conserva il riferimento precedente
+                const inputEl = document.getElementById('modal-patch-immagine');
+                if (inputEl) inputEl.value = previousUrl;
+                aggiornaPreviewPatchModal();
+                const errMsg = data.error || ('Errore server HTTP ' + res.status);
+                if (typeof showToast === 'function') showToast("⚠️ Errore caricamento immagine: " + errMsg, "error");
             }
         } catch (err) {
-            if (typeof showToast === 'function') showToast("Errore di caricamento: " + err.message, "error");
+            // In caso di eccezione di rete: conserva il riferimento precedente
+            const inputEl = document.getElementById('modal-patch-immagine');
+            if (inputEl) inputEl.value = previousUrl;
+            aggiornaPreviewPatchModal();
+            if (typeof showToast === 'function') showToast("⚠️ Errore di rete: " + err.message, "error");
+        } finally {
+            event.target.value = '';
         }
     };
     reader.readAsDataURL(file);
@@ -18258,9 +17224,16 @@ async function salvaPatchModal() {
 async function salvaPatchesCatalogo() {
     if (!window.appSettings) window.appSettings = {};
     try {
+        let authHeaders = {};
+        if (typeof getAdminAuthHeaders === 'function') {
+            authHeaders = getAdminAuthHeaders();
+        }
         const response = await fetch('/api/settings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders
+            },
             body: JSON.stringify(window.appSettings)
         });
         const data = await response.json();
@@ -26191,7 +25164,7 @@ async function salvaPrezzoConcordatoOrdine() {
 
         const response = await fetch('/api/orders/update-pricing', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({
                 order_id: targetId,
                 items: payloadItems
@@ -26242,7 +25215,7 @@ async function ripristinaTuttiPrezziOrdine() {
 
         const response = await fetch('/api/orders/update-pricing', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({
                 order_id: targetId,
                 ripristina_tutto: true
@@ -26303,7 +25276,7 @@ async function toggleSpedizioneClienteAdmin(orderId, rimuovi) {
     try {
         const res = await fetch('/api/admin/orders/toggle-shipping-override', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ order_id: orderId, rimuovi: isRemoving })
         });
 
@@ -26372,11 +25345,16 @@ async function caricaTorneiAdmin() {
 
     try {
         console.log("[ADMIN TORNEI DEBUG] Inizio fetch('/api/tornei')...");
-        const res = await fetch('/api/tornei');
-        const data = await res.json();
+        const res = await fetch('/api/tornei', { headers: getAdminAuthHeaders() });
+        let data = null;
+        try {
+            data = await res.json();
+        } catch (jsonErr) {
+            data = { success: false, error: `Risposta server non valida (HTTP ${res.status})` };
+        }
         console.log("[ADMIN TORNEI DEBUG] Risposta fetch('/api/tornei'):", data);
 
-        if (data.success && Array.isArray(data.tornei)) {
+        if (res.ok && data && data.success && Array.isArray(data.tornei)) {
             torneiList = data.tornei;
             console.log(`[ADMIN TORNEI DEBUG] Caricati ${torneiList.length} tornei nell'elenco.`);
 
@@ -26393,7 +25371,8 @@ async function caricaTorneiAdmin() {
             }
 
             // Aggiorna silenziosamente il badge delle notifiche pagamenti in attesa
-            fetch('/api/tornei/pagamenti').then(r => r.json()).then(d => {
+            const authHeadersBadge = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+            fetch('/api/tornei/pagamenti', { headers: authHeadersBadge }).then(r => r.ok ? r.json() : null).then(d => {
                 if (d && d.success && Array.isArray(d.pagamenti)) {
                     const pendingCount = d.pagamenti.filter(p => p.stato === 'IN ATTESA DI PAGAMENTO').length;
                     const badgePending = document.getElementById('tornei-badge-pagamenti-attesa');
@@ -26496,20 +25475,50 @@ async function caricaTorneiAdmin() {
                 `;
             }).join('');
         } else {
+            const totaliEl = document.getElementById('tornei-stat-totali');
+            const attiviEl = document.getElementById('tornei-stat-attivi');
+            const quotaEl = document.getElementById('tornei-stat-quota');
+            if (totaliEl) totaliEl.innerText = '—';
+            if (attiviEl) attiviEl.innerText = '—';
+            if (quotaEl) quotaEl.innerText = '—';
+
+            const errMsg = (data && data.error) ? data.error : `Errore HTTP ${res.status}`;
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
-                        Impossibile caricare i tornei: ${data.error || 'Errore sconosciuto'}
+                    <td colspan="8" class="px-6 py-12 text-center text-red-500 font-medium">
+                        <div class="max-w-md mx-auto space-y-3 bg-red-50 p-6 rounded-2xl border border-red-200">
+                            <span class="text-3xl block">⚠️</span>
+                            <p class="text-red-700 font-bold text-sm">Errore nel caricamento dell'anagrafica tornei</p>
+                            <p class="text-xs text-red-600 font-mono break-words">${escapeHtml(errMsg)}</p>
+                            <p class="text-[11px] text-slate-500">I tornei non possono essere mostrati. Verifica le credenziali Supabase (inclusa la chiave autorizzata di servizio) sul server.</p>
+                            <button onclick="caricaTorneiAdmin()" class="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm">
+                                🔄 Riprova Caricamento
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         }
     } catch (err) {
         console.error("Errore caricaTorneiAdmin:", err);
+        const totaliEl = document.getElementById('tornei-stat-totali');
+        const attiviEl = document.getElementById('tornei-stat-attivi');
+        const quotaEl = document.getElementById('tornei-stat-quota');
+        if (totaliEl) totaliEl.innerText = '—';
+        if (attiviEl) attiviEl.innerText = '—';
+        if (quotaEl) quotaEl.innerText = '—';
+
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
-                    Errore di connessione al server durante il caricamento dei tornei.
+                <td colspan="8" class="px-6 py-12 text-center text-red-500 font-medium">
+                    <div class="max-w-md mx-auto space-y-3 bg-red-50 p-6 rounded-2xl border border-red-200">
+                        <span class="text-3xl block">⚠️</span>
+                        <p class="text-red-700 font-bold text-sm">Errore di comunicazione col server</p>
+                        <p class="text-xs text-red-600 font-mono break-words">${escapeHtml(err.message || 'Errore di rete')}</p>
+                        <button onclick="caricaTorneiAdmin()" class="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm">
+                            🔄 Riprova Caricamento
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -26619,7 +25628,7 @@ async function salvaTorneo() {
         console.log("[ADMIN TORNEI DEBUG] Inizio salvaTorneo, payload inviato a POST /api/tornei:", payload);
         const res = await fetch('/api/tornei', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -26712,7 +25721,8 @@ function modificaTorneo(id) {
 async function toggleStatoTorneo(id) {
     try {
         const res = await fetch(`/api/tornei/${id}/toggle`, {
-            method: 'PATCH'
+            method: 'PATCH',
+            headers: getAdminAuthHeaders()
         });
         const data = await res.json();
 
@@ -26739,7 +25749,8 @@ async function eliminaTorneo(id) {
 
     try {
         const res = await fetch(`/api/tornei/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAdminAuthHeaders()
         });
         const data = await res.json();
 
@@ -26767,7 +25778,7 @@ async function mostraDettaglioTorneo(torneoId) {
     let torneo = torneiList.find(t => String(t.id) === String(torneoId));
     if (!torneo) {
         try {
-            const res = await fetch('/api/tornei');
+            const res = await fetch('/api/tornei', { headers: getAdminAuthHeaders() });
             const data = await res.json();
             if (data.success && Array.isArray(data.tornei)) {
                 torneiList = data.tornei;
@@ -26841,7 +25852,7 @@ async function caricaSquadreTorneo(torneoId) {
     `;
 
     try {
-        const res = await fetch(`/api/tornei/${torneoId}/squadre`);
+        const res = await fetch(`/api/tornei/${torneoId}/squadre`, { headers: getAdminAuthHeaders() });
         const data = await res.json();
 
         if (data.success && Array.isArray(data.squadre)) {
@@ -26968,20 +25979,39 @@ async function caricaSquadreTorneo(torneoId) {
                 `;
             }).join('');
         } else {
+            const countBadgeEl = document.getElementById('torneo-squadre-count-badge');
+            if (countBadgeEl) countBadgeEl.innerText = '—';
+            const errMsg = (data && data.error) ? data.error : `Errore HTTP ${res.status}`;
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
-                        Impossibile caricare le squadre: ${data.error || 'Errore sconosciuto'}
+                    <td colspan="8" class="px-6 py-12 text-center text-red-500 font-medium">
+                        <div class="max-w-md mx-auto space-y-3 bg-red-50 p-6 rounded-2xl border border-red-200">
+                            <span class="text-3xl block">⚠️</span>
+                            <p class="text-red-700 font-bold text-sm">Errore nel caricamento delle squadre</p>
+                            <p class="text-xs text-red-600 font-mono break-words">${escapeHtml(errMsg)}</p>
+                            <button onclick="caricaSquadreTorneo('${torneoId}')" class="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm">
+                                🔄 Riprova Caricamento
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         }
     } catch (err) {
         console.error("Errore caricaSquadreTorneo:", err);
+        const countBadgeEl = document.getElementById('torneo-squadre-count-badge');
+        if (countBadgeEl) countBadgeEl.innerText = '—';
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="px-6 py-8 text-center text-red-500 font-medium">
-                    Errore di connessione al server durante il caricamento delle squadre.
+                <td colspan="8" class="px-6 py-12 text-center text-red-500 font-medium">
+                    <div class="max-w-md mx-auto space-y-3 bg-red-50 p-6 rounded-2xl border border-red-200">
+                        <span class="text-3xl block">⚠️</span>
+                        <p class="text-red-700 font-bold text-sm">Errore di comunicazione col server</p>
+                        <p class="text-xs text-red-600 font-mono break-words">${escapeHtml(err.message || 'Errore di rete')}</p>
+                        <button onclick="caricaSquadreTorneo('${torneoId}')" class="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm">
+                            🔄 Riprova Caricamento
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -27094,6 +26124,59 @@ function aggiornaStatoTutteSquadreExportRiepilogo() {
 }
 window.aggiornaStatoTutteSquadreExportRiepilogo = aggiornaStatoTutteSquadreExportRiepilogo;
 
+async function downloadAuthenticatedFile(url, filename, defaultName = 'file.xlsx') {
+    try {
+        const headers = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        const res = await fetch(url, { headers });
+
+        if (res.status === 401) {
+            if (typeof showToast === 'function') {
+                showToast("Sessione non valida o scaduta (401). Effettua nuovamente il login admin.", "error");
+            } else {
+                alert("Sessione non valida o scaduta (401). Effettua nuovamente il login admin.");
+            }
+            return false;
+        }
+        if (res.status === 403) {
+            if (typeof showToast === 'function') {
+                showToast("Accesso negato (403): Permessi di amministratore richiesti.", "error");
+            } else {
+                alert("Accesso negato (403): Permessi di amministratore richiesti.");
+            }
+            return false;
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok || contentType.includes('application/json')) {
+            let errorMsg = "Errore durante il download del file Excel.";
+            try {
+                const data = await res.json();
+                if (data && data.error) errorMsg = data.error;
+            } catch (e) {}
+            if (typeof showToast === 'function') showToast(errorMsg, "error");
+            return false;
+        }
+
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename || defaultName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        return true;
+    } catch (err) {
+        console.error("Errore download file autenticato:", err);
+        if (typeof showToast === 'function') {
+            showToast(`Errore durante il download: ${err.message}`, "error");
+        }
+        return false;
+    }
+}
+window.downloadAuthenticatedFile = downloadAuthenticatedFile;
+
 function confermaGenerazioneExcelRiepilogativoTorneo() {
     if (!torneoCorrenteDettaglio || !torneoCorrenteDettaglio.id) {
         showToast("Seleziona prima un torneo valido.", "error");
@@ -27112,12 +26195,9 @@ function confermaGenerazioneExcelRiepilogativoTorneo() {
     showToast(`Generazione file Excel riepilogativo per "${torneoCorrenteDettaglio.nome || 'Torneo'}"...`, "info");
     
     const downloadUrl = `/api/tornei/${encodeURIComponent(torneoCorrenteDettaglio.id)}/excel-riepilogo?squadre=${encodeURIComponent(selectedIds.join(','))}&include_prezzo=${includePrezzo ? '1' : '0'}`;
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', `Riepilogo_Fornitura_${(torneoCorrenteDettaglio.nome || 'Torneo').replace(/[^a-zA-Z0-9_-]/g, '_')}.xlsx`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const filename = `Riepilogo_Fornitura_${(torneoCorrenteDettaglio.nome || 'Torneo').replace(/[^a-zA-Z0-9_-]/g, '_')}.xlsx`;
+
+    downloadAuthenticatedFile(downloadUrl, filename);
 
     chiudiModalExportRiepilogoTorneo();
 }
@@ -27492,7 +26572,7 @@ async function salvaSquadra() {
 
         const res = await fetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -27526,7 +26606,8 @@ async function eliminaSquadra(squadraId) {
 
     try {
         const res = await fetch(`/api/tornei/${torneoCorrenteDettaglio.id}/squadre/${squadraId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAdminAuthHeaders()
         });
         const data = await res.json();
 
@@ -27619,7 +26700,20 @@ async function caricaPagamentiTorneiAdmin() {
     `;
 
     try {
-        const res = await fetch('/api/tornei/pagamenti');
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        const res = await fetch('/api/tornei/pagamenti', { headers: authHeaders });
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData.error || `Errore HTTP ${res.status}: Accesso non autorizzato.`;
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-red-400 font-semibold">
+                        ⚠️ ${errMsg}
+                    </td>
+                </tr>
+            `;
+            return;
+        }
         const data = await res.json();
 
         if (data && data.success && Array.isArray(data.pagamenti)) {
@@ -28040,7 +27134,7 @@ async function confermaPagamentoTorneoUI(id) {
         onConfirm: async () => {
             const res = await fetch(`/api/tornei/pagamenti/${id}/paga`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: getAdminAuthHeaders()
             });
             const data = await res.json();
 
@@ -28082,7 +27176,7 @@ async function ripristinaPagamentoInAttesaUI(id) {
         onConfirm: async () => {
             const res = await fetch(`/api/tornei/pagamenti/${id}/ripristina-attesa`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: getAdminAuthHeaders()
             });
             const data = await res.json();
 
@@ -28203,7 +27297,7 @@ async function eseguiEliminaPagamentoTorneo() {
     try {
         const res = await fetch(`/api/tornei/pagamenti/${id}`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+            headers: getAdminAuthHeaders()
         });
         const data = await res.json();
 
@@ -28273,12 +27367,20 @@ window.selectedAccountIdForAssignment = null;
 
 async function caricaRegisteredAccounts() {
     try {
-        const res = await fetch('/api/admin/registered-accounts');
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        const res = await fetch('/api/admin/registered-accounts', { headers: authHeaders });
         if (res.ok) {
             const data = await res.json();
             if (data && data.success && Array.isArray(data.accounts)) {
                 window.registeredAccountsList = data.accounts;
                 return window.registeredAccountsList;
+            }
+        } else {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData.error || `Errore HTTP ${res.status}: Accesso non autorizzato.`;
+            console.error("⚠️ Errore caricamento account registrati:", res.status, errMsg);
+            if (typeof showToast === 'function') {
+                showToast(`⚠️ Impossibile caricare account: ${errMsg}`, 'error');
             }
         }
     } catch (err) {
@@ -28476,7 +27578,7 @@ window.confermaAssegnazioneAccount = async function() {
     try {
         const res = await fetch('/api/admin/orders/assign-account', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ order_id: orderId, user_id: userId })
         });
 
@@ -28520,7 +27622,7 @@ window.scollegaAccountOrdine = async function() {
     try {
         const res = await fetch('/api/admin/orders/assign-account', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAdminAuthHeaders(),
             body: JSON.stringify({ order_id: orderId, user_id: null })
         });
 
@@ -30175,9 +29277,10 @@ async function elaboraSingolaImmagineProdotto(prodotto) {
         console.warn(`[SYNC CLIENT] Direct fetch fallito per ${prodotto.squadra} (id: ${prodotto.id}), ricorso a fallback server.`);
     }
 
+    const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
     const res = await fetch('/api/admin/store-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
             productId: prodotto.id || prodotto.legacy_id,
             originalUrl: originalUrl,

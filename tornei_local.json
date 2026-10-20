@@ -1,19 +1,128 @@
 [
   {
+    "id": 32,
+    "nome": "Test Torneo",
+    "organizzatore_nome": null,
+    "organizzatore_contatto": null,
+    "quantita_totale_autorizzata": 0,
+    "prezzo_concordato_unitario": 0,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true,
+      "quota_calzettoni": null,
+      "prezzo_calzettoni": null
+    },
+    "is_active": true,
+    "note": null,
+    "created_at": "2026-10-14T15:11:10.907+00:00",
+    "updated_at": "2026-10-14T15:11:10.907+00:00",
+    "quota_calzettoni": null,
+    "prezzo_calzettoni": null
+  },
+  {
+    "id": 30,
+    "nome": "Test Torneo",
+    "organizzatore_nome": null,
+    "organizzatore_contatto": null,
+    "quantita_totale_autorizzata": 0,
+    "prezzo_concordato_unitario": 0,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true,
+      "quota_calzettoni": null,
+      "prezzo_calzettoni": null
+    },
+    "is_active": true,
+    "note": null,
+    "created_at": "2026-10-14T15:10:35.958+00:00",
+    "updated_at": "2026-10-14T15:10:35.958+00:00",
+    "quota_calzettoni": null,
+    "prezzo_calzettoni": null
+  },
+  {
+    "id": 29,
+    "nome": "Test Torneo",
+    "organizzatore_nome": null,
+    "organizzatore_contatto": null,
+    "quantita_totale_autorizzata": 0,
+    "prezzo_concordato_unitario": 0,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true,
+      "quota_calzettoni": null,
+      "prezzo_calzettoni": null
+    },
+    "is_active": true,
+    "note": null,
+    "created_at": "2026-10-14T15:10:35.878+00:00",
+    "updated_at": "2026-10-14T15:10:35.878+00:00",
+    "quota_calzettoni": null,
+    "prezzo_calzettoni": null
+  },
+  {
+    "id": 28,
+    "nome": "Test Torneo",
+    "organizzatore_nome": null,
+    "organizzatore_contatto": null,
+    "quantita_totale_autorizzata": 0,
+    "prezzo_concordato_unitario": 0,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true,
+      "quota_calzettoni": null,
+      "prezzo_calzettoni": null
+    },
+    "is_active": true,
+    "note": null,
+    "created_at": "2026-10-14T15:10:35.804+00:00",
+    "updated_at": "2026-10-14T15:10:35.804+00:00",
+    "quota_calzettoni": null,
+    "prezzo_calzettoni": null
+  },
+  {
+    "id": 27,
+    "nome": "Test Torneo",
+    "organizzatore_nome": null,
+    "organizzatore_contatto": null,
+    "quantita_totale_autorizzata": 0,
+    "prezzo_concordato_unitario": 0,
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true,
+      "quota_calzettoni": null,
+      "prezzo_calzettoni": null
+    },
+    "is_active": true,
+    "note": null,
+    "created_at": "2026-10-14T15:10:35.719+00:00",
+    "updated_at": "2026-10-14T15:10:35.719+00:00",
+    "quota_calzettoni": null,
+    "prezzo_calzettoni": null
+  },
+  {
     "id": 23,
-    "nome": "EtnaGold",
+    "nome": "EtnaGold 5",
     "organizzatore_nome": "Mario Rossi",
     "organizzatore_contatto": "31",
     "quantita_totale_autorizzata": 130,
-    "prezzo_concordato_unitario": 20,
+    "prezzo_concordato_unitario": 15,
     "configurazione_personalizzazione": {
       "permetti_nome": true,
+      "permetti_patch": false,
       "permetti_numero": true,
-      "permetti_patch": false
+      "quota_calzettoni": 50,
+      "prezzo_calzettoni": 6
     },
     "is_active": true,
     "note": null,
     "created_at": "2026-09-05T12:55:29.396929+00:00",
-    "updated_at": "2026-09-05T12:55:29.396929+00:00"
+    "updated_at": "2026-10-14T08:57:16.441+00:00",
+    "quota_calzettoni": 50,
+    "prezzo_calzettoni": 6
   }
 ]

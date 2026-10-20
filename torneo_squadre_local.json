@@ -112,24 +112,24 @@
   },
   {
     "id": 13,
-    "name": "SS Lazio",
-    "categoria": "Club",
-    "sezione": "Serie A",
-    "created_at": "2026-07-13T14:02:18.465068+00:00"
-  },
-  {
-    "id": 14,
-    "name": "SSC Napoli",
-    "categoria": "Club",
-    "sezione": "Serie A",
-    "created_at": "2026-07-13T14:02:18.503819+00:00"
-  },
-  {
-    "id": 15,
-    "name": "Fiorentina",
-    "categoria": "Club",
-    "sezione": "Serie A",
-    "created_at": "2026-07-13T14:02:18.54157+00:00"
+    "torneo_id": 23,
+    "nome_squadra": "bayern monaco",
+    "codice_univoco": "ETNAGOLD-B",
+    "quantita_assegnata": 6,
+    "categorie_autorizzate": [
+      "Kit",
+      "Player",
+      "Fan"
+    ],
+    "prodotti_autorizzati": [],
+    "configurazione_personalizzazione": {
+      "permetti_nome": true,
+      "permetti_patch": false,
+      "permetti_numero": true
+    },
+    "note": null,
+    "created_at": "2026-10-14T08:55:54.328+00:00",
+    "updated_at": "2026-10-14T08:55:54.328+00:00"
   },
   {
     "id": 16,

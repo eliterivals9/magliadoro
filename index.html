@@ -8923,90 +8923,7 @@ body {
             max-width: 480px;
         }
 
-        /* ==========================================================================
-           MAGLIA D'ORO - FLOATING CUSTOMER CHAT WIDGET
-           ========================================================================== */
-        .chat-bubble-container {
-            position: fixed;
-            bottom: 22px;
-            right: 24px;
-            z-index: 9990;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f3e7c4 0%, #D6A43A 50%, #aa7c1e 100%);
-            color: #0b0b0b;
-            box-shadow: 0 8px 22px rgba(214, 164, 58, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1.5px solid rgba(255, 255, 255, 0.35);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background 0.3s ease;
-            user-select: none;
-        }
-        .chat-bubble-container:hover {
-            transform: scale(1.08) translateY(-2px);
-            box-shadow: 0 14px 34px rgba(214, 164, 58, 0.6), 0 6px 18px rgba(0, 0, 0, 0.7);
-        }
-        .chat-bubble-container:active {
-            transform: scale(0.96);
-        }
-        .chat-unread-badge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: #ef4444;
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 900;
-            min-width: 22px;
-            height: 22px;
-            border-radius: 11px;
-            padding: 0 6px;
-            border: 2px solid #0b0b0b;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
-            animation: pulseUnread 2s infinite;
-        }
-        @keyframes pulseUnread {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        #customer-chat-modal {
-            position: fixed;
-            bottom: 95px;
-            right: 25px;
-            width: 385px;
-            max-width: calc(100vw - 32px);
-            height: 560px;
-            max-height: calc(100vh - 130px);
-            z-index: 9991;
-            display: none;
-            flex-direction: column;
-            background: rgba(14, 14, 14, 0.96);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(214, 164, 58, 0.35);
-            border-radius: 24px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(214, 164, 58, 0.15);
-            overflow: hidden;
-            animation: chatSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            box-sizing: border-box;
-        }
-        @keyframes chatSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px) scale(0.96);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
+        
         .chat-header-gold {
             background: linear-gradient(135deg, rgba(28, 28, 28, 0.98) 0%, rgba(18, 18, 18, 0.98) 100%);
             border-bottom: 1px solid rgba(214, 164, 58, 0.25);
@@ -12085,7 +12002,299 @@ body {
                 transition: none !important;
             }
         }
-    </style>
+    
+        /* ==========================================================================
+           MAGLIA D'ORO - POPUP INFORMATIVO DI BENVENUTO (STEP 1)
+           ========================================================================== */
+        .welcome-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .welcome-popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .welcome-popup-card {
+            background-color: #F7F6F2;
+            border-radius: 20px;
+            border: 1px solid #E8E6DF;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            width: 100%;
+            max-width: 400px;
+            padding: 28px 24px 24px 24px;
+            position: relative;
+            box-sizing: border-box;
+            transform: translateY(12px) scale(0.98);
+            transition: transform 0.25s ease;
+            text-align: left;
+        }
+
+        .welcome-popup-overlay.active .welcome-popup-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .welcome-popup-close-x {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #666666;
+            font-size: 18px;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .welcome-popup-close-x:hover {
+            background-color: rgba(0, 0, 0, 0.06);
+            color: #111111;
+        }
+
+        .welcome-popup-close-x:focus-visible {
+            outline: 2px solid #D6A43A;
+            outline-offset: 2px;
+        }
+
+        .welcome-popup-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: rgba(214, 164, 58, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: #D6A43A;
+        }
+
+        .welcome-popup-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111111;
+            margin: 0 0 10px 0;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+            font-family: inherit;
+        }
+
+        .welcome-popup-desc {
+            font-size: 14px;
+            line-height: 1.55;
+            color: #666666;
+            margin: 0 0 24px 0;
+            font-weight: 400;
+            font-family: inherit;
+        }
+
+        .welcome-popup-btn {
+            width: 100%;
+            background-color: #111111;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.15s ease, transform 0.15s ease;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .welcome-popup-btn:hover {
+            background-color: #2A2A2A;
+        }
+
+        .welcome-popup-btn:active {
+            transform: scale(0.99);
+        }
+
+        .welcome-popup-btn:focus-visible {
+            outline: 2px solid #D6A43A;
+            outline-offset: 2px;
+        }
+
+
+        /* ==========================================================================
+           MAGLIA D'ORO - POPUP CONFERMA ORDINE (STEP 2)
+           ========================================================================== */
+        .order-confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .order-confirm-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .order-confirm-card {
+            background-color: #F7F6F2;
+            border-radius: 20px;
+            border: 1px solid #E8E6DF;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            width: 100%;
+            max-width: 400px;
+            padding: 28px 24px 24px 24px;
+            position: relative;
+            box-sizing: border-box;
+            transform: translateY(12px) scale(0.98);
+            transition: transform 0.25s ease;
+            text-align: left;
+        }
+
+        .order-confirm-overlay.active .order-confirm-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .order-confirm-close-x {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #666666;
+            font-size: 18px;
+            line-height: 1;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .order-confirm-close-x:hover {
+            background-color: rgba(0, 0, 0, 0.06);
+            color: #111111;
+        }
+
+        .order-confirm-close-x:focus-visible {
+            outline: 2px solid #16A34A;
+            outline-offset: 2px;
+        }
+
+        .order-confirm-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background-color: #DCFCE7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: #15803D;
+        }
+
+        .order-confirm-badge-numero {
+            display: inline-block;
+            background-color: #E8E6DF;
+            color: #111111;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
+        }
+
+        .order-confirm-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #111111;
+            margin: 0 0 10px 0;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+            font-family: inherit;
+        }
+
+        .order-confirm-desc {
+            font-size: 14px;
+            line-height: 1.55;
+            color: #666666;
+            margin: 0 0 24px 0;
+            font-weight: 400;
+            font-family: inherit;
+        }
+
+        .order-confirm-btn {
+            width: 100%;
+            background-color: #111111;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.15s ease, transform 0.15s ease;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .order-confirm-btn:hover {
+            background-color: #2A2A2A;
+        }
+
+        .order-confirm-btn:active {
+            transform: scale(0.99);
+        }
+
+        .order-confirm-btn:focus-visible {
+            outline: 2px solid #16A34A;
+            outline-offset: 2px;
+        }
+
+</style>
 </head>
 <body>
 
@@ -13295,10 +13504,7 @@ body {
             <div class="card-pagina-informativa" style="text-align: center;">
                 <h2 style="justify-content: center;"><span class="material-icons" style="font-size: 24px; color: #111111;">support_agent</span> Hai bisogno di assistenza?</h2>
                 <span class="sottotitolo-card">Assistenza Maglia d'Oro</span>
-                <p style="max-width: 680px; margin: 0 auto 20px auto;">Il nostro team è sempre a disposizione per aiutarti. Puoi contattarci direttamente tramite la chat presente sul sito oppure consultare le informazioni riportate in questa sezione.</p>
-                <button id="btn-attiva-chat-supporto" class="btn-pagina-informativa" style="margin: 0 auto;" onclick="if(typeof apriChatCustomer === 'function'){apriChatCustomer();}else{const bolla = document.getElementById('customer-chat-bubble') || document.querySelector('.chat-bubble-container'); if(bolla){bolla.click();}else{alert('La chat d\'assistenza è attiva nell\'angolo in basso a destra dello schermo.');}}">
-                    <span class="material-icons" style="font-size: 18px;">chat_bubble</span> Avvia Chat Live
-                </button>
+                <p style="max-width: 680px; margin: 0 auto 20px auto;">Il nostro team è sempre a disposizione per aiutarti. Puoi consultare le informazioni riportate in questa sezione o contattarci per qualsiasi esigenza.</p>
             </div>
 
             <div class="card-pagina-informativa">
@@ -14488,6 +14694,43 @@ body {
     </div>
 
     <!-- MODAL PAGINA VUOTA "IN ARRIVO" PER LE VOCI DEL MENU UTENTE -->
+    
+    <!-- POPUP INFORMATIVO DI BENVENUTO (STEP 1) -->
+    
+    <!-- POPUP CONFERMA ORDINE (STEP 2) -->
+    <div class="order-confirm-overlay" id="order-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="order-confirm-title" aria-describedby="order-confirm-desc" style="display: none;">
+        <div class="order-confirm-card" id="order-confirm-card">
+            <button type="button" class="order-confirm-close-x" id="order-confirm-close-x" onclick="chiudiConfermaOrdinePopup()" aria-label="Chiudi popup">✕</button>
+            <div class="order-confirm-icon-wrapper" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <div id="order-confirm-numero-wrapper" style="display: none;">
+                <span class="order-confirm-badge-numero" id="order-confirm-numero-text"></span>
+            </div>
+            <h3 class="order-confirm-title" id="order-confirm-title">Ordine inviato con successo!</h3>
+            <p class="order-confirm-desc" id="order-confirm-desc">Abbiamo ricevuto il tuo ordine. Verrai contattato dal fornitore, che ti illustrerà tutte le modalità per procedere al completamento dell'ordine.</p>
+            <button type="button" class="order-confirm-btn" id="order-confirm-btn" onclick="chiudiConfermaOrdinePopup()">Continua a esplorare</button>
+        </div>
+    </div>
+
+    <div class="welcome-popup-overlay" id="welcome-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title" aria-describedby="welcome-popup-desc" style="display: none;">
+        <div class="welcome-popup-card" id="welcome-popup-card">
+            <button type="button" class="welcome-popup-close-x" id="welcome-popup-close-x" onclick="chiudiWelcomePopup()" aria-label="Chiudi popup">✕</button>
+            <div class="welcome-popup-icon-wrapper" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </div>
+            <h3 class="welcome-popup-title" id="welcome-popup-title">Come funziona il tuo ordine?</h3>
+            <p class="welcome-popup-desc" id="welcome-popup-desc">Invia l'ordine. Successivamente verrai contattato dal fornitore e ti verranno spiegate tutte le modalità per procedere al completamento dell'ordine.</p>
+            <button type="button" class="welcome-popup-btn" id="welcome-popup-btn" onclick="chiudiWelcomePopup()">Ho capito, esplora il catalogo →</button>
+        </div>
+    </div>
+
     <div class="modal-personalizza" id="modal-in-arrivo" style="z-index: 550;">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <button class="btn-chiudi-modal" onclick="chiudiInArrivo()">✕</button>
@@ -14708,83 +14951,10 @@ body {
         </div>
     </div>
 
-    <!-- ========================================================================== -->
-    <!-- WIDGET CHAT ASSISTENZA CLIENTI (PUBBLICA) -->
-    <!-- ========================================================================== -->
-    <!-- Pulsante Flottante Chat -->
-    <div id="customer-chat-bubble" class="chat-bubble-container" onclick="toggleChatCustomer()" title="Assistenza Clienti Live">
-        <span class="material-icons" id="customer-chat-bubble-icon" style="font-size: 28px;">chat</span>
-        <span id="customer-chat-unread-badge" class="chat-unread-badge">0</span>
-    </div>
+    
+            
 
-    <!-- Modale Chat Assistenza Live -->
-    <div id="customer-chat-modal" role="dialog" aria-label="Assistenza Live Maglia d'Oro">
-        <!-- Header Chat -->
-        <div class="chat-header-gold">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="position: relative; width: 36px; height: 36px; border-radius: 50%; background: rgba(214, 164, 58, 0.15); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; color: var(--primary);">
-                    <span class="material-icons" style="font-size: 20px;">support_agent</span>
-                    <span style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: #10B981; border: 2px solid #111;"></span>
-                </div>
-                <div>
-                    <h4 style="margin: 0; font-size: 14px; font-weight: 900; color: #ffffff; letter-spacing: 0.3px; line-height: 1.2;">Assistenza Live</h4>
-                    <span style="font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 500;">Atelier Maglia d'Oro</span>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <button onclick="caricaMessaggiCustomer(false)" title="Aggiorna conversazione" style="background: none; border: none; color: rgba(255, 255, 255, 0.6); cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">
-                    <span class="material-icons" style="font-size: 18px;">refresh</span>
-                </button>
-                <button onclick="chiudiChatCustomer()" title="Chiudi chat" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
-                    ✕
-                </button>
-            </div>
-        </div>
-
-        <!-- Banner Utente / Info -->
-        <div id="customer-chat-user-banner" class="chat-user-banner">
-            <span id="customer-chat-user-status" style="font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                <span class="material-icons" style="font-size: 14px; color: var(--primary);">person</span>
-                <span>Ospite</span>
-            </span>
-            <span style="font-size: 10.5px; color: rgba(214, 164, 58, 0.9); font-weight: 700;">● Online</span>
-        </div>
-
-        <!-- Box Messaggi Stream -->
-        <div id="customer-chat-stream" class="chat-stream-box">
-            <!-- Messaggio di benvenuto automatico -->
-            <div class="chat-bubble-msg chat-bubble-admin">
-                <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                    <span class="material-icons" style="font-size: 12px;">verified</span> Team Maglia d'Oro
-                </div>
-                <div>Ciao! Benvenuto su Maglia d'Oro. Come possiamo aiutarti oggi? Scrivici per informazioni su maglie, taglie, ordini o convenzioni tornei.</div>
-                <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">Adesso</div>
-            </div>
-        </div>
-
-        <!-- Box Anteprima Allegato -->
-        <div id="customer-chat-preview-allegato" style="display: none; padding: 8px 14px; background: rgba(20, 20, 20, 0.95); border-top: 1px solid rgba(214, 164, 58, 0.2); align-items: center; justify-content: space-between; gap: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span id="customer-chat-allegato-icon" style="font-size: 20px;">🖼️</span>
-                <span id="customer-chat-allegato-nome" style="font-size: 11.5px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">file.jpg</span>
-            </div>
-            <button onclick="rimuoviAllegatoCustomer()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 800; cursor: pointer;">Rimuovi</button>
-        </div>
-
-        <!-- Footer Input & Invio -->
-        <div class="chat-input-area">
-            <input type="file" id="customer-chat-file-input" style="display: none;" accept="image/png, image/jpeg, image/webp, application/pdf" onchange="gestisciAllegatoCustomer(this)">
-            <button onclick="document.getElementById('customer-chat-file-input').click()" title="Allega foto o PDF" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.7); cursor: pointer; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)'; this.style.color='rgba(255,255,255,0.7)'">
-                <span class="material-icons" style="font-size: 18px;">attach_file</span>
-            </button>
-            <input type="text" id="customer-chat-input" placeholder="Scrivi un messaggio..." onkeydown="if(event.key === 'Enter') inviaMessaggioCustomer()" style="flex-grow: 1; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(214, 164, 58, 0.25); border-radius: 12px; padding: 10px 14px; font-size: 12.5px; color: #ffffff; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(214, 164, 58, 0.25)'">
-            <button id="customer-chat-send-btn" onclick="inviaMessaggioCustomer()" style="background: var(--gold-gradient); color: #000; border: none; border-radius: 12px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 800; transition: all 0.2s; box-shadow: 0 2px 10px rgba(214, 164, 58, 0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                <span class="material-icons" style="font-size: 18px;">send</span>
-            </button>
-        </div>
-    </div>
-
-    <script>
+        <script>
         var _urlParams = new URLSearchParams(window.location.search);
         window._isAdminPickerMode = _urlParams.get('admin_picker') === '1';
         window._adminPickerOrderId = _urlParams.get('order_id') || '';
@@ -21346,450 +21516,16 @@ for (const cat in hierarchy) {
         window.inizializzaCarouselNuoviArrivi = inizializzaCarouselNuoviArrivi;
 
         // ==========================================================================
-        // SISTEMA CHAT ASSISTENZA CLIENTI (PUBBLICA)
+        // SISTEMA CHAT ASSISTENZA CLIENTI (DISATTIVATO - FIX 9)
         // ==========================================================================
-        let customerChatPollingInterval = null;
-        let customerChatBadgeInterval = null;
-        let customerChatIsOpen = false;
-        let customerChatAllegatoCorrente = null;
-        let customerChatUltimoMessageCount = 0;
-
-        function getCustomerChatIdentity() {
-            let session = null;
-            try {
-                const raw = localStorage.getItem('maglia_doro_user_session');
-                if (raw) session = JSON.parse(raw);
-            } catch(e){}
-            if (!session && window.sessioneUtente) session = window.sessioneUtente;
-
-            if (session && (session.id || session.user_id || session.email)) {
-                return {
-                    userId: session.id || session.user_id || ('user_' + session.email),
-                    nome: session.nome_completo || session.nome || session.email.split('@')[0],
-                    email: session.email,
-                    isLoggedIn: true
-                };
-            }
-
-            let guestId = localStorage.getItem('maglia_doro_guest_chat_uid');
-            if (!guestId) {
-                guestId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-                localStorage.setItem('maglia_doro_guest_chat_uid', guestId);
-            }
-
-            let guestNome = localStorage.getItem('maglia_doro_guest_chat_nome') || 'Ospite';
-            let guestEmail = localStorage.getItem('maglia_doro_guest_chat_email') || '';
-
-            return {
-                userId: guestId,
-                nome: guestNome,
-                email: guestEmail,
-                isLoggedIn: false
-            };
-        }
-
-        function updateCustomerChatUserBanner() {
-            const ident = getCustomerChatIdentity();
-            const bannerStatusEl = document.getElementById('customer-chat-user-status');
-            if (bannerStatusEl) {
-                if (ident.isLoggedIn) {
-                    bannerStatusEl.innerHTML = `<span class="material-icons" style="font-size: 14px; color: var(--primary);">person</span> <span>${ident.nome}</span>`;
-                } else {
-                    bannerStatusEl.innerHTML = `<span class="material-icons" style="font-size: 14px; color: var(--primary);">person_outline</span> <span>${ident.nome}</span>`;
-                }
-            }
-        }
-
-        async function apriChatCustomer() {
-            const modal = document.getElementById('customer-chat-modal');
-            if (!modal) return;
-            
-            modal.style.display = 'flex';
-            customerChatIsOpen = true;
-            updateCustomerChatUserBanner();
-
-            // Nascondi badge non letti
-            const badgeEl = document.getElementById('customer-chat-unread-badge');
-            if (badgeEl) badgeEl.style.display = 'none';
-
-            // Pausa badge check mentre la chat è aperta
-            if (customerChatBadgeInterval) {
-                clearInterval(customerChatBadgeInterval);
-                customerChatBadgeInterval = null;
-            }
-
-            await caricaMessaggiCustomer(false);
-            
-            // Focus input
-            const inputEl = document.getElementById('customer-chat-input');
-            if (inputEl) inputEl.focus();
-
-            // Avvia polling attivo ogni 4 secondi (solo se visibile)
-            if (customerChatPollingInterval) {
-                clearInterval(customerChatPollingInterval);
-                customerChatPollingInterval = null;
-            }
-            if (!document.hidden) {
-                customerChatPollingInterval = setInterval(() => {
-                    if (customerChatIsOpen && !document.hidden) {
-                        caricaMessaggiCustomer(true);
-                    }
-                }, 4000);
-            }
-        }
-
-        function chiudiChatCustomer() {
-            const modal = document.getElementById('customer-chat-modal');
-            if (modal) modal.style.display = 'none';
-            customerChatIsOpen = false;
-            if (customerChatPollingInterval) {
-                clearInterval(customerChatPollingInterval);
-                customerChatPollingInterval = null;
-            }
-            // Riavvia controllo badge a chat chiusa
-            avviaControlloBadgeCustomer();
-        }
-
-        function toggleChatCustomer() {
-            if (customerChatIsOpen) {
-                chiudiChatCustomer();
-            } else {
-                apriChatCustomer();
-            }
-        }
-
-        async function caricaMessaggiCustomer(silente = false) {
-            const ident = getCustomerChatIdentity();
-            try {
-                const res = await fetch('/api/chat/get-or-create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: ident.userId,
-                        nome: ident.nome,
-                        email: ident.email
-                    })
-                });
-                if (!res.ok) return;
-                const data = await res.json();
-                if (data && data.success) {
-                    const conversation = data.conversation;
-                    const messages = data.messages || [];
-                    renderMessaggiCustomer(messages);
-
-                    // Segna come letti i messaggi dell'admin
-                    if (conversation && conversation.id && customerChatIsOpen) {
-                        fetch('/api/chat/mark-read', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ conversation_id: conversation.id, sender: 'admin' })
-                        }).catch(() => {});
-                    }
-                }
-            } catch(err) {
-                if (!silente) console.warn("Errore caricamento chat customer:", err);
-            }
-        }
-
-        function renderMessaggiCustomer(messages) {
-            const stream = document.getElementById('customer-chat-stream');
-            if (!stream) return;
-
-            if (!messages || messages.length === 0) {
-                stream.innerHTML = `
-                    <div class="chat-bubble-msg chat-bubble-admin">
-                        <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                            <span class="material-icons" style="font-size: 12px;">verified</span> Team Maglia d'Oro
-                        </div>
-                        <div>Ciao! Benvenuto su Maglia d'Oro. Come possiamo aiutarti oggi? Scrivici per informazioni su maglie, taglie, ordini o convenzioni tornei.</div>
-                        <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">Adesso</div>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = `
-                <div class="chat-bubble-msg chat-bubble-admin">
-                    <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                        <span class="material-icons" style="font-size: 12px;">verified</span> Team Maglia d'Oro
-                    </div>
-                    <div>Ciao! Benvenuto su Maglia d'Oro. Come possiamo aiutarti oggi? Scrivici per informazioni su maglie, taglie, ordini o convenzioni tornei.</div>
-                    <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">Inizio chat</div>
-                </div>
-            `;
-
-            messages.forEach(msg => {
-                const isClient = msg.sender === 'client';
-                const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                
-                let allegatoHtml = '';
-                if (msg.attachment_url) {
-                    if (msg.attachment_type === 'pdf' || (msg.attachment_url && msg.attachment_url.toLowerCase().endsWith('.pdf'))) {
-                        allegatoHtml = `
-                            <div style="margin-top: 6px;">
-                                <a href="${msg.attachment_url}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; font-size: 11px; text-decoration: none; font-weight: bold;">
-                                    <span>📄</span> Documento PDF
-                                </a>
-                            </div>
-                        `;
-                    } else {
-                        allegatoHtml = `
-                            <div style="margin-top: 6px;">
-                                <a href="${msg.attachment_url}" target="_blank" rel="noopener noreferrer">
-                                    <img src="${msg.attachment_url}" alt="Allegato" style="max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); object-fit: cover;">
-                                </a>
-                            </div>
-                        `;
-                    }
-                }
-
-                const msgText = msg.message ? String(msg.message).replace(/\n/g, '<br>') : '';
-
-                if (isClient) {
-                    html += `
-                        <div class="chat-bubble-msg chat-bubble-client">
-                            <div>${msgText}</div>
-                            ${allegatoHtml}
-                            <div style="font-size: 9.5px; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px;">${timeStr}</div>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div class="chat-bubble-msg chat-bubble-admin">
-                            <div style="font-size: 10.5px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
-                                <span class="material-icons" style="font-size: 12px;">verified</span> Supporto Maglia d'Oro
-                            </div>
-                            <div>${msgText}</div>
-                            ${allegatoHtml}
-                            <div style="font-size: 9.5px; color: rgba(255,255,255,0.4); text-align: right; margin-top: 4px;">${timeStr}</div>
-                        </div>
-                    `;
-                }
-            });
-
-            const isNearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 120;
-            stream.innerHTML = html;
-            if (isNearBottom || messages.length !== customerChatUltimoMessageCount) {
-                stream.scrollTop = stream.scrollHeight;
-            }
-            customerChatUltimoMessageCount = messages.length;
-        }
-
-        async function inviaMessaggioCustomer() {
-            const inputEl = document.getElementById('customer-chat-input');
-            if (!inputEl) return;
-            const testo = inputEl.value.trim();
-            if (!testo && !customerChatAllegatoCorrente) return;
-
-            const ident = getCustomerChatIdentity();
-            const payload = {
-                user_id: ident.userId,
-                nome: ident.nome,
-                email: ident.email,
-                message: testo,
-                attachment_url: customerChatAllegatoCorrente ? customerChatAllegatoCorrente.url : null,
-                attachment_type: customerChatAllegatoCorrente ? customerChatAllegatoCorrente.type : null
-            };
-
-            inputEl.value = '';
-            rimuoviAllegatoCustomer();
-
-            try {
-                const res = await fetch('/api/chat/send-message', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    await caricaMessaggiCustomer(false);
-                    const stream = document.getElementById('customer-chat-stream');
-                    if (stream) stream.scrollTop = stream.scrollHeight;
-                }
-            } catch(err) {
-                console.error("Errore invio messaggio customer:", err);
-            }
-        }
-
-        async function gestisciAllegatoCustomer(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const isPdf = file.type === 'application/pdf';
-            const isImage = file.type.startsWith('image/');
-            if (!isPdf && !isImage) {
-                alert("Carica solo immagini o documenti PDF.");
-                input.value = '';
-                return;
-            }
-
-            const previewBox = document.getElementById('customer-chat-preview-allegato');
-            const nameEl = document.getElementById('customer-chat-allegato-nome');
-            const iconEl = document.getElementById('customer-chat-allegato-icon');
-            if (previewBox) previewBox.style.display = 'flex';
-            if (nameEl) nameEl.innerText = "Caricamento in corso...";
-            if (iconEl) iconEl.innerText = "⏳";
-
-            try {
-                let base64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = () => resolve('');
-                    reader.readAsDataURL(file);
-                });
-
-                if (!base64) throw new Error("Lettura file fallita");
-
-                const res = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename: file.name, base64 })
-                });
-                const data = await res.json();
-                if (data.success && (data.url || data.filePath)) {
-                    const fileUrl = data.url || data.filePath;
-                    customerChatAllegatoCorrente = {
-                        url: fileUrl,
-                        type: isPdf ? 'pdf' : 'image',
-                        name: file.name
-                    };
-                    if (nameEl) nameEl.innerText = file.name;
-                    if (iconEl) iconEl.innerText = isPdf ? "📄" : "🖼️";
-                } else {
-                    throw new Error("Upload fallito");
-                }
-            } catch(err) {
-                console.error("Errore upload allegato customer:", err);
-                alert("Errore durante il caricamento del file.");
-                rimuoviAllegatoCustomer();
-            }
-        }
-
-        function rimuoviAllegatoCustomer() {
-            customerChatAllegatoCorrente = null;
-            const fileInput = document.getElementById('customer-chat-file-input');
-            if (fileInput) fileInput.value = '';
-            const previewBox = document.getElementById('customer-chat-preview-allegato');
-            if (previewBox) previewBox.style.display = 'none';
-        }
-
-        let publicPromoPollingInterval = null;
-
-        async function checkCustomerChatBadge() {
-            if (customerChatIsOpen || document.hidden) return;
-            const ident = getCustomerChatIdentity();
-            try {
-                const res = await fetch('/api/chat/get-or-create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: ident.userId,
-                        nome: ident.nome,
-                        email: ident.email
-                    })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.success && Array.isArray(data.messages)) {
-                        const unreadAdminMsgs = data.messages.filter(m => m.sender === 'admin' && !m.is_read);
-                        const badgeEl = document.getElementById('customer-chat-unread-badge');
-                        if (badgeEl) {
-                            if (unreadAdminMsgs.length > 0) {
-                                badgeEl.innerText = unreadAdminMsgs.length;
-                                badgeEl.style.display = 'flex';
-                            } else {
-                                badgeEl.style.display = 'none';
-                            }
-                        }
-                    }
-                }
-            } catch(e) {}
-        }
-
-        function avviaControlloBadgeCustomer() {
-            if (customerChatBadgeInterval) {
-                clearInterval(customerChatBadgeInterval);
-                customerChatBadgeInterval = null;
-            }
-            if (document.hidden || customerChatIsOpen) return;
-            
-            // Esegui controllo immediato
-            checkCustomerChatBadge();
-
-            // Il controllo badge periodico avverrà ogni 60s (solo se pagina visibile)
-            customerChatBadgeInterval = setInterval(() => {
-                if (!document.hidden && !customerChatIsOpen) {
-                    checkCustomerChatBadge();
-                }
-            }, 60000);
-        }
-
-        function avviaPollingMarketingPromo() {
-            if (publicPromoPollingInterval) {
-                clearInterval(publicPromoPollingInterval);
-                publicPromoPollingInterval = null;
-            }
-            if (document.hidden) return;
-
-            checkAndInitMarketingPromo();
-
-            // Polling per far partire/scadere la promo in tempo reale (ogni 60 secondi con visibilità)
-            publicPromoPollingInterval = setInterval(() => {
-                if (!document.hidden) {
-                    checkAndInitMarketingPromo();
-                }
-            }, 60000);
-        }
-
-        // Gestore singleton Visibility API per Frontend Pubblico
-        if (!window._publicVisibilityListenerAttached) {
-            window._publicVisibilityListenerAttached = true;
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    // Sospendi timer badge
-                    if (customerChatBadgeInterval) {
-                        clearInterval(customerChatBadgeInterval);
-                        customerChatBadgeInterval = null;
-                    }
-                    // Sospendi timer chat attiva
-                    if (customerChatPollingInterval) {
-                        clearInterval(customerChatPollingInterval);
-                        customerChatPollingInterval = null;
-                    }
-                    // Sospendi timer promo
-                    if (publicPromoPollingInterval) {
-                        clearInterval(publicPromoPollingInterval);
-                        publicPromoPollingInterval = null;
-                    }
-                } else {
-                    // Al ritorno visibile:
-                    // 1. Promo: refresh immediato + riavvio timer 60s
-                    avviaPollingMarketingPromo();
-
-                    // 2. Chat attiva o controllo badge
-                    if (customerChatIsOpen) {
-                        caricaMessaggiCustomer(true);
-                        if (customerChatPollingInterval) clearInterval(customerChatPollingInterval);
-                        customerChatPollingInterval = setInterval(() => {
-                            if (customerChatIsOpen && !document.hidden) {
-                                caricaMessaggiCustomer(true);
-                            }
-                        }, 4000);
-                    } else {
-                        avviaControlloBadgeCustomer();
-                    }
-                }
-            });
-        }
-
-        // Global functions export
-        window.apriChatCustomer = apriChatCustomer;
-        window.apriChat = apriChatCustomer;
-        window.chiudiChatCustomer = chiudiChatCustomer;
-        window.toggleChatCustomer = toggleChatCustomer;
-        window.inviaMessaggioCustomer = inviaMessaggioCustomer;
-        window.gestisciAllegatoCustomer = gestisciAllegatoCustomer;
-        window.rimuoviAllegatoCustomer = rimuoviAllegatoCustomer;
-        window.avviaControlloBadgeCustomer = avviaControlloBadgeCustomer;
+        window.apriChatCustomer = function() {};
+        window.apriChat = function() {};
+        window.chiudiChatCustomer = function() {};
+        window.toggleChatCustomer = function() {};
+        window.inviaMessaggioCustomer = function() {};
+        window.gestisciAllegatoCustomer = function() {};
+        window.rimuoviAllegatoCustomer = function() {};
+        window.avviaControlloBadgeCustomer = function() {};
 
         window.onload = async function() {
             if (window._isAdminPickerMode) {
@@ -21817,10 +21553,7 @@ for (const cat in hierarchy) {
             avviaCountdownFittizio();
             aggiornaGraficaCarrello();
 
-            // Inizializza controllo messaggi non letti chat assistenza (60s)
-            if (typeof avviaControlloBadgeCustomer === 'function') {
-                avviaControlloBadgeCustomer();
-            }
+            
 
             // Inizializza marketing promo con gestione visibility (60s)
             if (typeof avviaPollingMarketingPromo === 'function') {
@@ -26747,6 +26480,9 @@ function renderizzaProdottiSquadraConFiltri() {
                     };
                     triggerImg.src = patchImg;
                     triggerImg.alt = patchName;
+                    if (triggerImg.complete && triggerImg.naturalWidth > 0) {
+                        triggerImg.style.display = 'inline-block';
+                    }
                 } else {
                     triggerImg.removeAttribute('src');
                     triggerImg.alt = '';
@@ -28214,10 +27950,12 @@ function renderizzaProdottiSquadraConFiltri() {
         }
 
         async function processaAcquistoDatabase() {
+            if (window._isSubmittingOrderProcess) return;
             if (carrello.length === 0) {
                 if (window.mostraToastPremium) window.mostraToastPremium("Il carrello è vuoto!", "error");
                 return;
             }
+            window._isSubmittingOrderProcess = true;
 
             const isConv = Boolean(window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid);
             let nome = '';
@@ -28308,8 +28046,34 @@ function renderizzaProdottiSquadraConFiltri() {
                 btn.innerText = "Invio in corso...";
             }
 
+            if (!window.currentCheckoutIdempotencyKey) {
+                window.currentCheckoutIdempotencyKey = 'idemp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+            }
+
+            if (sessioneUtente) {
+                try {
+                    const client = await getCustomerSupabaseClient();
+                    if (client) {
+                        const { data: sessionData } = await client.auth.getSession();
+                        if (sessionData && sessionData.session) {
+                            sessioneUtente.access_token = sessionData.session.access_token;
+                            if (sessionData.session.user) {
+                                sessioneUtente.id = sessionData.session.user.id;
+                            }
+                            window.sessioneUtente = sessioneUtente;
+                            try {
+                                localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                            } catch(e){}
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Refresh sessione prima dell'ordine:", e);
+                }
+            }
+
             try {
                 const payload = {
+                    idempotency_key: window.currentCheckoutIdempotencyKey,
                     nome: nome,
                     telefono: tel,
                     capitano_nome: capitanoNomeVal,
@@ -28336,6 +28100,7 @@ function renderizzaProdottiSquadraConFiltri() {
 
                 const data = await res.json();
                 if (data.success) {
+                    window.currentCheckoutIdempotencyKey = null;
                     // RESET COMPLETO MODALITÀ FORNITURA TORNEO DOPO ORDINE INVIATO CON SUCCESSO
                     window.fornituraTorneoAttiva = null;
                     try {
@@ -28367,12 +28132,11 @@ function renderizzaProdottiSquadraConFiltri() {
                         renderizzaCatalogoAccessori();
                     }
 
-                    if (window.mostraToastPremium) {
-                        if (data.is_aggregated) {
-                            window.mostraToastPremium("Completini aggiunti con successo all'ordine del Torneo!", "success");
-                        } else {
-                            window.mostraToastPremium("Ordine inviato con successo!", "success");
-                        }
+                    const orderId = data.order_id || (data.order && data.order.id) || (data.order && data.order.numero_ordine) || (data.payment_id ? ('TORNEO-' + data.payment_id) : null);
+                    if (typeof window.apriConfermaOrdinePopup === 'function') {
+                        window.apriConfermaOrdinePopup(orderId);
+                    } else if (window.mostraToastPremium) {
+                        window.mostraToastPremium("Ordine inviato con successo!", "success");
                     }
 
                     if (sessioneUtente && typeof window.sincronizzaOrdiniCliente === 'function') {
@@ -28390,6 +28154,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     window.mostraToastPremium("Errore di connessione. Riprova più tardi.", "error");
                 }
             } finally {
+                window._isSubmittingOrderProcess = false;
                 if (btn) {
                     btn.disabled = false;
                     btn.innerText = (window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid) ? "Invia Ordine Torneo" : "Invia Ordine";
@@ -28502,6 +28267,20 @@ function renderizzaProdottiSquadraConFiltri() {
                                 storageKey: 'sb-customer-auth-token'
                             }
                         });
+                        try {
+                            _customerSupabaseClient.auth.onAuthStateChange((event, session) => {
+                                if (session && session.user && session.access_token) {
+                                    if (sessioneUtente && (sessioneUtente.id === session.user.id || !sessioneUtente.id)) {
+                                        sessioneUtente.access_token = session.access_token;
+                                        sessioneUtente.id = session.user.id;
+                                        window.sessioneUtente = sessioneUtente;
+                                        try {
+                                            localStorage.setItem('maglia_doro_user_session', JSON.stringify(sessioneUtente));
+                                        } catch(e){}
+                                    }
+                                }
+                            });
+                        } catch(e){}
                         return _customerSupabaseClient;
                     }
                 } catch (err) {
@@ -29467,38 +29246,60 @@ function renderizzaProdottiSquadraConFiltri() {
             const nome = (document.getElementById('ac-input-nome')?.value || '').trim();
             const cognome = (document.getElementById('ac-input-cognome')?.value || '').trim();
             const telefono = (document.getElementById('ac-input-telefono')?.value || '').trim();
-            const newPassword = (document.getElementById('ac-input-password')?.value || '').trim();
+            const newPassword = document.getElementById('ac-input-password')?.value || '';
+
+            if (newPassword && newPassword.length < 6) {
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium("La nuova password deve contenere almeno 6 caratteri.", "error");
+                } else {
+                    alert("La nuova password deve contenere almeno 6 caratteri.");
+                }
+                return;
+            }
 
             try {
                 const client = await getCustomerSupabaseClient();
-                const fullName = `${nome} ${cognome}`.trim() || sessioneUtente.nome_completo;
-                
-                if (client) {
-                    const updates = {
-                        data: {
-                            full_name: fullName,
-                            nome: nome,
-                            cognome: cognome,
-                            phone: telefono,
-                            telefono: telefono
-                        }
-                    };
-                    if (newPassword && newPassword.length >= 6) {
-                        updates.password = newPassword;
-                    }
-                    await client.auth.updateUser(updates);
-
-                    try {
-                        await client.from('profiles').upsert({
-                            id: sessioneUtente.id,
-                            nome: nome,
-                            cognome: cognome,
-                            email: sessioneUtente.email,
-                            telefono: telefono,
-                            updated_at: new Date().toISOString()
-                        });
-                    } catch (ignore) {}
+                if (!client) {
+                    throw new Error("Impossibile connettersi al servizio di autenticazione Supabase.");
                 }
+
+                // Verifica che esista una sessione di autenticazione attiva
+                const { data: { session: activeSession } = {}, error: sessionError } = await client.auth.getSession();
+                if (sessionError || !activeSession) {
+                    throw new Error("Sessione di autenticazione non attiva o scaduta. Effettua nuovamente l'accesso prima di modificare la password.");
+                }
+
+                const fullName = `${nome} ${cognome}`.trim() || sessioneUtente.nome_completo;
+                const updates = {
+                    data: {
+                        full_name: fullName,
+                        nome: nome,
+                        cognome: cognome,
+                        phone: telefono,
+                        telefono: telefono
+                    }
+                };
+                if (newPassword && newPassword.length >= 6) {
+                    updates.password = newPassword;
+                }
+
+                // Esegui l'aggiornamento e controlla esplicitamente la presenza di errori restituiti da Supabase Auth
+                const { data: updateData, error: updateError } = await client.auth.updateUser(updates);
+                if (updateError) {
+                    console.error("Errore updateUser Supabase Auth:", updateError);
+                    throw new Error(updateError.message || "Impossibile aggiornare la password su Supabase Auth.");
+                }
+
+                try {
+                    await client.from('profiles').upsert({
+                        id: sessioneUtente.id,
+                        nome: nome,
+                        cognome: cognome,
+                        email: sessioneUtente.email,
+                        telefono: telefono,
+                        updated_at: new Date().toISOString()
+                    });
+                } catch (ignore) {}
 
                 sessioneUtente.nome_completo = fullName;
                 if (!sessioneUtente.user_metadata) sessioneUtente.user_metadata = {};
@@ -29514,10 +29315,17 @@ function renderizzaProdottiSquadraConFiltri() {
                 const pwdInput = document.getElementById('ac-input-password');
                 if (pwdInput) pwdInput.value = '';
 
-                mostraToastPremium("Profilo aggiornato con successo!", "success");
+                const successMsg = newPassword ? "Profilo e nuova password aggiornati con successo!" : "Profilo aggiornato con successo!";
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium(successMsg, "success");
+                }
             } catch (err) {
                 console.error("Errore salvataggio profilo:", err);
-                mostraToastPremium(err.message || "Errore durante l'aggiornamento del profilo.", "error");
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium(err.message || "Errore durante l'aggiornamento del profilo.", "error");
+                } else {
+                    alert(err.message || "Errore durante l'aggiornamento del profilo.");
+                }
             }
         }
         window.salvaProfiloCliente = salvaProfiloCliente;
@@ -29813,5 +29621,181 @@ function renderizzaProdottiSquadraConFiltri() {
             });
         }
     </script>
+
+    <script>
+        /* MAGLIA D'ORO - POPUP INFORMATIVO DI BENVENUTO (STEP 1) */
+        function ottieniTipoNavigazione() {
+            try {
+                const navEntries = performance.getEntriesByType && performance.getEntriesByType('navigation');
+                if (navEntries && navEntries.length > 0) {
+                    return navEntries[0].type; // 'navigate', 'reload', 'back_forward', 'prerender'
+                }
+                if (window.performance && window.performance.navigation) {
+                    const type = window.performance.navigation.type;
+                    if (type === 1) return 'reload';
+                    if (type === 2) return 'back_forward';
+                    return 'navigate';
+                }
+            } catch (e) {
+                console.warn("Errore lettura Performance Navigation API:", e);
+            }
+            return 'navigate';
+        }
+
+        // Se l'ingresso al sito è una NUOVA VISITA ('navigate'), e non un semplice refresh ('reload') o 'back_forward',
+        // ripristiniamo lo stato per mostrare il popup informativo di benvenuto.
+        const tipoNavigazioneIniziale = ottieniTipoNavigazione();
+        if (tipoNavigazioneIniziale === 'navigate') {
+            try {
+                sessionStorage.removeItem('maglia_welcome_popup_shown');
+            } catch (e) {}
+        }
+
+        function apriWelcomePopup() {
+            try {
+                if (sessionStorage.getItem('maglia_welcome_popup_shown')) return;
+
+                if (window.location.pathname.includes('/admin') || 
+                    window.location.href.includes('/admin') || 
+                    document.querySelector('#admin-root') || 
+                    document.body.classList.contains('is-admin') ||
+                    window._isAdminPickerMode) {
+                    return;
+                }
+
+                if (window.location.hash.includes('checkout') || 
+                    document.querySelector('#modal-checkout[style*="display: flex"], #checkout-view[style*="display: block"], .checkout-step:not([style*="display: none"])')) {
+                    return;
+                }
+
+                const modalOverlays = document.querySelectorAll('.modal-personalizza, #modal-checkout, #modal-accessorio-dettaglio, #order-confirm-overlay, #modal-zoom-img, .custom-lightbox');
+                for (let i = 0; i < modalOverlays.length; i++) {
+                    const m = modalOverlays[i];
+                    if (m.id !== 'welcome-popup-overlay' && 
+                        (m.classList.contains('active') || (getComputedStyle(m).display !== 'none' && getComputedStyle(m).visibility !== 'hidden' && m.offsetWidth > 0))) {
+                        return;
+                    }
+                }
+
+                const overlay = document.getElementById('welcome-popup-overlay');
+                if (!overlay) return;
+
+                overlay.style.display = 'flex';
+                void overlay.offsetWidth;
+                overlay.classList.add('active');
+
+                window.addEventListener('keydown', handleWelcomePopupKeydown);
+                overlay.addEventListener('click', handleWelcomePopupBackdropClick);
+
+                const btn = document.getElementById('welcome-popup-btn');
+                if (btn) btn.focus();
+            } catch (e) {
+                console.error("Errore apertura welcome popup:", e);
+            }
+        }
+
+        function chiudiWelcomePopup() {
+            try {
+                sessionStorage.setItem('maglia_welcome_popup_shown', 'true');
+                const overlay = document.getElementById('welcome-popup-overlay');
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 250);
+                }
+                window.removeEventListener('keydown', handleWelcomePopupKeydown);
+            } catch (e) {
+                console.error("Errore chiusura welcome popup:", e);
+            }
+        }
+
+        function handleWelcomePopupKeydown(e) {
+            if (e.key === 'Escape') {
+                chiudiWelcomePopup();
+            }
+        }
+
+        function handleWelcomePopupBackdropClick(e) {
+            if (e.target.id === 'welcome-popup-overlay') {
+                chiudiWelcomePopup();
+            }
+        }
+
+        window.apriWelcomePopup = apriWelcomePopup;
+        window.chiudiWelcomePopup = chiudiWelcomePopup;
+
+        if (document.readyState === 'complete') {
+            setTimeout(apriWelcomePopup, 1500);
+        } else {
+            window.addEventListener('load', () => {
+                setTimeout(apriWelcomePopup, 1500);
+            });
+        }
+    </script>
+
+
+    <script>
+        /* MAGLIA D'ORO - POPUP CONFERMA ORDINE (STEP 2) */
+        function apriConfermaOrdinePopup(numOrdine = null) {
+            try {
+                const overlay = document.getElementById('order-confirm-overlay');
+                if (!overlay) return;
+
+                const numWrapper = document.getElementById('order-confirm-numero-wrapper');
+                const numText = document.getElementById('order-confirm-numero-text');
+                
+                if (numOrdine && numWrapper && numText) {
+                    numText.innerText = 'Ordine #' + String(numOrdine).replace(/^#/, '');
+                    numWrapper.style.display = 'block';
+                } else if (numWrapper) {
+                    numWrapper.style.display = 'none';
+                }
+
+                overlay.style.display = 'flex';
+                void overlay.offsetWidth;
+                overlay.classList.add('active');
+
+                window.addEventListener('keydown', handleOrderConfirmKeydown);
+                overlay.addEventListener('click', handleOrderConfirmBackdropClick);
+
+                const btn = document.getElementById('order-confirm-btn');
+                if (btn) btn.focus();
+            } catch (e) {
+                console.error("Errore apertura conferma ordine popup:", e);
+            }
+        }
+
+        function chiudiConfermaOrdinePopup() {
+            try {
+                const overlay = document.getElementById('order-confirm-overlay');
+                if (overlay) {
+                    overlay.classList.remove('active');
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 250);
+                }
+                window.removeEventListener('keydown', handleOrderConfirmKeydown);
+            } catch (e) {
+                console.error("Errore chiusura conferma ordine popup:", e);
+            }
+        }
+
+        function handleOrderConfirmKeydown(e) {
+            if (e.key === 'Escape') {
+                chiudiConfermaOrdinePopup();
+            }
+        }
+
+        function handleOrderConfirmBackdropClick(e) {
+            if (e.target.id === 'order-confirm-overlay') {
+                chiudiConfermaOrdinePopup();
+            }
+        }
+
+        window.apriConfermaOrdinePopup = apriConfermaOrdinePopup;
+        window.chiudiConfermaOrdinePopup = chiudiConfermaOrdinePopup;
+    </script>
+
 </body>
 </html>

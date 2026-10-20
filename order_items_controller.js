@@ -7,6 +7,7 @@ const __dirname = path.dirname(__filename);
 
 export function setupItemEndpoints(app, helpers) {
   const {
+    adminAuthMiddleware,
     getDbOrders,
     getDbOrdersMerged,
     getDbLotti,
@@ -209,7 +210,7 @@ export function setupItemEndpoints(app, helpers) {
   }
 
   // POST /api/admin/orders/:id/items/update - Modifica un singolo articolo dell'ordine
-  app.post('/api/admin/orders/:id/items/update', async (req, res) => {
+  app.post('/api/admin/orders/:id/items/update', adminAuthMiddleware, async (req, res) => {
     try {
       const orderId = Number(req.params.id);
       const { item_index, item_id, taglia, nome, numero, patch, patches } = req.body;
@@ -317,7 +318,7 @@ export function setupItemEndpoints(app, helpers) {
   });
 
   // POST /api/admin/orders/:id/items/delete - Elimina un singolo articolo dall'ordine
-  app.post('/api/admin/orders/:id/items/delete', async (req, res) => {
+  app.post('/api/admin/orders/:id/items/delete', adminAuthMiddleware, async (req, res) => {
     try {
       const orderId = Number(req.params.id);
       const { item_index, item_id } = req.body;
@@ -395,7 +396,7 @@ export function setupItemEndpoints(app, helpers) {
   });
 
   // POST /api/admin/orders/:id/items/add - Aggiunge un nuovo articolo all'ordine
-  app.post('/api/admin/orders/:id/items/add', async (req, res) => {
+  app.post('/api/admin/orders/:id/items/add', adminAuthMiddleware, async (req, res) => {
     try {
       const orderId = Number(req.params.id);
       const { 

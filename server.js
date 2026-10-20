@@ -114,7 +114,13 @@ async function adminAuthMiddleware(req, res, next) {
   if (!authHeader) return res.status(401).json({ success: false, error: 'Unauthorized: No token provided' });
   const token = authHeader.split(' ')[1];
   
-  const client = getSupabaseAdminClient();
+  // Consenti token service role per chiamate amministrative backend
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY && token === process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    req.user = { email: ADMIN_EMAILS[0], role: 'service_role' };
+    return next();
+  }
+
+  const client = getSupabaseAdminClient() || getSupabaseClient();
   if (!client) return res.status(500).json({ success: false, error: 'Auth service unavailable' });
 
   const { data: { user }, error } = await client.auth.getUser(token);
@@ -127,6 +133,29 @@ async function adminAuthMiddleware(req, res, next) {
   req.user = user;
   next();
 }
+
+async function verifyAdminUser(req) {
+  const authHeader = req.headers ? req.headers.authorization : null;
+  if (!authHeader) return false;
+  const token = authHeader.split(' ')[1];
+  if (!token) return false;
+
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY && token === process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return true;
+  }
+
+  const client = getSupabaseAdminClient() || getSupabaseClient();
+  if (!client) return false;
+
+  try {
+    const { data: { user }, error } = await client.auth.getUser(token);
+    if (error || !user) return false;
+    return ADMIN_EMAILS.includes(user.email.toLowerCase());
+  } catch (err) {
+    return false;
+  }
+}
+
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -1315,6 +1344,7 @@ function parserPersonalizzazione(infoPerso, taglia, item = {}) {
   return {
     nameNumberStr,
     patch: details.patchStr,
+    patches: details.patches || [],
     customizationCostUSD: details.customizationCostUSD
   };
 }
@@ -1942,7 +1972,7 @@ function createFallbackSupplierWorkbook() {
     6,  // T: 28
     14, // U: 数量(quantity)
     24, // V: 名字 号码(name number)
-    16, // W: 臂章(patches)
+    19, // W: 臂章(patches)
     16, // X: 单价(Unit USD)
     16  // Y: 总额(Sum USD)
   ];
@@ -2028,11 +2058,146 @@ async function downloadTemplateIfNeeded() {
   return result;
 }
 
+
+/**
+ * Risolve in modo centralizzato e autorevole i metadati della patch (ID, Nome, Immagine URL):
+ * 1. Snapshot salvato nell'articolo / ordine (priorità assoluta)
+ * 2. Configurazione patch in Gestione Catalogo (settings.patches) tramite patchId
+ * 3. Fallback per nome normalizzato solo con corrispondenza univoca esatta
+ */
+function resolvePatchMetadata(item, cleanPatchName) {
+  let patchId = null;
+  let imageUrl = null;
+  let resolvedName = cleanPatchName || "";
+
+  // 1. Snapshot URL o ID salvato nell'articolo / ordine (priorità assoluta)
+  if (item && typeof item === 'object') {
+    imageUrl = item.patchImageUrl || item.patch_image_url || item.patch_immagine || item.patchSnapshotUrl ||
+               item.personalizzazione?.patchImageUrl || item.personalizzazione?.patch_image_url || item.personalizzazione?.patch_immagine || null;
+    patchId = item.patch_id || item.patchId || item.personalizzazione?.patch_id || item.personalizzazione?.patchId || (item.patch && item.patch.id ? item.patch.id : null);
+    if (!resolvedName) {
+      resolvedName = item.patch || item.customPatch || (typeof item.personalizzazione === 'string' ? item.personalizzazione : item.personalizzazione?.patch) || "";
+    }
+  }
+
+  const raw = item?.rawItem;
+  if (raw && typeof raw === 'object') {
+    imageUrl = imageUrl || raw.patchImageUrl || raw.patch_image_url || raw.patch_immagine || raw.patchSnapshotUrl ||
+               raw.personalizzazione?.patchImageUrl || raw.personalizzazione?.patch_image_url || raw.personalizzazione?.patch_immagine || null;
+    patchId = patchId || raw.patch_id || raw.patchId || raw.personalizzazione?.patch_id || raw.personalizzazione?.patchId || (raw.patch && raw.patch.id ? raw.patch.id : null);
+    if (!resolvedName) {
+      resolvedName = raw.patch || raw.customPatch || (typeof raw.personalizzazione === 'string' ? raw.personalizzazione : raw.personalizzazione?.patch) || "";
+    }
+  }
+
+  let settings = null;
+  try {
+    settings = typeof getSettings === 'function' ? getSettings() : null;
+  } catch (e) {}
+  const patchList = (settings && Array.isArray(settings.patches)) ? settings.patches : [];
+
+  // 2. Se abbiamo patchId, cerca nei settings di Gestione Catalogo tramite ID
+  if (patchId) {
+    const targetIdStr = String(patchId).trim();
+    const found = patchList.find(p => String(p.id || p.patchId || '').trim() === targetIdStr);
+    if (found) {
+      if (!resolvedName) resolvedName = found.nome || found.name || resolvedName;
+      if (!imageUrl) {
+        imageUrl = found.immagine || found.image || found.imageUrl || found.url || null;
+      }
+    }
+  }
+
+  // 3. Fallback per nome normalizzato (SOLO se ID manca o non ha immagine e la corrispondenza è univoca)
+  // Non trattare "Altra Patch" o note libere come patch standard
+  if ((!patchId || !imageUrl) && cleanPatchName) {
+    const cleanTarget = String(cleanPatchName).trim().replace(/^[A-Z0-9#]+:\s*/i, '').trim();
+    if (/^altra\s*patch/i.test(cleanTarget)) {
+      return {
+        patchId: null,
+        patchName: cleanPatchName,
+        imageUrl: null
+      };
+    }
+
+    const targetNorm = typeof normalizzaStringaMatching === 'function' 
+      ? normalizzaStringaMatching(cleanTarget) 
+      : cleanTarget.toLowerCase();
+
+    if (targetNorm) {
+      const matches = patchList.filter(p => {
+        const pNorm = typeof normalizzaStringaMatching === 'function'
+          ? normalizzaStringaMatching(p.nome || p.name || p.text || '')
+          : String(p.nome || p.name || p.text || '').toLowerCase().trim();
+        return pNorm && pNorm === targetNorm;
+      });
+
+      if (matches.length === 1) {
+        const matched = matches[0];
+        if (!patchId) patchId = matched.id || matched.patchId;
+        if (!imageUrl) imageUrl = matched.immagine || matched.image || matched.imageUrl || matched.url || null;
+        if (!resolvedName) resolvedName = matched.nome || matched.name;
+      }
+    }
+  }
+
+  return {
+    patchId: patchId ? String(patchId).trim() : null,
+    patchName: resolvedName,
+    imageUrl: imageUrl ? String(imageUrl).replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim() : null
+  };
+}
+
+async function getPatchImageBuffer(patchId, patchName, snapshotUrl) {
+  try {
+    let resolvedUrl = "";
+
+    // 1. Snapshot URL esplicito passato come parametro
+    if (snapshotUrl && typeof snapshotUrl === 'string' && snapshotUrl.trim().length > 0 && snapshotUrl.trim() !== "undefined") {
+      resolvedUrl = snapshotUrl.trim();
+    }
+
+    // 2. Se manca, risolvi tramite metadata (ID catalogo o nome univoco)
+    if (!resolvedUrl) {
+      const meta = resolvePatchMetadata({ patch_id: patchId, patchImageUrl: snapshotUrl }, patchName);
+      if (meta && meta.imageUrl) {
+        resolvedUrl = meta.imageUrl;
+      }
+    }
+
+    // Se patchId è un URL diretto http/https
+    if (!resolvedUrl && patchId && typeof patchId === 'string' && patchId.startsWith('http')) {
+      resolvedUrl = patchId.trim();
+    }
+
+    if (!resolvedUrl) {
+      return null;
+    }
+
+    // Pulisci eventuale wrapper =IMAGE("...")
+    resolvedUrl = resolvedUrl.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
+
+    // Download buffer con downloadImageAsBuffer esistente
+    const rawBuffer = await downloadImageAsBuffer(resolvedUrl);
+    if (!rawBuffer || rawBuffer.length === 0) {
+      return null;
+    }
+
+    // Conversione sempre in PNG standard per ExcelJS
+    const pngBuffer = await sharp(rawBuffer).png().toBuffer();
+    return pngBuffer;
+  } catch (err) {
+    console.error('Error in getPatchImageBuffer:', err.message);
+    return null;
+  }
+}
+
+
 async function downloadImageAsBuffer(rawUrl) {
+
   if (!rawUrl) return null;
   let url = String(rawUrl).trim();
-  // Pulisce formula =IMAGE("...") o apici
-  url = url.replace(/^=IMAGE\(["']?|["']?\)$/gi, '').trim();
+  url = url.replace(/^=IMAGE\((['"]?)(.*?)\1\)$/i, '$2').trim();
   if (!url || url === '-' || url.toLowerCase() === 'undefined' || url.toLowerCase() === 'null') return null;
 
   // 1. Base64 Data URI
@@ -2042,9 +2207,7 @@ async function downloadImageAsBuffer(rawUrl) {
       if (parts.length > 1) {
         return Buffer.from(parts[1], 'base64');
       }
-    } catch (e) {
-      console.warn("Failed to parse base64 image data:", e.message);
-    }
+    } catch (e) {}
     return null;
   }
 
@@ -2065,49 +2228,33 @@ async function downloadImageAsBuffer(rawUrl) {
           return fs.readFileSync(cand);
         }
       }
-    } catch (e) {
-      console.warn("Failed to read local image:", e.message);
-    }
+    } catch (e) {}
   }
 
   if (!url.startsWith('http')) return null;
 
-  let attempts = 0;
-  const maxAttempts = 2;
-  while (attempts < maxAttempts) {
-    attempts++;
-    try {
-      // Rimuove eventuale frammento hash es. #zoom=...
-      const fetchUrl = url.split('#')[0];
-      const res = await fetch(fetchUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15',
-          'Accept': 'image/png,image/jpeg,image/gif,image/webp;q=0.9,*/*;q=0.8'
-        },
-        signal: AbortSignal.timeout(6000)
-      });
-      if (res.ok) {
-        const cType = (res.headers.get('content-type') || '').toLowerCase();
-        if (cType.includes('text/html') || cType.includes('application/json')) {
-          return null;
-        }
-        const arrayBuffer = await res.arrayBuffer();
-        const buf = Buffer.from(arrayBuffer);
-        if (buf.length >= 50 && buf[0] !== 0x3C) { // Non è un file HTML
-          return buf;
-        }
-      } else if (res.status === 429) {
-        // Se è 429, aspetta un po' di più prima di riprovare
-        await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    const fetchUrl = url.split('#')[0];
+    const res = await fetch(fetchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+      },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (res.ok) {
+      const cType = (res.headers.get('content-type') || '').toLowerCase();
+      if (cType.includes('text/html') || cType.includes('application/json') || cType.includes('text/plain')) {
+        return null;
       }
-    } catch (err) {
-      if (attempts >= maxAttempts) {
-        console.warn(`[DOWNLOAD] Fallito download per ${url}: ${err.message}`);
-      } else {
-        // Aspetta un po' prima del retry
-        await new Promise(resolve => setTimeout(resolve, 200));
+      const arrayBuffer = await res.arrayBuffer();
+      const buf = Buffer.from(arrayBuffer);
+      if (buf.length >= 50 && buf[0] !== 0x3C) { // Non è un file HTML
+        return buf;
       }
     }
+  } catch (err) {
+    // Silently return null on any download error or timeout
   }
   return null;
 }
@@ -2210,7 +2357,7 @@ function compileProductFieldsForExcel(normalizedItem) {
   return { titleEng, titleCh, styleEng, isCalz: false };
 }
 
-async function generaExcelLotto(lottoId, orders) {
+async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
   const templateObj = await getOrLoadSupplierTemplateWorkbook();
   if (!templateObj || !templateObj.workbook) {
     throw new Error("Impossibile creare il workbook del fornitore.");
@@ -2275,6 +2422,7 @@ async function generaExcelLotto(lottoId, orders) {
     }
 
     cartItems.forEach(item => {
+      // console.log('DEBUG ITEM:', JSON.stringify(item, null, 2));
       const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
       if (isSpedizioneCliente) return;
 
@@ -2342,6 +2490,11 @@ async function generaExcelLotto(lottoId, orders) {
       const styleEng = getExcelProductStyle(item, matchedProd);
       const shippingMultiplier = getItemShippingMultiplier(item, matchedProd, localAccessories);
 
+      // Recupero e conservazione patch dallo snapshot ordine
+      const itemPatchId = item.patch_id || item.patchId || item.personalizzazione?.patch_id || item.personalizzazione?.patchId || null;
+      const itemPatchName = item.patch || item.customPatch || (typeof item.personalizzazione === 'string' ? null : item.personalizzazione?.patch) || null;
+      const itemPatchImg = item.patchImageUrl || item.patch_image_url || item.patch_immagine || item.personalizzazione?.patchImageUrl || item.personalizzazione?.patch_image_url || null;
+
       const normalized = {
         productId: matchedProd ? matchedProd.id : (item.id || "UNREGISTERED_ITEM"),
         orderData: order.data,
@@ -2362,7 +2515,11 @@ async function generaExcelLotto(lottoId, orders) {
         supplierShippingEnabled: shippingMultiplier > 0,
         shippingMultiplier,
         shippingUnits: shippingMultiplier * q,
-        matchedProd
+        matchedProd,
+        patchId: itemPatchId,
+        patchName: itemPatchName,
+        patchImageUrl: itemPatchImg,
+        rawItem: item
       };
 
       // VALIDAZIONE RIGIDA PRE-SCRITTURA
@@ -2377,21 +2534,33 @@ async function generaExcelLotto(lottoId, orders) {
 
   console.log(`[GENERA EXCEL] Compilazione normalizzata di ${normalizedItems.length} articoli per il Lotto #${lottoId}`);
 
-  // 2. RAGGRUPPAMENTO ARTICOLI PER EXCEL: STESSO PRODOTTO -> UNA SOLA RIGA
+  // 2. RAGGRUPPAMENTO ARTICOLI PER EXCEL: STESSO PRODOTTO E STESSA CONFIGURAZIONE PATCH -> UNA SOLA RIGA
   const groupMap = new Map();
 
   normalizedItems.forEach(item => {
     const isCalz = isAccessoryOrSocks(item);
-    let groupKey = "";
+    let baseGroupKey = "";
     if (item.productId && String(item.productId).trim() !== "" && String(item.productId) !== "UNREGISTERED_ITEM") {
-      groupKey = `prod_${String(item.productId).trim()}`;
+      baseGroupKey = `prod_${String(item.productId).trim()}`;
     } else if (item.matchedProd && item.matchedProd.id) {
-      groupKey = `prod_${String(item.matchedProd.id).trim()}`;
+      baseGroupKey = `prod_${String(item.matchedProd.id).trim()}`;
     } else if (item.matchedProd && item.matchedProd.legacy_id !== undefined && item.matchedProd.legacy_id !== null) {
-      groupKey = `legacy_${String(item.matchedProd.legacy_id).trim()}`;
+      baseGroupKey = `legacy_${String(item.matchedProd.legacy_id).trim()}`;
     } else {
-      groupKey = `custom_${item.squadra}_${item.categoria}_${item.season}_${item.style}_${isCalz ? 'calz' : 'shirt'}`.toLowerCase();
+      baseGroupKey = `custom_${item.squadra}_${item.categoria}_${item.season}_${item.style}_${isCalz ? 'calz' : 'shirt'}`.toLowerCase();
     }
+
+    const parsedPerso = isCalz ? { nameNumberStr: '', patches: [], patch: null } : parserPersonalizzazione(item.infoPerso, item.taglia, item);
+    const patchArray = (Array.isArray(parsedPerso.patches) && parsedPerso.patches.length > 0)
+      ? parsedPerso.patches
+      : (parsedPerso.patch && String(parsedPerso.patch).trim() ? [String(parsedPerso.patch).trim()] : []);
+
+    const sortedPatches = patchArray
+      .map(p => normalizzaStringaMatching(String(p).trim().replace(/^[A-Z0-9#]+:\s*/i, '')))
+      .filter(Boolean)
+      .sort();
+    const patchSignature = sortedPatches.length > 0 ? sortedPatches.join('|') : 'nopatch';
+    const groupKey = `${baseGroupKey}__patch_${patchSignature}`;
 
     if (!groupMap.has(groupKey)) {
       groupMap.set(groupKey, {
@@ -2428,7 +2597,7 @@ async function generaExcelLotto(lottoId, orders) {
     }
 
     if (!isCalz) {
-      const { nameNumberStr, patch } = parserPersonalizzazione(item.infoPerso, item.taglia, item);
+      const nameNumberStr = parsedPerso.nameNumberStr;
       if (nameNumberStr && nameNumberStr.trim()) {
         const cleanInner = nameNumberStr.trim().replace(/^[A-Z0-9#]+\s*\(/i, '(');
         const prefix = s ? `${s}: ` : '';
@@ -2437,25 +2606,57 @@ async function generaExcelLotto(lottoId, orders) {
           : `${prefix}${cleanInner}`;
         group.nameNumberLines.push(line);
       }
-      if (patch && patch.trim()) {
-        const cleanPatch = patch.trim().replace(/^[A-Z0-9#]+:\s*/i, '');
-        const line = (q > 1)
-          ? `${q}x ${cleanPatch}`
-          : cleanPatch;
-        group.patchLines.push(line);
-      }
+
+      patchArray.forEach(pSingle => {
+        const cleanPatch = String(pSingle).trim().replace(/^[A-Z0-9#]+:\s*/i, '');
+        if (!cleanPatch) return;
+        
+        // Risoluzione robusta dei metadati patch tramite snapshot o catalogo
+        const resolved = resolvePatchMetadata(item, cleanPatch);
+        const cacheKey = resolved.imageUrl 
+          ? `patch_url_${resolved.imageUrl}`
+          : (resolved.patchId ? `patch_id_${resolved.patchId}` : `patch_name_${normalizzaStringaMatching(cleanPatch)}`);
+
+        if (!group.patchLines.some(pl => pl.cacheKey === cacheKey)) {
+          group.patchLines.push({
+              text: cleanPatch,
+              patchId: resolved.patchId,
+              patchName: resolved.patchName || cleanPatch,
+              imageUrl: resolved.imageUrl,
+              cacheKey: cacheKey
+          });
+        }
+      });
+    }
+  });
+
+  // Aggiorna le descrizioni delle patch nel gruppo riflettendo la quantità totale del gruppo se > 1
+  groupMap.forEach(group => {
+    if (group.patchLines && group.patchLines.length > 0) {
+      group.patchLines = group.patchLines.map(pl => {
+        const line = group.quantity > 1 ? `${group.quantity}x ${pl.patchName || pl.text}` : pl.text;
+        return { ...pl, text: line };
+      });
     }
   });
 
   const aggregatedItems = Array.from(groupMap.values());
   console.log(`[GENERA EXCEL] Aggregazione completata: ${normalizedItems.length} articoli raggruppati in ${aggregatedItems.length} righe per il Lotto #${lottoId}`);
 
-  // Download parallelo delle immagini uniche con cache e limite di concorrenza
+  // Download parallelo delle immagini uniche (PRODOTTO + PATCHES)
   const uniqueUrls = new Set();
+  const patchPreloadMap = new Map();
+
   aggregatedItems.forEach(item => {
     if (item.imageUrl && typeof item.imageUrl === 'string' && item.imageUrl.trim().length > 0) {
       uniqueUrls.add(item.imageUrl.trim());
     }
+    // Aggiungi anche le immagini delle patch
+    (item.patchLines || []).forEach(pLine => {
+      if (pLine && pLine.cacheKey) {
+        patchPreloadMap.set(pLine.cacheKey, pLine);
+      }
+    });
   });
 
   const imageCache = new Map();
@@ -2463,11 +2664,26 @@ async function generaExcelLotto(lottoId, orders) {
   const concurrencyLimit = 5;
   for (let i = 0; i < urlList.length; i += concurrencyLimit) {
     const chunk = urlList.slice(i, i + concurrencyLimit);
-    await Promise.all(chunk.map(async (url) => {
-      const buf = await downloadImageAsBuffer(url);
-      if (buf) imageCache.set(url, buf);
+    await Promise.all(chunk.map(async (key) => {
+      const buf = await downloadImageAsBuffer(key);
+      if (buf) imageCache.set(key, buf);
     }));
   }
+
+  // Preload patch images
+  const patchEntries = Array.from(patchPreloadMap.entries());
+  for (let i = 0; i < patchEntries.length; i += concurrencyLimit) {
+    const chunk = patchEntries.slice(i, i + concurrencyLimit);
+    await Promise.all(chunk.map(async ([cacheKey, pInfo]) => {
+      const buf = await getPatchImageBuffer(pInfo.patchId, pInfo.patchName, pInfo.imageUrl);
+      if (buf) {
+        imageCache.set(cacheKey, buf);
+      } else {
+        console.warn(`[GENERA EXCEL] Nessun buffer generato per patch: ${pInfo.patchName} (ID: ${pInfo.patchId})`);
+      }
+    }));
+  }
+
 
   // Forziamo la larghezza della colonna immagine (colonna A/1) a 16 per contenere l'immagine ridotta del 20%
   worksheet.getColumn(1).width = 16;
@@ -2495,7 +2711,13 @@ async function generaExcelLotto(lottoId, orders) {
 
     // Col A (1): Immagine incorporata realmente nel workbook (104x104px)
     const lineCount = Math.max(1, item.nameNumberLines?.length || 0, item.patchLines?.length || 0);
-    row.height = Math.max(88, 20 + lineCount * 18);
+    const patchCount = (item.patchLines || []).length;
+    const hasAnyPatchImg = (item.patchLines || []).some(p => {
+      const cacheKey = p && p.cacheKey ? p.cacheKey : (p.imageUrl ? `patch_url_${p.imageUrl}` : `patch_id_${p.patchId}`);
+      return imageCache.has(cacheKey);
+    });
+    const minHeightForPatches = hasAnyPatchImg ? Math.max(88, 38 + patchCount * 46) : 88;
+    row.height = Math.max(minHeightForPatches, 20 + lineCount * 18);
     const imgUrl = item.imageUrl;
     row.getCell(1).value = "";
     if (imgUrl) {
@@ -2559,11 +2781,54 @@ async function generaExcelLotto(lottoId, orders) {
     row.getCell(21).value = item.quantity;                // Col U (21): 数量(quantity)
     row.getCell(22).value = isCalz ? "" : (item.nameNumberLines?.join('\n') || "");  // Col V (22): 名字 号码(name number)
     row.getCell(22).alignment = { vertical: 'middle', wrapText: true };
-    row.getCell(23).value = isCalz ? "" : (item.patchLines?.join('\n') || "");        // Col W (23): 臂章(patches)
-    row.getCell(23).alignment = { vertical: 'middle', wrapText: true };
     
-    // Col X (24): Unit USD (PREZZO FORNITORE REALE BASE UNITARIO IN USD)
-    row.getCell(24).value = item.supplierBasePriceUSD;
+    // Col W (23): 臂章(patches)
+    const patchTexts = [];
+    let hasAnyPatchImage = false;
+    // Aumento del 30% rispetto alle dimensioni precedenti di 34x34 px: circa 44.2x44.2 px
+    const pImgSize = 44.2;
+    (item.patchLines || []).forEach((pLine, index) => {
+        const textVal = typeof pLine === 'object' ? pLine.text : pLine;
+        if (textVal) patchTexts.push(textVal);
+
+        const cacheKey = pLine && pLine.cacheKey ? pLine.cacheKey : (pLine.imageUrl ? `patch_url_${pLine.imageUrl}` : `patch_id_${pLine.patchId}`);
+        const imgBuffer = imageCache.get(cacheKey);
+        if (imgBuffer) {
+            hasAnyPatchImage = true;
+            try {
+                const imageId = workbook.addImage({
+                    buffer: imgBuffer,
+                    extension: 'png'
+                });
+                // Inserimento miniatura maggiorata del 30% (44.2x44.2 px) nella Colonna W (indice 22 zero-based)
+                // Cella larga 19 (~142px), riga alta almeno 88pt (~117px).
+                // Con 1 patch: miniatura 44.2x44.2px posizionata in alto a centro-colonna
+                // Con più patch: impilate verticalmente con offset
+                const topRowOffset = (item.patchLines.length === 1)
+                    ? 0.08
+                    : (0.05 + index * 0.35);
+
+                worksheet.addImage(imageId, {
+                    tl: { col: 22.30, row: (currentRowNum - 1) + topRowOffset },
+                    ext: { width: pImgSize, height: pImgSize },
+                    editAs: 'oneCell'
+                });
+            } catch (e) {
+                console.error("Errore inserimento immagine patch in Excel:", e);
+            }
+        }
+    });
+    row.getCell(23).value = isCalz ? "" : patchTexts.join('\n');
+    row.getCell(23).alignment = { 
+      vertical: hasAnyPatchImage ? 'bottom' : 'middle', 
+      horizontal: 'center', 
+      wrapText: true 
+    };
+
+    
+    // Col X (24): Unit USD (PREZZO FORNITORE REALE UNITARIO IN USD COMPRENSIVO DI PERSONALIZZAZIONI)
+    const unitPriceUSD = item.quantity > 0 ? Number((item.supplierTotalPriceUSD / item.quantity).toFixed(2)) : (item.supplierBasePriceUSD || 0);
+    row.getCell(24).value = unitPriceUSD;
     row.getCell(24).numFmt = '#,##0.00';
 
     // Col Y (25): Sum USD (PREZZO FORNITORE TOTALE RIGA IN USD COMPRENSIVO DI PERSONALIZZAZIONI)
@@ -2644,7 +2909,7 @@ async function generaExcelLotto(lottoId, orders) {
   }
 
   const outputFilename = `LOTTO_${String(lottoId).padStart(4, '0')}.xlsx`;
-  const outputPath = path.join(lottiDir, outputFilename);
+  const outputPath = customOutputPath || path.join(lottiDir, outputFilename);
   await workbook.xlsx.writeFile(outputPath);
 
   // Normalizzazione DrawingML per piena compatibilità con Apple Quick Look / WhatsApp iOS e PC
@@ -2652,7 +2917,7 @@ async function generaExcelLotto(lottoId, orders) {
 
   console.log(`✅ Excel generato con successo in: ${outputPath} | Pezzi: ${totalQuantityPcs} | Totale Articoli: $${totalItemsSupplierPriceUSD} | Spedizione: $${totShippingUSD} | Totale Fornitore: $${grandTotalUSD}`);
 
-  return `/lotti/${outputFilename}`;
+  return customOutputPath || `/lotti/${outputFilename}`;
 }
 
 /**
@@ -2888,26 +3153,32 @@ async function handleDownloadExcelLotto(req, res, targetLottoId) {
       const allLotti = await getDbLotti();
       const archivedLotto = (allLotti || []).find(l => Number(l.id) === Number(lottoId));
 
-      if (fs.existsSync(filePath)) {
+      if (archivedLotto) {
+        const allOrders = await getDbOrders();
+        const lotOrders = getOrdersForArchivedLotto(archivedLotto, allOrders);
+        console.log(`[EXCEL LOTTO] Generazione on-demand Excel aggiornato con miniature patch per Lotto archiviato #${lottoId} (${lotOrders.length} ordini)`);
+        
+        // Genera in una copia temporanea dedicata per non sovrascrivere il file storico originale
+        const tempDownloadPath = path.join(os.tmpdir(), `LOTTO_${String(lottoId).padStart(4, '0')}_updated_${Date.now()}_${Math.random().toString(36).substring(7)}.xlsx`);
+        await generaExcelLotto(lottoId, lotOrders, tempDownloadPath);
+
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        return res.download(filePath, filename, (err) => {
+        return res.download(tempDownloadPath, filename, (err) => {
+          try {
+            if (fs.existsSync(tempDownloadPath)) fs.unlinkSync(tempDownloadPath);
+          } catch (e) {}
           if (err && !res.headersSent) {
-            console.error(`[EXCEL LOTTO] Errore invio file esistente ${filename}:`, err.message);
+            console.error(`[EXCEL LOTTO] Errore invio file ${filename}:`, err.message);
             res.status(500).json({ success: false, error: err.message });
           }
         });
       }
 
-      if (archivedLotto) {
-        const allOrders = await getDbOrders();
-        const lotOrders = getOrdersForArchivedLotto(archivedLotto, allOrders);
-        console.log(`[EXCEL LOTTO] Generazione Excel per Lotto archiviato #${lottoId} con ${lotOrders.length} ordini`);
-        await generaExcelLotto(lottoId, lotOrders);
-
+      if (fs.existsSync(filePath)) {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         return res.download(filePath, filename, (err) => {
           if (err && !res.headersSent) {
-            console.error(`[EXCEL LOTTO] Errore invio file ${filename}:`, err.message);
+            console.error(`[EXCEL LOTTO] Errore invio file esistente ${filename}:`, err.message);
             res.status(500).json({ success: false, error: err.message });
           }
         });
@@ -2952,6 +3223,10 @@ function getSupabaseAdminClient() {
   if (supabaseAdminClient) return supabaseAdminClient;
 
   const supabaseUrl = process.env.SUPABASE_URL;
+  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY.trim());
+  if (!hasServiceKey) {
+    console.warn("⚠️ [SUPABASE CONFIG WARNING] SUPABASE_SERVICE_ROLE_KEY non è configurata nelle variabili d'ambiente del server. Le tabelle protette da Row Level Security (RLS) come 'tornei' e 'torneo_squadre' potrebbero restituire 0 risultati a causa delle policy RLS.");
+  }
   const adminKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !adminKey) {
@@ -3237,9 +3512,169 @@ function validateProductImageForDatabase(immagine, { isCreation = false, origina
     throw new Error("Salvataggio rifiutato: l'immagine deve essere preventivamente caricata e verificata su Supabase Storage.");
   }
 
-  // 5. Preservazione per record esistenti non modificati
   return clean;
 }
+
+function isSupabaseStoragePatchUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const clean = url.trim().toLowerCase();
+  return clean.includes('.supabase.co/storage/v1/object/public/patches/') || clean.includes('/storage/v1/object/public/patches/');
+}
+
+async function processAndPersistPatchImage({ imageSource, originalUrl = '' }) {
+  if (!imageSource && !originalUrl) {
+    throw new Error("Nessuna sorgente immagine fornita per la patch.");
+  }
+
+  const candidate = (typeof imageSource === 'string' ? imageSource : (originalUrl || '')).trim();
+
+  if (candidate && isSupabaseStoragePatchUrl(candidate)) {
+    return {
+      success: true,
+      publicUrl: candidate,
+      alreadyMigrated: true
+    };
+  }
+
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
+  if (!supabase) {
+    throw new Error("Client Supabase non disponibile sul server per l'upload sul bucket 'patches'.");
+  }
+
+  let rawBuffer = null;
+
+  if (Buffer.isBuffer(imageSource)) {
+    rawBuffer = imageSource;
+  } else if (typeof imageSource === 'string' && imageSource.startsWith('data:')) {
+    const base64Clean = imageSource.replace(/^data:[^;]+;base64,/, '');
+    rawBuffer = Buffer.from(base64Clean, 'base64');
+  } else if (typeof imageSource === 'string' && (imageSource.startsWith('http://') || imageSource.startsWith('https://') || imageSource.startsWith('/uploads/') || imageSource.startsWith('uploads/'))) {
+    if (imageSource.startsWith('/uploads/') || imageSource.startsWith('uploads/')) {
+      const localPath = path.join(__dirname, imageSource.startsWith('/') ? imageSource.slice(1) : imageSource);
+      if (fs.existsSync(localPath)) {
+        rawBuffer = fs.readFileSync(localPath);
+      } else {
+        throw new Error(`File locale non trovato: ${imageSource}`);
+      }
+    } else {
+      const resp = await fetch(imageSource, {
+        headers: { 'user-agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!resp.ok) {
+        throw new Error(`Download immagine fallito con HTTP ${resp.status}`);
+      }
+      const arrayBuf = await resp.arrayBuffer();
+      rawBuffer = Buffer.from(arrayBuf);
+    }
+  } else {
+    throw new Error("Formato sorgente immagine patch non supportato.");
+  }
+
+  if (!rawBuffer || rawBuffer.length > 5 * 1024 * 1024) {
+    throw new Error("Dimensione file non valida o superiore al limite di 5 MB.");
+  }
+
+  const metadata = await validaBufferImmagine(rawBuffer);
+  const format = (metadata?.format || '').toLowerCase();
+  if (!['jpeg', 'png', 'webp'].includes(format)) {
+    throw new Error(`Formato immagine '${format || 'sconosciuto'}' non supportato. Sono ammessi esclusivamente JPEG, PNG e WebP.`);
+  }
+
+  let webpBuffer;
+  try {
+    webpBuffer = await sharp(rawBuffer)
+      .resize(400, 400, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 90 })
+      .toBuffer();
+  } catch (convErr) {
+    throw new Error(`Errore conversione immagine patch in WebP: ${convErr.message}`);
+  }
+
+  const uniqueFilename = `patch_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.webp`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('patches')
+    .upload(uniqueFilename, webpBuffer, {
+      contentType: 'image/webp',
+      upsert: true
+    });
+
+  if (uploadError) {
+    throw new Error(`Errore caricamento su Supabase Storage bucket 'patches': ${uploadError.message}`);
+  }
+
+  const { data: pubData } = supabase.storage.from('patches').getPublicUrl(uniqueFilename);
+  if (!pubData || !pubData.publicUrl) {
+    throw new Error("Impossibile generare l'URL pubblico per la patch su Supabase Storage.");
+  }
+
+  // Verifica connettività/accessibilità pubblica dell'URL
+  try {
+    const checkRes = await fetch(pubData.publicUrl);
+    if (!checkRes.ok) {
+      throw new Error(`Verifica accessibilità fallita per la patch caricata (HTTP ${checkRes.status}).`);
+    }
+  } catch (chkErr) {
+    console.warn("⚠️ Avviso verifica accessibilità URL patch:", chkErr.message);
+  }
+
+  return {
+    success: true,
+    publicUrl: pubData.publicUrl,
+    filename: uniqueFilename
+  };
+}
+
+async function migrateExistingPatchesToSupabaseStorage(settings) {
+  if (!settings || !Array.isArray(settings.patches)) return;
+  const supabase = getSupabaseAdminClient() || getSupabaseClient();
+  if (!supabase) return;
+
+  let modified = false;
+  for (const p of settings.patches) {
+    if (!p) continue;
+    const img = p.immagine || p.image || '';
+    if (img && (img.startsWith('/uploads/') || img.startsWith('uploads/'))) {
+      const localRel = img.startsWith('/') ? img.slice(1) : img;
+      const localPath = path.join(__dirname, localRel);
+      if (fs.existsSync(localPath)) {
+        try {
+          console.log(`[MIGRAZIONE PATCH] Carico patch locale '${p.nome || p.name}' su Supabase Storage bucket 'patches'...`);
+          const fileBuf = fs.readFileSync(localPath);
+          const res = await processAndPersistPatchImage({ imageSource: fileBuf });
+          if (res && res.publicUrl) {
+            p.immagine = res.publicUrl;
+            p.image = res.publicUrl;
+            modified = true;
+            console.log(`✅ Patch '${p.nome || p.name}' migrata con successo a: ${res.publicUrl}`);
+          }
+        } catch (mErr) {
+          console.warn(`⚠️ Migrazione fallita per patch '${p.nome || p.name}':`, mErr.message);
+        }
+      } else {
+        console.warn(`⚠️ File locale non trovato per patch '${p.nome || p.name}': ${localPath}. Aprila e ricarica l'immagine manualmente.`);
+      }
+    }
+  }
+
+  if (modified) {
+    saveSettings(settings);
+    if (supabase) {
+      try {
+        await supabase.from('catalog_settings').upsert({
+          key: 'patches',
+          value: settings.patches,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
+        console.log("✅ Configurazione patch sincronizzata su Supabase catalog_settings.");
+      } catch (dbErr) {
+        console.warn("⚠️ Errore salvataggio catalog_settings dopo migrazione patch:", dbErr.message);
+      }
+    }
+  }
+}
+
 
 // ==========================================
 // IN-MEMORY CACHE PER /api/products & /api/teams (Fase 25)
@@ -3457,6 +3892,15 @@ async function getAllProductsFromSupabase(supabase) {
 // OPERAZIONI DATABASE DUAL-STORAGE (SUPABASE + LOCAL RESILIENCE)
 // ==========================================
 
+function normalizzaStatoPagamento(statusStr) {
+  if (!statusStr) return null;
+  const s = String(statusStr).trim().toLowerCase();
+  if (s === 'pagato' || s === 'paid' || s === 'succeeded' || s === 'completed') return 'Pagato';
+  if (s === 'rimborso' || s === 'refunded') return 'Rimborso';
+  if (s === 'da pagare' || s === 'pending' || s === 'non pagato' || s === 'in attesa di pagamento') return 'Da pagare';
+  return null;
+}
+
 async function getDbOrders() {
   const supabase = getSupabaseClient();
   let dbOrders = [];
@@ -3487,7 +3931,7 @@ async function getDbOrders() {
           "Costo totale (EUR)": o.costo_totale_eur,
           "Profitto (EUR)": o.profitto_eur,
           is_archived: o.is_archived,
-          payment_status: o.payment_status || null,
+          payment_status: normalizzaStatoPagamento(o.payment_status) || null,
           status: o.status || null,
           lotto_id: o.lotto_id,
           carrello: o.carrello,
@@ -3539,13 +3983,27 @@ async function getDbOrders() {
         : ((keyByData && localMap.has(keyByData)) ? localMap.get(keyByData) : null);
 
       if (!existing) {
-        return dbo;
+        return {
+          ...dbo,
+          payment_status: normalizzaStatoPagamento(dbo.payment_status) || 'Da pagare'
+        };
       }
 
       const mergedStatus = dbo.status || existing.status || null;
       const mergedIsArchived = (dbo.is_archived !== undefined && dbo.is_archived !== null) ? dbo.is_archived : existing.is_archived;
       const mergedCarrello = (dbo.carrello && Array.isArray(dbo.carrello) && dbo.carrello.length > 0) ? dbo.carrello : (existing.carrello || dbo.carrello);
-      const mergedPaymentStatus = existing.payment_status || dbo.payment_status || null;
+
+      const dboPayNorm = normalizzaStatoPagamento(dbo.payment_status);
+      const existingPayNorm = normalizzaStatoPagamento(existing.payment_status);
+      let mergedPaymentStatus = 'Da pagare';
+      if (dboPayNorm === 'Pagato' || existingPayNorm === 'Pagato') {
+        mergedPaymentStatus = 'Pagato';
+      } else if (dboPayNorm === 'Rimborso' || existingPayNorm === 'Rimborso') {
+        mergedPaymentStatus = 'Rimborso';
+      } else if (dboPayNorm || existingPayNorm) {
+        mergedPaymentStatus = dboPayNorm || existingPayNorm || 'Da pagare';
+      }
+
       const mergedCapitanoNome = dbo.capitano_nome || existing.capitano_nome || null;
       const mergedCapitanoTelefono = dbo.capitano_telefono || existing.capitano_telefono || null;
       const mergedTorneoNome = dbo.torneo_nome || existing.torneo_nome || null;
@@ -4289,6 +4747,11 @@ async function loadSettingsFromSupabase() {
       }
       if (Array.isArray(catalogMap.patches)) {
         settings.patches = catalogMap.patches;
+      }
+      try {
+        await migrateExistingPatchesToSupabaseStorage(settings);
+      } catch (patchMigErr) {
+        console.warn("⚠️ Avviso migrazione patch in loadSettingsFromSupabase:", patchMigErr.message);
       }
       if (catalogMap.sicurezza && typeof catalogMap.sicurezza === 'object') {
         settings.sicurezza = {
@@ -5522,8 +5985,8 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-// POST /api/settings - Salva le nuove impostazioni e opzionalmente effettua l'aggiornamento massivo dei prezzi
-app.post('/api/settings', async (req, res) => {
+// POST /api/settings - Salva le nuove impostazioni e opzionalmente effettua l'aggiornamento massivo dei prezzi (protetto admin)
+app.post('/api/settings', adminAuthMiddleware, async (req, res) => {
   console.log(">>> ENTRATA POST /api/settings");
   let summary = "";
   try {
@@ -6168,8 +6631,8 @@ app.post('/api/marketing-promos', async (req, res) => {
   }
 });
 
-// POST /api/settings/teams/rename - Rinomina una squadra in tutti i prodotti e nel catalogo squadre
-app.post('/api/settings/teams/rename', async (req, res) => {
+// POST /api/settings/teams/rename - Rinomina una squadra in tutti i prodotti e nel catalogo squadre (protetto admin)
+app.post('/api/settings/teams/rename', adminAuthMiddleware, async (req, res) => {
   try {
     const { oldName, newName } = req.body;
     if (!oldName || !newName) {
@@ -6227,8 +6690,8 @@ app.post('/api/settings/teams/rename', async (req, res) => {
   }
 });
 
-// POST /api/settings/teams/delete - Elimina una squadra se non ha prodotti collegati
-app.post('/api/settings/teams/delete', async (req, res) => {
+// POST /api/settings/teams/delete - Elimina una squadra se non ha prodotti collegati (protetto admin)
+app.post('/api/settings/teams/delete', adminAuthMiddleware, async (req, res) => {
   try {
     const { teamName } = req.body;
     if (!teamName) {
@@ -6417,8 +6880,8 @@ function determinaCategoriaESezioneSquadraServer(squadName, sampleProduct) {
   return { categoria, sezione };
 }
 
-// POST /api/settings/products/import - Importa array di prodotti direttamente con validazione
-app.post('/api/settings/products/import', async (req, res) => {
+// POST /api/settings/products/import - Importa array di prodotti direttamente con validazione (protetto admin)
+app.post('/api/settings/products/import', adminAuthMiddleware, async (req, res) => {
   try {
     const { products } = req.body;
     if (!Array.isArray(products)) {
@@ -6663,8 +7126,58 @@ function normalizzaStringaMatching(str) {
     .trim();
 }
 
-// POST /api/settings/products/import_batch - Batch import or update products con validazione
-app.post('/api/settings/products/import_batch', async (req, res) => {
+// POST /api/settings/products/reconcile_batch - Riconciliazione stato prodotti database (protetto admin)
+app.post('/api/settings/products/reconcile_batch', adminAuthMiddleware, async (req, res) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: false, error: "Dati prodotti mancanti per la riconciliazione." });
+    }
+
+    const supabase = getSupabaseClient();
+    let countSaved = 0;
+    let countMissing = 0;
+
+    if (supabase) {
+      const ids = products.map(p => p.id || p.legacy_id).filter(Boolean);
+      if (ids.length > 0) {
+        const { data, error } = await supabase.from('products').select('id').in('id', ids);
+        if (!error && data) {
+          const savedSet = new Set(data.map(d => String(d.id)));
+          products.forEach(p => {
+            if (savedSet.has(String(p.id || p.legacy_id))) {
+              countSaved++;
+            } else {
+              countMissing++;
+            }
+          });
+        } else {
+          countMissing = products.length;
+        }
+      } else {
+        countMissing = products.length;
+      }
+    } else if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
+      const local = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      const localSet = new Set(local.map(p => String(p.id)));
+      products.forEach(p => {
+        if (localSet.has(String(p.id || p.legacy_id))) {
+          countSaved++;
+        } else {
+          countMissing++;
+        }
+      });
+    }
+
+    return res.json({ success: true, countSaved, countMissing });
+  } catch (err) {
+    console.error("⚠️ Errore in POST /api/settings/products/reconcile_batch:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/settings/products/import_batch - Batch import or update products con validazione (protetto admin)
+app.post('/api/settings/products/import_batch', adminAuthMiddleware, async (req, res) => {
   try {
     const { products } = req.body;
     if (!Array.isArray(products)) {
@@ -7166,8 +7679,8 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// POST /api/products - Crea un prodotto direttamente su Supabase
-app.post('/api/products', async (req, res) => {
+// POST /api/products - Crea un prodotto direttamente su Supabase (protetto admin)
+app.post('/api/products', adminAuthMiddleware, async (req, res) => {
   try {
     const { squadra, categoria, target, versione, stagione, prezzo, immagine, image_url, prezzo_fornitore } = req.body;
     if (!squadra || !categoria || !versione || !stagione) {
@@ -7271,8 +7784,8 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// PUT /api/products/:id - Modifica un prodotto direttamente su Supabase
-app.put('/api/products/:id', async (req, res) => {
+// PUT /api/products/:id - Modifica un prodotto direttamente su Supabase (protetto admin)
+app.put('/api/products/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { squadra, categoria, target, versione, stagione, prezzo, immagine, image_url, prezzo_fornitore } = req.body;
@@ -7388,8 +7901,8 @@ app.put('/api/products/:id', async (req, res) => {
   }
 });
 
-// POST /api/products/batch-update - Modifica massiva prodotti in un'unica operazione batch
-app.post('/api/products/batch-update', async (req, res) => {
+// POST /api/products/batch-update - Modifica massiva prodotti in un'unica operazione batch (protetto admin)
+app.post('/api/products/batch-update', adminAuthMiddleware, async (req, res) => {
   try {
     const { ids, updates } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -7571,8 +8084,8 @@ app.post('/api/products/batch-update', async (req, res) => {
   }
 });
 
-// POST /api/products/batch-custom-update - Aggiornamento massivo personalizzato per singolo prodotto (es. Trova e Sostituisci)
-app.post('/api/products/batch-custom-update', async (req, res) => {
+// POST /api/products/batch-custom-update - Aggiornamento massivo personalizzato per singolo prodotto (protetto admin)
+app.post('/api/products/batch-custom-update', adminAuthMiddleware, async (req, res) => {
   try {
     const { items } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
@@ -7655,8 +8168,8 @@ app.post('/api/products/batch-custom-update', async (req, res) => {
   }
 });
 
-// DELETE /api/products/bulk/delete_unconfigured - Bulk delete products with null, 0.00 or empty prezzo_fornitore
-app.delete('/api/products/bulk/delete_unconfigured', async (req, res) => {
+// DELETE /api/products/bulk/delete_unconfigured - Bulk delete products with null, 0.00 or empty prezzo_fornitore (protetto admin)
+app.delete('/api/products/bulk/delete_unconfigured', adminAuthMiddleware, async (req, res) => {
   console.log("[BACKEND DEBUG] Ricevuta richiesta DELETE /api/products/bulk/delete_unconfigured");
   try {
     const isNotConfigured = (p) => {
@@ -7984,8 +8497,8 @@ app.get('/api/accessories/settings', async (req, res) => {
   }
 });
 
-// POST /api/accessories/settings - Salvataggio massivo o sincronizzazione impostazioni catalogo
-app.post('/api/accessories/settings', async (req, res) => {
+// POST /api/accessories/settings - Salvataggio massivo o sincronizzazione impostazioni catalogo (protetto admin)
+app.post('/api/accessories/settings', adminAuthMiddleware, async (req, res) => {
   try {
     const { categories, brands } = req.body;
     if (!Array.isArray(categories) || !Array.isArray(brands)) {
@@ -8020,8 +8533,8 @@ app.post('/api/accessories/settings', async (req, res) => {
   }
 });
 
-// POST /api/accessories/settings/categories - Inserimento o aggiornamento singola categoria
-app.post('/api/accessories/settings/categories', async (req, res) => {
+// POST /api/accessories/settings/categories - Inserimento o aggiornamento singola categoria (protetto admin)
+app.post('/api/accessories/settings/categories', adminAuthMiddleware, async (req, res) => {
   try {
     const { id, nome, icona, ordine, attiva } = req.body;
     if (!nome || !String(nome).trim()) {
@@ -8074,8 +8587,8 @@ app.post('/api/accessories/settings/categories', async (req, res) => {
   }
 });
 
-// DELETE /api/accessories/settings/categories/:id - Eliminazione sicura categoria
-app.delete('/api/accessories/settings/categories/:id', async (req, res) => {
+// DELETE /api/accessories/settings/categories/:id - Eliminazione sicura categoria (protetto admin)
+app.delete('/api/accessories/settings/categories/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const catId = req.params.id;
     if (!catId) return res.status(400).json({ success: false, error: "ID categoria mancante." });
@@ -8113,8 +8626,8 @@ app.delete('/api/accessories/settings/categories/:id', async (req, res) => {
   }
 });
 
-// POST /api/accessories/settings/brands - Inserimento o aggiornamento singola marca
-app.post('/api/accessories/settings/brands', async (req, res) => {
+// POST /api/accessories/settings/brands - Inserimento o aggiornamento singola marca (protetto admin)
+app.post('/api/accessories/settings/brands', adminAuthMiddleware, async (req, res) => {
   try {
     const { id, nome, stato, ordine } = req.body;
     if (!nome || !String(nome).trim()) {
@@ -8162,8 +8675,8 @@ app.post('/api/accessories/settings/brands', async (req, res) => {
   }
 });
 
-// DELETE /api/accessories/settings/brands/:id - Eliminazione sicura marca
-app.delete('/api/accessories/settings/brands/:id', async (req, res) => {
+// DELETE /api/accessories/settings/brands/:id - Eliminazione sicura marca (protetto admin)
+app.delete('/api/accessories/settings/brands/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const brandId = req.params.id;
     if (!brandId) return res.status(400).json({ success: false, error: "ID marca mancante." });
@@ -8247,8 +8760,8 @@ app.get('/api/accessories/categories', async (req, res) => {
   }
 });
 
-// POST /api/accessories - Inserimento nuovo accessorio (struttura scalabile e indipendente)
-app.post('/api/accessories', async (req, res) => {
+// POST /api/accessories - Inserimento nuovo accessorio (protetto admin)
+app.post('/api/accessories', adminAuthMiddleware, async (req, res) => {
   try {
     const { categoria, nome, descrizione, immagine, prezzo, prezzo_fornitore, disponibile, stato, codice, taglia, opzioni, specifiche, marca, gestione_taglia, richiede_taglia } = req.body;
     if (!nome || !categoria) {
@@ -8343,8 +8856,8 @@ app.post('/api/accessories', async (req, res) => {
   }
 });
 
-// PUT /api/accessories/:id - Modifica accessorio esistente
-app.put('/api/accessories/:id', async (req, res) => {
+// PUT /api/accessories/:id - Modifica accessorio esistente (protetto admin)
+app.put('/api/accessories/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const accId = req.params.id;
     if (!accId) {
@@ -8442,8 +8955,8 @@ app.put('/api/accessories/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/accessories/:id - Eliminazione sicura e isolata di un singolo accessorio
-app.delete('/api/accessories/:id', (req, res) => {
+// DELETE /api/accessories/:id - Eliminazione sicura e isolata di un singolo accessorio (protetto admin)
+app.delete('/api/accessories/:id', adminAuthMiddleware, (req, res) => {
   try {
     const accId = req.params.id;
     if (!accId) {
@@ -8467,8 +8980,8 @@ app.delete('/api/accessories/:id', (req, res) => {
   }
 });
 
-// POST /api/accessories/batch-delete - Eliminazione multipla accessori selezionati
-app.post('/api/accessories/batch-delete', (req, res) => {
+// POST /api/accessories/batch-delete - Eliminazione multipla accessori selezionati (protetto admin)
+app.post('/api/accessories/batch-delete', adminAuthMiddleware, (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -8490,8 +9003,8 @@ app.post('/api/accessories/batch-delete', (req, res) => {
   }
 });
 
-// POST /api/accessories/batch-status - Aggiornamento stato multiplo (attivo/disattivato) per accessori selezionati
-app.post('/api/accessories/batch-status', (req, res) => {
+// POST /api/accessories/batch-status - Aggiornamento stato multiplo (attivo/disattivato) per accessori selezionati (protetto admin)
+app.post('/api/accessories/batch-status', adminAuthMiddleware, (req, res) => {
   try {
     const { ids, stato, disponibile } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -8524,8 +9037,8 @@ app.post('/api/accessories/batch-status', (req, res) => {
   }
 });
 
-// POST /api/accessories/batch-update - Modifica massiva campi accessori selezionati
-app.post('/api/accessories/batch-update', (req, res) => {
+// POST /api/accessories/batch-update - Modifica massiva campi accessori selezionati (protetto admin)
+app.post('/api/accessories/batch-update', adminAuthMiddleware, (req, res) => {
   try {
     const { ids, updates } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -8577,8 +9090,8 @@ app.post('/api/accessories/batch-update', (req, res) => {
 
 
 
-// POST /api/settings/products/translate_all - Traduce tutti i prodotti nel database (Supabase o locale)
-app.post('/api/settings/products/translate_all', async (req, res) => {
+// POST /api/settings/products/translate_all - Traduce tutti i prodotti nel database (Supabase o locale) (protetto admin)
+app.post('/api/settings/products/translate_all', adminAuthMiddleware, async (req, res) => {
   console.log("[BACKEND] Ricevuta richiesta di traduzione globale dei prodotti");
   try {
     const supabase = getSupabaseClient();
@@ -8666,8 +9179,8 @@ app.post('/api/settings/products/translate_all', async (req, res) => {
   }
 });
 
-// DELETE /api/products/:id - Elimina un prodotto direttamente da Supabase
-app.delete('/api/products/:id', async (req, res) => {
+// DELETE /api/products/:id - Elimina un prodotto direttamente da Supabase (protetto admin)
+app.delete('/api/products/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -8720,7 +9233,7 @@ app.get('/api/lotto', async (req, res) => {
 app.get([
   '/api/lotto/excel',
   '/api/lotto/current/excel'
-], async (req, res) => {
+], adminAuthMiddleware, async (req, res) => {
   return handleDownloadExcelLotto(req, res, getCurrentActiveLottoId());
 });
 
@@ -8728,7 +9241,7 @@ app.get([
 app.get([
   '/api/lotto/:id/excel',
   '/api/lotto/:id/excel/:filename'
-], async (req, res) => {
+], adminAuthMiddleware, async (req, res) => {
   return handleDownloadExcelLotto(req, res, req.params.id);
 });
 
@@ -8898,7 +9411,7 @@ function calcolaNumeroArticoliOrdini(orders) {
   return total;
 }
 
-app.get('/api/lotto/archive', async (req, res) => {
+app.get('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
   try {
     const allLotti = await getDbLotti();
     const settings = getSettings();
@@ -8906,17 +9419,20 @@ app.get('/api/lotto/archive', async (req, res) => {
     const allOrders = await getDbOrders();
     const allDbProducts = await getProductsCatalogFromCacheOrFetch();
 
+    const currentActiveLottoId = getCurrentActiveLottoId();
+
     // Filtra per mostrare nella Cronologia solo i lotti con stato concluso/archiviato
-    // Esclude lotti con status 'ripristinato', 'attivo' o 'riaperto'
+    // Esclude lotti con status 'ripristinato', 'attivo' o 'riaperto', oppure il lotto attualmente in corso
     const closedArchive = (allLotti || []).filter(l => {
       const st = String(l.status || '').trim().toLowerCase();
       if (st === 'ripristinato' || st === 'attivo' || st === 'riaperto') {
         return false;
       }
+      if (Number(l.id) === Number(currentActiveLottoId)) {
+        return false;
+      }
       return true;
     });
-
-    const currentActiveLottoId = getCurrentActiveLottoId();
 
     const enrichedArchive = await Promise.all(closedArchive.map(async (l) => {
       try {
@@ -9002,7 +9518,7 @@ app.get('/api/lotto/archive', async (req, res) => {
 });
 
 // DELETE /api/lotto/archive/:id - Elimina DEFINITIVAMENTE un lotto archiviato e TUTTI i suoi ordini
-app.delete('/api/lotto/archive/:id', async (req, res) => {
+app.delete('/api/lotto/archive/:id', adminAuthMiddleware, async (req, res) => {
   const { id } = req.params;
   const numId = Number(id);
   console.log(`[BACKEND ELIMINA LOTTO] Richiesta di eliminazione definitiva per il Lotto ID: ${id}`);
@@ -9215,6 +9731,33 @@ app.delete('/api/lotto/archive/:id', async (req, res) => {
 });
 
 // POST /api/lotto/archive/:id/restore (o /api/lotto/restore/:id) - Ripristina un lotto archiviato riportandolo allo stato ATTIVO
+async function markDbLottoAsRestored(id) {
+  const numId = Number(id);
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      await supabase.from('lotti').update({ status: 'ripristinato' }).eq('id', numId);
+    } catch (err) {
+      console.warn("⚠️ Aggiornamento stato lotto ripristinato su Supabase fallito:", err.message);
+    }
+  }
+  const archiveFile = path.join(__dirname, 'lotto_archive.json');
+  if (fs.existsSync(archiveFile)) {
+    try {
+      let localArchive = JSON.parse(fs.readFileSync(archiveFile, 'utf8'));
+      if (Array.isArray(localArchive)) {
+        localArchive = localArchive.map(l => {
+          if (Number(l.id) === numId) {
+            return { ...l, status: 'ripristinato' };
+          }
+          return l;
+        });
+        fs.writeFileSync(archiveFile, JSON.stringify(localArchive, null, 2), 'utf8');
+      }
+    } catch (e) {}
+  }
+}
+
 const handleLottoRestore = async (req, res) => {
   const { id } = req.params;
   const numId = Number(id);
@@ -9243,8 +9786,8 @@ const handleLottoRestore = async (req, res) => {
 
       const allOrders = await getDbOrders();
 
-      // Controllo idempotenza: se il lotto non è in archivio ma i suoi ordini sono già attivi
-      if (!targetLot) {
+      // Controllo idempotenza: se il lotto non è in archivio o è già stato ripristinato ma i suoi ordini sono attivi
+      if (!targetLot || targetLot.status === 'ripristinato') {
         const alreadyActive = allOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o) && Number(o.lotto_id) === numId);
         if (alreadyActive.length > 0) {
           console.log(`[BACKEND Ripristina Lotto] Lotto #${numId} è già attivo (richiesta idempotente).`);
@@ -9256,7 +9799,9 @@ const handleLottoRestore = async (req, res) => {
             lotto: currentLotto
           });
         }
-        return res.status(404).json({ success: false, error: `Lotto con ID ${numId} non trovato nei lotti archiviati.` });
+        if (!targetLot) {
+          return res.status(404).json({ success: false, error: `Lotto con ID ${numId} non trovato nei lotti archiviati.` });
+        }
       }
 
       console.log(`[LOTTO RESTORE DEBUG]\nSTATO LOTTO ATTUALE: ${targetLot.status || 'ARCHIVIATO / CHIUSO'}`);
@@ -9421,7 +9966,12 @@ const handleLottoRestore = async (req, res) => {
         }
       }
 
-      // 3. REGOLA FONDAMENTALE #9: VERIFICA DI INTEGRITÀ AL 100% PRIMA DI CONFERMARE
+      // 3. Rimuovi le date da archived_orders.json
+      let archivedKeys = getArchivedKeys();
+      archivedKeys = archivedKeys.filter(k => !orderDates.includes(k));
+      saveArchivedKeys(archivedKeys);
+
+      // 4. VERIFICA DI INTEGRITÀ AL 100% PRIMA DI CONFERMARE
       const updatedAllOrders = await getDbOrders();
       const verifiedActiveOrders = updatedAllOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o) && Number(o.lotto_id) === numId);
 
@@ -9435,7 +9985,7 @@ const handleLottoRestore = async (req, res) => {
       console.log(`ANOMALIES_DETECTED: ${failedOrders.length}`);
       console.log(`ID_PRESERVED: SI (100% immutabilità)`);
       console.log(`CUSTOMER_LINKS_PRESERVED: SI (admin_order_id preservati)`);
-      console.log(`SNAPSHOT_PRESERVED: SI (NESSUNA CANCELLAZIONE DISTRUTTIVA)`);
+      console.log(`SNAPSHOT_PRESERVED: SI (NESSUNA CANCELLAZIONE DEFINITIVA)`);
       console.log("============================================================\n");
 
       if (verifiedActiveOrders.length < lotSnapshotOrders.length) {
@@ -9449,14 +9999,9 @@ const handleLottoRestore = async (req, res) => {
         });
       }
 
-      // 4. Rimuovi il lotto dall'archivio (Supabase 'lotti' + lotto_archive.json) così che non compaia più nella Cronologia Lotti
-      await deleteDbLotto(numId);
-      console.log(`✅ Lotto #${numId} rimosso dalla Cronologia Lotti e riattivato come lotto corrente.`);
-
-      // 5. Rimuovi le date da archived_orders.json SOLO ORA che la verifica è passata al 100%
-      let archivedKeys = getArchivedKeys();
-      archivedKeys = archivedKeys.filter(k => !orderDates.includes(k));
-      saveArchivedKeys(archivedKeys);
+      // 5. Segna il lotto come 'ripristinato' (preservando lo snapshot storico senza eliminazione definitiva)
+      await markDbLottoAsRestored(numId);
+      console.log(`✅ Lotto #${numId} marcato come 'ripristinato' (snapshot storico preservato).`);
 
       // 6. Ricalcola il lotto corrente attivo con tutti i dati completi
       const updatedLotto = await recalculateCurrentLottoInternal();
@@ -9476,8 +10021,8 @@ const handleLottoRestore = async (req, res) => {
   });
 };
 
-app.post('/api/lotto/archive/:id/restore', handleLottoRestore);
-app.post('/api/lotto/restore/:id', handleLottoRestore);
+app.post('/api/lotto/archive/:id/restore', adminAuthMiddleware, handleLottoRestore);
+app.post('/api/lotto/restore/:id', adminAuthMiddleware, handleLottoRestore);
 
 // Helper parsing functions for server-side Lot aggregation
 function parseFlexibleDecimal(valStr) {
@@ -9946,7 +10491,7 @@ async function recalculateCurrentLotto(force = false) {
 let isArchivingInProgress = false;
 
 // POST /api/lotto/archive - Chiudi Lotto: crea uno snapshot, archivia tutti gli ordini attivi e resetta il lotto
-app.post('/api/lotto/archive', async (req, res) => {
+app.post('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
   console.log("[BACKEND] Avvio procedura 'Chiudi Lotto' con snapshot e archiviazione progressiva.");
 
   // Protezione contro doppia chiusura simultanea
@@ -10616,8 +11161,8 @@ app.get('/api/teams', async (req, res) => {
   }
 });
 
-// POST /api/teams - Crea o aggiunge una nuova squadra
-app.post('/api/teams', async (req, res) => {
+// POST /api/teams - Crea o aggiunge una nuova squadra (protetto admin)
+app.post('/api/teams', adminAuthMiddleware, async (req, res) => {
   try {
     const { name, categoria, sezione } = req.body;
     if (!name || !categoria || !sezione) {
@@ -10680,8 +11225,8 @@ app.post('/api/teams', async (req, res) => {
   }
 });
 
-// PUT /api/teams - Rinomina una squadra nel catalogo e in tutti i prodotti
-app.put('/api/teams', async (req, res) => {
+// PUT /api/teams - Rinomina una squadra nel catalogo e in tutti i prodotti (protetto admin)
+app.put('/api/teams', adminAuthMiddleware, async (req, res) => {
   try {
     const { oldName, newName } = req.body;
     if (!oldName || !newName) {
@@ -10737,8 +11282,8 @@ app.put('/api/teams', async (req, res) => {
   }
 });
 
-// DELETE /api/teams - Elimina una squadra se non collegata a prodotti
-app.delete('/api/teams', async (req, res) => {
+// DELETE /api/teams - Elimina una squadra se non collegata a prodotti (protetto admin)
+app.delete('/api/teams', adminAuthMiddleware, async (req, res) => {
   try {
     const { name } = req.body;
     if (!name) {
@@ -11088,8 +11633,8 @@ app.delete('/api/reviews/:id', async (req, res) => {
   }
 });
 
-// GET /api/orders - Ottieni tutti gli ordini registrati con cache locale resiliente
-app.get('/api/orders', async (req, res) => {
+// GET /api/orders - Ottieni tutti gli ordini registrati con cache locale resiliente (protetto admin)
+app.get('/api/orders', adminAuthMiddleware, async (req, res) => {
   try {
     try {
       if (!cachedLottoResult) {
@@ -11119,7 +11664,7 @@ app.get('/api/orders', async (req, res) => {
 });
 
 // POST /api/orders/delete - Elimina definitivamente un ordine
-app.post('/api/orders/delete', async (req, res) => {
+app.post('/api/orders/delete', adminAuthMiddleware, async (req, res) => {
   try {
     const rawId = req.body.id !== undefined && req.body.id !== null ? String(req.body.id).trim() : null;
     const reqOrderId = (rawId && /^\d+$/.test(rawId)) ? Number(rawId) : null;
@@ -11265,34 +11810,73 @@ app.post('/api/orders/delete', async (req, res) => {
 });
 
 // POST /api/orders/archive - Segna un ordine come archiviato
-app.post('/api/orders/archive', async (req, res) => {
+app.post('/api/orders/archive', adminAuthMiddleware, async (req, res) => {
   try {
-    const { data } = req.body;
-    if (!data) {
-      return res.status(400).json({ success: false, error: "Specificare la 'data' dell'ordine da archiviare." });
+    const { data, id, order_id } = req.body || {};
+    const rawId = id !== undefined && id !== null ? id : order_id;
+    const targetId = (rawId !== undefined && rawId !== null && String(rawId).trim() !== '' && String(rawId) !== 'undefined' && String(rawId) !== 'null')
+      ? (isNaN(Number(rawId)) ? String(rawId).trim() : Number(rawId))
+      : null;
+    const targetData = (data !== undefined && data !== null && String(data).trim() !== '' && String(data) !== 'undefined' && String(data) !== 'null')
+      ? String(data).trim()
+      : null;
+
+    if (targetId === null && !targetData) {
+      return res.status(400).json({ success: false, error: "Specificare l'identificatore (id o data) dell'ordine da archiviare." });
     }
 
     const supabase = getSupabaseClient();
+    let updatedOrds = [];
     if (supabase) {
       try {
-        await supabase.from('orders').update({ is_archived: true }).eq('data', data);
+        let query = supabase.from('orders').update({ is_archived: true });
+        if (targetId !== null) {
+          query = query.eq('id', targetId);
+        } else {
+          query = query.eq('data', targetData);
+        }
+        const { data: resOrds, error: errUpd } = await query.select();
+        if (errUpd) {
+          console.error("⚠️ Errore Supabase durante l'archiviazione:", errUpd.message);
+          return res.status(500).json({ success: false, error: "Errore durante l'archiviazione su Supabase: " + errUpd.message });
+        }
+        if (!resOrds || resOrds.length === 0) {
+          return res.status(404).json({ success: false, error: "Nessun ordine trovato su Supabase corrispondente all'identificatore specificato." });
+        }
+        updatedOrds = resOrds;
       } catch (err) {
-        console.warn("⚠️ Errore aggiornamento Supabase su archive:", err.message);
+        console.error("⚠️ Eccezione Supabase su archive:", err.message);
+        return res.status(500).json({ success: false, error: "Eccezione durante l'archiviazione su Supabase: " + err.message });
       }
     }
 
     const localOrders = getLocalOrders();
-    const locIdx = localOrders.findIndex(o => o.data === data);
-    if (locIdx !== -1) {
-      localOrders[locIdx].is_archived = true;
+    let foundLoc = false;
+    let foundDataVal = targetData;
+    for (let i = 0; i < localOrders.length; i++) {
+      const o = localOrders[i];
+      const matchId = targetId !== null && (Number(o.id) === targetId || String(o.id) === String(targetId));
+      const matchData = targetData !== null && String(o.data).trim() === targetData;
+      if (matchId || matchData) {
+        localOrders[i].is_archived = true;
+        foundDataVal = o.data || foundDataVal;
+        foundLoc = true;
+        break;
+      }
+    }
+    if (foundLoc) {
       fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
     }
 
     let archived = getArchivedKeys();
-    if (!archived.includes(data)) {
-      archived.push(data);
-      saveArchivedKeys(archived);
-    }
+    const dataKeysToAdd = [targetData, foundDataVal, (updatedOrds.length > 0 ? updatedOrds[0].data : null)].filter(Boolean);
+    dataKeysToAdd.forEach(dK => {
+      const dStr = String(dK).trim();
+      if (!archived.includes(dStr)) {
+        archived.push(dStr);
+      }
+    });
+    saveArchivedKeys(archived);
 
     await recalculateCurrentLotto();
 
@@ -11303,21 +11887,43 @@ app.post('/api/orders/archive', async (req, res) => {
   }
 });
 
-// POST /api/orders/unarchive - Disarchivia un ordine e lo riporta negli ordini attivi
-app.post('/api/orders/unarchive', async (req, res) => {
+// POST /api/orders/unarchive - Disarchivia un ordine e lo riporta negli ordini attivi preservando tutti i campi e il lotto_id originale
+app.post('/api/orders/unarchive', adminAuthMiddleware, async (req, res) => {
   try {
-    const { data } = req.body;
-    if (!data) {
-      return res.status(400).json({ success: false, error: "Specificare la 'data' dell'ordine da disarchiviare." });
+    const { data, id, order_id } = req.body || {};
+    const rawId = id !== undefined && id !== null ? id : order_id;
+    const targetId = (rawId !== undefined && rawId !== null && String(rawId).trim() !== '' && String(rawId) !== 'undefined' && String(rawId) !== 'null')
+      ? (isNaN(Number(rawId)) ? String(rawId).trim() : Number(rawId))
+      : null;
+    const targetData = (data !== undefined && data !== null && String(data).trim() !== '' && String(data) !== 'undefined' && String(data) !== 'null')
+      ? String(data).trim()
+      : null;
+
+    if (targetId === null && !targetData) {
+      return res.status(400).json({ success: false, error: "Specificare l'identificatore (id o data) dell'ordine da disarchiviare." });
     }
 
     const supabase = getSupabaseClient();
+    let updatedOrds = [];
     if (supabase) {
       try {
-        const { data: updatedOrds } = await supabase.from('orders').update({
-          is_archived: false,
-          lotto_id: null
-        }).eq('data', data).select();
+        let query = supabase.from('orders').update({
+          is_archived: false
+        });
+        if (targetId !== null) {
+          query = query.eq('id', targetId);
+        } else {
+          query = query.eq('data', targetData);
+        }
+        const { data: resOrds, error: errUpd } = await query.select();
+        if (errUpd) {
+          console.error("⚠️ Errore Supabase durante la disarchiviazione:", errUpd.message);
+          return res.status(500).json({ success: false, error: "Errore durante la disarchiviazione su Supabase: " + errUpd.message });
+        }
+        if (!resOrds || resOrds.length === 0) {
+          return res.status(404).json({ success: false, error: "Nessun ordine trovato su Supabase corrispondente all'identificatore specificato." });
+        }
+        updatedOrds = resOrds;
 
         if (updatedOrds && updatedOrds.length > 0) {
           const adminId = updatedOrds[0].id;
@@ -11327,23 +11933,37 @@ app.post('/api/orders/unarchive', async (req, res) => {
           }).eq('admin_order_id', adminId);
         }
       } catch (err) {
-        console.warn("⚠️ Errore aggiornamento Supabase su unarchive:", err.message);
+        console.error("⚠️ Eccezione Supabase su unarchive:", err.message);
+        return res.status(500).json({ success: false, error: "Eccezione durante la disarchiviazione su Supabase: " + err.message });
       }
     }
 
     const localOrders = getLocalOrders();
-    const locIdx = localOrders.findIndex(o => o.data === data);
-    if (locIdx !== -1) {
-      localOrders[locIdx].is_archived = false;
-      localOrders[locIdx].lotto_id = null;
+    let foundLoc = false;
+    let foundDataVal = targetData;
+    for (let i = 0; i < localOrders.length; i++) {
+      const o = localOrders[i];
+      const matchId = targetId !== null && (Number(o.id) === targetId || String(o.id) === String(targetId));
+      const matchData = targetData !== null && String(o.data).trim() === targetData;
+      if (matchId || matchData) {
+        localOrders[i].is_archived = false;
+        // Preserva lotto_id originale (protezione assoluta dei lotti)
+        foundDataVal = o.data || foundDataVal;
+        foundLoc = true;
+        break;
+      }
+    }
+    if (foundLoc) {
       fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
     }
 
     let archived = getArchivedKeys();
-    if (archived.includes(data)) {
-      archived = archived.filter(k => k !== data);
-      saveArchivedKeys(archived);
-    }
+    const dataKeysToRemove = [targetData, foundDataVal, (updatedOrds.length > 0 ? updatedOrds[0].data : null)].filter(Boolean);
+    dataKeysToRemove.forEach(dK => {
+      const dStr = String(dK).trim();
+      archived = archived.filter(k => String(k).trim() !== dStr);
+    });
+    saveArchivedKeys(archived);
 
     await recalculateCurrentLotto();
 
@@ -11577,8 +12197,8 @@ const handleUpdateOrderPricing = async (req, res) => {
   }
 };
 
-app.post('/api/orders/update-pricing', handleUpdateOrderPricing);
-app.put('/api/orders/:id/update-pricing', handleUpdateOrderPricing);
+app.post('/api/orders/update-pricing', adminAuthMiddleware, handleUpdateOrderPricing);
+app.put('/api/orders/:id/update-pricing', adminAuthMiddleware, handleUpdateOrderPricing);
 
 // ==========================================
 // SISTEMA COUPON - UTILS & API ENDPOINTS
@@ -12203,29 +12823,28 @@ function normalizzaTorneoFields(t) {
 }
 
 async function getTornei() {
-  const localList = getLocalTornei();
   const supabase = getSupabaseAdminClient() || getSupabaseClient();
-  if (supabase) {
-    try {
-      console.log(`[TORNEI DEBUG] Operazione: SELECT FROM public.tornei`);
-      const { data, error } = await supabase
-        .from('tornei')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && Array.isArray(data)) {
-        console.log(`[TORNEI DEBUG] Supabase SELECT completata, trovati ${data.length} tornei`);
-        // Se la query ha successo, restituiamo ESCLUSIVAMENTE i dati di Supabase (anche se vuoto)
-        return data.map(normalizzaTorneoFields);
-      } else if (error) {
-        console.warn(`[TORNEI DEBUG] Errore query Supabase, fallback locale: ${error.message || error}`);
-      }
-    } catch (err) {
-      console.warn(`[TORNEI DEBUG] Eccezione Supabase SELECT, fallback locale: ${err.message}`);
-    }
+  if (!supabase) {
+    throw new Error("Client Supabase non disponibile sul server. Verifica le variabili d'ambiente SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.");
   }
 
-  return localList.map(normalizzaTorneoFields);
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn("⚠️ [TORNEI WARNING] SUPABASE_SERVICE_ROLE_KEY assente: le query a public.tornei potrebbero restituire 0 risultati a causa delle policy RLS.");
+  }
+
+  console.log(`[TORNEI DEBUG] Operazione: SELECT FROM public.tornei`);
+  const { data, error } = await supabase
+    .from('tornei')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(`[TORNEI ERROR] Errore query Supabase SELECT: ${error.message || error}`);
+    throw new Error(`Errore durante il caricamento dei tornei da Supabase: ${error.message || error}`);
+  }
+
+  console.log(`[TORNEI DEBUG] Supabase SELECT completata, trovati ${(data || []).length} tornei`);
+  return (data || []).map(normalizzaTorneoFields);
 }
 
 async function saveTorneo(torneoData) {
@@ -12439,14 +13058,38 @@ async function deleteTorneo(id) {
 app.get('/api/tornei', async (req, res) => {
   try {
     const tornei = await getTornei();
-    return res.json({ success: true, tornei });
+    const isAdmin = await verifyAdminUser(req);
+
+    if (isAdmin) {
+      return res.json({ success: true, tornei });
+    } else {
+      // Risposta pubblica limitata: solo tornei attivi e senza codici fornitura, recapiti o dati contabili
+      const publicTornei = (tornei || [])
+        .filter(t => t.is_active !== false)
+        .map(t => {
+          const cfg = t.configurazione_personalizzazione || {};
+          return {
+            id: t.id,
+            nome: t.nome,
+            organizzatore_nome: t.organizzatore_nome || null,
+            is_active: t.is_active,
+            configurazione_personalizzazione: {
+              permetti_nome: cfg.permetti_nome !== false,
+              permetti_numero: cfg.permetti_numero !== false,
+              permetti_patch: Boolean(cfg.permetti_patch),
+              quota_calzettoni: t.quota_calzettoni || cfg.quota_calzettoni || null
+            }
+          };
+        });
+      return res.json({ success: true, tornei: publicTornei });
+    }
   } catch (err) {
     console.error("⚠️ Errore GET /api/tornei:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.post('/api/tornei', async (req, res) => {
+app.post('/api/tornei', adminAuthMiddleware, async (req, res) => {
   try {
     const {
       id,
@@ -12483,7 +13126,7 @@ app.post('/api/tornei', async (req, res) => {
   }
 });
 
-app.patch('/api/tornei/:id/toggle', async (req, res) => {
+app.patch('/api/tornei/:id/toggle', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -12498,7 +13141,7 @@ app.patch('/api/tornei/:id/toggle', async (req, res) => {
   }
 });
 
-app.delete('/api/tornei/:id', async (req, res) => {
+app.delete('/api/tornei/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -12541,26 +13184,26 @@ function saveLocalTorneoSquadre(squadreList) {
 }
 
 async function getAllTorneoSquadre() {
-  const localList = getLocalTorneoSquadre();
   const supabase = getSupabaseAdminClient() || getSupabaseClient();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('torneo_squadre')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (!error && Array.isArray(data)) {
-        // Se la query ha successo, restituiamo ESCLUSIVAMENTE le squadre di Supabase (anche se vuoto)
-        return data;
-      } else if (error) {
-        console.warn(`[TORNEO SQUADRE DEBUG] Errore query Supabase, fallback locale: ${error.message || error}`);
-      }
-    } catch (err) {
-      console.warn(`[TORNEO SQUADRE DEBUG] Eccezione Supabase SELECT ALL, fallback locale: ${err.message}`);
-    }
+  if (!supabase) {
+    throw new Error("Client Supabase non disponibile sul server. Verifica le variabili d'ambiente SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.");
   }
-  return localList;
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn("⚠️ [TORNEO SQUADRE WARNING] SUPABASE_SERVICE_ROLE_KEY assente: le query a public.torneo_squadre potrebbero restituire 0 risultati a causa delle policy RLS.");
+  }
+
+  const { data, error } = await supabase
+    .from('torneo_squadre')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error(`[TORNEO SQUADRE ERROR] Errore query Supabase SELECT: ${error.message || error}`);
+    throw new Error(`Errore durante il caricamento delle squadre da Supabase: ${error.message || error}`);
+  }
+
+  return data || [];
 }
 
 async function getTorneoSquadreByTorneoId(torneoId) {
@@ -12779,7 +13422,7 @@ async function deleteTorneoSquadra(torneoId, squadraId) {
 }
 
 // API Routes per Squadre Torneo
-app.get('/api/tornei/:id/squadre', async (req, res) => {
+app.get('/api/tornei/:id/squadre', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -12805,8 +13448,8 @@ app.get('/api/tornei/:id/squadre', async (req, res) => {
   }
 });
 
-// API Routes per Pagamenti Fornitura Tornei
-app.get('/api/tornei/pagamenti', async (req, res) => {
+// API Routes per Pagamenti Fornitura Tornei (protetti admin)
+app.get('/api/tornei/pagamenti', adminAuthMiddleware, async (req, res) => {
   try {
     const pagamenti = await getTorneoPagamenti();
     const allDbOrders = await getDbOrders();
@@ -12818,7 +13461,7 @@ app.get('/api/tornei/pagamenti', async (req, res) => {
   }
 });
 
-app.get('/api/tornei/pagamenti/:id', async (req, res) => {
+app.get('/api/tornei/pagamenti/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const pagamento = await getTorneoPagamentoById(id);
@@ -12834,7 +13477,7 @@ app.get('/api/tornei/pagamenti/:id', async (req, res) => {
   }
 });
 
-app.post('/api/tornei/pagamenti/:id/paga', async (req, res) => {
+app.post('/api/tornei/pagamenti/:id/paga', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -13097,7 +13740,7 @@ app.post('/api/tornei/pagamenti/:id/paga', async (req, res) => {
 });
 
 // POST /api/tornei/pagamenti/:id/ripristina-attesa - Riporta un pagamento da PAGATO a IN ATTESA DI PAGAMENTO e rimuove l'ordine dall'operatività
-app.post('/api/tornei/pagamenti/:id/ripristina-attesa', async (req, res) => {
+app.post('/api/tornei/pagamenti/:id/ripristina-attesa', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -13267,7 +13910,7 @@ app.post('/api/tornei/pagamenti/:id/ripristina-attesa', async (req, res) => {
 });
 
 // DELETE /api/tornei/pagamenti/:id - Elimina definitivamente un singolo invio fornitura torneo
-app.delete('/api/tornei/pagamenti/:id', async (req, res) => {
+app.delete('/api/tornei/pagamenti/:id', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -13626,6 +14269,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
 
     // Identificatore univoco e stabile di prodotto
     const productId = String(matchedProd?.id || item.id || item.legacy_id || `${nomeCompletino}___${categoria}`).trim();
+    const patchMeta = patch ? resolvePatchMetadata(item, patch) : null;
 
     return {
       squadra: matchedTeamName,
@@ -13636,11 +14280,13 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
       nome,
       numero,
       patch,
+      patchMeta,
       quantita,
       imageUrl: rawImgUrl,
       unitPrice: itemUnitPrice
     };
   }
+
 
   const rawItems = [];
   let dbOrdersCache = null;
@@ -13773,6 +14419,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
       nome: it.nome,
       numero: it.numero,
       patch: it.patch,
+      patchMeta: it.patchMeta,
       quantita: it.quantita,
       unitPrice: it.unitPrice
     });
@@ -13861,7 +14508,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
         cols.push({
           key: 'patch',
           header: 'PATCH',
-          width: Math.max(22, Math.min(36, maxPatchLen + 4)),
+          width: Math.max(24, Math.min(38, maxPatchLen + 6)),
           align: 'center',
           wrapText: true
         });
@@ -13887,12 +14534,19 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
     }
   }
 
-  // Download parallelo delle immagini uniche di prodotto con cache
+  // Download parallelo delle immagini uniche di prodotto e patch con cache
   const uniqueUrls = new Set();
+  const patchPreloadMap = new Map();
   for (const prodsMap of teamsMap.values()) {
     for (const prod of prodsMap.values()) {
       if (prod.imageUrl && typeof prod.imageUrl === 'string') {
         uniqueUrls.add(prod.imageUrl);
+      }
+      for (const it of prod.items) {
+        if (it.patchMeta && (it.patchMeta.imageUrl || it.patchMeta.patchId)) {
+          const pKey = it.patchMeta.imageUrl || `patch_id_${it.patchMeta.patchId}`;
+          patchPreloadMap.set(pKey, it.patchMeta);
+        }
       }
     }
   }
@@ -13905,6 +14559,16 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
       const buf = await downloadImageAsBuffer(u);
       if (buf) imageCache.set(u, buf);
     }));
+  }
+
+  // Preload patch images for tournament summary
+  for (const [key, pMeta] of patchPreloadMap.entries()) {
+    const buf = await getPatchImageBuffer(pMeta.patchId, pMeta.patchName, pMeta.imageUrl);
+    if (buf) {
+      imageCache.set(key, buf);
+      if (pMeta.imageUrl) imageCache.set(pMeta.imageUrl, buf);
+      if (pMeta.patchId) imageCache.set(`patch_id_${pMeta.patchId}`, buf);
+    }
   }
 
   // Costruzione Workbook ExcelJS
@@ -14124,7 +14788,13 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
           const it = prod.items[i];
           const row = worksheet.getRow(currentRowNum);
           const maxTextLen = Math.max((it.nome || '').length, (it.patch || '').length);
-          row.height = maxTextLen > 24 ? 30 : 23;
+          const baseRowHeight = maxTextLen > 24 ? 30 : 23;
+
+          // Se è presente l'immagine della patch per questo articolo, adatta l'altezza della riga per ospitare la miniatura da 44.2px senza sovrapposizioni col testo
+          const pKey = it.patchMeta ? (it.patchMeta.imageUrl || `patch_id_${it.patchMeta.patchId}`) : null;
+          const hasPatchImg = Boolean(pKey && imageCache.get(pKey));
+          row.height = hasPatchImg ? Math.max(baseRowHeight, 54) : baseRowHeight;
+
           const isEven = i % 2 === 0;
           const bgArgb = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
 
@@ -14133,8 +14803,24 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
             let val = it[colDef.key];
             if (val === null || val === undefined) val = "";
             cell.value = val;
+
+            if (colDef.key === 'patch' && it.patch && it.patchMeta) {
+              const pBuf = pKey ? imageCache.get(pKey) : null;
+              if (pBuf) {
+                try {
+                  const pImgId = workbook.addImage({ buffer: pBuf, extension: 'png' });
+                  // Miniatura patch maggiorata del 30% (44.2x44.2 px)
+                  worksheet.addImage(pImgId, {
+                    tl: { col: colIdx + 0.25, row: currentRowNum - 1 + 0.05 },
+                    ext: { width: 44.2, height: 44.2 },
+                    editAs: 'oneCell'
+                  });
+                } catch (e) {}
+              }
+            }
+
             cell.alignment = {
-              vertical: 'middle',
+              vertical: hasPatchImg && colDef.key === 'patch' ? 'bottom' : 'middle',
               horizontal: colDef.align || 'center',
               wrapText: Boolean(colDef.wrapText),
               indent: colDef.align === 'left' ? 1 : 0
@@ -14321,7 +15007,7 @@ async function generaExcelRiepilogoTorneo(torneoId, res, options = {}) {
   }
 }
 
-app.get('/api/tornei/:id/excel-riepilogo', async (req, res) => {
+app.get('/api/tornei/:id/excel-riepilogo', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -14338,7 +15024,7 @@ app.get('/api/tornei/:id/excel-riepilogo', async (req, res) => {
   }
 });
 
-app.post('/api/tornei/:id/squadre', async (req, res) => {
+app.post('/api/tornei/:id/squadre', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -14353,7 +15039,7 @@ app.post('/api/tornei/:id/squadre', async (req, res) => {
   }
 });
 
-app.patch('/api/tornei/:id/squadre/:squadraId', async (req, res) => {
+app.patch('/api/tornei/:id/squadre/:squadraId', adminAuthMiddleware, async (req, res) => {
   try {
     const { id, squadraId } = req.params;
     if (!id || !squadraId) {
@@ -14368,7 +15054,7 @@ app.patch('/api/tornei/:id/squadre/:squadraId', async (req, res) => {
   }
 });
 
-app.delete('/api/tornei/:id/squadre/:squadraId', async (req, res) => {
+app.delete('/api/tornei/:id/squadre/:squadraId', adminAuthMiddleware, async (req, res) => {
   try {
     const { id, squadraId } = req.params;
     if (!id || !squadraId) {
@@ -16648,11 +17334,142 @@ app.delete(['/api/profit-splits/accantonamento/:id', '/api/accantonamenti/:id'],
   }
 });
 
+const IDEMPOTENCY_FILE = path.join(__dirname, 'idempotency_keys.json');
+if (!global.processedOrderKeys) global.processedOrderKeys = new Map();
+
+function getIdempotencyRecord(key) {
+  if (!key) return null;
+  if (global.processedOrderKeys.has(key)) {
+    const rec = global.processedOrderKeys.get(key);
+    console.log(`🔍 [IDEMPOTENCY GET] Found in-memory key "${key}" (hasResponse: ${Boolean(rec?.response)}, inFlight: ${Boolean(rec?.inFlightPromise)})`);
+    return rec;
+  }
+  if (fs.existsSync(IDEMPOTENCY_FILE)) {
+    try {
+      const raw = fs.readFileSync(IDEMPOTENCY_FILE, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed[key]) {
+        console.log(`🔍 [IDEMPOTENCY GET] Found file key "${key}"`);
+        global.processedOrderKeys.set(key, parsed[key]);
+        return parsed[key];
+      }
+    } catch (e) {}
+  }
+  console.log(`🔍 [IDEMPOTENCY GET] Key "${key}" not found.`);
+  return null;
+}
+
+function safeCloneJson(obj) {
+  if (!obj) return obj;
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    const clean = {};
+    for (const k in obj) {
+      if (typeof obj[k] !== 'function' && typeof obj[k] !== 'symbol') {
+        try { clean[k] = JSON.parse(JSON.stringify(obj[k])); } catch(err) {}
+      }
+    }
+    return clean;
+  }
+}
+
+function saveIdempotencyRecord(key, record) {
+  if (!key) return;
+  const safeRecord = {
+    timestamp: record.timestamp || Date.now(),
+    inFlightPromise: record.inFlightPromise || null,
+    statusCode: record.statusCode || 200,
+    response: record.response ? safeCloneJson(record.response) : null
+  };
+  console.log(`💾 [IDEMPOTENCY SAVE] Saving key "${key}" (hasResponse: ${Boolean(safeRecord.response)}, inFlight: ${Boolean(safeRecord.inFlightPromise)})`);
+  global.processedOrderKeys.set(key, safeRecord);
+
+  if (safeRecord.response) {
+    try {
+      let store = {};
+      if (fs.existsSync(IDEMPOTENCY_FILE)) {
+        store = JSON.parse(fs.readFileSync(IDEMPOTENCY_FILE, 'utf8') || '{}');
+      }
+      store[key] = {
+        timestamp: safeRecord.timestamp,
+        statusCode: safeRecord.statusCode,
+        response: safeRecord.response
+      };
+      const keys = Object.keys(store);
+      if (keys.length > 500) {
+        delete store[keys[0]];
+      }
+      fs.writeFileSync(IDEMPOTENCY_FILE, JSON.stringify(store, null, 2), 'utf8');
+    } catch (e) {
+      console.warn("⚠️ Error persisting idempotency record to file:", e.message);
+    }
+  }
+}
+
 // POST /api/orders - Registra un ordine, aggiorna il lotto in tempo reale e salva su Supabase
 app.post('/api/orders', async (req, res) => {
+  if (typeof req.body === 'string' && req.body.trim().startsWith('{')) {
+    try { req.body = JSON.parse(req.body); } catch (e) {}
+  }
+
+  const idempotencyKey = req.body?.idempotency_key || req.body?.request_id || req.headers['x-idempotency-key'] || null;
+
+  if (idempotencyKey) {
+    const existing = getIdempotencyRecord(idempotencyKey);
+    if (existing) {
+      if (existing.inFlightPromise) {
+        console.log(`⏳ [IDEMPOTENCY LOCK] Chiamata concorrente per chiave "${idempotencyKey}", in attesa di completamento...`);
+        try {
+          const asyncRes = await existing.inFlightPromise;
+          return res.status(asyncRes.statusCode || 200).json(asyncRes.response);
+        } catch (e) {
+          // In caso di errore server sulla richiesta concorrente, consenti il re-try
+        }
+      } else if (existing.response) {
+        console.log(`ℹ️ [IDEMPOTENCY DUPLICATE PREVENTED] Restituzione risposta già associata alla chiave "${idempotencyKey}".`);
+        return res.status(existing.statusCode || 200).json(existing.response);
+      }
+    }
+  }
+
+  let resolveInFlight = null;
+  let rejectInFlight = null;
+  if (idempotencyKey) {
+    const promise = new Promise((resolve, reject) => {
+      resolveInFlight = resolve;
+      rejectInFlight = reject;
+    });
+    saveIdempotencyRecord(idempotencyKey, {
+      timestamp: Date.now(),
+      inFlightPromise: promise,
+      response: null,
+      statusCode: 200
+    });
+  }
+
+  function respondIdempotent(statusCode, responseBody) {
+    if (idempotencyKey) {
+      if (statusCode >= 500) {
+        global.processedOrderKeys.delete(idempotencyKey);
+        if (rejectInFlight) rejectInFlight(new Error("Server error"));
+      } else {
+        saveIdempotencyRecord(idempotencyKey, {
+          timestamp: Date.now(),
+          inFlightPromise: null,
+          response: responseBody,
+          statusCode: statusCode
+        });
+        if (resolveInFlight) resolveInFlight({ statusCode, response: responseBody });
+      }
+    }
+    return res.status(statusCode).json(responseBody);
+  }
+
   try {
     console.log("=========================================");
     console.log("📬 [DEBUG SERVER] POST /api/orders RECEIVED!");
+    if (idempotencyKey) console.log("🔑 [IDEMPOTENCY KEY]:", idempotencyKey);
     console.log("1. Full Body sent by frontend:", JSON.stringify(req.body, null, 2));
     console.log("=========================================");
 
@@ -16669,7 +17486,7 @@ app.post('/api/orders', async (req, res) => {
 
     if (badRequestReason) {
       console.error("❌ [DEBUG SERVER 400 Bad Request] Validation failed:", badRequestReason);
-      return res.status(400).json({
+      return respondIdempotent(400, {
         success: false,
         error: "Dati ordine mancanti o non validi.",
         reason: badRequestReason,
@@ -16718,7 +17535,7 @@ app.post('/api/orders', async (req, res) => {
 
       if (!matchedProd) {
         console.error(`❌ [SERVER 400 Bad Request] Articolo fantasma o inesistente nel carrello alla posizione ${index + 1}:`, item);
-        return res.status(400).json({
+        return respondIdempotent(400, {
           success: false,
           error: `Articolo non valido o non presente nel catalogo: "${item.squadra || item.versione || 'Sconosciuto'}"`,
           reason: "Tutti gli articoli dell'ordine devono corrispondere a prodotti reali presenti nel catalogo (tramite ID o legacy_id valido).",
@@ -16735,7 +17552,7 @@ app.post('/api/orders', async (req, res) => {
       const valFornitura = await validaPersonalizzazioneFornitura(item, req.body, matchedProd);
       if (!valFornitura.valid) {
         console.error(`❌ [SERVER 400 Bad Request] Articolo fornitura non valido #${index + 1}:`, valFornitura.error);
-        return res.status(400).json({
+        return respondIdempotent(400, {
           success: false,
           error: valFornitura.error,
           reason: valFornitura.error,
@@ -16751,7 +17568,7 @@ app.post('/api/orders', async (req, res) => {
       const valPatch = await validaPatchProdottoServer(item, matchedProd);
       if (!valPatch.valid) {
         console.error(`❌ [SERVER 400 Bad Request] Patch non pertinente o non attiva #${index + 1}:`, valPatch.error);
-        return res.status(400).json({
+        return respondIdempotent(400, {
           success: false,
           error: valPatch.error,
           reason: valPatch.error,
@@ -17073,7 +17890,7 @@ app.post('/api/orders', async (req, res) => {
     if (calculationErrorReason) {
       console.error("❌ [DEBUG SERVER 400 Bad Request] Calculation error detected:", calculationErrorReason);
       console.log("=== DEBUG ORDER END ===");
-      return res.status(400).json({
+      return respondIdempotent(400, {
         success: false,
         error: "Dati ordine non validi a causa di un errore di calcolo.",
         reason: calculationErrorReason,
@@ -17269,6 +18086,35 @@ app.post('/api/orders', async (req, res) => {
           };
         }).filter(Boolean);
 
+        // PROTEZIONE ANTI-DUPLICAZIONE: Controlla se esiste già un invio identico in stato 'IN ATTESA DI PAGAMENTO'
+        const existingPayments = await getTorneoPagamenti();
+        const duplicatePending = existingPayments.find(p => {
+          if (!p || p.stato !== 'IN ATTESA DI PAGAMENTO' || p.order_id) return false;
+          const sameSquadra = String(p.squadra_id) === String(squadConv?.id || req.body.torneo_squadra_id) ||
+                              (p.codice_fornitura && p.codice_fornitura === (squadConv?.codice_univoco || req.body.codice_fornitura));
+          const sameTotal = Math.abs((parseFloat(p.totale) || 0) - totale_pagato_cliente) < 0.01;
+          const sameQty = p.quantita_totale === quantita_totale_articoli;
+          const sameCapitano = p.capitano_nome === capNome && p.cliente_nome === (nome || '').trim();
+
+          if (!sameSquadra || !sameTotal || !sameQty || !sameCapitano) return false;
+
+          const snapshotStrCurrent = JSON.stringify(snapshotArticoli.map(a => `${a.squadra}_${a.taglia}_${a.infoPerso}_${a.quantita}`).sort());
+          const snapshotStrExisting = JSON.stringify((p.articoli_snapshot || []).map(a => `${a.squadra || a.prodotto}_${a.taglia}_${a.infoPerso || a.personalizzazione}_${a.quantita}`).sort());
+
+          return snapshotStrCurrent === snapshotStrExisting;
+        });
+
+        if (duplicatePending) {
+          console.log(`ℹ️ [PAGAMENTO TORNEO DUPLICATO EVITATO] Invio identico già presente #${duplicatePending.id} ("IN ATTESA DI PAGAMENTO").`);
+          return {
+            isTournamentPayment: true,
+            nuovoPagamento: duplicatePending,
+            insertedAdminOrder: null,
+            finalLotto: lotto,
+            isAggregated: false
+          };
+        }
+
         const nuovoPagamento = {
           id: `torneo_pag_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
           torneo_id: squadConv?.torneo_id || req.body.torneo_id || null,
@@ -17319,7 +18165,7 @@ app.post('/api/orders', async (req, res) => {
 
     // Se è un ordine torneo, rispondiamo con successo per lo stato in attesa di pagamento
     if (isTournamentPayment && nuovoPagamento) {
-      return res.json({
+      return respondIdempotent(200, {
         success: true,
         is_tournament_payment: true,
         payment_id: nuovoPagamento.id,
@@ -17339,124 +18185,115 @@ app.post('/api/orders', async (req, res) => {
       if (insertedAdminOrder.created_at) rigaOrdine.created_at = insertedAdminOrder.created_at;
     }
 
-    // Se l'utente è autenticato ed è stato fornito un token, salviamo l'ordine nell'Area Cliente
+    // Se l'utente è autenticato, salviamo l'ordine nell'Area Cliente
     console.log("=================================");
-console.log("DEBUG AREA CLIENTE");
-console.log("insertedAdminOrder:", insertedAdminOrder);
-console.log("user_id:", user_id);
-console.log("access_token:", access_token ? "PRESENTE" : "ASSENTE");
-console.log("=================================");
-    if (insertedAdminOrder && user_id && access_token) {
+    console.log("DEBUG AREA CLIENTE");
+    console.log("insertedAdminOrder:", insertedAdminOrder);
+    console.log("user_id:", user_id);
+    console.log("access_token:", access_token ? "PRESENTE" : "ASSENTE");
+    console.log("=================================");
+    if (insertedAdminOrder && user_id) {
       try {
         console.log(`👤 Utente autenticato rilevato (${user_id}). Associazione dell'ordine all'Area Cliente...`);
-        const userSupabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false
-          },
-          global: {
-            headers: {
-              Authorization: `Bearer ${access_token}`
-            }
-          }
-        });
-
-        // Calcoliamo i totali per customer_orders (subtotale, spedizione, totale)
-        let subtotal = 0;
-        let shipping = 0;
-        carrello.forEach(item => {
-          const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-          const isFornitura = Boolean(item.fornitura);
-          // Per la convenzione torneo, l'importo al cliente al checkout è €0 (Incluso nella convenzione)
-          const itemPrezzo = isFornitura ? 0 : ((Number(item.prezzo) || 0) * (Number(item.quantita) || 1));
-          if (isSpedizione) {
-            shipping += itemPrezzo;
-          } else {
-            subtotal += itemPrezzo;
-          }
-        });
-        const total = subtotal + shipping;
-
-        const customerOrderData = {
-          user_id: user_id,
-          order_number: `ORD-${insertedAdminOrder.id}`,
-          admin_order_id: insertedAdminOrder.id,
-          subtotal: subtotal,
-          shipping: shipping,
-          total: isSupplierCoupon ? Number((supplierCostEur + shipping).toFixed(2)) : total - discount_eur, // Apply the actual coupon discount or supplier cost + shipping
-          payment_status: 'pending',
-          status: 'Ordine Ricevuto',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          coupon_code: coupon_code || null,
-          coupon_discount: discount_eur,
-          coupon_type: coupon_type || null,
-          coupon_value: coupon_value !== undefined ? Number(coupon_value) : null
-        };
-
-        console.log("📤 Inserimento in customer_orders:", customerOrderData);
-        let custOrderRow = null;
-        let custOrderErr = null;
-
-        const initialInsert = await userSupabase
-          .from('customer_orders')
-          .insert(customerOrderData)
-          .select();
-        
-        custOrderRow = initialInsert.data;
-        custOrderErr = initialInsert.error;
-
-        if (custOrderErr && (custOrderErr.message.includes("coupon_type") || custOrderErr.message.includes("column"))) {
-          console.warn("⚠️ Colonna coupon_type non trovata su customer_orders (tabella non aggiornata). Riprovo l'inserimento senza coupon_type e coupon_value...");
-          const { coupon_type, coupon_value, ...customerOrderDataFallback } = customerOrderData;
-          const retryInsert = await userSupabase
-            .from('customer_orders')
-            .insert(customerOrderDataFallback)
-            .select();
-          custOrderRow = retryInsert.data;
-          custOrderErr = retryInsert.error;
-        }
-
-        if (custOrderErr) {
-          console.error("❌ Errore inserimento in customer_orders:", custOrderErr.message);
-        } else if (custOrderRow && custOrderRow.length > 0) {
-          const customerOrderId = custOrderRow[0].id;
-          console.log("✅ Inserito in customer_orders con ID:", customerOrderId);
-
-          const orderItemsToInsert = [];
-          for (const item of carrello) {
+        const targetSupabase = getSupabaseAdminClient() || getSupabaseClient();
+        if (!targetSupabase) {
+          console.warn("⚠️ Client Supabase non disponibile per associazione Area Cliente.");
+        } else {
+          // Calcoliamo i totali per customer_orders (subtotale, spedizione, totale)
+          let subtotal = 0;
+          let shipping = 0;
+          carrello.forEach(item => {
             const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
-            if (isSpedizione) continue;
-
-            // Cerca il prodotto nel database
-            let matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
-            if (!matchedProd && item.legacy_id) {
-              matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+            const isFornitura = Boolean(item.fornitura);
+            // Per la convenzione torneo, l'importo al cliente al checkout è €0 (Incluso nella convenzione)
+            const itemPrezzo = isFornitura ? 0 : ((Number(item.prezzo) || 0) * (Number(item.quantita) || 1));
+            if (isSpedizione) {
+              shipping += itemPrezzo;
+            } else {
+              subtotal += itemPrezzo;
             }
+          });
+          const total = subtotal + shipping;
 
-            orderItemsToInsert.push({
-              order_id: customerOrderId,
-              product_id: matchedProd?.legacy_id ?? null,
-              nome: item.squadra || '',
-              categoria: matchedProd ? matchedProd.categoria : 'Kit',
-              stagione: matchedProd ? matchedProd.stagione : '2026/2027',
-              taglia: item.taglia || '-',
-              personalizzazione: item.infoPerso || 'No',
-              prezzo: item.fornitura ? 0 : (Number(item.prezzo) || 0),
-              quantita: Number(item.quantita) || 1
-            });
+          const customerOrderData = {
+            user_id: user_id,
+            order_number: `ORD-${insertedAdminOrder.id}`,
+            admin_order_id: insertedAdminOrder.id,
+            subtotal: subtotal,
+            shipping: shipping,
+            total: isSupplierCoupon ? Number((supplierCostEur + shipping).toFixed(2)) : total - discount_eur, // Apply the actual coupon discount or supplier cost + shipping
+            payment_status: 'pending',
+            status: 'Ordine Ricevuto',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            coupon_code: coupon_code || null,
+            coupon_discount: discount_eur
+          };
+
+          console.log("📤 Inserimento in customer_orders:", customerOrderData);
+          let custOrderRow = null;
+          let custOrderErr = null;
+
+          const initialInsert = await targetSupabase
+            .from('customer_orders')
+            .insert(customerOrderData)
+            .select();
+          
+          custOrderRow = initialInsert.data;
+          custOrderErr = initialInsert.error;
+
+          if (custOrderErr && (custOrderErr.message.includes("coupon_type") || custOrderErr.message.includes("column"))) {
+            console.warn("⚠️ Colonna coupon non trovata su customer_orders. Riprovo l'inserimento base...");
+            const { coupon_code: _cCode, coupon_discount: _cDisc, ...customerOrderDataFallback } = customerOrderData;
+            const retryInsert = await targetSupabase
+              .from('customer_orders')
+              .insert(customerOrderDataFallback)
+              .select();
+            custOrderRow = retryInsert.data;
+            custOrderErr = retryInsert.error;
           }
 
-          if (orderItemsToInsert.length > 0) {
-            console.log("📤 Inserimento in customer_order_items:", orderItemsToInsert);
-            const { error: itemsErr } = await userSupabase
-              .from('customer_order_items')
-              .insert(orderItemsToInsert);
-            
-            if (itemsErr) {
-              console.error("❌ Errore inserimento in customer_order_items:", itemsErr.message);
-            } else {
-              console.log("✅ Inseriti tutti i prodotti dell'ordine in customer_order_items!");
+          if (custOrderErr) {
+            console.error("❌ Errore inserimento in customer_orders:", custOrderErr.message);
+          } else if (custOrderRow && custOrderRow.length > 0) {
+            const customerOrderId = custOrderRow[0].id;
+            console.log("✅ Inserito in customer_orders con ID:", customerOrderId);
+
+            const orderItemsToInsert = [];
+            for (const item of carrello) {
+              const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+              if (isSpedizione) continue;
+
+              // Cerca il prodotto nel database
+              let matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
+              if (!matchedProd && item.legacy_id) {
+                matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+              }
+
+              orderItemsToInsert.push({
+                order_id: customerOrderId,
+                product_id: matchedProd?.legacy_id ?? null,
+                nome: item.squadra || '',
+                categoria: matchedProd ? matchedProd.categoria : 'Kit',
+                stagione: matchedProd ? matchedProd.stagione : '2026/2027',
+                taglia: item.taglia || '-',
+                personalizzazione: item.infoPerso || 'No',
+                prezzo: item.fornitura ? 0 : (Number(item.prezzo) || 0),
+                quantita: Number(item.quantita) || 1
+              });
+            }
+
+            if (orderItemsToInsert.length > 0) {
+              console.log("📤 Inserimento in customer_order_items:", orderItemsToInsert);
+              const { error: itemsErr } = await targetSupabase
+                .from('customer_order_items')
+                .insert(orderItemsToInsert);
+              
+              if (itemsErr) {
+                console.error("❌ Errore inserimento in customer_order_items:", itemsErr.message);
+              } else {
+                console.log("✅ Inseriti tutti i prodotti dell'ordine in customer_order_items!");
+              }
             }
           }
         }
@@ -17466,7 +18303,7 @@ console.log("=================================");
     }
 
     console.log("=== DEBUG SERVER SUCCESS ===");
-    return res.json({
+    return respondIdempotent(200, {
       success: true,
       order: insertedAdminOrder || rigaOrdine,
       order_id: (insertedAdminOrder && insertedAdminOrder.id) ? insertedAdminOrder.id : rigaOrdine.id,
@@ -17478,7 +18315,7 @@ console.log("=================================");
   } catch (err) {
     console.error("⚠️ Errore durante la registrazione dell'ordine:", err);
     const statusCode = err.statusCode || 500;
-    return res.status(statusCode).json({
+    return respondIdempotent(statusCode, {
       success: false,
       error: err.message,
       requested: err.requested,
@@ -17686,7 +18523,7 @@ app.get('/api/customer/orders', async (req, res) => {
   }
 });
 
-// POST /api/upload - Carica un'immagine in locale (utilizzato in assenza di Supabase)
+// POST /api/upload - Carica un allegato cliente/chat o recensione (controlli formato, dimensione max 5MB e destinazione)
 app.post('/api/upload', (req, res) => {
   try {
     const { filename, base64 } = req.body;
@@ -17699,13 +18536,25 @@ app.post('/api/upload', (req, res) => {
       return res.status(400).json({ success: false, error: "Formato stringa base64 non valido" });
     }
 
+    const mimeType = matches[1].toLowerCase();
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowedMimeTypes.includes(mimeType)) {
+      return res.status(400).json({ success: false, error: `Formato file non consentito (${mimeType}). Ammessi: JPEG, PNG, WebP, PDF.` });
+    }
+
     const fileBuffer = Buffer.from(matches[2], 'base64');
-    const safeFilename = `${Date.now()}-${filename.replace(/[^A-Za-z0-9.]/g, '_')}`;
+    const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+    if (fileBuffer.length > MAX_SIZE) {
+      return res.status(400).json({ success: false, error: "Dimensione file superiore al limite consentito di 5 MB." });
+    }
+
+    const cleanName = path.basename(filename).replace(/[^A-Za-z0-9.]/g, '_');
+    const safeFilename = `${Date.now()}-${cleanName}`;
     const targetPath = path.join(UPLOADS_DIR, safeFilename);
 
     fs.writeFileSync(targetPath, fileBuffer);
     console.log(`📸 Immagine caricata in locale con successo: /uploads/${safeFilename}`);
-    return res.json({ success: true, filePath: `/uploads/${safeFilename}` });
+    return res.json({ success: true, filePath: `/uploads/${safeFilename}`, url: `/uploads/${safeFilename}` });
   } catch (err) {
     console.error("⚠️ Errore durante il caricamento dell'immagine locale:", err);
     return res.status(500).json({ success: false, error: err.message });
@@ -18055,8 +18904,8 @@ app.post('/api/orders/delete-customer-order', async (req, res) => {
   }
 });
 
-// POST /api/products/seed - Popola il database locale in blocco (ignora Supabase)
-app.post('/api/products/seed', async (req, res) => {
+// POST /api/products/seed - Popola il database locale in blocco (protetto admin)
+app.post('/api/products/seed', adminAuthMiddleware, async (req, res) => {
   try {
     const { products } = req.body;
     if (!Array.isArray(products) || products.length === 0) {
@@ -18302,24 +19151,16 @@ async function getDbOrdersMerged() {
     }
 
     const email = (custOrd && custOrd.email) || `${ord.nome.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
-    let paymentStatus = 'Da pagare';
-    const rawPay = ord.payment_status ? String(ord.payment_status).trim() : null;
-    if (rawPay && (rawPay === 'Pagato' || rawPay === 'paid' || rawPay === 'PAGATO' || rawPay === 'succeeded')) {
+
+    let paymentStatus = normalizzaStatoPagamento(ord.payment_status);
+    const custPayNorm = custOrd ? normalizzaStatoPagamento(custOrd.payment_status || custOrd.stato_pagamento) : null;
+
+    if (paymentStatus === 'Pagato' || custPayNorm === 'Pagato') {
       paymentStatus = 'Pagato';
-    } else if (rawPay && (rawPay === 'Rimborso' || rawPay === 'refunded' || rawPay === 'RIMBORSO')) {
+    } else if (paymentStatus === 'Rimborso' || custPayNorm === 'Rimborso') {
       paymentStatus = 'Rimborso';
-    } else if (rawPay && (rawPay === 'Da pagare' || rawPay === 'pending' || rawPay === 'DA PAGARE' || rawPay === 'Non pagato')) {
-      if (custOrd && (custOrd.payment_status === 'paid' || custOrd.payment_status === 'Pagato')) {
-        paymentStatus = 'Pagato';
-      } else if (custOrd && (custOrd.payment_status === 'refunded' || custOrd.payment_status === 'Rimborso')) {
-        paymentStatus = 'Rimborso';
-      } else {
-        paymentStatus = 'Da pagare';
-      }
-    } else if (custOrd && (custOrd.payment_status === 'paid' || custOrd.payment_status === 'Pagato')) {
-      paymentStatus = 'Pagato';
-    } else if (custOrd && (custOrd.payment_status === 'refunded' || custOrd.payment_status === 'Rimborso')) {
-      paymentStatus = 'Rimborso';
+    } else {
+      paymentStatus = paymentStatus || custPayNorm || 'Da pagare';
     }
 
     return {
@@ -18416,13 +19257,7 @@ app.post('/api/auth/sync-profile', async (req, res) => {
             updated_at: new Date().toISOString()
           };
 
-          let clientToUse = supabase;
-          if (access_token) {
-            clientToUse = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
-              global: { headers: { Authorization: `Bearer ${access_token}` } }
-            });
-          }
-
+          let clientToUse = getSupabaseAdminClient() || supabase;
           const { error: upsertErr } = await clientToUse.from('profiles').upsert(dbProfileData);
           if (upsertErr) {
             console.warn("⚠️ Upsert profile in Supabase warning:", upsertErr.message);
@@ -18442,8 +19277,8 @@ app.post('/api/auth/sync-profile', async (req, res) => {
   }
 });
 
-// GET /api/admin/registered-accounts - Recupera la lista di tutti gli account clienti registrati direttamente da Supabase profiles
-app.get('/api/admin/registered-accounts', async (req, res) => {
+// GET /api/admin/registered-accounts - Recupera la lista di tutti gli account clienti registrati direttamente da Supabase profiles (protetto admin)
+app.get('/api/admin/registered-accounts', adminAuthMiddleware, async (req, res) => {
   try {
     const supabase = getSupabaseAdminClient();
     if (!supabase) {
@@ -18498,7 +19333,7 @@ app.get('/api/admin/registered-accounts', async (req, res) => {
 });
 
 // POST /api/admin/orders/assign-account - Assegna o scollega un ordine esistente a un account cliente
-app.post('/api/admin/orders/assign-account', async (req, res) => {
+app.post('/api/admin/orders/assign-account', adminAuthMiddleware, async (req, res) => {
   try {
     const { order_id, user_id } = req.body;
     if (!order_id) {
@@ -18667,7 +19502,7 @@ function compileCRMClienti(mergedOrders) {
 // ----------------------
 
 // 1. GET /api/admin/gestione-ordini
-app.get('/api/admin/gestione-ordini', async (req, res) => {
+app.get('/api/admin/gestione-ordini', adminAuthMiddleware, async (req, res) => {
   try {
     const mergedOrders = await getDbOrdersMerged();
     return res.json({ success: true, orders: mergedOrders });
@@ -18678,7 +19513,7 @@ app.get('/api/admin/gestione-ordini', async (req, res) => {
 });
 
 // 2. POST /api/admin/gestione-ordini/update
-app.post('/api/admin/gestione-ordini/update', async (req, res) => {
+app.post('/api/admin/gestione-ordini/update', adminAuthMiddleware, async (req, res) => {
   try {
     const { 
       id, 
@@ -18776,7 +19611,7 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
       const validOrdersColumns = [
         'carrello', 'squadra', 'personalizzazione', 'taglia', 'lotto_id',
         'totale', 'costo_prodotti_usd', 'costo_spedizione_usd', 'costo_totale_usd',
-        'costo_totale_eur', 'profitto_eur', 'prezzo_fornitore', 'payment_status'
+        'costo_totale_eur', 'profitto_eur', 'prezzo_fornitore'
       ];
       for (const col of validOrdersColumns) {
         if (updateData[col] !== undefined) {
@@ -18803,11 +19638,6 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
     }
 
     // 2. Aggiorna la cache locale backup 'orders_local.json'
-    // Includi payment_status nella cache locale per emergenze/offline
-    if (payment_status !== undefined) {
-      updateData.payment_status = payment_status;
-    }
-
     if (Object.keys(updateData).length > 0) {
       try {
         const localOrders = getLocalOrders();
@@ -18834,25 +19664,24 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
     
     // 3. Sincronizzazione persistente su Supabase 'customer_orders'
     if (supabase) {
-      const dbPaymentStatus = (payment_status === 'Pagato' || payment_status === 'paid') 
-        ? 'paid' 
-        : (payment_status === 'Rimborso' || payment_status === 'refunded' ? 'refunded' : 'pending');
       const dbStatus = status || existingOrder?.status || 'In preparazione';
       
       try {
-        // Verifica se esiste già una riga associata a questo admin_order_id
         const { data: existingCust, error: findCustErr } = await supabase
           .from('customer_orders')
           .select('*')
           .eq('admin_order_id', Number(id));
 
         if (!findCustErr && existingCust && existingCust.length > 0) {
-          // UPDATE MIRATO: aggiorna esclusivamente payment_status e timestamp senza alterare user_id o order_number
           const updateCustFields = {
             status: dbStatus,
-            payment_status: dbPaymentStatus,
             updated_at: new Date().toISOString()
           };
+          if (updateData.payment_status !== undefined) {
+            updateCustFields.payment_status = (updateData.payment_status === 'Pagato') 
+              ? 'paid' 
+              : (updateData.payment_status === 'Rimborso' ? 'refunded' : 'pending');
+          }
           if (totale !== undefined) {
             const parsedTot = parseFloat(String(totale).replace('€', '').replace(/\s+/g, '').replace(',', '.'));
             if (!isNaN(parsedTot)) updateCustFields.total = parsedTot;
@@ -18861,7 +19690,7 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
             .from('customer_orders')
             .update(updateCustFields)
             .eq('admin_order_id', Number(id));
-          console.log(`✅ Aggiornato record customer_orders esistente per admin_order_id #${id}: payment_status = ${dbPaymentStatus}`);
+          console.log(`✅ Aggiornato record customer_orders per admin_order_id #${id}`);
         } else {
           // Se esiste un account utente associato (user_id), crea la riga in customer_orders
           const targetUserId = existingOrder?.user_id || req.body?.user_id || null;
@@ -18918,7 +19747,7 @@ app.post('/api/admin/gestione-ordini/update', async (req, res) => {
 });
 
 // POST /api/admin/orders/toggle-shipping-override - Rimuove o ripristina la spedizione cliente per un ordine
-app.post('/api/admin/orders/toggle-shipping-override', async (req, res) => {
+app.post('/api/admin/orders/toggle-shipping-override', adminAuthMiddleware, async (req, res) => {
   try {
     const { order_id, rimuovi } = req.body || {};
     if (!order_id) {
@@ -19096,6 +19925,7 @@ app.post('/api/admin/orders/toggle-shipping-override', async (req, res) => {
 
 
 setupItemEndpoints(app, {
+  adminAuthMiddleware,
   getDbOrders,
   getDbOrdersMerged,
   getDbLotti,
@@ -19193,7 +20023,7 @@ async function aggiornaStatiOrdiniDaLotto(lottoId, tracking) {
 }
 
 // Nuovi Endpoint Gestione Tracking Lotto
-app.post('/api/admin/lotto/save-tracking', async (req, res) => {
+app.post('/api/admin/lotto/save-tracking', adminAuthMiddleware, async (req, res) => {
   try {
     const { id, shipping_status, tracking_code, tracking_url } = req.body;
     if (!id) {
@@ -19642,8 +20472,8 @@ app.get('/api/admin/performance/status', (req, res) => {
   }
 });
 
-// POST /api/admin/store-image - Salva l'immagine su Supabase Storage (persistente) ed aggiorna il DB
-app.post('/api/admin/store-image', async (req, res) => {
+// POST /api/admin/store-image - Salva l'immagine su Supabase Storage (persistente) ed aggiorna il DB (protetto admin)
+app.post('/api/admin/store-image', adminAuthMiddleware, async (req, res) => {
   try {
     const { productId, originalUrl, imageBase64 } = req.body || {};
 
@@ -19753,6 +20583,62 @@ app.post('/api/admin/store-image', async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Errore /api/admin/store-image:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/admin/patches/upload-image - Carica nuova immagine patch su Supabase Storage bucket 'patches' (protetto da adminAuthMiddleware)
+app.post('/api/admin/patches/upload-image', adminAuthMiddleware, async (req, res) => {
+  try {
+    const { filename, base64 } = req.body || {};
+    if (!filename || !base64) {
+      return res.status(400).json({ success: false, error: "Dati caricamento mancanti (richiesto filename e base64)." });
+    }
+
+    // Estrazione del buffer da base64 / data URL
+    let rawBuffer;
+    if (typeof base64 === 'string' && base64.startsWith('data:')) {
+      const base64Clean = base64.replace(/^data:[^;]+;base64,/, '');
+      rawBuffer = Buffer.from(base64Clean, 'base64');
+    } else if (typeof base64 === 'string') {
+      rawBuffer = Buffer.from(base64, 'base64');
+    } else {
+      return res.status(400).json({ success: false, error: "Formato base64 non valido." });
+    }
+
+    if (!rawBuffer || rawBuffer.length === 0) {
+      return res.status(400).json({ success: false, error: "File vuoto o non leggibile." });
+    }
+
+    // Massimo 5 MB (5 * 1024 * 1024)
+    if (rawBuffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, error: "Dimensione eccessiva: il file non può superare 5 MB." });
+    }
+
+    // Validazione rigorosa formati supportati: JPEG, PNG, WebP
+    const metadata = await validaBufferImmagine(rawBuffer);
+    const format = (metadata?.format || '').toLowerCase();
+    if (!['jpeg', 'png', 'webp'].includes(format)) {
+      return res.status(400).json({
+        success: false,
+        error: `Formato '${format || 'sconosciuto'}' non consentito. Sono supportati esclusivamente JPEG, PNG e WebP.`
+      });
+    }
+
+    // Caricamento persistente ed esclusivo su Supabase Storage (bucket 'patches')
+    const persistResult = await processAndPersistPatchImage({ imageSource: rawBuffer });
+
+    if (!persistResult || !persistResult.publicUrl) {
+      return res.status(500).json({ success: false, error: "Errore caricamento su Supabase Storage bucket 'patches'." });
+    }
+
+    return res.json({
+      success: true,
+      publicUrl: persistResult.publicUrl,
+      filename: persistResult.filename
+    });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/admin/patches/upload-image:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -21123,20 +22009,6 @@ app.get('/api/catalog/no-filter-audit', async (req, res) => {
   }
 });
 
-// Catch-all per tutte le rotte API non trovate (evita di restituire l'HTML di index.html per le chiamate /api/*)
-app.all('/api/*', (req, res) => {
-  res.status(404).json({ success: false, error: `Endpoint API non trovato: ${req.method} ${req.path}` });
-});
-
-// Rotte esplicite per il Pannello Admin Accessori e Admin Principale
-app.get(['/admin/accessori', '/admin/accessori/*'], adminAuthMiddleware, (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
-});
-
-app.get(['/admin', '/admin/*'], adminAuthMiddleware, (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
-});
-
 // Protezione per tutte le API Admin
 app.use('/api/admin/*', adminAuthMiddleware);
 app.use('/api/settings', (req, res, next) => {
@@ -21157,13 +22029,37 @@ app.use('/api/teams', (req, res, next) => {
   next();
 });
 
+// Catch-all per tutte le rotte API non trovate (evita di restituire l'HTML di index.html per le chiamate /api/*)
+app.all('/api/*', (req, res) => {
+  res.status(404).json({ success: false, error: `Endpoint API non trovato: ${req.method} ${req.path}` });
+});
+
+// Rotte esplicite per il Pannello Admin Accessori, Admin Login e Admin Principale
+app.get(['/admin/accessori', '/admin/accessori/*'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  res.sendFile(path.join(__dirname, 'admin', 'accessori', 'index.html'));
+});
+
+app.get(['/admin-login', '/admin-login/*'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  res.sendFile(path.join(__dirname, 'admin-login', 'index.html'));
+});
+
+app.get(['/admin', '/admin/*'], (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  res.sendFile(path.join(__dirname, 'admin', 'index.html'));
+});
+
 // Blocco 404 per asset inesistenti (evita download a vuoto di index.html da 1.14 MB come finto asset)
 app.use(['/assets/*', '/uploads/*'], (req, res) => {
   res.status(404).json({ success: false, error: 'Asset non trovato' });
 });
 
-// Fallback all routes to index.html
+// Fallback all routes to index.html con Cache-Control no-cache per re-validazione immediata al primo accesso
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
