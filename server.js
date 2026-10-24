@@ -3345,6 +3345,87 @@ async function validaBufferImmagine(buffer) {
 }
 
 /**
+ * Scarica un'immagine da un server fornitore remoto gestendo tentativi multipli (retry)
+ * e rotazione degli header HTTP per superare filtri WAF / hotlink protection / 403 / 429.
+ */
+async function downloadSupplierImageWithRetry(targetFetchUrl) {
+  const cleanUrl = targetFetchUrl.split('#')[0].trim();
+
+  // Mappa di strategie di header HTTP per aggirare blocchi anti-bot o 403 del fornitore
+  const headerStrategies = [
+    {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+      'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      'Referer': 'https://jerseys-catalog.com/'
+    },
+    {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+      'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
+    },
+    {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+      'Accept': 'image/webp,image/png,image/svg+xml,image/*,*/*;q=0.8'
+    }
+  ];
+
+  let lastErrorMsg = '';
+
+  for (let attempt = 0; attempt < headerStrategies.length; attempt++) {
+    const headers = headerStrategies[attempt];
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    try {
+      const resp = await fetch(cleanUrl, {
+        headers,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) {
+        lastErrorMsg = `[ERRORE DOWNLOAD FORNITORE HTTP ${resp.status}] Il server del fornitore ha risposto con codice ${resp.status} ${resp.statusText}. URL: ${cleanUrl}`;
+        if (attempt < headerStrategies.length - 1) {
+          await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(lastErrorMsg);
+      }
+
+      const contentType = (resp.headers.get('content-type') || '').toLowerCase();
+      if (contentType.includes('text/html') || contentType.includes('application/json') || contentType.includes('text/plain')) {
+        lastErrorMsg = `[ERRORE FORMATO FORNITORE] Il server esterno ha risposto con '${contentType}' anziché con un file immagine. URL: ${cleanUrl}`;
+        if (attempt < headerStrategies.length - 1) {
+          await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(lastErrorMsg);
+      }
+
+      const arrayBuf = await resp.arrayBuffer();
+      const buf = Buffer.from(arrayBuf);
+      if (buf.length < 50) {
+        lastErrorMsg = `[ERRORE DIMENSIONE IMMAGINE] Il file scaricato ha dimensione insufficiente (${buf.length} byte). URL: ${cleanUrl}`;
+        if (attempt < headerStrategies.length - 1) {
+          await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+          continue;
+        }
+        throw new Error(lastErrorMsg);
+      }
+
+      return buf;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      lastErrorMsg = err.message.startsWith('[ERRORE') ? err.message : `[ERRORE RETE FORNITORE] Impossibile connettersi al server del fornitore (${err.message}). URL: ${cleanUrl}`;
+      if (attempt < headerStrategies.length - 1) {
+        await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+      }
+    }
+  }
+
+  throw new Error(lastErrorMsg || `Impossibile scaricare l'immagine da ${cleanUrl} dopo tentativi multipli.`);
+}
+
+/**
  * Funzione centralizzata per acquisizione, validazione, conversione (WebP 300x300 qualità 80),
  * caricamento e verifica su Supabase Storage (bucket 'prodotti').
  * 
@@ -3386,36 +3467,7 @@ async function processAndPersistProductImage({ imageSource, productId = null, or
     const base64Clean = imageSource.replace(/^data:[^;]+;base64,/, '');
     rawBuffer = Buffer.from(base64Clean, 'base64');
   } else if (typeof imageSource === 'string' && (imageSource.startsWith('http://') || imageSource.startsWith('https://'))) {
-    const targetFetchUrl = imageSource;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    try {
-      const resp = await fetch(targetFetchUrl, {
-        headers: {
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-          'accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-          'referer': 'https://jerseys-catalog.com/'
-        },
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (!resp.ok) {
-        throw new Error(`Download dal fornitore fallito con HTTP ${resp.status} ${resp.statusText}`);
-      }
-
-      const contentType = (resp.headers.get('content-type') || '').toLowerCase();
-      if (contentType.includes('text/html') || contentType.includes('application/json') || contentType.includes('text/plain')) {
-        throw new Error(`Il server esterno ha risposto con '${contentType}' anziché con un file immagine.`);
-      }
-
-      const arrayBuf = await resp.arrayBuffer();
-      rawBuffer = Buffer.from(arrayBuf);
-    } catch (fetchErr) {
-      clearTimeout(timeoutId);
-      throw new Error(`Impossibile scaricare immagine da ${targetFetchUrl}: ${fetchErr.message}`);
-    }
+    rawBuffer = await downloadSupplierImageWithRetry(imageSource);
   } else {
     throw new Error("Formato sorgente immagine non supportato (richiesto Buffer, data URL o URL HTTP/HTTPS).");
   }
@@ -7936,6 +7988,9 @@ app.post('/api/products/batch-update', adminAuthMiddleware, async (req, res) => 
     }
     if (updates.prezzo !== undefined && updates.prezzo !== null && updates.prezzo !== '' && !isNaN(Number(updates.prezzo))) {
       payload.prezzo = Number(updates.prezzo);
+    }
+    if (updates.prezzo_fornitore !== undefined && updates.prezzo_fornitore !== null && updates.prezzo_fornitore !== '' && !isNaN(Number(updates.prezzo_fornitore))) {
+      payload.prezzo_fornitore = Number(updates.prezzo_fornitore);
     }
     if (updates.filtro_catalogo !== undefined && updates.filtro_catalogo !== null && String(updates.filtro_catalogo).trim() !== '') {
       payload.filtro_catalogo = String(updates.filtro_catalogo).trim();

@@ -3947,6 +3947,7 @@ window.apriPannelloModificaMassiva = function() {
     const elemStagione = document.getElementById('batch-stagione');
     const elemDisponibilita = document.getElementById('batch-disponibilita');
     const elemPrezzo = document.getElementById('batch-prezzo');
+    const elemPrezzoFornitore = document.getElementById('batch-prezzo-fornitore');
     const elemFiltroCatalogo = document.getElementById('batch-filtro-catalogo');
     const elemTag = document.getElementById('batch-tag');
 
@@ -3962,6 +3963,7 @@ window.apriPannelloModificaMassiva = function() {
     if (elemStagione) elemStagione.value = '';
     if (elemDisponibilita) elemDisponibilita.value = '';
     if (elemPrezzo) elemPrezzo.value = '';
+    if (elemPrezzoFornitore) elemPrezzoFornitore.value = '';
     if (elemFiltroCatalogo) elemFiltroCatalogo.value = '';
     if (elemTag) elemTag.value = '';
 
@@ -4343,6 +4345,7 @@ window.preparaConfermaModificaMassiva = function() {
     const stagione = (document.getElementById('batch-stagione')?.value || '').trim();
     const disponibilita = (document.getElementById('batch-disponibilita')?.value || '').trim();
     const prezzo = (document.getElementById('batch-prezzo')?.value || '').trim();
+    const prezzoFornitore = (document.getElementById('batch-prezzo-fornitore')?.value || '').trim();
     const filtroCatalogo = (document.getElementById('batch-filtro-catalogo')?.value || '').trim();
     const tag = (document.getElementById('batch-tag')?.value || '').trim();
 
@@ -4381,6 +4384,10 @@ window.preparaConfermaModificaMassiva = function() {
     if (prezzo !== '') {
         pendingBatchUpdates.prezzo = prezzo;
         summaryItems.push(`✓ Prezzo di vendita → <strong>€ ${Number(prezzo).toFixed(2)}</strong>`);
+    }
+    if (prezzoFornitore !== '') {
+        pendingBatchUpdates.prezzo_fornitore = prezzoFornitore;
+        summaryItems.push(`✓ Prezzo fornitore → <strong>$ ${Number(prezzoFornitore).toFixed(2)} USD</strong>`);
     }
     if (filtroCatalogo) {
         pendingBatchUpdates.filtro_catalogo = filtroCatalogo;
@@ -4426,10 +4433,12 @@ window.chiudiConfermaModificaMassiva = function() {
 async function inviaRichiestaBatchSicura(url, payload, maxRetries = 3) {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
+            const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    ...authHeaders
                 },
                 body: JSON.stringify(payload)
             });
@@ -10619,15 +10628,19 @@ function renderAnteprimaTabella() {
 
                 <!-- Immagine -->
                 <td class="px-5 py-4 text-center align-middle">
-                    <div class="flex flex-col items-center gap-2">
+                    <div class="flex flex-col items-center gap-1.5">
                         ${p.immagine ? `
-                            <img src="${p.immagine}" alt="Foto" class="h-14 w-14 object-cover rounded-xl border border-slate-200 shadow-md mx-auto" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'h-14 w-14 bg-slate-100 rounded-xl flex items-center justify-center text-sm border border-slate-200 mx-auto\\'>👕</div>';">
+                            <img src="${p.immagine.startsWith('data:') ? p.immagine : escapeHtml(p.immagine)}" alt="Foto" class="h-14 w-14 object-cover rounded-xl border border-slate-200 shadow-md mx-auto" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'h-14 w-14 bg-slate-100 rounded-xl flex items-center justify-center text-sm border border-slate-200 mx-auto\\'>👕</div>';">
                         ` : `
                             <div class="h-14 w-14 bg-slate-100 rounded-xl flex items-center justify-center text-sm border border-slate-200 mx-auto">👕</div>
                         `}
-                        <input type="text" value="${escapeHtml(p.immagine)}" 
+                        <input type="text" value="${escapeHtml(p.immagine.startsWith('data:') ? '[Immagine File Locale]' : p.immagine)}" 
                             onchange="aggiornaCampoAnteprima(${p.id_anteprima}, 'immagine', this.value)"
-                            class="w-28 text-[9px] font-mono border border-slate-200 rounded px-1.5 py-1 text-center mt-1 focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/10" placeholder="Percorso URL">
+                            class="w-28 text-[9px] font-mono border border-slate-200 rounded px-1.5 py-1 text-center focus:outline-none focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/10" placeholder="URL Immagine">
+                        <label class="cursor-pointer text-[9px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded px-2 py-0.5 transition-colors shadow-2xs flex items-center gap-1">
+                            <span>📁 Carica File</span>
+                            <input type="file" accept="image/*" class="hidden" onchange="caricaImmagineLocaleProdottoAnteprima(${p.id_anteprima}, this.files[0])">
+                        </label>
                     </div>
                 </td>
 
@@ -11011,6 +11024,34 @@ function aggiornaCampoAnteprima(id_anteprima, field, value) {
     // Ricalcola i totali in tempo reale sul pannello riepilogo e tab counters
     aggiornaConteggiAnteprima();
 }
+
+/**
+ * Consente di caricare un file immagine locale direttamente dal computer per un prodotto in anteprima
+ */
+function caricaImmagineLocaleProdottoAnteprima(id_anteprima, file) {
+    if (!file) return;
+    const pIndex = findProdIndex(id_anteprima);
+    if (pIndex === -1) return;
+
+    if (!file.type.startsWith('image/')) {
+        showToast("Selezionare un file immagine valido (PNG, JPG, WebP).", "error");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Data = e.target.result;
+        prodottiInAnteprima[pIndex]['immagine'] = base64Data;
+        prodottiInAnteprima[pIndex]._errors = validaProdotto(prodottiInAnteprima[pIndex]);
+        renderAnteprimaTabella();
+        showToast("Immagine locale caricata con successo per questo prodotto!", "success");
+    };
+    reader.onerror = function() {
+        showToast("Errore durante la lettura del file immagine locale.", "error");
+    };
+    reader.readAsDataURL(file);
+}
+window.caricaImmagineLocaleProdottoAnteprima = caricaImmagineLocaleProdottoAnteprima;
 
 /**
  * Ricalcola i contatori statistici e aggiorna i pulsanti di controllo della revisione
@@ -23705,9 +23746,10 @@ async function eseguiBulkAutorizzazionePrezzo() {
     }
 
     try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const res = await fetch('/api/catalog/price-security/bulk-authorize', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ productIds })
         });
 
@@ -23843,9 +23885,10 @@ async function eseguiBulkRipristinoPrezzo() {
     }
 
     try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const res = await fetch('/api/catalog/price-security/bulk-restore', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ productIds })
         });
 
@@ -24029,9 +24072,10 @@ async function eseguiBulkCambioCategoria() {
     }
 
     try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
         const res = await fetch('/api/catalog/price-security/bulk-change-category', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ productIds, newCategory, updatePrice })
         });
 
@@ -24616,12 +24660,12 @@ function renderItemsPrezzoOrdineUI() {
                                 Prezzo Unitario Concordato (€ / pz)
                             </label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center font-bold text-slate-400 font-mono text-xs">€</span>
+                                <span class="absolute left-3 flex items-center justify-center font-mono font-bold text-slate-500 text-sm sm:text-base pointer-events-none select-none z-10">€</span>
                                 <input type="number" step="0.01" min="0" 
-                                    id="item-price-input-${idx}"
+                                    id="item-price-input-${idx}" 
                                     value="${item.prezzo_unitario !== undefined ? item.prezzo_unitario : item.prezzo_originale}" 
-                                    oninput="onInputPrezzoSingoloItem(${idx}, this.value)"
-                                    class="w-full pl-7 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:border-brand-gold focus:outline-none shadow-xs">
+                                    oninput="onInputPrezzoSingoloItem(${idx}, this.value)" 
+                                    class="modal-prezzo-input input-prezzo-concordato w-full pl-9 pr-3 h-11 bg-slate-50 border border-slate-300 rounded-xl text-base font-mono font-black text-slate-900 focus:bg-white focus:border-brand-gold focus:outline-none shadow-xs transition-all leading-normal">
                             </div>
                         </div>
 
@@ -24680,8 +24724,8 @@ function renderFasceRowsHTML(item, itemIdx) {
                     <label class="block text-[9px] font-bold text-slate-500 uppercase">Quantità (pz)</label>
                     <input type="number" min="1" max="${item.quantita}" 
                         value="${fascia.quantita}" 
-                        oninput="onInputFasciaQty(${itemIdx}, ${fIdx}, this.value)"
-                        class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:border-brand-gold focus:outline-none">
+                        oninput="onInputFasciaQty(${itemIdx}, ${fIdx}, this.value)" 
+                        class="modal-prezzo-input-qty w-full px-2.5 h-10 bg-white border border-slate-300 rounded-lg text-sm font-mono font-bold text-slate-900 focus:border-brand-gold focus:outline-none transition-all leading-normal">
                 </div>
                 <div class="w-1/2">
                     <label class="block text-[9px] font-bold text-slate-500 uppercase">Prezzo Unitario (€)</label>
@@ -24689,8 +24733,8 @@ function renderFasceRowsHTML(item, itemIdx) {
                         <span class="absolute inset-y-0 left-0 pl-2 flex items-center font-bold text-slate-400 font-mono text-[11px]">€</span>
                         <input type="number" step="0.01" min="0" 
                             value="${fascia.prezzo_unitario}" 
-                            oninput="onInputFasciaPrice(${itemIdx}, ${fIdx}, this.value)"
-                            class="w-full pl-6 pr-2 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 focus:border-brand-gold focus:outline-none">
+                            oninput="onInputFasciaPrice(${itemIdx}, ${fIdx}, this.value)" 
+                            class="modal-prezzo-input-fascia w-full pl-7 pr-2 h-10 bg-white border border-slate-300 rounded-lg text-sm font-mono font-bold text-slate-900 focus:border-brand-gold focus:outline-none transition-all leading-normal">
                     </div>
                 </div>
                 <div class="pt-3">
@@ -27663,23 +27707,41 @@ let isPerfLoading = false;
 function getAdminAuthHeaders() {
     const headers = { 'Content-Type': 'application/json' };
     try {
-        const sessionStr = localStorage.getItem('sb-admin-auth-token') || 
-                           localStorage.getItem('sb-' + (window.SUPABASE_PROJECT_ID || 'f192abf6-499a-4c57-82e2-6f321d60f017') + '-auth-token') || 
-                           localStorage.getItem('supabase_token');
+        let sessionStr = localStorage.getItem('sb-admin-auth-token') || 
+                          localStorage.getItem('sb-' + (window.SUPABASE_PROJECT_ID || 'f192abf6-499a-4c57-82e2-6f321d60f017') + '-auth-token') || 
+                          localStorage.getItem('supabase_token');
+
+        // Fallback: scansiona qualsiasi chiave di localStorage creata da Supabase JS client v2
+        if (!sessionStr && typeof localStorage !== 'undefined') {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                    sessionStr = localStorage.getItem(key);
+                    if (sessionStr) break;
+                }
+            }
+        }
+
+        let token = null;
         if (sessionStr) {
-            let token = null;
             if (sessionStr.startsWith('{')) {
                 const parsed = JSON.parse(sessionStr);
-                token = parsed?.access_token || parsed?.currentSession?.access_token || null;
+                token = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || null;
             } else {
                 token = sessionStr;
             }
-            if (token && typeof token === 'string') {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
+        }
+
+        // Fallback da finestra o client Supabase in memoria
+        if (!token && window.adminUserSession?.access_token) {
+            token = window.adminUserSession.access_token;
+        }
+
+        if (token && typeof token === 'string') {
+            headers['Authorization'] = `Bearer ${token}`;
         }
     } catch (e) {
-        // Nessun token specifico
+        // Nessun token specifico trovato
     }
     return headers;
 }
