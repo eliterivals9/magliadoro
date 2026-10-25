@@ -3992,7 +3992,9 @@ async function getDbOrders() {
           coupon_type: o.coupon_type || null,
           coupon_value: o.coupon_value !== undefined && o.coupon_value !== null ? Number(o.coupon_value) : null,
           free_shipping_discount: o.free_shipping_discount !== undefined && o.free_shipping_discount !== null ? Number(o.free_shipping_discount) : 0,
-          free_shipping_override: Boolean(o.free_shipping_override || (Array.isArray(o.carrello) && o.carrello[0]?.free_shipping_override) || (Number(o.free_shipping_discount) > 0 && !o.coupon_code))
+          free_shipping_override: Boolean(o.free_shipping_override || (Array.isArray(o.carrello) && o.carrello[0]?.free_shipping_override) || (Number(o.free_shipping_discount) > 0 && !o.coupon_code)),
+          is_off_catalog: Boolean(o.is_off_catalog || (Array.isArray(o.carrello) && o.carrello.some(it => it && it.is_off_catalog)) || (o.squadra && String(o.squadra).includes('Fuori Catalogo'))),
+          note: o.note || (Array.isArray(o.carrello) && o.carrello[0]?.note) || null
         }));
       } else if (error) {
         supabaseQueryStatus = 'SUPABASE_ERROR';
@@ -12254,6 +12256,206 @@ const handleUpdateOrderPricing = async (req, res) => {
 
 app.post('/api/orders/update-pricing', adminAuthMiddleware, handleUpdateOrderPricing);
 app.put('/api/orders/:id/update-pricing', adminAuthMiddleware, handleUpdateOrderPricing);
+
+// POST /api/admin/off-catalog-sales - Registra la vendita manuale di un articolo fuori catalogo
+const handleCreateOffCatalogSale = async (req, res) => {
+  try {
+    const {
+      nome_articolo,
+      descrizione,
+      quantita,
+      costo_fornitore_unitario_usd,
+      tipo_spedizione_fornitore,
+      costo_spedizione_fornitore_usd,
+      altri_costi_usd,
+      prezzo_vendita_unitario_eur,
+      spedizione_cliente_eur,
+      altri_costi_eur,
+      tasso_cambio_usd_eur,
+      data_vendita,
+      stato_ordine,
+      stato_pagamento,
+      cliente_nome,
+      cliente_telefono,
+      note
+    } = req.body || {};
+
+    if (!nome_articolo || typeof nome_articolo !== 'string' || !nome_articolo.trim()) {
+      return res.status(400).json({ success: false, error: "Il nome dell'articolo è obbligatorio." });
+    }
+
+    const qty = parseInt(quantita, 10);
+    if (isNaN(qty) || qty <= 0) {
+      return res.status(400).json({ success: false, error: "La quantità deve essere un numero intero maggiore di zero." });
+    }
+
+    const costFornUnitUsd = parseFloat(costo_fornitore_unitario_usd);
+    if (isNaN(costFornUnitUsd) || costFornUnitUsd < 0) {
+      return res.status(400).json({ success: false, error: "Il costo fornitore unitario (USD) deve essere un numero maggiore o uguale a zero." });
+    }
+
+    const prezzoVenditaUnitEur = parseFloat(prezzo_vendita_unitario_eur);
+    if (isNaN(prezzoVenditaUnitEur) || prezzoVenditaUnitEur < 0) {
+      return res.status(400).json({ success: false, error: "Il prezzo di vendita unitario (EUR) deve essere un numero maggiore o uguale a zero." });
+    }
+
+    const settings = getSettings();
+    const defaultExchangeRate = getOrderEffectiveExchangeRate({}, settings);
+    const tassoCambio = (tasso_cambio_usd_eur !== undefined && tasso_cambio_usd_eur !== null && !isNaN(parseFloat(tasso_cambio_usd_eur)) && parseFloat(tasso_cambio_usd_eur) > 0)
+      ? parseFloat(tasso_cambio_usd_eur)
+      : defaultExchangeRate;
+
+    const tipoSpedForn = (tipo_spedizione_fornitore === 'complessivo') ? 'complessivo' : 'unitario';
+    const rawSpedFornUsd = (costo_spedizione_fornitore_usd !== undefined && costo_spedizione_fornitore_usd !== null && !isNaN(parseFloat(costo_spedizione_fornitore_usd)))
+      ? parseFloat(costo_spedizione_fornitore_usd)
+      : 0;
+
+    const altriUsd = (altri_costi_usd !== undefined && altri_costi_usd !== null && !isNaN(parseFloat(altri_costi_usd)))
+      ? parseFloat(altri_costi_usd)
+      : 0;
+
+    const spedClienteEur = (spedizione_cliente_eur !== undefined && spedizione_cliente_eur !== null && !isNaN(parseFloat(spedizione_cliente_eur)))
+      ? parseFloat(spedizione_cliente_eur)
+      : 0;
+
+    const altriEur = (altri_costi_eur !== undefined && altri_costi_eur !== null && !isNaN(parseFloat(altri_costi_eur)))
+      ? parseFloat(altri_costi_eur)
+      : 0;
+
+    // Calcoli finanziari esatti
+    const costoMerceUsd = Number((qty * costFornUnitUsd).toFixed(2));
+    const costoSpedFornUsd = tipoSpedForn === 'unitario' ? Number((rawSpedFornUsd * qty).toFixed(2)) : Number(rawSpedFornUsd.toFixed(2));
+    const costoFornitoreTotaleUsd = Number((costoMerceUsd + costoSpedFornUsd + altriUsd).toFixed(2));
+    const costoFornitoreTotaleEur = convertUsdToEur(costoFornitoreTotaleUsd, tassoCambio, 'handleCreateOffCatalogSale');
+
+    const ricavoProdottiEur = Number((qty * prezzoVenditaUnitEur).toFixed(2));
+    const ricavoTotaleEur = Number((ricavoProdottiEur + spedClienteEur).toFixed(2));
+    const profittoEur = Number((ricavoTotaleEur - costoFornitoreTotaleEur - altriEur).toFixed(2));
+
+    const now = new Date();
+    const formattedDate = data_vendita ? String(data_vendita).trim() : now.toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
+
+    let activeLottoId = 6;
+    try {
+      const lottoFile = path.join(__dirname, 'lotto.json');
+      if (fs.existsSync(lottoFile)) {
+        const lottoData = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
+        if (lottoData && lottoData.id) {
+          activeLottoId = Number(lottoData.id);
+        }
+      }
+    } catch (e) {}
+
+    const safeClienteNome = cliente_nome && String(cliente_nome).trim() ? String(cliente_nome).trim() : 'Vendita Fuori Catalogo';
+    const safeClienteTel = cliente_telefono && String(cliente_telefono).trim() ? String(cliente_telefono).trim() : 'N/A (Vendita Diretta)';
+
+    const carrelloItem = {
+      id: `off_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      nome: nome_articolo.trim(),
+      descrizione: descrizione ? String(descrizione).trim() : '',
+      quantita: qty,
+      prezzo: prezzoVenditaUnitEur,
+      prezzo_vendita_unitario_eur: prezzoVenditaUnitEur,
+      prezzo_fornitore: costFornUnitUsd,
+      prezzo_fornitore_usd: costFornUnitUsd,
+      squadra: 'Fuori Catalogo',
+      categoria: 'Fuori Catalogo',
+      versione: nome_articolo.trim(),
+      taglia: 'N/A',
+      is_off_catalog: true,
+      totale_riga_eur: ricavoProdottiEur,
+      totale_costo_usd: costoMerceUsd,
+      infoPerso: descrizione ? String(descrizione).trim() : 'Vendita Manuale Fuori Catalogo',
+      cliente_nome: safeClienteNome,
+      cliente_telefono: safeClienteTel,
+      spedizione_cliente_eur: spedClienteEur,
+      altri_costi_eur: altriEur,
+      altri_costi_usd: altriUsd,
+      costo_fornitore_unitario_usd: costFornUnitUsd,
+      tipo_spedizione_fornitore: tipoSpedForn,
+      costo_spedizione_fornitore_usd: rawSpedFornUsd,
+      note: note ? String(note).trim() : ''
+    };
+
+    // Payload pulito per Supabase (contenente solo colonne reali esistenti nella tabella orders)
+    const dbOrderPayload = {
+      data: formattedDate,
+      nome: safeClienteNome,
+      telefono: safeClienteTel,
+      squadra: `[Fuori Catalogo] ${nome_articolo.trim()}`,
+      personalizzazione: descrizione ? String(descrizione).trim() : 'Vendita Manuale Fuori Catalogo',
+      taglia: 'N/A',
+      totale: `${ricavoTotaleEur.toFixed(2).replace('.', ',')}€`,
+      prezzo_fornitore: `$${costFornUnitUsd.toFixed(2)}`,
+      costo_prodotti_usd: `${costoMerceUsd.toFixed(2).replace('.', ',')}`,
+      costo_spedizione_usd: `${costoSpedFornUsd.toFixed(2).replace('.', ',')}`,
+      costo_totale_usd: `${costoFornitoreTotaleUsd.toFixed(2).replace('.', ',')}`,
+      cambio_usd_eur: String(tassoCambio),
+      costo_totale_eur: `${costoFornitoreTotaleEur.toFixed(2).replace('.', ',')}`,
+      profitto_eur: `${profittoEur.toFixed(2).replace('.', ',')}`,
+      is_archived: false,
+      lotto_id: activeLottoId,
+      created_at: now.toISOString(),
+      carrello: [carrelloItem]
+    };
+
+    let newOrder = { ...dbOrderPayload, is_off_catalog: true, note: note ? String(note).trim() : '' };
+
+    // Salvataggio su Supabase se disponibile
+    const supabase = getSupabaseAdminClient() || getSupabaseClient();
+    if (supabase) {
+      try {
+        const { data: dbRes, error: dbErr } = await supabase.from('orders').insert([dbOrderPayload]).select('*').single();
+        if (dbErr) {
+          console.error("🔴 [ERRORE PERSISTENZA VENDITA FUORI CATALOGO SUPABASE]:", dbErr.message);
+          return res.status(500).json({ success: false, error: `Errore salvataggio database Supabase: ${dbErr.message}` });
+        } else if (dbRes && dbRes.id) {
+          newOrder.id = dbRes.id;
+          console.log(`✅ [VENDITA FUORI CATALOGO SALVATA SU SUPABASE] ID: ${dbRes.id}`);
+        }
+      } catch (sbEx) {
+        console.error("🔴 [ECCEZIONE PERSISTENZA VENDITA FUORI CATALOGO SUPABASE]:", sbEx.message);
+        return res.status(500).json({ success: false, error: `Eccezione salvataggio database Supabase: ${sbEx.message}` });
+      }
+    } else {
+      newOrder.id = Date.now();
+    }
+
+    // Salvataggio locale per cache
+    saveLocalOrder(newOrder);
+
+    // Salvataggio anche nel registro manual_sales_local.json
+    try {
+      const manualSalesFile = path.join(__dirname, 'manual_sales_local.json');
+      let manualSales = [];
+      if (fs.existsSync(manualSalesFile)) {
+        try { manualSales = JSON.parse(fs.readFileSync(manualSalesFile, 'utf8')); } catch (e) {}
+      }
+      manualSales.unshift(newOrder);
+      fs.writeFileSync(manualSalesFile, JSON.stringify(manualSales, null, 2), 'utf8');
+    } catch (fsErr) {
+      console.warn("⚠️ Avviso salvataggio registro manual_sales_local.json:", fsErr.message);
+    }
+
+    // Ricalcolo immediato ed esaustivo del lotto corrente
+    const updatedLotto = await recalculateCurrentLotto(true);
+
+    console.log(`✅ [VENDITA FUORI CATALOGO REGISTRATA CON SUCCESSO] ID: ${newOrder.id}, Ricavo: ${ricavoTotaleEur}€, Costo: ${costoFornitoreTotaleEur}€, Profitto: ${profittoEur}€`);
+
+    return res.json({
+      success: true,
+      order: newOrder,
+      lotto: updatedLotto,
+      message: "Vendita fuori catalogo registrata con successo!"
+    });
+  } catch (err) {
+    console.error("⚠️ Errore durante la registrazione della vendita fuori catalogo:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+app.post('/api/admin/off-catalog-sales', adminAuthMiddleware, handleCreateOffCatalogSale);
+
 
 // ==========================================
 // SISTEMA COUPON - UTILS & API ENDPOINTS

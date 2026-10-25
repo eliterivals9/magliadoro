@@ -6465,7 +6465,9 @@ function renderOrdini() {
             const hasOrderAgreedPrice = Array.isArray(order.carrello) && order.carrello.some(ci => ci.ha_prezzo_concordato || ci.prezzo_concordato || (Array.isArray(ci.fasce_prezzo) && ci.fasce_prezzo.length > 0));
             const agreedBadge = hasOrderAgreedPrice ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/30 uppercase tracking-wider font-sans">🏷️ Prezzo Concordato</span>` : '';
             const convBadge = isConvenzioneTorneo ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-black rounded-full bg-amber-500/20 text-brand-gold border border-amber-500/40 uppercase tracking-wider font-sans">🏆 Convenzione Torneo</span>` : '';
-            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${excludedBadge}${convBadge}${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
+            const isOffCatalogSale = Boolean(order.is_off_catalog || (Array.isArray(order.carrello) && order.carrello.some(it => it && it.is_off_catalog)) || (order.squadra && String(order.squadra).includes('Fuori Catalogo')));
+            const offCatalogBadge = isOffCatalogSale ? `<span class="px-2 py-0.5 text-[9px] leading-5 font-black rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 uppercase tracking-wider font-sans">🛍️ Vendita manuale — Fuori catalogo</span>` : '';
+            statusBadgeHTML = `<div class="flex items-center gap-1.5 flex-wrap justify-end">${offCatalogBadge}${excludedBadge}${convBadge}${agreedBadge}<span class="px-2 py-0.5 text-[9px] leading-5 font-bold rounded-full ${statusClass} border uppercase tracking-wider font-sans">${statusLabel}</span></div>`;
         }
 
         const costoFornitoreEur = order["Costo totale (EUR)"] || order.costo_totale_eur || '';
@@ -29478,6 +29480,231 @@ function pausaSincronizzazioneImmagini() {
 window.aggiornaMetricheSincronizzazioneImmagini = aggiornaMetricheSincronizzazioneImmagini;
 window.avviaSincronizzazioneImmagini = avviaSincronizzazioneImmagini;
 window.pausaSincronizzazioneImmagini = pausaSincronizzazioneImmagini;
+
+// ==========================================
+// FUNZIONALITÀ VENDITE FUORI CATALOGO
+// ==========================================
+function apriModaleVenditaFuoriCatalogo() {
+    const modal = document.getElementById('modal-vendita-fuori-catalogo');
+    if (!modal) return;
+
+    const d = new Date();
+    const todayStr = d.toISOString().split('T')[0];
+
+    const elData = document.getElementById('vfc-data');
+    if (elData) elData.value = todayStr;
+
+    const elNome = document.getElementById('vfc-nome');
+    if (elNome) elNome.value = '';
+
+    const elDesc = document.getElementById('vfc-descrizione');
+    if (elDesc) elDesc.value = '';
+
+    const elQty = document.getElementById('vfc-quantita');
+    if (elQty) elQty.value = '10';
+
+    const elCostoFornUsd = document.getElementById('vfc-costo-fornitore-usd');
+    if (elCostoFornUsd) elCostoFornUsd.value = '15.00';
+
+    const elTipoSpedForn = document.getElementById('vfc-tipo-spedizione-fornitore');
+    if (elTipoSpedForn) elTipoSpedForn.value = 'unitario';
+
+    const elSpedFornUsd = document.getElementById('vfc-costo-spedizione-usd');
+    if (elSpedFornUsd) elSpedFornUsd.value = '4.00';
+
+    const elAltriUsd = document.getElementById('vfc-altri-costi-usd');
+    if (elAltriUsd) elAltriUsd.value = '0.00';
+
+    const elPrezzoVenditaEur = document.getElementById('vfc-prezzo-vendita-eur');
+    if (elPrezzoVenditaEur) elPrezzoVenditaEur.value = '35.00';
+
+    const elSpedClienteEur = document.getElementById('vfc-spedizione-cliente-eur');
+    if (elSpedClienteEur) elSpedClienteEur.value = '0.00';
+
+    const elAltriEur = document.getElementById('vfc-altri-costi-eur');
+    if (elAltriEur) elAltriEur.value = '0.00';
+
+    const elCliente = document.getElementById('vfc-cliente');
+    if (elCliente) elCliente.value = 'Vendita Fuori Catalogo';
+
+    const elNote = document.getElementById('vfc-note');
+    if (elNote) elNote.value = '';
+
+    const rate = (window.catalogSettings && window.catalogSettings.tassoCambioUsdEur) ? Number(window.catalogSettings.tassoCambioUsdEur) : 1.08;
+    const elRate = document.getElementById('vfc-tasso-cambio');
+    if (elRate) elRate.value = rate.toString();
+
+    ricalcolaAnteprimaVenditaFuoriCatalogo();
+
+    modal.classList.remove('hidden');
+}
+window.apriModaleVenditaFuoriCatalogo = apriModaleVenditaFuoriCatalogo;
+
+function chiudiModaleVenditaFuoriCatalogo() {
+    const modal = document.getElementById('modal-vendita-fuori-catalogo');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+window.chiudiModaleVenditaFuoriCatalogo = chiudiModaleVenditaFuoriCatalogo;
+
+function ricalcolaAnteprimaVenditaFuoriCatalogo() {
+    const qty = parseInt(document.getElementById('vfc-quantita')?.value, 10) || 1;
+    const costFornUnitUsd = parseFloat(document.getElementById('vfc-costo-fornitore-usd')?.value) || 0;
+    const tipoSpedForn = document.getElementById('vfc-tipo-spedizione-fornitore')?.value || 'unitario';
+    const rawSpedFornUsd = parseFloat(document.getElementById('vfc-costo-spedizione-usd')?.value) || 0;
+    const altriUsd = parseFloat(document.getElementById('vfc-altri-costi-usd')?.value) || 0;
+    const tassoCambio = parseFloat(document.getElementById('vfc-tasso-cambio')?.value) || 1.08;
+
+    const prezzoVenditaUnitEur = parseFloat(document.getElementById('vfc-prezzo-vendita-eur')?.value) || 0;
+    const spedClienteEur = parseFloat(document.getElementById('vfc-spedizione-cliente-eur')?.value) || 0;
+    const altriEur = parseFloat(document.getElementById('vfc-altri-costi-eur')?.value) || 0;
+
+    const costoMerceUsd = qty * costFornUnitUsd;
+    const costoSpedFornUsd = tipoSpedForn === 'unitario' ? (rawSpedFornUsd * qty) : rawSpedFornUsd;
+    const costoFornitoreTotaleUsd = costoMerceUsd + costoSpedFornUsd + altriUsd;
+    const costoFornitoreTotaleEur = costoFornitoreTotaleUsd / tassoCambio;
+
+    const ricavoProdottiEur = qty * prezzoVenditaUnitEur;
+    const ricavoTotaleEur = ricavoProdottiEur + spedClienteEur;
+    const profittoEur = ricavoTotaleEur - costoFornitoreTotaleEur - altriEur;
+
+    const elCalcCostUsd = document.getElementById('vfc-calc-costo-usd');
+    if (elCalcCostUsd) elCalcCostUsd.innerText = `$ ${costoFornitoreTotaleUsd.toFixed(2).replace('.', ',')}`;
+
+    const elCalcCostEur = document.getElementById('vfc-calc-costo-eur');
+    if (elCalcCostEur) elCalcCostEur.innerText = `€ ${costoFornitoreTotaleEur.toFixed(2).replace('.', ',')}`;
+
+    const elCalcRicavoEur = document.getElementById('vfc-calc-ricavo-eur');
+    if (elCalcRicavoEur) elCalcRicavoEur.innerText = `€ ${ricavoTotaleEur.toFixed(2).replace('.', ',')}`;
+
+    const elCalcProfitEur = document.getElementById('vfc-calc-profitto-eur');
+    if (elCalcProfitEur) {
+        const pSign = profittoEur >= 0 ? '+' : '';
+        elCalcProfitEur.innerText = `${pSign}€ ${profittoEur.toFixed(2).replace('.', ',')}`;
+        if (profittoEur >= 0) {
+            elCalcProfitEur.className = 'font-black text-emerald-400 text-sm';
+        } else {
+            elCalcProfitEur.className = 'font-black text-rose-400 text-sm';
+        }
+    }
+
+    const elPreviewTasso = document.getElementById('vfc-preview-tasso');
+    if (elPreviewTasso) {
+        const eurPerUsd = (1 / tassoCambio).toFixed(4);
+        elPreviewTasso.innerText = `Tasso 1 USD = ${eurPerUsd} EUR (Tasso inviato: ${tassoCambio})`;
+    }
+}
+window.ricalcolaAnteprimaVenditaFuoriCatalogo = ricalcolaAnteprimaVenditaFuoriCatalogo;
+
+async function salvaVenditaFuoriCatalogo() {
+    const nome = document.getElementById('vfc-nome')?.value?.trim();
+    if (!nome) {
+        alert("Inserisci il nome dell'articolo.");
+        return;
+    }
+
+    const qty = parseInt(document.getElementById('vfc-quantita')?.value, 10);
+    if (isNaN(qty) || qty <= 0) {
+        alert("Inserisci una quantità valida maggiore di zero.");
+        return;
+    }
+
+    const costFornUnitUsd = parseFloat(document.getElementById('vfc-costo-fornitore-usd')?.value);
+    if (isNaN(costFornUnitUsd) || costFornUnitUsd < 0) {
+        alert("Inserisci un costo fornitore unitario (USD) valido.");
+        return;
+    }
+
+    const prezzoVenditaUnitEur = parseFloat(document.getElementById('vfc-prezzo-vendita-eur')?.value);
+    if (isNaN(prezzoVenditaUnitEur) || prezzoVenditaUnitEur < 0) {
+        alert("Inserisci un prezzo di vendita unitario (EUR) valido.");
+        return;
+    }
+
+    const tassoCambio = parseFloat(document.getElementById('vfc-tasso-cambio')?.value) || 1.08;
+
+    const payload = {
+        nome_articolo: nome,
+        descrizione: document.getElementById('vfc-descrizione')?.value || '',
+        quantita: qty,
+        costo_fornitore_unitario_usd: costFornUnitUsd,
+        tipo_spedizione_fornitore: document.getElementById('vfc-tipo-spedizione-fornitore')?.value || 'unitario',
+        costo_spedizione_fornitore_usd: parseFloat(document.getElementById('vfc-costo-spedizione-usd')?.value) || 0,
+        altri_costi_usd: parseFloat(document.getElementById('vfc-altri-costi-usd')?.value) || 0,
+        prezzo_vendita_unitario_eur: prezzoVenditaUnitEur,
+        spedizione_cliente_eur: parseFloat(document.getElementById('vfc-spedizione-cliente-eur')?.value) || 0,
+        altri_costi_eur: parseFloat(document.getElementById('vfc-altri-costi-eur')?.value) || 0,
+        tasso_cambio_usd_eur: tassoCambio,
+        cliente_nome: document.getElementById('vfc-cliente')?.value || 'Vendita Fuori Catalogo',
+        data_vendita: document.getElementById('vfc-data')?.value || '',
+        stato_ordine: document.getElementById('vfc-stato-ordine')?.value || 'Completato',
+        stato_pagamento: document.getElementById('vfc-stato-pagamento')?.value || 'Pagato',
+        note: document.getElementById('vfc-note')?.value || ''
+    };
+
+    const btnSalva = document.getElementById('btn-salva-vendita-fuori-catalogo');
+    if (btnSalva) {
+        btnSalva.disabled = true;
+        btnSalva.innerText = "Registrazione in corso...";
+    }
+
+    try {
+        let authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        if (!authHeaders['Authorization'] && typeof window.getSupabaseClient === 'function') {
+            try {
+                const client = await window.getSupabaseClient();
+                if (client) {
+                    const { data: { session } } = await client.auth.getSession();
+                    if (session && session.access_token) {
+                        authHeaders['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+            } catch (authErr) {
+                console.warn("Impossibile recuperare il token dalla sessione Supabase:", authErr);
+            }
+        }
+
+        const res = await fetch('/api/admin/off-catalog-sales', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...authHeaders
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+            throw new Error(data.error || "Errore durante il salvataggio della vendita fuori catalogo.");
+        }
+
+        alert("✅ Vendita fuori catalogo registrata con successo!");
+        chiudiModaleVenditaFuoriCatalogo();
+
+        if (typeof caricaOrdini === 'function') {
+            await caricaOrdini();
+        }
+        if (typeof caricaLotto === 'function') {
+            await caricaLotto();
+        }
+        if (typeof aggiornaStatisticheDashboard === 'function') {
+            await aggiornaStatisticheDashboard();
+        }
+        if (typeof aggiornaStatisticheLottoCorrente === 'function') {
+            await aggiornaStatisticheLottoCorrente();
+        }
+    } catch (err) {
+        alert("⚠️ Errore: " + err.message);
+    } finally {
+        if (btnSalva) {
+            btnSalva.disabled = false;
+            btnSalva.innerHTML = "<span>💾</span> Registra Vendita Fuori Catalogo";
+        }
+    }
+}
+window.salvaVenditaFuoriCatalogo = salvaVenditaFuoriCatalogo;
+
 
 
 
