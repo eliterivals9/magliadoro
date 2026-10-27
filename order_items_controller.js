@@ -62,16 +62,16 @@ export function setupItemEndpoints(app, helpers) {
     const formuleImmagini = [];
     const itemSupplierPrices = [];
 
-    let lottoTotalArticles = 0;
+    let lottoShippingArticles = 0;
     try {
       const lottoFile = path.join(__dirname, 'lotto.json');
       if (fs.existsSync(lottoFile)) {
         const l = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
-        lottoTotalArticles = l.numero_totale_articoli || 0;
+        lottoShippingArticles = l.numero_articoli_spedizione !== undefined ? l.numero_articoli_spedizione : (l.numero_totale_articoli || 0);
       }
     } catch (e) {}
 
-    const spedizione_unitaria = getShippingRateByQuantity(Math.max(1, lottoTotalArticles), settings);
+    const spedizione_unitaria = getShippingRateByQuantity(Math.max(1, lottoShippingArticles), settings);
 
     updatedCarrello.forEach(item => {
       const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);

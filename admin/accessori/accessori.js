@@ -36,6 +36,76 @@ let currentFilteredAccessoriesList = [];
 let currentPaginatedAccessoriesList = [];
 let accessorySelectionScopeMode = 'tutti'; // 'pagina' oppure 'tutti'
 
+// Helper: Recupero robusto ed asincrono degli header autorizzati per le API amministrative degli accessori
+async function getAccessoriAuthHeaders() {
+    let headers = { 'Content-Type': 'application/json' };
+    
+    // 1. Tenta con il helper globale getAdminAuthHeadersAsync o getAdminAuthHeaders
+    if (typeof window.getAdminAuthHeadersAsync === 'function') {
+        try {
+            const h = await window.getAdminAuthHeadersAsync();
+            if (h && h['Authorization']) return h;
+        } catch (e) {}
+    }
+    
+    if (typeof window.getAdminAuthHeaders === 'function') {
+        const h = window.getAdminAuthHeaders();
+        if (h && h['Authorization']) return h;
+    } else if (typeof getAdminAuthHeaders === 'function') {
+        const h = getAdminAuthHeaders();
+        if (h && h['Authorization']) return h;
+    }
+
+    // 2. Fallback diretto da localStorage
+    try {
+        let sessionStr = localStorage.getItem('sb-admin-auth-token') || 
+                          localStorage.getItem('sb-' + (window.SUPABASE_PROJECT_ID || 'f192abf6-499a-4c57-82e2-6f321d60f017') + '-auth-token') || 
+                          localStorage.getItem('supabase_token');
+
+        if (!sessionStr && typeof localStorage !== 'undefined') {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                    sessionStr = localStorage.getItem(key);
+                    if (sessionStr) break;
+                }
+            }
+        }
+
+        let token = null;
+        if (sessionStr) {
+            if (sessionStr.startsWith('{')) {
+                const parsed = JSON.parse(sessionStr);
+                token = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || null;
+            } else {
+                token = sessionStr;
+            }
+        }
+
+        if (!token && window.adminUserSession?.access_token) {
+            token = window.adminUserSession.access_token;
+        }
+
+        if (!token && typeof window.getSupabaseClient === 'function') {
+            const client = await window.getSupabaseClient();
+            if (client && client.auth) {
+                const { data: { session } } = await client.auth.getSession();
+                if (session && session.access_token) {
+                    token = session.access_token;
+                }
+            }
+        }
+
+        if (token && typeof token === 'string') {
+            headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        }
+    } catch (err) {
+        console.warn("[ACCESSORI] Errore risoluzione token:", err);
+    }
+
+    return headers;
+}
+
 // Helper: Formattazione prezzi
 function formatCurrency(val, currency = '€') {
     if (val === undefined || val === null || isNaN(Number(val))) return `${currency} 0.00`;
@@ -721,9 +791,10 @@ window.eseguiModificaMassivaAccessori = async function(e) {
 
     try {
         const ids = Array.from(selectedAccessoryIds);
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch('/api/accessories/batch-update', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ ids, updates })
         });
         const data = await res.json();
@@ -755,9 +826,10 @@ window.batchToggleStatoAccessori = async function(nuovoStato) {
 
     const ids = Array.from(selectedAccessoryIds);
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch('/api/accessories/batch-status', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ ids, stato: nuovoStato })
         });
         const data = await res.json();
@@ -806,9 +878,10 @@ window.eseguiEliminazioneMassivaAccessori = async function() {
     }
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch('/api/accessories/batch-delete', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ ids })
         });
         const data = await res.json();
@@ -875,9 +948,10 @@ async function salvaPrezzoRapidoAccessorio(accId, rawVal, field) {
     payload[field] = num;
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch(`/api/accessories/${encodeURIComponent(accId)}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -964,6 +1038,11 @@ async function handleAccessoryImageUpload(inputEl) {
     if (btnAllegaImg) btnAllegaImg.disabled = true;
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
+        if (!authHeaders['Authorization']) {
+            throw new Error("Unauthorized: Nessun token di autenticazione amministrativa. Effettua nuovamente l'accesso.");
+        }
+
         const base64ToSend = await comprimiImmagineAccessorioAsync(file, 1200, 0.85);
         if (!base64ToSend) {
             throw new Error("Impossibile leggere il file immagine.");
@@ -973,6 +1052,7 @@ async function handleAccessoryImageUpload(inputEl) {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/admin/store-image', true);
             xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Authorization', authHeaders['Authorization']);
 
             xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable && percentEl) {
@@ -1277,9 +1357,10 @@ async function handleAccessoryFormSubmit(e) {
         if (immagine.startsWith('data:')) {
             showAccessoriToast("Persistenza immagine su Supabase Storage in corso...", "info");
             try {
+                const storeAuthHeaders = await getAccessoriAuthHeaders();
                 const storeRes = await fetch('/api/admin/store-image', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: storeAuthHeaders,
                     body: JSON.stringify({
                         productId: null,
                         originalUrl: null,
@@ -1324,9 +1405,10 @@ async function handleAccessoryFormSubmit(e) {
         const endpoint = isEditing ? `/api/accessories/${encodeURIComponent(idVal)}` : '/api/accessories';
         const method = isEditing ? 'PUT' : 'POST';
 
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch(endpoint, {
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify(payload)
         });
 
@@ -1356,9 +1438,10 @@ async function toggleAccessoryStatus(accId) {
     const newStatus = acc.stato === 'disattivato' ? 'attivo' : 'disattivato';
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch(`/api/accessories/${encodeURIComponent(accId)}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ stato: newStatus })
         });
         const data = await res.json();
@@ -1401,8 +1484,10 @@ async function executeDeleteAccessory() {
     btn.disabled = true;
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch(`/api/accessories/${encodeURIComponent(accessoryToDeleteId)}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: authHeaders
         });
         const data = await res.json();
 
@@ -1780,9 +1865,10 @@ async function salvaCategoriaSetting(e) {
     }
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch('/api/accessories/settings/categories', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({ id: id || undefined, nome, icona, ordine, attiva })
         });
         const data = await res.json();
@@ -1810,9 +1896,10 @@ async function toggleStatoCategoria(id, checked) {
     if (!cat) return;
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const res = await fetch('/api/accessories/settings/categories', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({
                 id: cat.id,
                 nome: cat.nome,
@@ -1879,8 +1966,190 @@ async function eseguiEliminaCategoria(id, force = false) {
     }
 
     try {
+        const authHeaders = await getAccessoriAuthHeaders();
         const url = `/api/accessories/settings/categories/${encodeURIComponent(id)}${force ? '?force=true' : ''}`;
-        const res = await fetch(url, { method: 'DELETE' });
+        const res = await fetch(url, { method: 'DELETE', headers: authHeaders });
+        const data = await res.json();
+        if (data && data.success) {
+            showAccessoriToast("Categoria eliminata con successo!", "success");
+            chiudiModalDeleteSetting();
+            await caricaImpostazioniCatalogo();
+        } else {
+            showAccessoriToast(data.error || "Errore durante l'eliminazione della categoria", "error");
+        }
+    } catch (err) {
+        console.error("Errore delete categoria:", err);
+        showAccessoriToast("Errore di comunicazione col server", "error");
+    } finally {
+        if (btn) {
+            btn.innerHTML = '<span>🗑️</span> <span>Conferma Eliminazione</span>';
+            btn.disabled = false;
+        }
+    }
+}
+
+// Modal Marca: Apri
+function apriModalMarca(id = null) {
+    const modal = document.getElementById('modal-brand-container');
+    const title = document.getElementById('modal-brand-title');
+    const idInput = document.getElementById('setting-brand-id');
+    const nomeInput = document.getElementById('setting-brand-nome');
+    const ordineInput = document.getElementById('setting-brand-ordine');
+    const statoInput = document.getElementById('setting-brand-stato');
+
+    if (!modal) return;
+
+    if (id) {
+        const b = catalogSettings.brands?.find(item => item.id === id);
+        if (b) {
+            title.innerText = 'Modifica Marca';
+            idInput.value = b.id;
+            nomeInput.value = b.nome || '';
+            ordineInput.value = b.ordine || 1;
+            statoInput.checked = b.stato !== 'disattivato';
+        }
+    } else {
+        title.innerText = 'Nuova Marca';
+        idInput.value = '';
+        nomeInput.value = '';
+        const nextOrder = (catalogSettings.brands?.length || 0) + 1;
+        ordineInput.value = nextOrder;
+        statoInput.checked = true;
+    }
+
+    modal.classList.remove('hidden');
+    nomeInput.focus();
+}
+
+function chiudiModalMarca() {
+    const modal = document.getElementById('modal-brand-container');
+    if (modal) modal.classList.add('hidden');
+}
+
+// Salva Marca Setting (Submit Form)
+async function salvaMarcaSetting(e) {
+    e.preventDefault();
+    const id = document.getElementById('setting-brand-id').value;
+    const nome = document.getElementById('setting-brand-nome').value.trim();
+    const ordine = parseInt(document.getElementById('setting-brand-ordine').value, 10) || 1;
+    const stato = document.getElementById('setting-brand-stato').checked ? 'attivo' : 'disattivato';
+
+    if (!nome) {
+        showAccessoriToast("Il nome della marca è obbligatorio.", "error");
+        return;
+    }
+
+    const btn = document.getElementById('btn-save-brand-setting');
+    const origHtml = btn?.innerHTML || 'Salva';
+    if (btn) {
+        btn.innerHTML = '<span>⏳</span> Salvataggio...';
+        btn.disabled = true;
+    }
+
+    try {
+        const authHeaders = await getAccessoriAuthHeaders();
+        const res = await fetch('/api/accessories/settings/brands', {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({ id: id || undefined, nome, ordine, stato })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            showAccessoriToast(`Marca '${nome}' salvata con successo!`, "success");
+            chiudiModalMarca();
+            await caricaImpostazioniCatalogo();
+        } else {
+            showAccessoriToast(data.error || "Errore durante il salvataggio della marca", "error");
+        }
+    } catch (err) {
+        console.error("Errore salvataggio marca:", err);
+        showAccessoriToast("Errore di connessione al server", "error");
+    } finally {
+        if (btn) {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        }
+    }
+}
+
+// Toggle Stato Marca inline
+async function toggleStatoMarca(id, checked) {
+    const brand = catalogSettings.brands?.find(b => b.id === id);
+    if (!brand) return;
+
+    const nuovoStato = checked ? 'attivo' : 'disattivato';
+    try {
+        const authHeaders = await getAccessoriAuthHeaders();
+        const res = await fetch('/api/accessories/settings/brands', {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({
+                id: brand.id,
+                nome: brand.nome,
+                ordine: brand.ordine || 1,
+                stato: nuovoStato
+            })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            brand.stato = nuovoStato;
+            renderBrandsSettings();
+            updateBrandsOptions();
+            showAccessoriToast(`Marca '${brand.nome}' ${checked ? 'attivata' : 'disattivata'}`, "info");
+        } else {
+            showAccessoriToast(data.error || "Errore aggiornamento stato", "error");
+            renderBrandsSettings();
+        }
+    } catch (err) {
+        console.error("Errore toggle marca:", err);
+        renderBrandsSettings();
+    }
+}
+
+// Elimina Marca (Sicuro)
+function confermaEliminaMarca(id) {
+    const brand = catalogSettings.brands?.find(b => b.id === id);
+    if (!brand) return;
+
+    const modal = document.getElementById('modal-delete-setting-container');
+    const title = document.getElementById('delete-setting-title');
+    const msg = document.getElementById('delete-setting-msg');
+    const btnConfirm = document.getElementById('btn-confirm-delete-setting');
+
+    if (!modal) return;
+
+    const count = typeof brand.products_count === 'number' ? brand.products_count : 0;
+    title.innerText = `Elimina Marca "${brand.nome}"`;
+
+    if (count > 0) {
+        msg.innerHTML = `
+            <span class="text-amber-700 font-bold block mb-1">⚠️ Marca in uso!</span>
+            Questa marca è associata a <strong>${count}</strong> ${count === 1 ? 'prodotto' : 'prodotti'}.<br>
+            Ti consigliamo di <strong>disattivarla</strong> per non mostrarla nei menu a tendina futuri, mantenendola sui prodotti già creati.
+        `;
+        btnConfirm.onclick = () => eseguiEliminaMarca(id, true);
+    } else {
+        msg.innerHTML = `
+            Sei sicuro di voler eliminare la marca <strong>"${escapeHtml(brand.nome)}"</strong>?<br>
+            Nessun prodotto la utilizza.
+        `;
+        btnConfirm.onclick = () => eseguiEliminaMarca(id, false);
+    }
+
+    modal.classList.remove('hidden');
+}
+
+async function eseguiEliminaMarca(id, force = false) {
+    const btn = document.getElementById('btn-confirm-delete-setting');
+    if (btn) {
+        btn.innerHTML = '<span>⏳</span> Eliminazione...';
+        btn.disabled = true;
+    }
+
+    try {
+        const authHeaders = await getAccessoriAuthHeaders();
+        const url = `/api/accessories/settings/brands/${encodeURIComponent(id)}${force ? '?force=true' : ''}`;
+        const res = await fetch(url, { method: 'DELETE', headers: authHeaders });
         const data = await res.json();
         if (data && data.success) {
             showAccessoriToast("Categoria eliminata con successo!", "success");
@@ -2726,9 +2995,10 @@ async function caricaImmagineAccessorioStorageAsync(file) {
         throw new Error("Impossibile leggere il file immagine");
     }
 
+    const authHeaders = await getAccessoriAuthHeaders();
     const res = await fetch('/api/admin/store-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
             productId: null,
             originalUrl: null,
@@ -2900,9 +3170,10 @@ async function confermaEdEseguiImportazioneMassivaAccessori() {
                 tipo_catalogo: 'accessori'
             };
 
+            const createAuthHeaders = await getAccessoriAuthHeaders();
             const createRes = await fetch('/api/accessories', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: createAuthHeaders,
                 body: JSON.stringify(payload)
             });
 

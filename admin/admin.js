@@ -2746,7 +2746,8 @@ function aggiornaStatisticheDashboard(force = false) {
     let incassoLottoCorrente = 0;
     let costoFornitoreLottoEur = 0;
     let profittoOrdiniLottoEur = 0;
-    let articoliLottoCorrente = 0;
+    let articoliLottoCorrenteValidi = 0;
+    let articoliLottoCorrenteTotali = 0;
 
     activeOrders.forEach(o => {
         incassoLottoCorrente += parseFlexibleDecimal(o.totale || '');
@@ -2760,7 +2761,8 @@ function aggiornaStatisticheDashboard(force = false) {
             profittoOrdiniLottoEur += parseFlexibleDecimal(profittoStr);
         }
 
-        articoliLottoCorrente += estraiNumeroArticoli(o);
+        articoliLottoCorrenteValidi += estraiNumeroArticoliValidi(o, prodotti);
+        articoliLottoCorrenteTotali += estraiNumeroArticoli(o);
     });
 
     // Alibaba Payment Fee (3% del costo fornitore in USD convertito in EUR)
@@ -2773,7 +2775,7 @@ function aggiornaStatisticheDashboard(force = false) {
     if (alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.costo_fornitore_usd) {
         alibabaFeeUsd = Number(window.currentLottoData.costo_fornitore_usd) * 0.03;
         const tasso = (window.cachedSettings && window.cachedSettings.exchangeRate) ? Number(window.cachedSettings.exchangeRate) : 1.05;
-        alibabaFeeEur = alibabaFeeUsd / tasso;
+        alibabaFeeEur = alibabaFeeUsd * tasso;
     }
 
     // Spese Extra del lotto
@@ -2844,24 +2846,31 @@ function aggiornaStatisticheDashboard(force = false) {
         margineMedioEl.innerText = `${margine.toFixed(2).replace('.', ',')}%`;
     }
 
-    // Articoli nel Lotto Corrente
+    // Articoli Venduti Validi nel Lotto Corrente
     const articoliVendutiEl = document.getElementById('stats-articoli-venduti');
     if (articoliVendutiEl) {
-        articoliVendutiEl.innerText = articoliLottoCorrente;
+        articoliVendutiEl.innerText = articoliLottoCorrenteValidi;
+    }
+
+    // Articoli Venduti Totali nel Lotto Corrente
+    const articoliVendutiTotaliEl = document.getElementById('stats-articoli-venduti-totali');
+    if (articoliVendutiTotaliEl) {
+        articoliVendutiTotaliEl.innerText = articoliLottoCorrenteTotali;
     }
 
     // Ultimo Ordine Attivo
     const ultimoOrdineEl = document.getElementById('stats-ultimo-ordine');
     if (ultimoOrdineEl) {
         if (activeOrders.length > 0) {
-            const last = activeOrders[activeOrders.length - 1];
+            const sortedActive = sortOrdersByCreationDescending(activeOrders);
+            const newest = sortedActive[0];
             const maxLen = 25;
-            let label = `${last.nome} (${last.totale})`;
+            let label = `${newest.nome} (${newest.totale})`;
             if (label.length > maxLen) {
                 label = label.substring(0, maxLen - 3) + '...';
             }
             ultimoOrdineEl.innerText = label;
-            ultimoOrdineEl.title = `${last.nome} (${last.totale}) - ${last.data}`;
+            ultimoOrdineEl.title = `${newest.nome} (${newest.totale}) - ${newest.data || newest.created_at || ''}`;
         } else {
             ultimoOrdineEl.innerText = "Nessuno";
             ultimoOrdineEl.title = "Nessun ordine attivo nel lotto corrente";
@@ -2904,7 +2913,7 @@ function aggiornaStatisticheLottoCorrente() {
     if (alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.costo_fornitore_usd) {
         alibabaFeeUsd = Number(window.currentLottoData.costo_fornitore_usd) * 0.03;
         const tasso = (window.cachedSettings && window.cachedSettings.exchangeRate) ? Number(window.cachedSettings.exchangeRate) : 1.05;
-        alibabaFeeEur = alibabaFeeUsd / tasso;
+        alibabaFeeEur = alibabaFeeUsd * tasso;
     }
 
     let speseExtraEur = 0;
@@ -5360,7 +5369,7 @@ async function caricaOrdini(maxTentativi = 3) {
             if (response.ok) {
                 const result = await response.json();
                 if (result && result.success && Array.isArray(result.orders)) {
-                    ordini = result.orders;
+                    ordini = sortOrdersByCreationDescending(result.orders);
                     archivedKeys = Array.isArray(result.archivedKeys) ? result.archivedKeys : [];
                     try {
                         localStorage.setItem('sb_admin_cached_orders', JSON.stringify(ordini));
@@ -5621,6 +5630,99 @@ function estraiNumeroArticoli(param) {
     return totale || 0;
 }
 
+function isSocksItem(item, matchedProd = null) {
+    if (!item) return false;
+    
+    // 1. Tipo catalogo esplicito o categoria normalizzata
+    if (item.tipo_catalogo === 'calzettoni' || (matchedProd && matchedProd.tipo_catalogo === 'calzettoni')) {
+        return true;
+    }
+
+    const rawCat = String(item.categoria || (matchedProd ? matchedProd.categoria : '') || '').trim();
+    const catNorm = (typeof normalizzaCategoria === 'function' ? normalizzaCategoria(rawCat) : rawCat).toLowerCase();
+    
+    // Se la categoria è 'Calzettoni'
+    if (catNorm === 'calzettoni' || catNorm.includes('calzetton')) {
+        return true;
+    }
+    
+    // 2. Controllo testuale rigoroso sul nome o la squadra dell'articolo
+    const sq = String(item.squadra || item.nome || item.prodotto || item.versione || (matchedProd ? (matchedProd.versione || matchedProd.nome || matchedProd.squadra) : '') || '').toLowerCase();
+    
+    // Termini identificativi dei calzettoni
+    if (sq.includes('calzetton') || sq.includes('calze ') || sq.endsWith('calze') || sq.includes('calzini') || sq.includes('sock')) {
+        return true;
+    }
+    
+    return false;
+}
+window.isSocksItem = isSocksItem;
+
+function estraiNumeroArticoliValidi(param, allDbProducts = null) {
+    if (!param) return 0;
+    
+    let totalValidi = 0;
+    
+    // Se viene passato l'oggetto ordine con carrello popolato
+    if (typeof param === 'object') {
+        let cartItems = param.carrello;
+        if (!Array.isArray(cartItems) || cartItems.length === 0) {
+            if (typeof ricostruisciCarrelloDaStringhe === 'function') {
+                cartItems = ricostruisciCarrelloDaStringhe(param);
+            }
+        }
+        
+        if (Array.isArray(cartItems) && cartItems.length > 0) {
+            cartItems.forEach(item => {
+                if (!item) return;
+                const sq = item.squadra || item.nome || item.prodotto || '';
+                if (typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(sq)) return;
+                
+                const q = parseInt(item.quantita, 10) || 1;
+                
+                let matchedProd = null;
+                if (allDbProducts && Array.isArray(allDbProducts)) {
+                    if (item.id) matchedProd = allDbProducts.find(p => String(p.id) === String(item.id));
+                    if (!matchedProd && item.accessory_id) matchedProd = allDbProducts.find(p => String(p.id) === String(item.accessory_id));
+                    if (!matchedProd && item.legacy_id) matchedProd = allDbProducts.find(p => p.legacy_id !== undefined && String(p.legacy_id) === String(item.legacy_id));
+                }
+                
+                if (!isSocksItem(item, matchedProd)) {
+                    totalValidi += q;
+                }
+            });
+            return totalValidi;
+        }
+    }
+    
+    // Fallback su stringa squadra/prodotti (es. "30x Barcellona Home Kit / 30x Calzettoni Barcellona")
+    const squadraStr = typeof param === 'string' ? param : (param.squadra || '');
+    if (!squadraStr) return 0;
+    
+    const parti = squadraStr.split(/\s+\/\s+/);
+    parti.forEach(p => {
+        const text = p.trim();
+        if (!text) return;
+        if (typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(text)) return;
+        
+        let q = 1;
+        let cleanText = text;
+        const match = text.match(/^(\d+)x\s*(.*)$/i);
+        if (match) {
+            q = parseInt(match[1], 10);
+            cleanText = match[2];
+        }
+        
+        const tempItem = { squadra: cleanText, nome: cleanText };
+        if (!isSocksItem(tempItem)) {
+            totalValidi += q;
+        }
+    });
+    
+    return totalValidi || 0;
+}
+window.estraiNumeroArticoliValidi = estraiNumeroArticoliValidi;
+
 /**
  * Formatta data e ora di un ordine in formato standard italiano (GG/MM/AAAA, HH:MM)
  * Rispetta rigorosamente created_at (con timezone locale) o data string
@@ -5658,21 +5760,39 @@ function getOrderTimestampForSorting(o) {
         const t = new Date(o.created_at).getTime();
         if (!isNaN(t) && t > 0) return t;
     }
+    if (o.data_creazione) {
+        const t = new Date(o.data_creazione).getTime();
+        if (!isNaN(t) && t > 0) return t;
+    }
     if (o.data) {
         const str = String(o.data).trim();
-        const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})[,\s]+(\d{2}):(\d{2}):?(\d{2})?/);
+        if (str.includes('-')) {
+            const t = new Date(str).getTime();
+            if (!isNaN(t) && t > 0) return t;
+        }
+        const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
         if (match) {
             const [, day, month, year, hours, minutes, seconds] = match;
-            const d = new Date(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes), Number(seconds || 0));
-            if (!isNaN(d.getTime())) return d.getTime();
+            const d = new Date(Number(year), Number(month) - 1, Number(day), Number(hours || 0), Number(minutes || 0), Number(seconds || 0));
+            if (!isNaN(d.getTime()) && d.getTime() > 0) return d.getTime();
         }
         const d = new Date(str);
-        if (!isNaN(d.getTime())) return d.getTime();
+        if (!isNaN(d.getTime()) && d.getTime() > 0) return d.getTime();
     }
-    if (o.id && !isNaN(Number(o.id))) {
-        return Number(o.id);
-    }
-    return 0;
+    const numId = Number(o.id || o.legacy_id || 0);
+    return numId > 0 ? numId : 0;
+}
+
+function sortOrdersByCreationDescending(ordersList) {
+    if (!Array.isArray(ordersList) || ordersList.length === 0) return ordersList || [];
+    return [...ordersList].sort((a, b) => {
+        const tA = getOrderTimestampForSorting(a);
+        const tB = getOrderTimestampForSorting(b);
+        if (tA !== tB) return tB - tA;
+        const idA = Number(a.id || a.legacy_id || 0);
+        const idB = Number(b.id || b.legacy_id || 0);
+        return idB - idA;
+    });
 }
 
 /**
@@ -6093,11 +6213,36 @@ function calcolaRiepilogoFinanziarioOrdine(order) {
     const isAllPrezzoFornitore = nonTechList.length > 0 && nonTechList.every(ci => ci.is_prezzo_fornitore === true || ci.origine_prezzo === 'fornitore');
 
     const cambioValuta = parseFlexibleDecimal(order["Cambio USD/EUR"] || order.cambio_usd_eur) || 0.92;
-    const costoProdottiUsd = parseFlexibleDecimal(order["Costo prodotti (USD)"] || order.costo_prodotti_usd);
-    const costoSpedizioneUsd = parseFlexibleDecimal(order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd);
+    let costoProdottiUsd = parseFlexibleDecimal(order["Costo prodotti (USD)"] || order.costo_prodotti_usd);
+    let costoSpedizioneUsd = parseFlexibleDecimal(order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd);
+
+    if (costoProdottiUsd === 0 && rawCartList.length > 0) {
+        rawCartList.forEach(item => {
+            if (!item) return;
+            const q = parseInt(item.quantita, 10) || 1;
+            const uCost = parseFlexibleDecimal(item.costo_fornitore_unitario_usd || item.prezzo_fornitore_usd || item.prezzo_fornitore);
+            if (uCost > 0) {
+                costoProdottiUsd += (uCost * q);
+            }
+        });
+    }
+
+    if (costoSpedizioneUsd === 0 && rawCartList.length > 0) {
+        rawCartList.forEach(item => {
+            if (!item) return;
+            const q = parseInt(item.quantita, 10) || 1;
+            const uShip = parseFlexibleDecimal(item.costo_spedizione_fornitore_usd);
+            const tipoSped = item.tipo_spedizione_fornitore || 'unitario';
+            if (uShip > 0) {
+                costoSpedizioneUsd += (tipoSped === 'unitario' ? (uShip * q) : uShip);
+            }
+        });
+    }
+
     const costoTotaleUsd = parseFlexibleDecimal(order["Costo totale (USD)"] || order.costo_totale_usd) || (costoProdottiUsd + costoSpedizioneUsd);
     const rawCostoEur = parseFlexibleDecimal(order["Costo totale (EUR)"] || order.costo_totale_eur || order["Costo Fornitore (EUR)"]);
-    const costoTotaleEur = rawCostoEur > 0 ? rawCostoEur : Number((costoTotaleUsd * cambioValuta).toFixed(2));
+    const computedCostoEur = Number((costoTotaleUsd * cambioValuta).toFixed(2));
+    const costoTotaleEur = (costoTotaleUsd > 0 && cambioValuta > 0) ? computedCostoEur : (rawCostoEur > 0 ? rawCostoEur : 0);
 
     let totaleIncassato = 0;
     if (isFornitoreCoupon || isAllPrezzoFornitore) {
@@ -13011,6 +13156,9 @@ function renderGestioneOrdini() {
         filtrate = filtrate.filter(ord => new Date(ord.created_at || ord.data) <= dFine);
     }
 
+    // Ordinamento rigoroso dal più recente al meno recente in base alla data di creazione effettiva
+    filtrate = sortOrdersByCreationDescending(filtrate);
+
     if (filtrate.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -14169,12 +14317,21 @@ function getShippingRateByQuantityClient(quantity, settings) {
  */
 function getItemShippingMultiplierClient(item, matchedProd = null) {
     if (!item) return 0;
-    const name = item.squadra || item.nome || '';
+    const name = String(item.squadra || item.nome || item.versione || '').trim();
     if (typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(name)) {
         return 0;
     }
     if (item.supplier_shipping_enabled === false || item.spedizione_fornitore === false || item.applica_spedizione_fornitore === false) {
         return 0;
+    }
+    if (item.supplier_shipping_enabled === true || item.spedizione_fornitore === true || item.applica_spedizione_fornitore === true) {
+        // esplicitamente abilitato
+    } else {
+        const cat = String(matchedProd?.categoria || item?.categoria || '').trim().toLowerCase();
+        const nameLower = name.toLowerCase();
+        if (cat === 'calzettoni' || cat.includes('calzet') || cat.includes('sock') || cat === 'accessori' || cat.includes('accessori') || nameLower.includes('calzet') || nameLower.includes('sock') || item.tipo_catalogo === 'accessori') {
+            return 0;
+        }
     }
     const cat = String(matchedProd?.categoria || item?.categoria || '').trim().toLowerCase();
     if (cat === 'tuta' || cat === 'tute') {
@@ -27740,13 +27897,32 @@ function getAdminAuthHeaders() {
         }
 
         if (token && typeof token === 'string') {
-            headers['Authorization'] = `Bearer ${token}`;
+            headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
         }
     } catch (e) {
         // Nessun token specifico trovato
     }
     return headers;
 }
+window.getAdminAuthHeaders = getAdminAuthHeaders;
+
+window.getAdminAuthHeadersAsync = async function() {
+    const headers = getAdminAuthHeaders();
+    if (!headers['Authorization'] && typeof window.getSupabaseClient === 'function') {
+        try {
+            const client = await window.getSupabaseClient();
+            if (client && client.auth) {
+                const { data: { session } } = await client.auth.getSession();
+                if (session && session.access_token) {
+                    headers['Authorization'] = `Bearer ${session.access_token}`;
+                }
+            }
+        } catch (err) {
+            console.warn("Impossibile recuperare token Supabase async:", err);
+        }
+    }
+    return headers;
+};
 
 let currentPerfView = 'public';
 
@@ -29550,24 +29726,24 @@ window.chiudiModaleVenditaFuoriCatalogo = chiudiModaleVenditaFuoriCatalogo;
 
 function ricalcolaAnteprimaVenditaFuoriCatalogo() {
     const qty = parseInt(document.getElementById('vfc-quantita')?.value, 10) || 1;
-    const costFornUnitUsd = parseFloat(document.getElementById('vfc-costo-fornitore-usd')?.value) || 0;
+    const costFornUnitUsd = parseFlexibleDecimal(document.getElementById('vfc-costo-fornitore-usd')?.value) || 0;
     const tipoSpedForn = document.getElementById('vfc-tipo-spedizione-fornitore')?.value || 'unitario';
-    const rawSpedFornUsd = parseFloat(document.getElementById('vfc-costo-spedizione-usd')?.value) || 0;
-    const altriUsd = parseFloat(document.getElementById('vfc-altri-costi-usd')?.value) || 0;
-    const tassoCambio = parseFloat(document.getElementById('vfc-tasso-cambio')?.value) || 1.08;
+    const rawSpedFornUsd = parseFlexibleDecimal(document.getElementById('vfc-costo-spedizione-usd')?.value) || 0;
+    const altriUsd = parseFlexibleDecimal(document.getElementById('vfc-altri-costi-usd')?.value) || 0;
+    const tassoCambio = parseFlexibleDecimal(document.getElementById('vfc-tasso-cambio')?.value) || 1.08;
 
-    const prezzoVenditaUnitEur = parseFloat(document.getElementById('vfc-prezzo-vendita-eur')?.value) || 0;
-    const spedClienteEur = parseFloat(document.getElementById('vfc-spedizione-cliente-eur')?.value) || 0;
-    const altriEur = parseFloat(document.getElementById('vfc-altri-costi-eur')?.value) || 0;
+    const prezzoVenditaUnitEur = parseFlexibleDecimal(document.getElementById('vfc-prezzo-vendita-eur')?.value) || 0;
+    const spedClienteEur = parseFlexibleDecimal(document.getElementById('vfc-spedizione-cliente-eur')?.value) || 0;
+    const altriEur = parseFlexibleDecimal(document.getElementById('vfc-altri-costi-eur')?.value) || 0;
 
-    const costoMerceUsd = qty * costFornUnitUsd;
-    const costoSpedFornUsd = tipoSpedForn === 'unitario' ? (rawSpedFornUsd * qty) : rawSpedFornUsd;
-    const costoFornitoreTotaleUsd = costoMerceUsd + costoSpedFornUsd + altriUsd;
-    const costoFornitoreTotaleEur = costoFornitoreTotaleUsd / tassoCambio;
+    const costoMerceUsd = Number((qty * costFornUnitUsd).toFixed(2));
+    const costoSpedFornUsd = tipoSpedForn === 'unitario' ? Number((rawSpedFornUsd * qty).toFixed(2)) : Number(rawSpedFornUsd.toFixed(2));
+    const costoFornitoreTotaleUsd = Number((costoMerceUsd + costoSpedFornUsd + altriUsd).toFixed(2));
+    const costoFornitoreTotaleEur = Number((costoFornitoreTotaleUsd * tassoCambio).toFixed(2));
 
-    const ricavoProdottiEur = qty * prezzoVenditaUnitEur;
-    const ricavoTotaleEur = ricavoProdottiEur + spedClienteEur;
-    const profittoEur = ricavoTotaleEur - costoFornitoreTotaleEur - altriEur;
+    const ricavoProdottiEur = Number((qty * prezzoVenditaUnitEur).toFixed(2));
+    const ricavoTotaleEur = Number((ricavoProdottiEur + spedClienteEur).toFixed(2));
+    const profittoEur = Number((ricavoTotaleEur - costoFornitoreTotaleEur - altriEur).toFixed(2));
 
     const elCalcCostUsd = document.getElementById('vfc-calc-costo-usd');
     if (elCalcCostUsd) elCalcCostUsd.innerText = `$ ${costoFornitoreTotaleUsd.toFixed(2).replace('.', ',')}`;
@@ -29591,8 +29767,7 @@ function ricalcolaAnteprimaVenditaFuoriCatalogo() {
 
     const elPreviewTasso = document.getElementById('vfc-preview-tasso');
     if (elPreviewTasso) {
-        const eurPerUsd = (1 / tassoCambio).toFixed(4);
-        elPreviewTasso.innerText = `Tasso 1 USD = ${eurPerUsd} EUR (Tasso inviato: ${tassoCambio})`;
+        elPreviewTasso.innerText = `Tasso 1 USD = ${tassoCambio.toFixed(4).replace('.', ',')} EUR`;
     }
 }
 window.ricalcolaAnteprimaVenditaFuoriCatalogo = ricalcolaAnteprimaVenditaFuoriCatalogo;
@@ -29610,19 +29785,19 @@ async function salvaVenditaFuoriCatalogo() {
         return;
     }
 
-    const costFornUnitUsd = parseFloat(document.getElementById('vfc-costo-fornitore-usd')?.value);
+    const costFornUnitUsd = parseFlexibleDecimal(document.getElementById('vfc-costo-fornitore-usd')?.value);
     if (isNaN(costFornUnitUsd) || costFornUnitUsd < 0) {
         alert("Inserisci un costo fornitore unitario (USD) valido.");
         return;
     }
 
-    const prezzoVenditaUnitEur = parseFloat(document.getElementById('vfc-prezzo-vendita-eur')?.value);
+    const prezzoVenditaUnitEur = parseFlexibleDecimal(document.getElementById('vfc-prezzo-vendita-eur')?.value);
     if (isNaN(prezzoVenditaUnitEur) || prezzoVenditaUnitEur < 0) {
         alert("Inserisci un prezzo di vendita unitario (EUR) valido.");
         return;
     }
 
-    const tassoCambio = parseFloat(document.getElementById('vfc-tasso-cambio')?.value) || 1.08;
+    const tassoCambio = parseFlexibleDecimal(document.getElementById('vfc-tasso-cambio')?.value) || 1.08;
 
     const payload = {
         nome_articolo: nome,
@@ -29630,11 +29805,11 @@ async function salvaVenditaFuoriCatalogo() {
         quantita: qty,
         costo_fornitore_unitario_usd: costFornUnitUsd,
         tipo_spedizione_fornitore: document.getElementById('vfc-tipo-spedizione-fornitore')?.value || 'unitario',
-        costo_spedizione_fornitore_usd: parseFloat(document.getElementById('vfc-costo-spedizione-usd')?.value) || 0,
-        altri_costi_usd: parseFloat(document.getElementById('vfc-altri-costi-usd')?.value) || 0,
+        costo_spedizione_fornitore_usd: parseFlexibleDecimal(document.getElementById('vfc-costo-spedizione-usd')?.value) || 0,
+        altri_costi_usd: parseFlexibleDecimal(document.getElementById('vfc-altri-costi-usd')?.value) || 0,
         prezzo_vendita_unitario_eur: prezzoVenditaUnitEur,
-        spedizione_cliente_eur: parseFloat(document.getElementById('vfc-spedizione-cliente-eur')?.value) || 0,
-        altri_costi_eur: parseFloat(document.getElementById('vfc-altri-costi-eur')?.value) || 0,
+        spedizione_cliente_eur: parseFlexibleDecimal(document.getElementById('vfc-spedizione-cliente-eur')?.value) || 0,
+        altri_costi_eur: parseFlexibleDecimal(document.getElementById('vfc-altri-costi-eur')?.value) || 0,
         tasso_cambio_usd_eur: tassoCambio,
         cliente_nome: document.getElementById('vfc-cliente')?.value || 'Vendita Fuori Catalogo',
         data_vendita: document.getElementById('vfc-data')?.value || '',

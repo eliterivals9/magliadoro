@@ -1687,7 +1687,18 @@ function isSupplierShippingEnabledForItem(item, accessoriesList = null) {
     return Boolean(item.applica_spedizione_fornitore);
   }
 
-  // 2. Controllo catalogo accessori
+  // 2. Controllo se è un calzettone o accessorio
+  if (typeof isAccessoryOrSocks === 'function' && isAccessoryOrSocks(item)) {
+    return false;
+  }
+
+  const rawCat = String(item.categoria || (item.matchedProd ? item.matchedProd.categoria : "") || "").trim().toLowerCase();
+  const rawName = String(item.squadra || item.nome || item.versione || "").trim().toLowerCase();
+  if (rawCat === 'calzettoni' || rawCat.includes('calzet') || rawCat.includes('sock') || rawCat === 'accessori' || rawCat.includes('accessori') || rawName.includes('calzet') || rawName.includes('sock') || item.tipo_catalogo === 'accessori') {
+    return false;
+  }
+
+  // 3. Controllo catalogo accessori
   let accList = accessoriesList;
   if (!accList) {
     try {
@@ -1726,6 +1737,7 @@ function isSupplierShippingEnabledForItem(item, accessoriesList = null) {
       if (matchedAcc.spedizione_fornitore !== undefined && matchedAcc.spedizione_fornitore !== null) {
         return Boolean(matchedAcc.spedizione_fornitore);
       }
+      return false; // Accessori in catalogo accessori hanno default no shipping
     }
   }
 
@@ -3953,6 +3965,50 @@ function normalizzaStatoPagamento(statusStr) {
   return null;
 }
 
+function getOrderTimestampForSorting(o) {
+  if (!o) return 0;
+  if (o.created_at) {
+    const t = new Date(o.created_at).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (o.data_creazione) {
+    const t = new Date(o.data_creazione).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (o.data) {
+    const str = String(o.data).trim();
+    if (str.includes('-')) {
+      const t = new Date(str).getTime();
+      if (!isNaN(t) && t > 0) return t;
+    }
+    const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) - 1;
+      const year = parseInt(match[3], 10);
+      const hours = match[4] ? parseInt(match[4], 10) : 0;
+      const mins = match[5] ? parseInt(match[5], 10) : 0;
+      const secs = match[6] ? parseInt(match[6], 10) : 0;
+      const d = new Date(year, month, day, hours, mins, secs);
+      if (!isNaN(d.getTime()) && d.getTime() > 0) return d.getTime();
+    }
+  }
+  const numId = Number(o.id || o.legacy_id || 0);
+  return numId > 0 ? numId : 0;
+}
+
+function sortOrdersByCreationDescending(ordersList) {
+  if (!Array.isArray(ordersList) || ordersList.length === 0) return ordersList || [];
+  return [...ordersList].sort((a, b) => {
+    const tA = getOrderTimestampForSorting(a);
+    const tB = getOrderTimestampForSorting(b);
+    if (tA !== tB) return tB - tA;
+    const idA = Number(a.id || a.legacy_id || 0);
+    const idB = Number(b.id || b.legacy_id || 0);
+    return idB - idA;
+  });
+}
+
 async function getDbOrders() {
   const supabase = getSupabaseClient();
   let dbOrders = [];
@@ -4133,7 +4189,7 @@ async function getDbOrders() {
     return o;
   });
 
-  return finalOrders;
+  return sortOrdersByCreationDescending(finalOrders);
 }
 
 async function ensureLottoExistsInDb(lottoId) {
@@ -9265,7 +9321,8 @@ app.delete('/api/products/:id', adminAuthMiddleware, async (req, res) => {
 // GET /api/lotto - Ottieni lo stato del lotto corrente
 app.get('/api/lotto', async (req, res) => {
   try {
-    const lotto = await recalculateCurrentLotto();
+    const force = req.query.force === 'true' || req.query.force === '1';
+    const lotto = await recalculateCurrentLotto(force);
     return res.json({ success: true, lotto });
   } catch (err) {
     console.error("⚠️ Error recalculating lotto in GET /api/lotto:", err.message);
@@ -10257,6 +10314,8 @@ function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProduct
 
   return {
     numero_totale_articoli,
+    numero_articoli_spedizione,
+    unita_spedizione_economiche,
     costo_base_prodotti_usd,
     costo_totale_prodotti_usd,
     spedizione_corrente_usd,
@@ -10423,8 +10482,39 @@ async function recalculateCurrentLottoInternal() {
         }
       });
 
-      const rawProdCostUSD = parseItalianFloat(String(ord["Costo prodotti (USD)"] || ord.costo_prodotti_usd || '0'));
-      const newShippingUSD = Number((orderShippingUnits * currentUnitShippingRate).toFixed(2));
+      const isOffCatalogOrder = Boolean(
+        ord.is_off_catalog ||
+        String(ord.squadra || '').includes('Fuori Catalogo') ||
+        (Array.isArray(cartItems) && cartItems.some(it => it && it.is_off_catalog))
+      );
+      // Calcolo dinamico del costo prodotti fornitore direttamente dal carrello
+      let calcProdCostUSD = 0;
+      if (Array.isArray(cartItems) && cartItems.length > 0) {
+        cartItems.forEach(item => {
+          if (!item) return;
+          const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+          if (isSped) return;
+          const q = Math.max(1, parseInt(item.quantita) || 1);
+          let matchedProd = null;
+          if (item.id && prodByIdMap.has(String(item.id).trim())) {
+            matchedProd = prodByIdMap.get(String(item.id).trim());
+          } else if (item.accessory_id && prodByIdMap.has(String(item.accessory_id).trim())) {
+            matchedProd = prodByIdMap.get(String(item.accessory_id).trim());
+          } else if (item.legacy_id && prodByLegacyIdMap.has(String(item.legacy_id).trim())) {
+            matchedProd = prodByLegacyIdMap.get(String(item.legacy_id).trim());
+          }
+          const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories);
+          const isCalz = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
+          const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
+          const customDetails = isCalz ? { customizationCostUSD: 0.00 } : parseCustomizationDetails(rawInfoPerso, item);
+          calcProdCostUSD += (basePriceUSD + customDetails.customizationCostUSD) * q;
+        });
+      }
+
+      const storedProdCostUSD = parseItalianFloat(String(ord["Costo prodotti (USD)"] || ord.costo_prodotti_usd || '0'));
+      const rawProdCostUSD = calcProdCostUSD > 0 ? calcProdCostUSD : storedProdCostUSD;
+      const rawShippingUSD = parseItalianFloat(String(ord["Costo spedizione (USD)"] || ord.costo_spedizione_usd || '0'));
+      const newShippingUSD = isOffCatalogOrder ? rawShippingUSD : Number((orderShippingUnits * currentUnitShippingRate).toFixed(2));
       const newTotalCostUSD = Number((rawProdCostUSD + newShippingUSD).toFixed(2));
       const orderRate = getOrderEffectiveExchangeRate(ord, settings);
       const newTotalCostEUR = convertUsdToEur(newTotalCostUSD, orderRate, 'recalculateCurrentLottoInternal');
@@ -10432,6 +10522,7 @@ async function recalculateCurrentLottoInternal() {
       const newProfitEUR = Number((totalPaidCliente - newTotalCostEUR).toFixed(2));
 
       const prevShippingStr = String(ord["Costo spedizione (USD)"] || ord.costo_spedizione_usd || '');
+      const newProdCostUSDStr = rawProdCostUSD.toFixed(2).replace('.', ',');
       const newShippingStr = newShippingUSD.toFixed(2).replace('.', ',');
       const newTotalCostUSDStr = newTotalCostUSD.toFixed(2).replace('.', ',');
       const newTotalCostEURStr = newTotalCostEUR.toFixed(2).replace('.', ',');
@@ -10440,6 +10531,7 @@ async function recalculateCurrentLottoInternal() {
       const orderHasChanged = (
         prevShippingStr !== newShippingStr ||
         !ord.costo_totale_eur ||
+        String(ord.costo_prodotti_usd || '') !== newProdCostUSDStr ||
         String(ord.costo_spedizione_usd || '') !== newShippingStr ||
         String(ord.costo_totale_usd || '') !== newTotalCostUSDStr ||
         String(ord.costo_totale_eur || '') !== newTotalCostEURStr ||
@@ -10450,6 +10542,8 @@ async function recalculateCurrentLottoInternal() {
         hasOrderChanges = true;
       }
 
+      ord["Costo prodotti (USD)"] = newProdCostUSDStr;
+      ord.costo_prodotti_usd = newProdCostUSDStr;
       ord["Costo spedizione (USD)"] = newShippingStr;
       ord["osto spedizione (USD)"] = newShippingStr;
       ord["Costo totale (USD)"] = newTotalCostUSDStr;
@@ -10464,6 +10558,7 @@ async function recalculateCurrentLottoInternal() {
       if (supabase && ord.id && orderHasChanged) {
         try {
           await supabase.from('orders').update({
+            costo_prodotti_usd: newProdCostUSDStr,
             costo_spedizione_usd: newShippingStr,
             costo_totale_usd: newTotalCostUSDStr,
             costo_totale_eur: newTotalCostEURStr,
@@ -10497,6 +10592,8 @@ async function recalculateCurrentLottoInternal() {
     id: currentLottoId,
     prossimo_lotto_id: currentLottoId,
     numero_totale_articoli: totals.numero_totale_articoli,
+    numero_articoli_spedizione: totals.numero_articoli_spedizione,
+    unita_spedizione_economiche: totals.unita_spedizione_economiche,
     costo_base_prodotti_usd: totals.costo_base_prodotti_usd,
     costo_totale_prodotti_usd: totals.costo_totale_prodotti_usd,
     spedizione_corrente_usd: totals.spedizione_corrente_usd,
@@ -12289,37 +12386,38 @@ const handleCreateOffCatalogSale = async (req, res) => {
       return res.status(400).json({ success: false, error: "La quantità deve essere un numero intero maggiore di zero." });
     }
 
-    const costFornUnitUsd = parseFloat(costo_fornitore_unitario_usd);
+    const costFornUnitUsd = parseFlexibleDecimal(costo_fornitore_unitario_usd);
     if (isNaN(costFornUnitUsd) || costFornUnitUsd < 0) {
       return res.status(400).json({ success: false, error: "Il costo fornitore unitario (USD) deve essere un numero maggiore o uguale a zero." });
     }
 
-    const prezzoVenditaUnitEur = parseFloat(prezzo_vendita_unitario_eur);
+    const prezzoVenditaUnitEur = parseFlexibleDecimal(prezzo_vendita_unitario_eur);
     if (isNaN(prezzoVenditaUnitEur) || prezzoVenditaUnitEur < 0) {
       return res.status(400).json({ success: false, error: "Il prezzo di vendita unitario (EUR) deve essere un numero maggiore o uguale a zero." });
     }
 
     const settings = getSettings();
     const defaultExchangeRate = getOrderEffectiveExchangeRate({}, settings);
-    const tassoCambio = (tasso_cambio_usd_eur !== undefined && tasso_cambio_usd_eur !== null && !isNaN(parseFloat(tasso_cambio_usd_eur)) && parseFloat(tasso_cambio_usd_eur) > 0)
-      ? parseFloat(tasso_cambio_usd_eur)
+    const parsedTassoInput = parseFlexibleDecimal(tasso_cambio_usd_eur);
+    const tassoCambio = (tasso_cambio_usd_eur !== undefined && tasso_cambio_usd_eur !== null && !isNaN(parsedTassoInput) && parsedTassoInput > 0)
+      ? parsedTassoInput
       : defaultExchangeRate;
 
     const tipoSpedForn = (tipo_spedizione_fornitore === 'complessivo') ? 'complessivo' : 'unitario';
-    const rawSpedFornUsd = (costo_spedizione_fornitore_usd !== undefined && costo_spedizione_fornitore_usd !== null && !isNaN(parseFloat(costo_spedizione_fornitore_usd)))
-      ? parseFloat(costo_spedizione_fornitore_usd)
+    const rawSpedFornUsd = (costo_spedizione_fornitore_usd !== undefined && costo_spedizione_fornitore_usd !== null)
+      ? parseFlexibleDecimal(costo_spedizione_fornitore_usd)
       : 0;
 
-    const altriUsd = (altri_costi_usd !== undefined && altri_costi_usd !== null && !isNaN(parseFloat(altri_costi_usd)))
-      ? parseFloat(altri_costi_usd)
+    const altriUsd = (altri_costi_usd !== undefined && altri_costi_usd !== null)
+      ? parseFlexibleDecimal(altri_costi_usd)
       : 0;
 
-    const spedClienteEur = (spedizione_cliente_eur !== undefined && spedizione_cliente_eur !== null && !isNaN(parseFloat(spedizione_cliente_eur)))
-      ? parseFloat(spedizione_cliente_eur)
+    const spedClienteEur = (spedizione_cliente_eur !== undefined && spedizione_cliente_eur !== null)
+      ? parseFlexibleDecimal(spedizione_cliente_eur)
       : 0;
 
-    const altriEur = (altri_costi_eur !== undefined && altri_costi_eur !== null && !isNaN(parseFloat(altri_costi_eur)))
-      ? parseFloat(altri_costi_eur)
+    const altriEur = (altri_costi_eur !== undefined && altri_costi_eur !== null)
+      ? parseFlexibleDecimal(altri_costi_eur)
       : 0;
 
     // Calcoli finanziari esatti
@@ -12712,6 +12810,7 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
   let costo_completini_usd = 0;
   let costo_personalizzazioni_usd = 0;
   let quant_total = 0;
+  let quant_spedizione_items = 0;
   let quant_spedizione_units = 0;
 
   carrello.forEach(item => {
@@ -12747,6 +12846,7 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
 
       const shippingMult = getItemShippingMultiplier(item, matchedProd, localAccessories);
       if (shippingMult > 0) {
+        quant_spedizione_items += q;
         quant_spedizione_units += (q * shippingMult);
       }
     }
@@ -12754,19 +12854,20 @@ function calcolaCostoFornitoreEur(carrello, exchangeRate, dbProducts = null, inc
 
   const settings = getSettings();
   
-  // Determinazione tariffa unitaria fornitore basata sul lotto corrente (o sui pezzi del carrello se non c'è lotto)
-  let totalLottoPieces = quant_total;
+  // Determinazione tariffa unitaria fornitore basata sul lotto corrente (o sui pezzi qualificanti la spedizione se non c'è lotto)
+  let totalLottoShippingPieces = quant_spedizione_items;
   try {
     const lottoFile = path.join(__dirname, 'lotto.json');
     if (fs.existsSync(lottoFile)) {
       const lotto = JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
-      if (lotto && Number(lotto.numero_totale_articoli) > 0) {
-        totalLottoPieces = Math.max(quant_total, Number(lotto.numero_totale_articoli));
+      const lottoShippingQty = lotto.numero_articoli_spedizione !== undefined ? Number(lotto.numero_articoli_spedizione) : Number(lotto.numero_totale_articoli || 0);
+      if (lotto && lottoShippingQty > 0) {
+        totalLottoShippingPieces = Math.max(quant_spedizione_items, lottoShippingQty);
       }
     }
   } catch (e) {}
 
-  const spedizione_unitaria = getShippingRateByQuantity(totalLottoPieces, settings);
+  const spedizione_unitaria = getShippingRateByQuantity(totalLottoShippingPieces, settings);
   const costo_spedizione_usd = includeShipping ? Number((quant_spedizione_units * spedizione_unitaria).toFixed(2)) : 0;
   const costo_totale_usd = Number((costo_completini_usd + costo_personalizzazioni_usd + costo_spedizione_usd).toFixed(2));
   const prezzo_finale_eur = Number((costo_totale_usd * exchangeRate).toFixed(2));
@@ -13819,6 +13920,8 @@ app.post('/api/tornei/pagamenti/:id/paga', adminAuthMiddleware, async (req, res)
         let subtotalEur = 0;
         let costoProdottiUsdAgg = 0;
         let totArticoliAgg = 0;
+        let totSpedizioneItemsAgg = 0;
+        let totSpedizioneUnitsAgg = 0;
         const formuleImmaginiAgg = [];
 
         const localProds = getLocalProducts();
@@ -13845,6 +13948,17 @@ app.post('/api/tornei/pagamenti/:id/paga', adminAuthMiddleware, async (req, res)
             item.prezzo = itemPrice;
             subtotalEur += (itemPrice * q);
 
+            let matchedProd = null;
+            if (item.id) matchedProd = allCatalogProducts.find(p => String(p.id) === String(item.id));
+            if (!matchedProd && item.accessory_id) matchedProd = allCatalogProducts.find(p => String(p.id) === String(item.accessory_id));
+            if (!matchedProd && item.legacy_id) matchedProd = allCatalogProducts.find(p => p.legacy_id !== undefined && String(p.legacy_id) === String(item.legacy_id));
+
+            const shippingMult = getItemShippingMultiplier(item, matchedProd, localAccessories);
+            if (shippingMult > 0) {
+              totSpedizioneItemsAgg += q;
+              totSpedizioneUnitsAgg += (q * shippingMult);
+            }
+
             const basePriceUSD = resolveSupplierBasePrice(item, allCatalogProducts, localAccessories);
             const singleCostUSD = calculateSupplierProductCost(basePriceUSD, item.infoPerso || item.personalizzazione, item);
             item.prezzo_fornitore = basePriceUSD; // ALWAYS PURE BASE!
@@ -13858,8 +13972,8 @@ app.post('/api/tornei/pagamenti/:id/paga', adminAuthMiddleware, async (req, res)
 
         const settings = getSettings();
         const exRate = await getLiveOrSettingsExchangeRate(settings);
-        const spedUnitaria = getShippingRateByQuantity(totArticoliAgg, settings);
-        const orderShippingUsd = Number((totArticoliAgg * spedUnitaria).toFixed(2));
+        const spedUnitaria = getShippingRateByQuantity(totSpedizioneItemsAgg, settings);
+        const orderShippingUsd = Number((totSpedizioneUnitsAgg * spedUnitaria).toFixed(2));
         const costoTotaleUsd = Number((costoProdottiUsdAgg + orderShippingUsd).toFixed(2));
         const costoTotaleEur = convertUsdToEur(costoTotaleUsd, exRate, 'Aggregazione Ordine Torneo Pagato');
         const profittoEur = Number((subtotalEur - costoTotaleEur).toFixed(2));
@@ -18079,10 +18193,12 @@ app.post('/api/orders', async (req, res) => {
     }
 
     const nuovo_numero_totale_articoli = lotto.numero_totale_articoli + quantita_totale_articoli;
+    const lotto_shipping_qty = lotto.numero_articoli_spedizione !== undefined ? lotto.numero_articoli_spedizione : (lotto.numero_totale_articoli || 0);
+    const nuovo_numero_articoli_spedizione = lotto_shipping_qty + quantita_articoli_spedizione;
     const nuovo_costo_totale_prodotti_usd = lotto.costo_totale_prodotti_usd + costo_prodotti_usd;
 
     // Regola spedizione automatica dinamica su TUTTE le fasce del fornitore:
-    const spedizione_unitaria = getShippingRateByQuantity(nuovo_numero_totale_articoli, settings);
+    const spedizione_unitaria = getShippingRateByQuantity(nuovo_numero_articoli_spedizione, settings);
 
     const spedizione_totale_lotto = Number((nuovo_numero_totale_articoli * spedizione_unitaria).toFixed(2));
     const nuovo_costo_complessivo_lotto_usd = Number((nuovo_costo_totale_prodotti_usd + spedizione_totale_lotto).toFixed(2));
@@ -18907,10 +19023,24 @@ app.post('/api/orders/update-customer-order', async (req, res) => {
       return isSpedizione ? acc : acc + (Number(item.quantita) || 1);
     }, 0);
 
-    const diffQty = newQty - prevQty;
-    const nuovo_numero_totale_articoli = Math.max(0, lotto.numero_totale_articoli + diffQty);
+    const prevShippingQty = prevItems ? prevItems.reduce((acc, item) => {
+      const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+      if (isSped) return acc;
+      return isSupplierShippingEnabledForItem(item, localAccessories) ? acc + (Number(item.quantita) || 1) : acc;
+    }, 0) : 0;
+    const newShippingQty = carrello.reduce((acc, item) => {
+      const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+      if (isSped) return acc;
+      return isSupplierShippingEnabledForItem(item, localAccessories) ? acc + (Number(item.quantita) || 1) : acc;
+    }, 0);
 
-    const spedizione_unitaria = getShippingRateByQuantity(nuovo_numero_totale_articoli, settings);
+    const diffQty = newQty - prevQty;
+    const diffShippingQty = newShippingQty - prevShippingQty;
+    const nuovo_numero_totale_articoli = Math.max(0, lotto.numero_totale_articoli + diffQty);
+    const lottoShippingQty = lotto.numero_articoli_spedizione !== undefined ? lotto.numero_articoli_spedizione : (lotto.numero_totale_articoli || 0);
+    const nuovo_numero_articoli_spedizione = Math.max(0, lottoShippingQty + diffShippingQty);
+
+    const spedizione_unitaria = getShippingRateByQuantity(nuovo_numero_articoli_spedizione, settings);
 
     carrello.forEach(item => {
       const isSpedizione = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
@@ -19376,7 +19506,7 @@ async function getDbOrdersMerged() {
     console.warn("⚠️ Querying lotti fallito:", err.message);
   }
   
-  return orders.map(ord => {
+  const mergedOrders = orders.map(ord => {
     const custOrd = customerOrders.find(co => String(co.admin_order_id) === String(ord.id));
     const lotto = ord.lotto_id ? lotti.find(l => Number(l.id) === Number(ord.lotto_id)) : null;
     
@@ -19440,6 +19570,7 @@ async function getDbOrdersMerged() {
       registered_name: custOrd ? ord.nome : null
     };
   });
+  return sortOrdersByCreationDescending(mergedOrders);
 }
 
 // ----------------------
@@ -19807,23 +19938,29 @@ app.post('/api/admin/gestione-ordini/update', adminAuthMiddleware, async (req, r
     // Recupera l'ordine esistente per confrontare il carrello
     let existingOrder = null;
     let hasCartChanged = false;
-    if (supabase) {
-      try {
+    try {
+      if (supabase) {
         const { data: ords } = await supabase.from('orders').select('*').eq('id', id);
-        if (ords && ords.length > 0) {
-          existingOrder = ords[0];
-          
-          if (carrello !== undefined) {
-            const existingCartStr = typeof existingOrder.carrello === 'string' ? existingOrder.carrello.trim() : JSON.stringify(existingOrder.carrello || []);
-            const incomingCartStr = typeof carrello === 'string' ? carrello.trim() : JSON.stringify(carrello || []);
-            if (existingCartStr !== incomingCartStr) {
-              hasCartChanged = true;
-            }
+        if (ords && ords.length > 0) existingOrder = ords[0];
+      }
+      if (!existingOrder) {
+        const localOrds = getLocalOrders();
+        existingOrder = localOrds.find(o => Number(o.id) === Number(id)) || null;
+      }
+      if (carrello !== undefined) {
+        if (!existingOrder) {
+          hasCartChanged = true;
+        } else {
+          const existingCartStr = typeof existingOrder.carrello === 'string' ? existingOrder.carrello.trim() : JSON.stringify(existingOrder.carrello || []);
+          const incomingCartStr = typeof carrello === 'string' ? carrello.trim() : JSON.stringify(carrello || []);
+          if (existingCartStr !== incomingCartStr) {
+            hasCartChanged = true;
           }
         }
-      } catch (err) {
-        console.warn("⚠️ Recupero ordine esistente fallito in update endpoint:", err.message);
       }
+    } catch (err) {
+      console.warn("⚠️ Recupero ordine esistente fallito in update endpoint:", err.message);
+      hasCartChanged = true;
     }
 
     const updateData = {};
@@ -19852,15 +19989,104 @@ app.post('/api/admin/gestione-ordini/update', adminAuthMiddleware, async (req, r
     }
 
     // Solo se il carrello è effettivamente cambiato o se l'ordine non è ancora presente,
-    // andiamo ad aggiornare i dati экономических sul database. In questo modo cambiano SOLO per modifiche reali al carrello.
+    // andiamo ad aggiornare i dati economici sul database. In questo modo cambiano SOLO per modifiche reali al carrello.
     if (carrello !== undefined && (!existingOrder || hasCartChanged)) {
-      if (totale !== undefined) updateData.totale = totale;
-      if (costo_prodotti_usd !== undefined) updateData.costo_prodotti_usd = String(costo_prodotti_usd);
-      if (costo_spedizione_usd !== undefined) updateData.costo_spedizione_usd = String(costo_spedizione_usd);
-      if (costo_totale_usd !== undefined) updateData.costo_totale_usd = String(costo_totale_usd);
-      if (costo_totale_eur !== undefined) updateData.costo_totale_eur = String(costo_totale_eur);
-      if (profitto_eur !== undefined) updateData.profitto_eur = String(profitto_eur);
-      if (prezzo_fornitore !== undefined) updateData.prezzo_fornitore = prezzo_fornitore;
+      let parsedCart = carrello;
+      if (typeof parsedCart === 'string') {
+        try { parsedCart = JSON.parse(parsedCart); } catch (e) { parsedCart = []; }
+      }
+
+      if (Array.isArray(parsedCart) && parsedCart.length > 0) {
+        let cartSubtotalEur = 0;
+        let cartShippingEur = 0;
+        let cartProdCostUsd = 0;
+        let cartShippingUnitsCount = 0;
+
+        let settings = getSettings();
+        let localAccessories = [];
+        try { localAccessories = getLocalAccessories(); } catch (e) {}
+        let localProducts = getLocalProducts();
+        let supabaseProducts = [];
+        if (supabase) {
+          try { supabaseProducts = await getAllProductsFromSupabase(supabase); } catch (e) {}
+        }
+        const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+
+        parsedCart.forEach(item => {
+          if (!item) return;
+          const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+          const itemPrice = (Number(item.prezzo) || 0) * (Number(item.quantita) || 1);
+          if (isSped) {
+            cartShippingEur += itemPrice;
+          } else {
+            const q = Math.max(1, parseInt(item.quantita) || 1);
+            cartSubtotalEur += itemPrice;
+            if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+              cartShippingUnitsCount += q;
+            }
+            const baseUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories);
+            const isCalz = isAccessoryOrSocks(item);
+            const customDetails = isCalz ? { customizationCostUSD: 0.00 } : parseCustomizationDetails(item.infoPerso || item.personalizzazione || "", item);
+            cartProdCostUsd += (baseUSD + customDetails.customizationCostUSD) * q;
+          }
+        });
+
+        let currentLottoShippingArticles = 1;
+        try {
+          const lFile = path.join(__dirname, 'lotto.json');
+          if (fs.existsSync(lFile)) {
+            const lObj = JSON.parse(fs.readFileSync(lFile, 'utf8'));
+            currentLottoShippingArticles = lObj.numero_articoli_spedizione !== undefined ? Math.max(1, lObj.numero_articoli_spedizione) : Math.max(1, lObj.numero_totale_articoli || 1);
+          }
+        } catch (e) {}
+
+        const unitShippingRate = getShippingRateByQuantity(currentLottoShippingArticles, settings);
+        const orderShippingUsd = Number((cartShippingUnitsCount * unitShippingRate).toFixed(2));
+        const orderTotalUsd = Number((cartProdCostUsd + orderShippingUsd).toFixed(2));
+        const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
+        const orderTotalEur = convertUsdToEur(orderTotalUsd, exchangeRate, 'gestione-ordini/update');
+
+        let couponDiscount = 0;
+        const discountRef = req.body.coupon_discount !== undefined ? req.body.coupon_discount : existingOrder?.coupon_discount;
+        if (discountRef !== undefined && discountRef !== null && Number(discountRef) > 0) {
+          couponDiscount = Number(discountRef);
+        }
+
+        const calculatedTotaleNum = Math.max(0, cartSubtotalEur + cartShippingEur - couponDiscount);
+        const calculatedTotaleStr = calculatedTotaleNum.toFixed(2).replace('.', ',') + "€";
+        const calculatedProfitEur = Number((calculatedTotaleNum - orderTotalEur).toFixed(2));
+
+        if (totale !== undefined) {
+          updateData.totale = totale;
+        } else if (!existingOrder || hasCartChanged || !existingOrder.totale) {
+          updateData.totale = calculatedTotaleStr;
+        }
+
+        if (costo_prodotti_usd !== undefined) updateData.costo_prodotti_usd = String(costo_prodotti_usd);
+        else updateData.costo_prodotti_usd = String(cartProdCostUsd.toFixed(2));
+
+        if (costo_spedizione_usd !== undefined) updateData.costo_spedizione_usd = String(costo_spedizione_usd);
+        else updateData.costo_spedizione_usd = String(orderShippingUsd.toFixed(2));
+
+        if (costo_totale_usd !== undefined) updateData.costo_totale_usd = String(costo_totale_usd);
+        else updateData.costo_totale_usd = String(orderTotalUsd.toFixed(2));
+
+        if (costo_totale_eur !== undefined) updateData.costo_totale_eur = String(costo_totale_eur);
+        else updateData.costo_totale_eur = String(orderTotalEur.toFixed(2));
+
+        if (profitto_eur !== undefined) updateData.profitto_eur = String(profitto_eur);
+        else updateData.profitto_eur = String(calculatedProfitEur.toFixed(2));
+
+        if (prezzo_fornitore !== undefined) updateData.prezzo_fornitore = prezzo_fornitore;
+      } else {
+        if (totale !== undefined) updateData.totale = totale;
+        if (costo_prodotti_usd !== undefined) updateData.costo_prodotti_usd = String(costo_prodotti_usd);
+        if (costo_spedizione_usd !== undefined) updateData.costo_spedizione_usd = String(costo_spedizione_usd);
+        if (costo_totale_usd !== undefined) updateData.costo_totale_usd = String(costo_totale_usd);
+        if (costo_totale_eur !== undefined) updateData.costo_totale_eur = String(costo_totale_eur);
+        if (profitto_eur !== undefined) updateData.profitto_eur = String(profitto_eur);
+        if (prezzo_fornitore !== undefined) updateData.prezzo_fornitore = prezzo_fornitore;
+      }
     }
 
     if (supabase) {
@@ -22348,5 +22574,9 @@ export {
   resolveSupplierBasePrice,
   calculateSupplierProductCost,
   calcolaCostoFornitoreProdotto,
-  parseCustomizationDetails
+  parseCustomizationDetails,
+  recalculateCurrentLotto,
+  recalculateCurrentLottoInternal,
+  isSupplierShippingEnabledForItem,
+  getItemShippingMultiplier
 };
