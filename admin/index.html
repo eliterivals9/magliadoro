@@ -1381,6 +1381,173 @@
                             <span>⚡</span> Performance
                             <span id="subnav-performance-badge" class="px-1.5 py-0.5 text-white font-black text-[9px] rounded-full min-w-[18px] text-center leading-none bg-slate-700">LIVE</span>
                         </button>
+                        <button onclick="switchSubTab('fornitore')" id="subnav-fornitore" class="subnav-item px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">
+                            <span>🏬</span> Fornitore
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: FORNITORE -->
+            <section id="section-fornitore" class="tab-content hidden space-y-8">
+                <!-- Header Gestione Fornitore -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                            <span>🏬</span> Gestione Fornitore Attivo & Tariffe
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Seleziona il fornitore attivo per il calcolo dei costi e configura i prezzi e le spedizioni del Fornitore 2.</p>
+                    </div>
+                </div>
+
+                <!-- CARD A: SELETTORE FORNITORE ATTIVO -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🔄</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Fornitore Attivo</h3>
+                                <p class="text-xs text-slate-500">Scegli quale fornitore utilizzare per il calcolo dei costi per i lotti e gli ordini.</p>
+                            </div>
+                        </div>
+                        <div id="fornitore-attivo-badge-container">
+                            <!-- Popolato dinamicamente da admin.js -->
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Opzione Fornitore 1 -->
+                        <label id="card-option-fornitore-1" class="border-2 border-slate-200 rounded-2xl p-4 flex items-start gap-3.5 cursor-pointer hover:border-brand-gold/60 transition-all bg-slate-50/50">
+                            <input type="radio" name="fornitore_attivo_radio" value="1" onchange="selezionaFornitoreAttivoInForm(1)" class="mt-1 text-brand-gold focus:ring-brand-gold">
+                            <div>
+                                <span class="font-extrabold text-sm text-slate-900 block">Fornitore 1 (Default / Storico)</span>
+                                <p class="text-xs text-slate-500 mt-0.5">Utilizza i prezzi attuali del catalogo (`prezzo_fornitore`) e le tariffe di spedizione standard.</p>
+                            </div>
+                        </label>
+
+                        <!-- Opzione Fornitore 2 -->
+                        <label id="card-option-fornitore-2" class="border-2 border-slate-200 rounded-2xl p-4 flex items-start gap-3.5 cursor-pointer hover:border-brand-gold/60 transition-all bg-slate-50/50">
+                            <input type="radio" name="fornitore_attivo_radio" value="2" onchange="selezionaFornitoreAttivoInForm(2)" class="mt-1 text-brand-gold focus:ring-brand-gold">
+                            <div>
+                                <span class="font-extrabold text-sm text-slate-900 block">Fornitore 2</span>
+                                <p class="text-xs text-slate-500 mt-0.5">Utilizza il listino prezzi personalizzato e la griglia di spedizione autonoma del Fornitore 2.</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button onclick="salvaFornitoreAttivoSelection()" id="btn-save-fornitore-attivo" type="button" class="px-5 py-2.5 bg-brand-gold hover:bg-brand-goldHover text-white font-extrabold text-xs rounded-xl shadow-md shadow-brand-gold/15 transition-all flex items-center gap-2 cursor-pointer">
+                            <span>💾</span> Salva Selezione Fornitore Attivo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CARD B: CONFIGURAZIONE PREZZI PER CATEGORIA FORNITORE 2 -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🏷️</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Listino Prezzi Categorie — Fornitore 2</h3>
+                                <p class="text-xs text-slate-500">Imposta i prezzi di acquisto del Fornitore 2 (in USD) divisi per categoria di prodotti. Nessuna riga singola per prodotto.</p>
+                            </div>
+                        </div>
+                        <button onclick="salvaPrezziFornitore2()" type="button" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer">
+                            <span>💾</span> Salva Listino Fornitore 2
+                        </button>
+                    </div>
+
+                    <!-- Sezione 1: Tabella Prezzi Categorie (Capi di Abbigliamento) -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-2">
+                                <span>👕</span> Prezzi d'Acquisto Categorie (USD)
+                            </h4>
+                            <span class="text-[11px] text-slate-400 font-medium">I prezzi si applicano a tutti i prodotti della categoria selezionata</span>
+                        </div>
+                        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-100/80 text-[11px] font-black uppercase text-slate-600 tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-4 py-3">Categoria</th>
+                                        <th class="px-4 py-3">Descrizione / Note</th>
+                                        <th class="px-4 py-3">Prezzo Fornitore 2 (USD)</th>
+                                        <th class="px-4 py-3 text-right">Stato Configurazione</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fornitore2-categorie-tbody" class="divide-y divide-slate-100 text-xs">
+                                    <!-- Popolato da admin.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Sezione 2: Area Dedicata Accessori & Personalizzazioni -->
+                    <div class="space-y-3 pt-4 border-t border-slate-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h4 class="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-2">
+                                    <span>🧦</span> Accessori & Personalizzazioni (USD)
+                                </h4>
+                                <p class="text-[11px] text-slate-500">Configurazione costi per calzettoni e personalizzazioni (Nome, Numero, Patch).</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-xl text-[11px] font-bold">
+                                💡 Nota: Nome ($1) + Numero ($1) costano complessivamente $2.00
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-slate-100/80 text-[11px] font-black uppercase text-slate-600 tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-4 py-3">Elemento</th>
+                                        <th class="px-4 py-3">Tipologia / Regola</th>
+                                        <th class="px-4 py-3">Prezzo Fornitore 2 (USD)</th>
+                                        <th class="px-4 py-3 text-right">Stato Configurazione</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fornitore2-accessori-tbody" class="divide-y divide-slate-100 text-xs">
+                                    <!-- Popolato da admin.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD C: CONFIGURAZIONE SPEDIZIONE FORNITORE 2 -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🚚</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Tariffe Spedizione Fornitore 2</h3>
+                                <p class="text-xs text-slate-500">Configura gli scaglioni e i costi unitari di spedizione (USD) per il Fornitore 2.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="copiaTariffeSpedizioneDaFornitore1()" type="button" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all border border-slate-200 cursor-pointer">
+                                📋 Copia da Fornitore 1
+                            </button>
+                            <button onclick="salvaSpedizioneFornitore2()" type="button" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer">
+                                💾 Salva Spedizione Fornitore 2
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabella Scaglioni Spedizione Fornitore 2 -->
+                    <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100/80 text-[11px] font-black uppercase text-slate-600 tracking-wider border-b border-slate-200">
+                                <tr>
+                                    <th class="px-4 py-3">Scaglione</th>
+                                    <th class="px-4 py-3">Minimo Pezzi</th>
+                                    <th class="px-4 py-3">Massimo Pezzi</th>
+                                    <th class="px-4 py-3">Costo Unitario Spedizione (USD/pz)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fornitore2-spedizione-tbody" class="divide-y divide-slate-100 text-xs">
+                                <!-- Popolato da admin.js -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -7489,6 +7656,126 @@
     </div>
 
 
+    </div>
+
+    
+    <!-- Modal Riepilogo Ordine Cliente (WhatsApp Preview) -->
+    <div id="modal-riepilogo-cliente" class="fixed inset-0 z-[10030] hidden flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-sm overflow-y-auto">
+        <div id="modal-riepilogo-cliente-container" class="bg-[#F7F6F2] text-slate-900 border border-amber-300/60 rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl w-full my-auto overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- Header Modal -->
+            <div class="px-5 py-4 bg-[#111111] text-white flex items-center justify-between border-b border-amber-500/30 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black text-sm shadow">
+                        👑
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-black tracking-wide text-brand-gold uppercase font-sans">Riepilogo Ordine Cliente</h3>
+                        <p class="text-[11px] text-slate-400 font-mono" id="modal-riepilogo-cliente-subtitle">Anteprima ed invio riepilogo al cliente</p>
+                    </div>
+                </div>
+                <button onclick="chiudiModalRiepilogoCliente()" type="button" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center transition-colors text-lg cursor-pointer">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Body Scrollabile -->
+            <div class="p-5 overflow-y-auto space-y-5 flex-1 text-slate-800 font-sans" id="modal-riepilogo-cliente-body">
+                <!-- Card Visuale Riepilogo -->
+                <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-4">
+                    <!-- Header Maglia d'Oro -->
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">⭐</span>
+                            <span class="font-black text-slate-900 text-sm tracking-wider uppercase">MAGLIA D'ORO</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs font-mono font-bold text-amber-600" id="modal-riepilogo-order-id">ORD-#0</div>
+                            <div class="text-[10px] text-slate-400 font-mono" id="modal-riepilogo-order-date">--/--/----</div>
+                        </div>
+                    </div>
+
+                    <!-- Info Cliente -->
+                    <div class="bg-amber-500/10 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] font-bold text-amber-900 uppercase tracking-wider">Cliente</div>
+                            <div class="text-xs font-extrabold text-slate-900" id="modal-riepilogo-customer-name">--</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] font-bold text-amber-900 uppercase tracking-wider">Telefono</div>
+                            <div class="text-xs font-mono font-bold text-slate-800" id="modal-riepilogo-customer-phone">📞 --</div>
+                        </div>
+                    </div>
+
+                    <!-- Lista Articoli -->
+                    <div class="space-y-3">
+                        <div class="text-xs font-black text-slate-900 uppercase tracking-wider flex justify-between items-center border-b border-slate-200 pb-1.5">
+                            <span>Articoli ordinati</span>
+                            <span class="text-[10px] font-mono font-semibold text-slate-500" id="modal-riepilogo-items-count">0 articoli</span>
+                        </div>
+                        <div id="modal-riepilogo-items-container" class="space-y-3 divide-y divide-slate-100">
+                            <!-- Inseriti da JS -->
+                        </div>
+                    </div>
+
+                    <!-- Riepilogo Finanziario Cliente (ESCLUSI COSTI FORNITORE E MARGINI) -->
+                    <div class="bg-slate-900 text-white rounded-xl p-4 space-y-2 text-xs">
+                        <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-1.5 mb-2">Riepilogo Totali</div>
+                        
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span>Subtotale prodotti:</span>
+                            <span class="font-mono font-bold text-white" id="modal-riepilogo-subtotal">€ 0,00</span>
+                        </div>
+
+                        <div class="flex justify-between items-center text-emerald-400 hidden" id="modal-riepilogo-coupon-row">
+                            <span>Sconto / Coupon (<span id="modal-riepilogo-coupon-code"></span>):</span>
+                            <span class="font-mono font-bold" id="modal-riepilogo-coupon-amount">-€ 0,00</span>
+                        </div>
+
+                        <div class="flex justify-between items-center text-slate-300">
+                            <span>Spedizione:</span>
+                            <span class="font-mono font-bold text-white" id="modal-riepilogo-shipping">€ 0,00</span>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-sm">
+                            <span class="font-black text-brand-gold uppercase tracking-wider">Totale da pagare:</span>
+                            <span class="font-mono font-black text-brand-gold text-base" id="modal-riepilogo-grand-total">€ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messaggio di Cortesia personalizzabile -->
+                <div class="space-y-1.5">
+                    <label for="modal-riepilogo-closing-message" class="block text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        ✍️ Messaggio finale per il cliente (Modificabile)
+                    </label>
+                    <textarea id="modal-riepilogo-closing-message" rows="3" class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-sans shadow-inner resize-none">Grazie per aver scelto Maglia d'Oro! Per qualsiasi chiarimento o aggiornamento sulla tua spedizione, siamo a tua completa disposizione.</textarea>
+                </div>
+
+                <!-- Avviso / Nota di Funzionamento WhatsApp -->
+                <div class="p-3 bg-amber-50 border border-amber-200/80 rounded-xl flex items-start gap-2.5 text-xs text-amber-900">
+                    <span class="text-base leading-none">ℹ️</span>
+                    <div class="text-[11px] leading-snug">
+                        <strong>Come funziona:</strong> Cliccando su <strong>"Invia su WhatsApp"</strong> verrà aperta l'applicazione o la chat WhatsApp con il messaggio di riepilogo precompilato e pronto per essere inviato al cliente.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Azioni -->
+            <div class="p-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row gap-2.5 justify-end items-center shrink-0">
+                <button onclick="chiudiModalRiepilogoCliente()" type="button" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">
+                    Chiudi
+                </button>
+                <button onclick="copiaTestoRiepilogoCliente()" type="button" class="w-full sm:w-auto px-4 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>📋</span> Copia Testo
+                </button>
+                <button id="btn-scarica-excel-riepilogo" onclick="scaricaExcelRiepilogoCliente()" type="button" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>📊</span> Scarica Excel
+                </button>
+                <button id="btn-invia-whatsapp-riepilogo" onclick="inviaRiepilogoWhatsAppCliente()" type="button" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span>💬</span> Invia su WhatsApp
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->

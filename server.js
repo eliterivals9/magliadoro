@@ -1404,10 +1404,190 @@ function getColumnIndexForSize(size, isCalz = false) {
  * NON preferire item.prezzo_fornitore al catalogo quando il prodotto catalogo è risolvibile.
  * Per ordini/articoli LEGACY senza ID risolvibile nel catalogo, utilizza fallback controllato e documentato.
  */
+function resolveFornitore2BasePrice(item, allCatalogProducts = null, allAccessories = null, settings = null, options = {}) {
+  const currentSettings = settings || (options.settings || getSettings());
+  const catPrices = currentSettings.fornitore2_categorie_prezzi || {};
+  const legacyProductPrices = currentSettings.fornitore2_prezzi || {};
+
+  // 1. Controllo diretto del prezzo fornitore specificato sull'articolo
+  if (item.prezzo_fornitore2 !== undefined && item.prezzo_fornitore2 !== null && !isNaN(Number(item.prezzo_fornitore2)) && Number(item.prezzo_fornitore2) > 0) {
+    return Number(item.prezzo_fornitore2);
+  }
+  if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
+    return Number(item.prezzo_fornitore);
+  }
+  if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
+    return Number(item.Prezzo_fornitore);
+  }
+
+  // 2. Controllo se si tratta di un accessorio, pallone, o calzettoni
+  const isAccOrSocks = (typeof isAccessoryOrSocks === 'function' && isAccessoryOrSocks(item)) ||
+                       (item.tipo_catalogo === 'accessori') ||
+                       (item.categoria && (
+                         String(item.categoria).toLowerCase().includes('accessori') ||
+                         String(item.categoria).toLowerCase().includes('calzettoni') ||
+                         String(item.categoria).toLowerCase().includes('pallon') ||
+                         String(item.categoria).toLowerCase().includes('gadget')
+                       )) ||
+                       (item.squadra && (
+                         String(item.squadra).toLowerCase().includes('calzettoni') ||
+                         String(item.squadra).toLowerCase().includes('pallon')
+                       )) ||
+                       (item.nome && (
+                         String(item.nome).toLowerCase().includes('calzettoni') ||
+                         String(item.nome).toLowerCase().includes('pallon')
+                       ));
+
+  if (isAccOrSocks) {
+    if (catPrices['Calzettoni'] !== undefined && catPrices['Calzettoni'] !== null && !isNaN(Number(catPrices['Calzettoni']))) {
+      return Number(catPrices['Calzettoni']);
+    }
+    if (catPrices['Accessori'] !== undefined && catPrices['Accessori'] !== null && !isNaN(Number(catPrices['Accessori']))) {
+      return Number(catPrices['Accessori']);
+    }
+    return 3.00;
+  }
+
+  // 3. Controllo catalogo prodotti per identificare la categoria canonica
+  let matchedProd = null;
+  if (Array.isArray(allCatalogProducts) && allCatalogProducts.length > 0) {
+    if (item.id !== undefined && item.id !== null && String(item.id).trim() !== "" && String(item.id) !== "undefined" && String(item.id) !== "null") {
+      matchedProd = allCatalogProducts.find(p => String(p.id) === String(item.id));
+    }
+    if (!matchedProd && item.accessory_id !== undefined && item.accessory_id !== null && String(item.accessory_id).trim() !== "" && String(item.accessory_id) !== "undefined") {
+      matchedProd = allCatalogProducts.find(p => String(p.id) === String(item.accessory_id) || (p.accessory_id && String(p.accessory_id) === String(item.accessory_id)));
+    }
+    if (!matchedProd && item.legacy_id !== undefined && item.legacy_id !== null && String(item.legacy_id).trim() !== "" && String(item.legacy_id) !== "undefined" && String(item.legacy_id) !== "null") {
+      matchedProd = allCatalogProducts.find(p => p.legacy_id !== undefined && p.legacy_id !== null && String(p.legacy_id) === String(item.legacy_id));
+    }
+    if (!matchedProd && (item.versione || item.squadra || item.nome)) {
+      const itemTitle = (item.versione || item.nome || item.squadra || "").trim().toLowerCase();
+      matchedProd = allCatalogProducts.find(p => 
+        (p.versione && p.versione.trim().toLowerCase() === itemTitle) || 
+        (p.nome && p.nome.trim().toLowerCase() === itemTitle) ||
+        (p.squadra && p.squadra.trim().toLowerCase() === itemTitle)
+      );
+    }
+  }
+
+  if (matchedProd) {
+    if (matchedProd.prezzo_fornitore2 !== undefined && matchedProd.prezzo_fornitore2 !== null && !isNaN(Number(matchedProd.prezzo_fornitore2)) && Number(matchedProd.prezzo_fornitore2) > 0) {
+      return Number(matchedProd.prezzo_fornitore2);
+    }
+    if (matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && !isNaN(Number(matchedProd.prezzo_fornitore)) && Number(matchedProd.prezzo_fornitore) > 0) {
+      return Number(matchedProd.prezzo_fornitore);
+    }
+  }
+
+  // Override legacy per singolo prodotto se presente
+  const itemIdKey = item.id || item.legacy_id || (matchedProd ? (matchedProd.id || matchedProd.legacy_id) : null);
+  if (itemIdKey && legacyProductPrices[String(itemIdKey)] !== undefined && legacyProductPrices[String(itemIdKey)] !== null && !isNaN(Number(legacyProductPrices[String(itemIdKey)]))) {
+    return Number(legacyProductPrices[String(itemIdKey)]);
+  }
+
+  // Categoria e Target
+  const rawCategory = matchedProd ? (matchedProd.categoria || '') : (item.categoria || '');
+  const rawTarget = matchedProd ? (matchedProd.target || '') : (item.target || '');
+  const rawName = matchedProd ? (matchedProd.versione || matchedProd.nome || '') : (item.versione || item.nome || item.squadra || '');
+
+  // Controllo diretto nel listino categorie se la categoria raw è configurata
+  if (rawCategory && catPrices[rawCategory] !== undefined && catPrices[rawCategory] !== null && !isNaN(Number(catPrices[rawCategory]))) {
+    return Number(catPrices[rawCategory]);
+  }
+
+  const normCat = rawCategory.trim().toLowerCase();
+  const normTgt = rawTarget.trim().toLowerCase();
+  const normName = rawName.trim().toLowerCase();
+
+  // Mappatura esplicita per le 12 Categorie del Listino Fornitore 2
+  let mappedCategoryKey = null;
+
+  if (normCat.includes('kit allenamento') || normName.includes('kit allenamento')) {
+    mappedCategoryKey = 'Kit Allenamento';
+  } else if (normCat.includes('kit bambino') || (normCat === 'kit' && normTgt === 'bambino')) {
+    mappedCategoryKey = 'Kit Bambino';
+  } else if (normCat === 'kit' || normCat.includes('kit completo') || normCat.includes('completo')) {
+    mappedCategoryKey = 'Kit';
+  } else if (normCat.includes('player') || normName.includes('player')) {
+    mappedCategoryKey = 'Player';
+  } else if (normCat.includes('fan') || normName.includes('fan')) {
+    mappedCategoryKey = 'Fan';
+  } else if (normCat.includes('retro') || normName.includes('retro')) {
+    mappedCategoryKey = 'Retro';
+  } else if (normCat.includes('portiere') || normName.includes('portiere') || normName.includes('goalkeeper')) {
+    mappedCategoryKey = 'Portiere';
+  } else if (normCat.includes('antivento') || normName.includes('antivento') || normName.includes('windbreaker')) {
+    mappedCategoryKey = 'Antivento';
+  } else if (normCat.includes('smanicato') || normCat.includes('smanicati') || normName.includes('smanicato')) {
+    mappedCategoryKey = 'Smanicati';
+  } else if (normCat.includes('maniche lunghe') || normName.includes('maniche lunghe') || normName.includes('long sleeve')) {
+    mappedCategoryKey = 'Maniche Lunghe';
+  } else if (normCat.includes('tuta') || normCat.includes('tute') || normName.includes('tuta')) {
+    if (normName.includes('zip intera') || normName.includes('full zip') || normName.includes('long pull')) {
+      mappedCategoryKey = 'Tute Zip Intera';
+    } else {
+      mappedCategoryKey = 'Tuta Mezza zip';
+    }
+  }
+
+  if (mappedCategoryKey && catPrices[mappedCategoryKey] !== undefined && catPrices[mappedCategoryKey] !== null && !isNaN(Number(catPrices[mappedCategoryKey]))) {
+    return Number(catPrices[mappedCategoryKey]);
+  }
+
+  const defaultListino = {
+    'Kit': 9.00,
+    'Player': 9.00,
+    'Fan': 8.00,
+    'Retro': 10.00,
+    'Kit Allenamento': 13.00,
+    'Tuta Mezza zip': 24.00,
+    'Smanicati': 12.00,
+    'Maniche Lunghe': 11.00,
+    'Kit Bambino': 8.00,
+    'Portiere': 9.00,
+    'Antivento': 20.00,
+    'Tute Zip Intera': 30.00
+  };
+
+  if (mappedCategoryKey && defaultListino[mappedCategoryKey] !== undefined) {
+    return defaultListino[mappedCategoryKey];
+  }
+
+  // Fallback controllati per Fuori Catalogo / Categorie non standard
+  if (options.legacyFallback !== undefined && !isNaN(Number(options.legacyFallback))) {
+    return Number(options.legacyFallback);
+  }
+
+  if (normCat.includes('fuori catalogo') || normCat.includes('altro') || normCat.includes('gadget') || normCat.includes('pallon')) {
+    if (catPrices['Fuori Catalogo'] !== undefined && !isNaN(Number(catPrices['Fuori Catalogo']))) {
+      return Number(catPrices['Fuori Catalogo']);
+    }
+    if (catPrices['Altro'] !== undefined && !isNaN(Number(catPrices['Altro']))) {
+      return Number(catPrices['Altro']);
+    }
+    return 5.00;
+  }
+
+  // Se opzione strict è esplicitamente richiesta, lancia errore; altrimenti restituisce un fallback di sicurezza per evitare blocchi atomici del lotto
+  if (options.strict) {
+    const title = rawName || item.squadra || item.id || 'Articolo senza nome';
+    throw new Error(`Articolo "${title}" (categoria: "${rawCategory || 'Non classificata'}") non ha un prezzo del Fornitore 2 configurato.`);
+  }
+
+  return 8.00;
+}
+
 function resolveSupplierBasePrice(item, allCatalogProducts = null, allAccessories = null, options = {}) {
   if (!item || typeof item !== 'object') {
     if (options.allowNull) return null;
     throw new Error("Elemento articolo non valido fornito a resolveSupplierBasePrice.");
+  }
+
+  const settings = options.settings || getSettings();
+  const activeSupplier = options.supplier !== undefined ? Number(options.supplier) : Number(settings.fornitore_attivo || 1);
+
+  if (activeSupplier === 2) {
+    return resolveFornitore2BasePrice(item, allCatalogProducts, allAccessories, settings, options);
   }
 
   // 1. Controllo se si tratta di un accessorio o calzettoni
@@ -1575,9 +1755,10 @@ function validateShippingTiers(tiers) {
  * Le 8 fasce ufficiali predefinite:
  * 1-2 ($13), 3-5 ($9), 6-9 ($7), 10-20 ($4), 21-40 ($3), 41-59 ($2), 60-99 ($1), 100-200 ($0).
  */
-function extractShippingTiers(settings = null) {
+function extractShippingTiers(settings = null, forceFornitore2 = false) {
   const currentSettings = settings || getSettings();
-  const rules = (currentSettings && currentSettings.spedizioneLotto) || {};
+  const isForn2 = forceFornitore2 || (currentSettings && Number(currentSettings.fornitore_attivo) === 2);
+  const rules = (currentSettings && (isForn2 ? (currentSettings.fornitore2_spedizioneLotto || currentSettings.spedizioneLotto) : currentSettings.spedizioneLotto)) || {};
 
   if (Array.isArray(rules.tiers) && rules.tiers.length > 0) {
     return rules.tiers.map((t, idx) => ({
@@ -1618,7 +1799,14 @@ function extractShippingTiers(settings = null) {
     return tiers;
   }
 
-  // Configurazione predefinita ufficiale a 8 scaglioni
+  if (isForn2) {
+    return [
+      { index: 1, min: 1, max: 4, cost: 5.0 },
+      { index: 2, min: 5, max: 200, cost: 0.0 }
+    ];
+  }
+
+  // Configurazione predefinita ufficiale a 8 scaglioni per Fornitore 1
   return [
     { index: 1, min: 1, max: 2, cost: 13.0 },
     { index: 2, min: 3, max: 5, cost: 9.0 },
@@ -1637,8 +1825,23 @@ function extractShippingTiers(settings = null) {
  * Per quantità superiori a 200 pezzi (o al massimo configurato), applica la tariffa dell'ultimo scaglione.
  */
 function getShippingRateByQuantity(totalQuantity, settings = null) {
+  const currentSettings = settings || getSettings();
+  const isForn2 = Number(currentSettings?.fornitore_attivo) === 2;
   const qty = Math.max(0, parseInt(totalQuantity, 10) || 0);
-  const tiers = extractShippingTiers(settings);
+
+  if (isForn2) {
+    if (qty >= 5) {
+      return 0.0;
+    } else if (qty >= 1) {
+      // Fornitore 2: 1-4 pezzi complessivi nel lotto -> costo fisso $5.00 per l'intero lotto.
+      // La quota unitaria per pezzo spedibile è (5.00 / qty).
+      return Number((5.0 / qty).toFixed(4));
+    } else {
+      return 0.0;
+    }
+  }
+
+  const tiers = extractShippingTiers(currentSettings);
   if (!tiers || tiers.length === 0) {
     return 0.0;
   }
@@ -1663,6 +1866,14 @@ function getShippingRateByQuantity(totalQuantity, settings = null) {
 function getSupplierShippingCost(totalQuantityPcs, currentSettings = null) {
   const settings = currentSettings || getSettings();
   const qty = Math.max(0, parseInt(totalQuantityPcs, 10) || 0);
+  const isForn2 = Number(settings?.fornitore_attivo) === 2;
+
+  if (isForn2) {
+    const totalShipping = qty >= 5 ? 0.0 : (qty >= 1 ? 5.0 : 0.0);
+    const unitShipping = qty > 0 ? Number((totalShipping / qty).toFixed(4)) : 0.0;
+    return { unitShipping, totalShipping };
+  }
+
   const unitShipping = getShippingRateByQuantity(qty, settings);
   const totalShipping = Number((qty * unitShipping).toFixed(2));
   return { unitShipping, totalShipping };
@@ -2546,7 +2757,7 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
 
   console.log(`[GENERA EXCEL] Compilazione normalizzata di ${normalizedItems.length} articoli per il Lotto #${lottoId}`);
 
-  // 2. RAGGRUPPAMENTO ARTICOLI PER EXCEL: STESSO PRODOTTO E STESSA CONFIGURAZIONE PATCH -> UNA SOLA RIGA
+  // 2. RAGGRUPPAMENTO ARTICOLI PER EXCEL: STESSO PRODOTTO E STESSA CONFIGURAZIONE DI PERSONALIZZAZIONE -> UNA SOLA RIGA
   const groupMap = new Map();
 
   normalizedItems.forEach(item => {
@@ -2562,7 +2773,12 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
       baseGroupKey = `custom_${item.squadra}_${item.categoria}_${item.season}_${item.style}_${isCalz ? 'calz' : 'shirt'}`.toLowerCase();
     }
 
+    const parsedDetails = isCalz ? { nome: '', numero: '', patches: [] } : parseCustomizationDetails(item.infoPerso, item);
     const parsedPerso = isCalz ? { nameNumberStr: '', patches: [], patch: null } : parserPersonalizzazione(item.infoPerso, item.taglia, item);
+
+    const hasName = Boolean(parsedDetails.nome && parsedDetails.nome.trim());
+    const hasNumber = Boolean(parsedDetails.numero && parsedDetails.numero.trim());
+
     const patchArray = (Array.isArray(parsedPerso.patches) && parsedPerso.patches.length > 0)
       ? parsedPerso.patches
       : (parsedPerso.patch && String(parsedPerso.patch).trim() ? [String(parsedPerso.patch).trim()] : []);
@@ -2572,7 +2788,18 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
       .filter(Boolean)
       .sort();
     const patchSignature = sortedPatches.length > 0 ? sortedPatches.join('|') : 'nopatch';
-    const groupKey = `${baseGroupKey}__patch_${patchSignature}`;
+
+    let customConfigType = 'none';
+    if (hasName && hasNumber) {
+      customConfigType = 'name_and_number';
+    } else if (hasName) {
+      customConfigType = 'name_only';
+    } else if (hasNumber) {
+      customConfigType = 'number_only';
+    }
+
+    const customConfigKey = isCalz ? 'calz' : `cfg_${customConfigType}__patch_${patchSignature}`;
+    const groupKey = `${baseGroupKey}__${customConfigKey}`;
 
     if (!groupMap.has(groupKey)) {
       groupMap.set(groupKey, {
@@ -2588,6 +2815,7 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
         matchedProd: item.matchedProd,
         quantity: 0,
         sizesMap: {},
+        customizationsBySizeMap: new Map(),
         nameNumberLines: [],
         patchLines: [],
         supplierTotalPriceUSD: 0
@@ -2611,12 +2839,23 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
     if (!isCalz) {
       const nameNumberStr = parsedPerso.nameNumberStr;
       if (nameNumberStr && nameNumberStr.trim()) {
-        const cleanInner = nameNumberStr.trim().replace(/^[A-Z0-9#]+\s*\(/i, '(');
-        const prefix = s ? `${s}: ` : '';
-        const line = (q > 1) 
-          ? `${q}x ${prefix}${cleanInner}`
-          : `${prefix}${cleanInner}`;
-        group.nameNumberLines.push(line);
+        let cleanInner = nameNumberStr.trim()
+          .replace(/^[A-Z0-9#\s_]+:\s*/i, '')
+          .replace(/^\(|\)$/g, '')
+          .replace(/[\r\n]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
+        if (cleanInner) {
+          const sizeKey = (s && s !== '-') ? s : '';
+          if (!group.customizationsBySizeMap.has(sizeKey)) {
+            group.customizationsBySizeMap.set(sizeKey, []);
+          }
+          const sizeList = group.customizationsBySizeMap.get(sizeKey);
+          for (let k = 0; k < q; k++) {
+            sizeList.push(cleanInner);
+          }
+        }
       }
 
       patchArray.forEach(pSingle => {
@@ -2642,8 +2881,35 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
     }
   });
 
-  // Aggiorna le descrizioni delle patch nel gruppo riflettendo la quantità totale del gruppo se > 1
+  // Aggiorna le personalizzazioni raggruppate per taglia e le descrizioni delle patch
   groupMap.forEach(group => {
+    if (group.customizationsBySizeMap && group.customizationsBySizeMap.size > 0) {
+      const sizeKeys = Array.from(group.customizationsBySizeMap.keys());
+      sizeKeys.sort((a, b) => {
+        const colA = getColumnIndexForSize(a, false);
+        const colB = getColumnIndexForSize(b, false);
+        if (colA !== -1 && colB !== -1) return colA - colB;
+        if (colA !== -1) return -1;
+        if (colB !== -1) return 1;
+        return a.localeCompare(b);
+      });
+
+      const lines = [];
+      sizeKeys.forEach(sizeKey => {
+        const list = group.customizationsBySizeMap.get(sizeKey);
+        if (list && list.length > 0) {
+          const prefix = sizeKey ? `${sizeKey}: ` : '';
+          const cleanedItems = list
+            .map(itemStr => String(itemStr || '').replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim())
+            .filter(Boolean);
+          if (cleanedItems.length > 0) {
+            lines.push(`${prefix}(${cleanedItems.join(' / ')})`);
+          }
+        }
+      });
+      group.nameNumberLines = lines;
+    }
+
     if (group.patchLines && group.patchLines.length > 0) {
       group.patchLines = group.patchLines.map(pl => {
         const line = group.quantity > 1 ? `${group.quantity}x ${pl.patchName || pl.text}` : pl.text;
@@ -2697,8 +2963,9 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
   }
 
 
-  // Forziamo la larghezza della colonna immagine (colonna A/1) a 16 per contenere l'immagine ridotta del 20%
+  // Forziamo la larghezza della colonna immagine (colonna A/1) a 16 e della colonna personalizzazioni (colonna V/22) a 38
   worksheet.getColumn(1).width = 16;
+  worksheet.getColumn(22).width = 38;
 
   // SEPARAZIONE STABILE: PRODOTTI STANDARD (A) + ACCESSORI/SOCKS (B) ALLA FINE
   const standardItems = [];
@@ -2893,8 +3160,25 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
   shippingRow.getCell(1).font = { bold: true };
   
   const settings = getSettings();
-  const unitShipping = getShippingRateByQuantity(physicalShippingPcs, settings);
-  const totShippingUSD = Number((totalShippingUnits * unitShipping).toFixed(2));
+  const isForn2 = Number(settings?.fornitore_attivo) === 2;
+  let unitShipping = 0;
+  let totShippingUSD = 0;
+
+  if (isForn2) {
+    if (physicalShippingPcs >= 5) {
+      unitShipping = 0.0;
+      totShippingUSD = 0.0;
+    } else if (physicalShippingPcs >= 1) {
+      totShippingUSD = 5.00;
+      unitShipping = totalShippingUnits > 0 ? Number((5.00 / totalShippingUnits).toFixed(4)) : 0.0;
+    } else {
+      unitShipping = 0.0;
+      totShippingUSD = 0.0;
+    }
+  } else {
+    unitShipping = getShippingRateByQuantity(physicalShippingPcs, settings);
+    totShippingUSD = Number((totalShippingUnits * unitShipping).toFixed(2));
+  }
 
   shippingRow.getCell(24).value = unitShipping;
   shippingRow.getCell(24).numFmt = '#,##0.00';
@@ -4612,6 +4896,32 @@ const DEFAULT_SETTINGS = {
     "range8_max": 200,
     "range8_cost": 0.0
   },
+  fornitore_attivo: 1,
+  fornitore2_prezzi: {},
+  fornitore2_categorie_prezzi: {
+    "Kit": 9.00,
+    "Player": 9.00,
+    "Fan": 8.00,
+    "Retro": 10.00,
+    "Kit Allenamento": 13.00,
+    "Tuta Mezza zip": 24.00,
+    "Smanicati": 12.00,
+    "Maniche Lunghe": 11.00,
+    "Kit Bambino": 8.00,
+    "Portiere": 9.00,
+    "Antivento": 20.00,
+    "Tute Zip Intera": 30.00,
+    "Calzettoni": 2.00,
+    "Nome": 1.00,
+    "Numero": 1.00,
+    "Patch": 1.00
+  },
+  fornitore2_spedizioneLotto: {
+    tiers: [
+      { index: 1, min: 1, max: 4, cost: 5.0 },
+      { index: 2, min: 5, max: 200, cost: 0.0 }
+    ]
+  },
   cambioValuta: {
     "mode": "auto",
     "manual_rate": 0.86
@@ -4804,7 +5114,7 @@ async function loadSettingsFromSupabase() {
       }
 
       // Verifichiamo se occorre effettuare la configurazione iniziale di chiavi mancanti in catalog_settings
-      const keysToMigrate = ['categorie', 'filtriCatalogo', 'regoleImportazioneJson', 'spedizioneLotto', 'patches'];
+      const keysToMigrate = ['categorie', 'filtriCatalogo', 'regoleImportazioneJson', 'spedizioneLotto', 'patches', 'fornitore_attivo', 'fornitore2_prezzi', 'fornitore2_categorie_prezzi', 'fornitore2_spedizioneLotto'];
       const missingKeys = keysToMigrate.filter(k => catalogMap[k] === undefined);
 
       if (missingKeys.length > 0) {
@@ -4813,8 +5123,8 @@ async function loadSettingsFromSupabase() {
         const rowsToUpsert = [];
 
         missingKeys.forEach(k => {
-          const hasLocalVal = settings[k] !== undefined && Array.isArray(settings[k]) && settings[k].length > 0;
-          const valToSave = hasLocalVal ? settings[k] : JSON.parse(JSON.stringify(DEFAULT_SETTINGS[k] || []));
+          const hasLocalVal = settings[k] !== undefined && (Array.isArray(settings[k]) ? settings[k].length > 0 : true);
+          const valToSave = hasLocalVal ? settings[k] : JSON.parse(JSON.stringify(DEFAULT_SETTINGS[k] !== undefined ? DEFAULT_SETTINGS[k] : (Array.isArray(settings[k]) ? [] : {})));
           
           rowsToUpsert.push({
             key: k,
@@ -4854,6 +5164,18 @@ async function loadSettingsFromSupabase() {
       }
       if (catalogMap.spedizioneLotto && typeof catalogMap.spedizioneLotto === 'object') {
         settings.spedizioneLotto = catalogMap.spedizioneLotto;
+      }
+      if (catalogMap.fornitore_attivo !== undefined) {
+        settings.fornitore_attivo = Number(catalogMap.fornitore_attivo) === 2 ? 2 : 1;
+      }
+      if (catalogMap.fornitore2_prezzi && typeof catalogMap.fornitore2_prezzi === 'object') {
+        settings.fornitore2_prezzi = catalogMap.fornitore2_prezzi;
+      }
+      if (catalogMap.fornitore2_categorie_prezzi && typeof catalogMap.fornitore2_categorie_prezzi === 'object') {
+        settings.fornitore2_categorie_prezzi = catalogMap.fornitore2_categorie_prezzi;
+      }
+      if (catalogMap.fornitore2_spedizioneLotto && typeof catalogMap.fornitore2_spedizioneLotto === 'object') {
+        settings.fornitore2_spedizioneLotto = catalogMap.fornitore2_spedizioneLotto;
       }
       if (Array.isArray(catalogMap.patches)) {
         settings.patches = catalogMap.patches;
@@ -4958,6 +5280,10 @@ function getSettings() {
       const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
       const secData = (data && typeof data.sicurezza === 'object') ? data.sicurezza : {};
       cachedSettings = {
+        fornitore_attivo: data.fornitore_attivo !== undefined ? (Number(data.fornitore_attivo) === 2 ? 2 : 1) : (DEFAULT_SETTINGS.fornitore_attivo || 1),
+        fornitore2_prezzi: data.fornitore2_prezzi || DEFAULT_SETTINGS.fornitore2_prezzi || {},
+        fornitore2_categorie_prezzi: data.fornitore2_categorie_prezzi || DEFAULT_SETTINGS.fornitore2_categorie_prezzi || {},
+        fornitore2_spedizioneLotto: data.fornitore2_spedizioneLotto || DEFAULT_SETTINGS.fornitore2_spedizioneLotto || {},
         prezziPredefiniti: { ...DEFAULT_SETTINGS.prezziPredefiniti, ...(data.prezziPredefiniti || {}) },
         regolePrezzi: { ...DEFAULT_SETTINGS.regolePrezzi, ...(data.regolePrezzi || {}) },
         spedizioneLotto: { ...DEFAULT_SETTINGS.spedizioneLotto, ...(data.spedizioneLotto || {}) },
@@ -6158,6 +6484,18 @@ app.post('/api/settings', adminAuthMiddleware, async (req, res) => {
     if (incomingCopy.sicurezza && typeof incomingCopy.sicurezza === 'object') {
       settingsCopy.sicurezza = { ...settingsCopy.sicurezza, ...incomingCopy.sicurezza };
     }
+    if (incomingCopy.fornitore_attivo !== undefined) {
+      settingsCopy.fornitore_attivo = Number(incomingCopy.fornitore_attivo) === 2 ? 2 : 1;
+    }
+    if (incomingCopy.fornitore2_prezzi && typeof incomingCopy.fornitore2_prezzi === 'object') {
+      settingsCopy.fornitore2_prezzi = { ...settingsCopy.fornitore2_prezzi, ...incomingCopy.fornitore2_prezzi };
+    }
+    if (incomingCopy.fornitore2_categorie_prezzi && typeof incomingCopy.fornitore2_categorie_prezzi === 'object') {
+      settingsCopy.fornitore2_categorie_prezzi = { ...settingsCopy.fornitore2_categorie_prezzi, ...incomingCopy.fornitore2_categorie_prezzi };
+    }
+    if (incomingCopy.fornitore2_spedizioneLotto && typeof incomingCopy.fornitore2_spedizioneLotto === 'object') {
+      settingsCopy.fornitore2_spedizioneLotto = { ...settingsCopy.fornitore2_spedizioneLotto, ...incomingCopy.fornitore2_spedizioneLotto };
+    }
 
     // Validazione rigorosa delle fasce di spedizione se presenti
     if (settingsCopy.spedizioneLotto && typeof settingsCopy.spedizioneLotto === 'object') {
@@ -6166,6 +6504,59 @@ app.post('/api/settings', adminAuthMiddleware, async (req, res) => {
       if (!valResult.valid) {
         console.warn("⚠️ Validazione fasce di spedizione fallita:", valResult.error);
         return res.status(400).json({ success: false, error: valResult.error });
+      }
+    }
+    if (settingsCopy.fornitore2_spedizioneLotto && typeof settingsCopy.fornitore2_spedizioneLotto === 'object') {
+      const extractedForn2Tiers = extractShippingTiers({ spedizioneLotto: settingsCopy.fornitore2_spedizioneLotto });
+      const valForn2Result = validateShippingTiers(extractedForn2Tiers);
+      if (!valForn2Result.valid) {
+        console.warn("⚠️ Validazione fasce di spedizione Fornitore 2 fallita:", valForn2Result.error);
+        return res.status(400).json({ success: false, error: `Fornitore 2 - ${valForn2Result.error}` });
+      }
+    }
+
+    // Validazione articoli negli ordini attivi se si desidera attivare il Fornitore 2 o modificare i suoi prezzi
+    const targetSupplier = Number(settingsCopy.fornitore_attivo || 1);
+    if (targetSupplier === 2) {
+      try {
+        const allOrders = await getDbOrders();
+        const unarchivedOrders = allOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o));
+
+        let localProducts = [];
+        try { localProducts = getLocalProducts(); } catch (e) {}
+        let supabaseProducts = [];
+        try {
+          const supabase = getSupabaseClient();
+          if (supabase) supabaseProducts = await getAllProductsFromSupabase(supabase);
+        } catch (e) {}
+        let localAccessories = [];
+        try { localAccessories = getLocalAccessories(); } catch (e) {}
+
+        const allDbProducts = [
+          ...(supabaseProducts.length > 0 ? supabaseProducts : localProducts),
+          ...(Array.isArray(localAccessories) ? localAccessories : [])
+        ];
+
+        for (const ord of unarchivedOrders) {
+          let cartItems = ord.carrello;
+          if (!Array.isArray(cartItems) || cartItems.length === 0) {
+            cartItems = ricostruisciCarrelloDaStringhe(ord);
+          }
+          if (Array.isArray(cartItems)) {
+            for (const item of cartItems) {
+              if (!item) continue;
+              const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+              if (isSped) continue;
+              resolveSupplierBasePrice(item, allDbProducts, localAccessories, { supplier: 2, settings: settingsCopy, strict: true });
+            }
+          }
+        }
+      } catch (valErr) {
+        console.warn("⚠️ Validazione Fornitore 2 per ordini attivi fallita:", valErr.message);
+        return res.status(400).json({
+          success: false,
+          error: `Impossibile attivare/salvare Fornitore 2: ${valErr.message}`
+        });
       }
     }
     
@@ -6200,6 +6591,38 @@ app.post('/api/settings', adminAuthMiddleware, async (req, res) => {
           catalogRowsToUpsert.push({
             key: 'sicurezza',
             value: settingsCopy.sicurezza,
+            updated_at: nowIso
+          });
+        }
+
+        if (settingsCopy.fornitore_attivo !== undefined) {
+          catalogRowsToUpsert.push({
+            key: 'fornitore_attivo',
+            value: settingsCopy.fornitore_attivo,
+            updated_at: nowIso
+          });
+        }
+
+        if (settingsCopy.fornitore2_prezzi !== undefined) {
+          catalogRowsToUpsert.push({
+            key: 'fornitore2_prezzi',
+            value: settingsCopy.fornitore2_prezzi,
+            updated_at: nowIso
+          });
+        }
+
+        if (settingsCopy.fornitore2_categorie_prezzi !== undefined) {
+          catalogRowsToUpsert.push({
+            key: 'fornitore2_categorie_prezzi',
+            value: settingsCopy.fornitore2_categorie_prezzi,
+            updated_at: nowIso
+          });
+        }
+
+        if (settingsCopy.fornitore2_spedizioneLotto !== undefined) {
+          catalogRowsToUpsert.push({
+            key: 'fornitore2_spedizioneLotto',
+            value: settingsCopy.fornitore2_spedizioneLotto,
             updated_at: nowIso
           });
         }
@@ -6449,11 +6872,11 @@ app.post('/api/settings', adminAuthMiddleware, async (req, res) => {
     }
 
     console.log("<<< USCITA POST /api/settings con successo");
-    // Ricalcola il lotto e tutti gli ordini attivi con le nuove impostazioni (cambio valuta o fasce spedizione)
+    // Ricalcola il lotto e tutti gli ordini attivi con le nuove impostazioni (cambio fornitore o cambio fasce/prezzi)
+    let updatedLottoResult = null;
     try {
-      if (!cachedLottoResult) {
-        await recalculateCurrentLotto();
-      }
+      updatedLottoResult = await recalculateCurrentLottoInternal();
+      cachedLottoResult = updatedLottoResult;
     } catch (lottoErr) {
       console.warn("⚠️ Errore ricalcolo lotto dopo aggiornamento settings:", lottoErr.message);
     }
@@ -6472,7 +6895,7 @@ app.post('/api/settings', adminAuthMiddleware, async (req, res) => {
       } catch (e) {}
     }
     invalidateSettingsCache();
-    return res.json({ success: true, settings: finalSettings, summary: summary });
+    return res.json({ success: true, settings: finalSettings, summary: summary, lotto: updatedLottoResult });
   } catch (error) {
     console.error("🔴 ERRORE FATALE IN POST /api/settings:", error);
     return res.status(500).json({ success: false, error: "Si è verificato un errore interno: " + error.message });
@@ -9570,8 +9993,9 @@ app.get('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
         const costoProdottiUsd = Number(l.costo_prodotti_usd || 0);
         const costoSpedizioneUsd = Number(l.costo_spedizione_usd || 0);
         const costoFornitoreUsd = Number(l.costo_fornitore_usd || (costoProdottiUsd + costoSpedizioneUsd));
-        const alibabaFeeUsd = Number(l.alibaba_fee_usd !== undefined ? l.alibaba_fee_usd : (costoFornitoreUsd * 0.03));
-        const alibabaFeeEur = Number(l.alibaba_fee_eur || convertUsdToEur(alibabaFeeUsd, null, 'GET /api/lotto/archive'));
+        const isArchivedForn2 = Number(l.fornitore_attivo) === 2;
+        const alibabaFeeUsd = isArchivedForn2 ? 0 : Number(l.alibaba_fee_usd !== undefined ? l.alibaba_fee_usd : (costoFornitoreUsd * 0.03));
+        const alibabaFeeEur = isArchivedForn2 ? 0 : Number(l.alibaba_fee_eur !== undefined ? l.alibaba_fee_eur : convertUsdToEur(alibabaFeeUsd, null, 'GET /api/lotto/archive'));
         
         let costoFornitoreEur = 0;
         if (lotOrders && lotOrders.length > 0) {
@@ -10280,8 +10704,25 @@ function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProduct
   costo_base_prodotti_usd = Number(costo_base_prodotti_usd.toFixed(2));
   costo_totale_personalizzazioni_usd = Number(costo_totale_personalizzazioni_usd.toFixed(2));
 
-  const spedizione_unitaria = getShippingRateByQuantity(numero_articoli_spedizione, settings);
-  const spedizione_corrente_usd = Number((unita_spedizione_economiche * spedizione_unitaria).toFixed(2));
+  const isForn2Lotto = Number(settings?.fornitore_attivo) === 2;
+  let spedizione_unitaria = 0.0;
+  let spedizione_corrente_usd = 0.0;
+
+  if (isForn2Lotto) {
+    if (numero_articoli_spedizione >= 5) {
+      spedizione_unitaria = 0.0;
+      spedizione_corrente_usd = 0.0;
+    } else if (numero_articoli_spedizione >= 1) {
+      spedizione_corrente_usd = 5.00;
+      spedizione_unitaria = unita_spedizione_economiche > 0 ? Number((5.00 / unita_spedizione_economiche).toFixed(4)) : 0.0;
+    } else {
+      spedizione_unitaria = 0.0;
+      spedizione_corrente_usd = 0.0;
+    }
+  } else {
+    spedizione_unitaria = getShippingRateByQuantity(numero_articoli_spedizione, settings);
+    spedizione_corrente_usd = Number((unita_spedizione_economiche * spedizione_unitaria).toFixed(2));
+  }
   const costo_fornitore_usd = Number((costo_totale_prodotti_usd + spedizione_corrente_usd).toFixed(2));
   const costo_complessivo_lotto_usd = costo_fornitore_usd;
 
@@ -10302,12 +10743,12 @@ function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProduct
   spese_extra_usd = Number(spese_extra_usd.toFixed(2));
   spese_extra_eur = Number(spese_extra_eur.toFixed(2));
 
-  // Alibaba Payment Processing Fee (3% sul totale ordine fornitore in USD)
-  const alibaba_fee_percent = (settings?.alibabaFee?.percentage !== undefined && settings?.alibabaFee?.percentage !== null)
+  // Alibaba Payment Processing Fee (3% sul totale ordine fornitore in USD per Fornitore 1, $0 per Fornitore 2)
+  const alibaba_fee_percent = isForn2Lotto ? 0 : ((settings?.alibabaFee?.percentage !== undefined && settings?.alibabaFee?.percentage !== null)
     ? Number(settings.alibabaFee.percentage)
-    : 3.0;
-  const alibaba_fee_usd = Number((costo_complessivo_lotto_usd * (alibaba_fee_percent / 100)).toFixed(2));
-  const alibaba_fee_eur = convertUsdToEur(alibaba_fee_usd, exchangeRate, 'calculateLottoTotals');
+    : 3.0);
+  const alibaba_fee_usd = isForn2Lotto ? 0 : Number((costo_complessivo_lotto_usd * (alibaba_fee_percent / 100)).toFixed(2));
+  const alibaba_fee_eur = isForn2Lotto ? 0 : convertUsdToEur(alibaba_fee_usd, exchangeRate, 'calculateLottoTotals');
 
   // COSTO TOTALE LOTTO USD = Costo Prodotti USD + Spedizione USD + Fee USD + Spese Extra USD
   const costo_totale_reale_lotto_usd = Number((costo_fornitore_usd + alibaba_fee_usd + spese_extra_usd).toFixed(2));
@@ -10487,8 +10928,9 @@ async function recalculateCurrentLottoInternal() {
         String(ord.squadra || '').includes('Fuori Catalogo') ||
         (Array.isArray(cartItems) && cartItems.some(it => it && it.is_off_catalog))
       );
-      // Calcolo dinamico del costo prodotti fornitore direttamente dal carrello
+      // Calcolo dinamico del costo prodotti fornitore direttamente dal carrello con sincronizzazione unitaria
       let calcProdCostUSD = 0;
+      let cartItemsUpdated = false;
       if (Array.isArray(cartItems) && cartItems.length > 0) {
         cartItems.forEach(item => {
           if (!item) return;
@@ -10504,12 +10946,25 @@ async function recalculateCurrentLottoInternal() {
             matchedProd = prodByLegacyIdMap.get(String(item.legacy_id).trim());
           }
           const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories);
+          
+          // Sincronizza il costo unitario del fornitore sull'articolo mantenendo inalterati i prezzi commerciali
+          if (item.prezzo_fornitore !== basePriceUSD) {
+            item.prezzo_fornitore = basePriceUSD;
+            cartItemsUpdated = true;
+          }
+          if (item.costo_unitario_fornitore !== undefined && item.costo_unitario_fornitore !== basePriceUSD) {
+            item.costo_unitario_fornitore = basePriceUSD;
+            cartItemsUpdated = true;
+          }
+
           const isCalz = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
           const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
           const customDetails = isCalz ? { customizationCostUSD: 0.00 } : parseCustomizationDetails(rawInfoPerso, item);
           calcProdCostUSD += (basePriceUSD + customDetails.customizationCostUSD) * q;
         });
       }
+
+      ord.carrello = cartItems;
 
       const storedProdCostUSD = parseItalianFloat(String(ord["Costo prodotti (USD)"] || ord.costo_prodotti_usd || '0'));
       const rawProdCostUSD = calcProdCostUSD > 0 ? calcProdCostUSD : storedProdCostUSD;
@@ -10530,6 +10985,7 @@ async function recalculateCurrentLottoInternal() {
 
       const orderHasChanged = (
         prevShippingStr !== newShippingStr ||
+        cartItemsUpdated ||
         !ord.costo_totale_eur ||
         String(ord.costo_prodotti_usd || '') !== newProdCostUSDStr ||
         String(ord.costo_spedizione_usd || '') !== newShippingStr ||
@@ -10562,7 +11018,8 @@ async function recalculateCurrentLottoInternal() {
             costo_spedizione_usd: newShippingStr,
             costo_totale_usd: newTotalCostUSDStr,
             costo_totale_eur: newTotalCostEURStr,
-            profitto_eur: newProfitEURStr
+            profitto_eur: newProfitEURStr,
+            carrello: cartItems
           }).eq('id', ord.id);
         } catch (supErr) {
           console.warn(`⚠️ Errore aggiornamento ordine ${ord.id} su Supabase durante ricalcolo lotto:`, supErr.message);
@@ -15395,6 +15852,659 @@ app.get('/api/tornei/:id/excel-riepilogo', adminAuthMiddleware, async (req, res)
   }
 });
 
+// =========================================================================
+// HELPER PER RIEPILOGO ORDINE CLIENTE
+// =========================================================================
+
+function estraiUrlImmaginePulito(val) {
+  if (!val || typeof val !== 'string') return '';
+  let str = val.trim();
+  const match = str.match(/=IMAGE\(\s*["']([^"']+)["']\s*\)/i);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('/') || str.startsWith('data:')) {
+    return str;
+  }
+  return '';
+}
+
+function formattaDataOraOrdine(ord) {
+  if (!ord) return 'N/D';
+  let dateObj = null;
+  if (ord.created_at) {
+    dateObj = new Date(ord.created_at);
+  } else if (ord.data) {
+    const parts = String(ord.data).split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const yearParts = parts[2].split(',');
+      const year = parseInt(yearParts[0], 10);
+      dateObj = new Date(year, month, day);
+    } else {
+      dateObj = new Date(ord.data);
+    }
+  }
+  if (!dateObj || isNaN(dateObj.getTime())) {
+    return ord.data || 'N/D';
+  }
+  return dateObj.toLocaleDateString('it-IT', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+// =========================================================================
+// GENERAZIONE EXCEL RIEPILOGO ORDINE CLIENTE (ADATTATO DA FORNITURA TORNEO)
+// =========================================================================
+
+
+function arrotondaTotaleCommerciale(val) {
+  if (val === null || val === undefined || isNaN(Number(val))) return 0;
+  const num = Number(val);
+  if (num <= 0) return 0;
+
+  const totalCents = Math.round(num * 100);
+  const euros = Math.floor(totalCents / 100);
+  const cents = totalCents % 100;
+
+  let roundedCents = 0;
+  if (cents >= 0 && cents <= 24) {
+    roundedCents = 0;
+  } else if (cents >= 25 && cents <= 74) {
+    roundedCents = 50;
+  } else if (cents >= 75 && cents <= 99) {
+    roundedCents = 100;
+  }
+
+  return (euros * 100 + roundedCents) / 100;
+}
+
+function calcolaFinanziarioClienteOrdineBackend(order) {
+  if (!order) {
+    return {
+      subtotaleProdotti: 0,
+      couponDiscount: 0,
+      couponCode: '',
+      spedizioneCliente: 0,
+      totaleIncassato: 0
+    };
+  }
+
+  let rawCart = [];
+  if (Array.isArray(order.carrello)) {
+    rawCart = order.carrello;
+  } else if (typeof order.carrello === 'string' && order.carrello.trim()) {
+    try { rawCart = JSON.parse(order.carrello); } catch (e) { rawCart = []; }
+  }
+
+  let subtotale = 0;
+  rawCart.forEach(item => {
+    if (!item) return;
+    const name = item.squadra || item.nome || item.prodotto || '';
+    if (isTechnicalShippingOrServiceLine(name)) return;
+    if (String(name).toLowerCase().includes('spedizione')) return;
+    const q = parseInt(item.quantita, 10) || 1;
+    if (item.totale_concordato !== undefined && item.totale_concordato !== null && !isNaN(Number(item.totale_concordato))) {
+      subtotale += Number(item.totale_concordato);
+      return;
+    }
+    let uPrice = (item.prezzo !== undefined && item.prezzo !== null && !isNaN(Number(item.prezzo))) ? Number(item.prezzo) : 0;
+    subtotale += (uPrice * q);
+  });
+
+  if (subtotale === 0) {
+    const rawTot = (order.totale !== undefined && order.totale !== null && order.totale !== '')
+      ? order.totale
+      : (order.totale_ordine ?? order.totale_eur ?? order.total ?? order.importo ?? 0);
+    subtotale = parseFlexibleDecimal(rawTot);
+  }
+
+  const couponDiscount = (order.coupon_discount !== undefined && order.coupon_discount !== null)
+    ? parseFlexibleDecimal(order.coupon_discount)
+    : 0;
+  const couponCode = order.coupon_code || '';
+
+  let spedizioneCliente = 0;
+  if (order.spedizione_cliente_eur !== undefined && order.spedizione_cliente_eur !== null) {
+    spedizioneCliente = parseFlexibleDecimal(order.spedizione_cliente_eur);
+  } else if (order.customer_shipping_eur !== undefined && order.customer_shipping_eur !== null) {
+    spedizioneCliente = parseFlexibleDecimal(order.customer_shipping_eur);
+  } else if (order.spedizione_cliente !== undefined && order.spedizione_cliente !== null) {
+    spedizioneCliente = parseFlexibleDecimal(order.spedizione_cliente);
+  } else {
+    const isConvenzione = Boolean(order.is_convenzione || order.torneo_id || order.codice_univoco);
+    const hasExplicitShipping = rawCart.some(ci => ci && ci.squadra && String(ci.squadra).toLowerCase().includes('spedizione'));
+    if (isConvenzione || hasExplicitShipping || subtotale >= 50.0 || subtotale === 0) {
+      spedizioneCliente = 0;
+    } else {
+      spedizioneCliente = 2.90;
+    }
+  }
+
+  const isFornitoreCoupon = Boolean(
+    order.coupon_type === 'fornitore' ||
+    order.coupon_type === 'supplier_price' ||
+    (couponCode && String(couponCode).toUpperCase() === 'MIAKHALIFA')
+  );
+
+  let totaleOriginale = 0;
+  if (isFornitoreCoupon) {
+    totaleOriginale = subtotale;
+    spedizioneCliente = 0;
+  } else {
+    totaleOriginale = Math.max(0, subtotale - couponDiscount + spedizioneCliente);
+  }
+
+  const totaleIncassato = arrotondaTotaleCommerciale(totaleOriginale);
+
+  return {
+    subtotaleProdotti: Number(subtotale.toFixed(2)),
+    couponDiscount: Number(couponDiscount.toFixed(2)),
+    couponCode,
+    spedizioneCliente: Number(spedizioneCliente.toFixed(2)),
+    totaleOriginale: Number(totaleOriginale.toFixed(2)),
+    totaleIncassato: Number(totaleIncassato.toFixed(2))
+  };
+}
+
+function processOrderArticlesForCustomerExcel(order, prodByIdMap, prodByVersioneMap) {
+  let cart = [];
+  if (Array.isArray(order.carrello)) {
+    cart = order.carrello;
+  } else if (typeof order.carrello === 'string' && order.carrello.trim()) {
+    try { cart = JSON.parse(order.carrello); } catch (e) { cart = []; }
+  }
+
+  const items = [];
+  const orderMainImg = estraiUrlImmaginePulito(order.foto);
+
+  if (Array.isArray(cart) && cart.length > 0) {
+    cart.forEach(c => {
+      if (!c) return;
+      const itemName = c.squadra || c.nome || c.prodotto || '';
+      if (isTechnicalShippingOrServiceLine(itemName)) return;
+      if (String(itemName).toLowerCase().includes('spedizione')) return;
+
+      const rawImg = c.imgUrl || c.immagine || c.image || c.foto || orderMainImg;
+      const imgUrl = estraiUrlImmaginePulito(rawImg);
+
+      let matchedProd = null;
+      if (c.id && prodByIdMap && prodByIdMap.has(String(c.id).trim())) {
+        matchedProd = prodByIdMap.get(String(c.id).trim());
+      }
+      if (!matchedProd && itemName && prodByVersioneMap) {
+        const cleanNameNorm = normalizzaStringaMatching(itemName.replace(/^\[?\d+x\s*\]?\s*/i, '').replace(/^\[|\]$/g, ''));
+        matchedProd = prodByVersioneMap.get(cleanNameNorm);
+      }
+
+      const nomeCompletino = matchedProd ? matchedProd.versione.trim() : itemName.replace(/^\[?\d+x\s*\]?\s*/i, '').replace(/^\[|\]$/g, '').trim();
+      let categoria = matchedProd ? String(matchedProd.categoria || 'Kit').trim() : String(c.categoria || 'Kit').trim();
+      if (!categoria || categoria.toLowerCase() === 'undefined' || categoria === '__coupon__') categoria = 'Kit';
+
+      let taglia = String(c.taglia || 'N/D').replace(/^1x\s*\[|\]$/g, '').replace(/^\[|\]$/g, '').replace(/^Taglia\s*/i, '').trim();
+      if (!taglia || taglia === '-') taglia = 'N/D';
+
+      let infoPerso = c.infoPerso || c.personalizzazione || 'Nessuna';
+      if (infoPerso === 'No' || infoPerso === 'No | No' || !infoPerso || infoPerso.trim() === '') {
+        infoPerso = 'Nessuna';
+      }
+
+      const formattedPerso = formatCustomizationForSummaryExcel(infoPerso, c);
+
+      const quantita = parseInt(c.quantita, 10) || 1;
+      const unitPrice = (c.prezzo !== undefined && c.prezzo !== null && !isNaN(Number(c.prezzo))) ? Number(c.prezzo) : 0;
+      const itemTotal = (c.totale_concordato !== undefined && c.totale_concordato !== null && !isNaN(Number(c.totale_concordato)))
+        ? Number(Number(c.totale_concordato).toFixed(2))
+        : Number((unitPrice * quantita).toFixed(2));
+
+      items.push({
+        nome: nomeCompletino,
+        categoria,
+        taglia,
+        quantita,
+        infoPerso: formattedPerso || (infoPerso !== 'Nessuna' ? infoPerso : 'Nessuna'),
+        unitPrice,
+        totalPrice: itemTotal,
+        imageUrl: imgUrl
+      });
+    });
+  }
+
+  if (items.length === 0 && (order.squadra || order.prodotto)) {
+    const prodottiOrdinati = order.squadra || order.prodotto || '';
+    const tagliaOrdinata = order.taglia || '';
+    const personalizzazione = order.personalizzazione || '';
+
+    const parsedItems = prodottiOrdinati.split(/\s+\/\s+/);
+    const sizes = tagliaOrdinata ? tagliaOrdinata.split(/\s+\/\s+/) : [];
+    const persList = personalizzazione ? personalizzazione.split(/\s+\|\s+/) : [];
+
+    parsedItems.forEach((p, idx) => {
+      const rawName = p ? p.trim() : '';
+      if (!rawName || isTechnicalShippingOrServiceLine(rawName)) return;
+      let qty = 1;
+      let cleanName = rawName;
+      const matchQty = rawName.match(/^(\d+)x\s*(.+)$/i);
+      if (matchQty) {
+        qty = parseInt(matchQty[1], 10) || 1;
+        cleanName = matchQty[2].trim();
+      }
+      let itemSize = sizes[idx] ? sizes[idx].trim() : 'N/D';
+      itemSize = itemSize.replace(/^\d+x\s*\[?/, '').replace(/\]?$/, '').trim() || 'N/D';
+      let itemPers = persList[idx] ? persList[idx].trim() : 'Nessuna';
+      itemPers = itemPers.replace(/^\d+x\s*\[?/, '').replace(/\]?$/, '').trim();
+
+      const unitPrice = (order.totale && parsedItems.length === 1) ? Number(order.totale) : 0;
+
+      items.push({
+        nome: cleanName,
+        categoria: 'Kit',
+        taglia: itemSize,
+        quantita: qty,
+        infoPerso: itemPers,
+        unitPrice,
+        totalPrice: unitPrice * qty,
+        imageUrl: orderMainImg
+      });
+    });
+  }
+
+  return items;
+}
+
+async function generaExcelRiepilogoOrdineCliente(orderId, res) {
+  const allOrders = await getDbOrders();
+  const strId = String(orderId).trim();
+  const order = allOrders.find(o => 
+    String(o.id) === strId || 
+    String(o.data) === strId ||
+    (o.id && String(o.id) === strId.replace(/^id_/, '')) ||
+    (o.data && String(o.data) === strId.replace(/^data_/, ''))
+  );
+
+  if (!order) {
+    return res.status(404).json({ success: false, error: "Ordine non trovato." });
+  }
+
+  let localProducts = [];
+  try { localProducts = getLocalProducts(); } catch (e) {}
+  let supabaseProducts = [];
+  try {
+    const supabase = getSupabaseClient();
+    if (supabase) supabaseProducts = await getAllProductsFromSupabase(supabase);
+  } catch (e) {}
+  const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+  const prodByIdMap = new Map();
+  const prodByVersioneMap = new Map();
+  allDbProducts.forEach(p => {
+    if (p.id) prodByIdMap.set(String(p.id).trim(), p);
+    if (p.versione) prodByVersioneMap.set(normalizzaStringaMatching(p.versione), p);
+  });
+
+  const items = processOrderArticlesForCustomerExcel(order, prodByIdMap, prodByVersioneMap);
+  const fin = calcolaFinanziarioClienteOrdineBackend(order);
+
+  const nomeCliente = order.nome || order.registered_name || 'Cliente';
+  const telefono = order.telefono || 'N/D';
+  const dataOrdine = (typeof formattaDataOraOrdine === 'function') ? formattaDataOraOrdine(order) : (order.data || '');
+  const displayIndex = order.id || '1';
+
+  // Pre-load all unique product image buffers with cache
+  const uniqueUrls = new Set();
+  items.forEach(it => {
+    if (it.imageUrl && typeof it.imageUrl === 'string' && it.imageUrl.trim()) {
+      uniqueUrls.add(it.imageUrl.trim());
+    }
+  });
+
+  const imageCache = new Map();
+  const urlList = Array.from(uniqueUrls);
+  await Promise.all(urlList.map(async (u) => {
+    try {
+      const buf = await downloadImageAsBuffer(u);
+      if (buf) {
+        imageCache.set(u, buf);
+        const cleanU = String(u).replace(/^=IMAGE\(\s*["']?|["']?\s*\)$/gi, '').trim();
+        imageCache.set(cleanU, buf);
+      }
+    } catch (e) {
+      console.warn(`⚠️ Error downloading image for customer order Excel (${u}):`, e.message);
+    }
+  }));
+
+  const workbook = new exceljs.Workbook();
+  workbook.creator = "Maglia d'Oro";
+  workbook.created = new Date();
+
+  const worksheet = workbook.addWorksheet('Riepilogo Ordine');
+
+  // 9 Columns with dedicated Foto column right before Prodotto / Articolo
+  const columns = [
+    { header: '#', key: 'idx', width: 6 },
+    { header: 'Foto', key: 'foto', width: 16 },
+    { header: 'Prodotto / Articolo', key: 'nome', width: 34 },
+    { header: 'Categoria', key: 'categoria', width: 16 },
+    { header: 'Taglia', key: 'taglia', width: 12 },
+    { header: 'Quantità', key: 'quantita', width: 12 },
+    { header: 'Personalizzazione', key: 'infoPerso', width: 32 },
+    { header: 'Prezzo Unitario', key: 'unitPrice', width: 18 },
+    { header: 'Totale', key: 'totalPrice', width: 18 }
+  ];
+  worksheet.columns = columns;
+
+  // Row 1: Header Banner (Merged A1:I1)
+  const headerRow = worksheet.getRow(1);
+  headerRow.height = 36;
+  worksheet.mergeCells('A1:I1');
+  const hCell = headerRow.getCell(1);
+  hCell.value = "👑  MAGLIA D'ORO — RIEPILOGO ORDINE CLIENTE";
+  hCell.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+  hCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  hCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  // Row 2: Subtitle Metadata Banner (Merged A2:I2)
+  const subRow = worksheet.getRow(2);
+  subRow.height = 24;
+  worksheet.mergeCells('A2:I2');
+  const subCell = subRow.getCell(1);
+  subCell.value = `ORDINE: #${displayIndex}   |   CLIENTE: ${nomeCliente.toUpperCase()}   |   DATA: ${dataOrdine}   |   TEL: ${telefono}`;
+  subCell.font = { name: 'Segoe UI', size: 9.5, italic: true, bold: true, color: { argb: 'FF334155' } };
+  subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+  subCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  // Row 3: Spacing
+  worksheet.getRow(3).height = 10;
+
+  // Row 4: Table Headers (A4 to I4)
+  const tableHeaderRow = worksheet.getRow(4);
+  tableHeaderRow.height = 26;
+  columns.forEach((colDef, colIdx) => {
+    const cell = tableHeaderRow.getCell(colIdx + 1);
+    cell.value = colDef.header;
+    cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FF1E293B' } },
+      bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
+      left: { style: 'thin', color: { argb: 'FF475569' } },
+      right: { style: 'thin', color: { argb: 'FF475569' } }
+    };
+  });
+
+  // Data Rows (Rows 5..N)
+  let currentRowNum = 5;
+  const rowHeightPt = 68; // Height in pt allows clean 60x60px thumbnail rendering
+
+  for (let idx = 0; idx < items.length; idx++) {
+    const item = items[idx];
+    const row = worksheet.getRow(currentRowNum);
+    row.height = rowHeightPt;
+    const isEven = idx % 2 === 0;
+    const bgArgb = isEven ? 'FFFFFFFF' : 'FFF8FAFC';
+
+    // Col 1: Index
+    const cellIdx = row.getCell(1);
+    cellIdx.value = idx + 1;
+    cellIdx.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Col 2: Foto (Image Cell)
+    const cellFoto = row.getCell(2);
+    cellFoto.value = "";
+    cellFoto.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    if (item.imageUrl) {
+      const cleanU = String(item.imageUrl).replace(/^=IMAGE\(\s*["']?|["']?\s*\)$/gi, '').trim();
+      const buf = imageCache.get(item.imageUrl) || imageCache.get(cleanU);
+      if (buf) {
+        const ext = detectImageFormat(buf);
+        if (ext) {
+          try {
+            let finalBuf = buf;
+            let excelExt = ext;
+            if (ext === 'webp') {
+              finalBuf = await sharp(buf).toFormat('png').toBuffer();
+              excelExt = 'png';
+            }
+            const imgId = workbook.addImage({ buffer: finalBuf, extension: excelExt });
+
+            const colB_WidthChar = 16;
+            const colB_Px = Math.floor(colB_WidthChar * 7 + 5); // ~117 px
+            const rowHeightPx = Math.floor(rowHeightPt * 1.333333); // ~90.6 px
+            const imgPx = 60; // 60x60 px image
+
+            const colOffsetFraction = ((colB_Px - imgPx) / 2) / colB_Px;
+            const rowOffsetFraction = ((rowHeightPx - imgPx) / 2) / rowHeightPx;
+
+            worksheet.addImage(imgId, {
+              tl: { col: 1 + colOffsetFraction, row: currentRowNum - 1 + rowOffsetFraction },
+              ext: { width: imgPx, height: imgPx },
+              editAs: 'oneCell'
+            });
+          } catch (imgErr) {
+            console.warn("⚠️ Error adding product photo to customer order Excel:", imgErr.message);
+          }
+        }
+      }
+    }
+
+    // Col 3: Prodotto / Articolo
+    const cellNome = row.getCell(3);
+    cellNome.value = item.nome;
+    cellNome.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
+
+    // Col 4: Categoria
+    const cellCat = row.getCell(4);
+    cellCat.value = item.categoria;
+    cellCat.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Col 5: Taglia
+    const cellTaglia = row.getCell(5);
+    cellTaglia.value = item.taglia;
+    cellTaglia.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Col 6: Quantità
+    const cellQty = row.getCell(6);
+    cellQty.value = item.quantita;
+    cellQty.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Col 7: Personalizzazione
+    const cellPerso = row.getCell(7);
+    cellPerso.value = item.infoPerso;
+    cellPerso.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
+
+    // Col 8: Prezzo Unitario
+    const cellUnitPrice = row.getCell(8);
+    cellUnitPrice.value = `€ ${item.unitPrice.toFixed(2).replace('.', ',')}`;
+    cellUnitPrice.alignment = { vertical: 'middle', horizontal: 'right' };
+
+    // Col 9: Totale
+    const cellTotal = row.getCell(9);
+    cellTotal.value = `€ ${item.totalPrice.toFixed(2).replace('.', ',')}`;
+    cellTotal.alignment = { vertical: 'middle', horizontal: 'right' };
+
+    for (let c = 1; c <= 9; c++) {
+      const cell = row.getCell(c);
+      cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF0F172A' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+      };
+    }
+
+    currentRowNum++;
+  }
+
+  // Spacing before Totals
+  worksheet.getRow(currentRowNum).height = 10;
+  currentRowNum++;
+
+  // Financial Subtotal Row (Merged A to H, value in Col I)
+  const subtotalRow = worksheet.getRow(currentRowNum);
+  subtotalRow.height = 24;
+  worksheet.mergeCells(`A${currentRowNum}:H${currentRowNum}`);
+  const stLabel = subtotalRow.getCell(1);
+  stLabel.value = "Subtotale Prodotti:";
+  stLabel.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF334155' } };
+  stLabel.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+  stLabel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+
+  const stVal = subtotalRow.getCell(9);
+  stVal.value = fin.subtotaleProdotti;
+  stVal.numFmt = '€ #,##0.00';
+  stVal.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+  stVal.alignment = { vertical: 'middle', horizontal: 'right' };
+  stVal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+
+  for (let c = 1; c <= 9; c++) {
+    subtotalRow.getCell(c).border = {
+      top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+    };
+  }
+  currentRowNum++;
+
+  // Coupon Row (if discount applied)
+  if (fin.couponDiscount > 0) {
+    const couponRow = worksheet.getRow(currentRowNum);
+    couponRow.height = 24;
+    worksheet.mergeCells(`A${currentRowNum}:H${currentRowNum}`);
+    const cLabel = couponRow.getCell(1);
+    const cCodeStr = fin.couponCode ? ` (${fin.couponCode})` : '';
+    cLabel.value = `Sconto / Coupon${cCodeStr}:`;
+    cLabel.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF166534' } };
+    cLabel.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+    cLabel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+
+    const cVal = couponRow.getCell(9);
+    cVal.value = `-€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}`;
+    cVal.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF166534' } };
+    cVal.alignment = { vertical: 'middle', horizontal: 'right' };
+    cVal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+
+    for (let c = 1; c <= 9; c++) {
+      couponRow.getCell(c).border = {
+        top: { style: 'thin', color: { argb: 'FF86EFAC' } },
+        bottom: { style: 'thin', color: { argb: 'FF86EFAC' } },
+        left: { style: 'thin', color: { argb: 'FF86EFAC' } },
+        right: { style: 'thin', color: { argb: 'FF86EFAC' } }
+      };
+    }
+    currentRowNum++;
+  }
+
+  // Shipping Fee Row
+  const shippingRow = worksheet.getRow(currentRowNum);
+  shippingRow.height = 24;
+  worksheet.mergeCells(`A${currentRowNum}:H${currentRowNum}`);
+  const shLabel = shippingRow.getCell(1);
+  shLabel.value = "Spedizione Cliente:";
+  shLabel.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF334155' } };
+  shLabel.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+  shLabel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+
+  const shVal = shippingRow.getCell(9);
+  shVal.value = fin.spedizioneCliente === 0 ? "GRATUITA" : `€ ${fin.spedizioneCliente.toFixed(2).replace('.', ',')}`;
+  shVal.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+  shVal.alignment = { vertical: 'middle', horizontal: 'right' };
+  shVal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+
+  for (let c = 1; c <= 9; c++) {
+    shippingRow.getCell(c).border = {
+      top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+    };
+  }
+  currentRowNum++;
+
+  // Grand Total Row
+  const grandTotalRow = worksheet.getRow(currentRowNum);
+  grandTotalRow.height = 32;
+  worksheet.mergeCells(`A${currentRowNum}:H${currentRowNum}`);
+  const gtLabel = grandTotalRow.getCell(1);
+  gtLabel.value = "TOTALE COMPLESSIVO DA PAGARE:";
+  gtLabel.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF92400E' } };
+  gtLabel.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
+  gtLabel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+
+  const gtVal = grandTotalRow.getCell(9);
+  gtVal.value = `€ ${fin.totaleIncassato.toFixed(2).replace('.', ',')}`;
+  gtVal.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FF92400E' } };
+  gtVal.alignment = { vertical: 'middle', horizontal: 'right' };
+  gtVal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+
+  for (let c = 1; c <= 9; c++) {
+    grandTotalRow.getCell(c).border = {
+      top: { style: 'thin', color: { argb: 'FFF59E0B' } },
+      bottom: { style: 'double', color: { argb: 'FFB45309' } },
+      left: { style: 'thin', color: { argb: 'FFF59E0B' } },
+      right: { style: 'thin', color: { argb: 'FFF59E0B' } }
+    };
+  }
+  currentRowNum++;
+
+  // Closing Note Footer Row
+  worksheet.getRow(currentRowNum).height = 10;
+  currentRowNum++;
+
+  const footerRow = worksheet.getRow(currentRowNum);
+  footerRow.height = 24;
+  worksheet.mergeCells(`A${currentRowNum}:I${currentRowNum}`);
+  const fCell = footerRow.getCell(1);
+  fCell.value = "Grazie per aver scelto Maglia d'Oro! — Qualità & Passione";
+  fCell.font = { name: 'Segoe UI', size: 9, italic: true, color: { argb: 'FF64748B' } };
+  fCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+  // Filename formatting
+  const cleanName = String(nomeCliente)
+    .replace(/[\\/:*?"<>|]/g, '')
+    .trim()
+    .replace(/\s+/g, '_');
+  const filename = `Riepilogo_Ordine_${displayIndex}_${cleanName}.xlsx`;
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(filename)}`);
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+  const tempExportPath = path.join(os.tmpdir(), `order_${orderId}_${Date.now()}_${Math.random().toString(36).substring(7)}.xlsx`);
+  try {
+    await workbook.xlsx.writeFile(tempExportPath);
+    await normalizeWorkbookDrawingML(tempExportPath);
+    const fileBuffer = fs.readFileSync(tempExportPath);
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.send(fileBuffer);
+  } finally {
+    try {
+      if (fs.existsSync(tempExportPath)) {
+        fs.unlinkSync(tempExportPath);
+      }
+    } catch (cleanErr) {}
+  }
+}
+
+app.get('/api/admin/orders/:id/excel', adminAuthMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, error: "ID ordine mancante." });
+    }
+    await generaExcelRiepilogoOrdineCliente(id, res);
+  } catch (err) {
+    console.error("⚠️ Errore GET /api/admin/orders/:id/excel:", err.message);
+    if (!res.headersSent) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
+  }
+});
+
 app.post('/api/tornei/:id/squadre', adminAuthMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -16609,8 +17719,9 @@ async function computeProfitSplitForLotto(targetLottoId, options = {}) {
     lotTotals = calculateLottoTotals(orders, settings);
     currentLotShippingRate = lotTotals.spedizione_unitaria;
   } else if (archivedLotto) {
-    lotTotals.alibaba_fee_usd = Number(archivedLotto.alibaba_fee_usd || ((Number(archivedLotto.costo_prodotti_usd || 0) + Number(archivedLotto.costo_spedizione_usd || 0)) * 0.03));
-    lotTotals.alibaba_fee_eur = Number(archivedLotto.alibaba_fee_eur || 0);
+    const isArchivedForn2 = Number(archivedLotto.fornitore_attivo) === 2;
+    lotTotals.alibaba_fee_usd = isArchivedForn2 ? 0 : Number(archivedLotto.alibaba_fee_usd !== undefined ? archivedLotto.alibaba_fee_usd : ((Number(archivedLotto.costo_prodotti_usd || 0) + Number(archivedLotto.costo_spedizione_usd || 0)) * 0.03));
+    lotTotals.alibaba_fee_eur = isArchivedForn2 ? 0 : Number(archivedLotto.alibaba_fee_eur || 0);
   }
 
   const modifications = profitData.modifications || {};
@@ -18173,7 +19284,7 @@ app.post('/api/orders', async (req, res) => {
         carrello.some(it => it && (it.fornitura || it.torneo_id || it.codice_univoco))
       );
       const customer_shipping_eur = (isConvenzione || hasExplicitShippingLine || subtotal_eur >= 50.0) ? 0 : 2.00;
-      totale_pagato_cliente = Math.max(0, subtotal_eur - discount_eur + customer_shipping_eur);
+      totale_pagato_cliente = arrotondaTotaleCommerciale(Math.max(0, subtotal_eur - discount_eur + customer_shipping_eur));
     }
 
     // 1. Recupera tasso di cambio USD/EUR live o manuale da settings
@@ -22546,28 +23657,30 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
-  
-  // Esegui la pulizia immediata dell'archivio dei lotti all'avvio del server
-  try {
-    console.log("=== INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===");
-    pulisciLottiArchivio();
-    console.log("=== FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===");
-  } catch (err) {
-    console.error("⚠️ Errore pulizia lotti all'avvio:", err.message);
-  }
-  
-  // Inizializzazioni asincrone all'avvio
-  setTimeout(async () => {
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+    
+    // Esegui la pulizia immediata dell'archivio dei lotti all'avvio del server
     try {
-      console.log("=== CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===");
-      await loadSettingsFromSupabase();
-    } catch (e) {
-      console.error("⚠️ Errore caricamento impostazioni all'avvio:", e.message);
+      console.log("=== INIZIO PULIZIA AUTOMATICA ARCHIVIO LOTTI ===");
+      pulisciLottiArchivio();
+      console.log("=== FINE PULIZIA AUTOMATICA ARCHIVIO LOTTI ===");
+    } catch (err) {
+      console.error("⚠️ Errore pulizia lotti all'avvio:", err.message);
     }
-  }, 3000);
-});
+    
+    // Inizializzazioni asincrone all'avvio
+    setTimeout(async () => {
+      try {
+        console.log("=== CARICAMENTO IMPOSTAZIONI DA SUPABASE ALL'AVVIO ===");
+        await loadSettingsFromSupabase();
+      } catch (e) {
+        console.error("⚠️ Errore caricamento impostazioni all'avvio:", e.message);
+      }
+    }, 3000);
+  });
+}
 
 export {
   app,
@@ -22578,5 +23691,8 @@ export {
   recalculateCurrentLotto,
   recalculateCurrentLottoInternal,
   isSupplierShippingEnabledForItem,
-  getItemShippingMultiplier
+  getItemShippingMultiplier,
+  extractShippingTiers,
+  getSettings,
+  saveSettings
 };

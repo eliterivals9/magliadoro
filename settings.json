@@ -1,4 +1,40 @@
 {
+  "fornitore_attivo": 1,
+  "fornitore2_prezzi": {},
+  "fornitore2_categorie_prezzi": {
+    "Kit": 9,
+    "Player": 9,
+    "Fan": 8,
+    "Retro": 10,
+    "Kit Allenamento": 13,
+    "Tuta Mezza zip": 24,
+    "Smanicati": 12,
+    "Maniche Lunghe": 11,
+    "Kit Bambino": 8,
+    "Portiere": 9,
+    "Antivento": 20,
+    "Tute Zip Intera": 30,
+    "Calzettoni": 2,
+    "Nome": 1,
+    "Numero": 1,
+    "Patch": 1
+  },
+  "fornitore2_spedizioneLotto": {
+    "tiers": [
+      {
+        "index": 1,
+        "min": 1,
+        "max": 4,
+        "cost": 5
+      },
+      {
+        "index": 2,
+        "min": 5,
+        "max": 200,
+        "cost": 0
+      }
+    ]
+  },
   "prezziPredefiniti": {
     "Kit": 26.99,
     "Player": 21.99,
@@ -7,10 +43,11 @@
     "Kit Allenamento": 25.99,
     "Tuta": 44.99,
     "Polo": 26.99,
-    "Smanicati": 26.99,
+    "Smanicato": 26.99,
     "Maniche Lunghe": 25.99,
     "Kit Bambino": 19.99,
-    "Portiere": 26.99
+    "Portiere": 26.99,
+    "Smanicati": 26.99
   },
   "regolePrezzi": {
     "Kit_Adulto": 23.99,
@@ -27,39 +64,41 @@
     "Tuta_Bambino": 40,
     "Polo_Adulto": 26.99,
     "Polo_Bambino": 21.99,
-    "Smanicati_Adulto": 26.99,
-    "Smanicati_Bambino": 21.99,
+    "Smanicato_Adulto": 26.99,
+    "Smanicato_Bambino": 21.99,
     "Maniche Lunghe_Adulto": 25.99,
     "Maniche Lunghe_Bambino": 21.99,
     "Kit Bambino_Adulto": 19.99,
     "Kit Bambino_Bambino": 19.99,
     "Portiere_Adulto": 26.99,
-    "Portiere_Bambino": 21.99
+    "Portiere_Bambino": 21.99,
+    "Smanicati_Adulto": 26.99,
+    "Smanicati_Bambino": 21.99
   },
   "spedizioneLotto": {
-    "range1_max": 2,
     "range1_min": 1,
-    "range2_max": 5,
-    "range2_min": 3,
-    "range3_max": 9,
-    "range3_min": 6,
-    "range4_max": 20,
-    "range4_min": 10,
-    "range5_max": 40,
-    "range5_min": 21,
-    "range6_max": 59,
-    "range6_min": 41,
-    "range7_max": 99,
-    "range7_min": 60,
-    "range8_max": 200,
-    "range8_min": 100,
+    "range1_max": 2,
     "range1_cost": 13,
+    "range2_min": 3,
+    "range2_max": 5,
     "range2_cost": 9,
+    "range3_min": 6,
+    "range3_max": 9,
     "range3_cost": 7,
+    "range4_min": 10,
+    "range4_max": 20,
     "range4_cost": 4,
+    "range5_min": 21,
+    "range5_max": 40,
     "range5_cost": 3,
+    "range6_min": 41,
+    "range6_max": 59,
     "range6_cost": 2,
+    "range7_min": 60,
+    "range7_max": 99,
     "range7_cost": 1,
+    "range8_min": 100,
+    "range8_max": 200,
     "range8_cost": 0
   },
   "cambioValuta": {
@@ -70,6 +109,7 @@
     "percentage": 3
   },
   "contatti": {
+    "whatsapp_number": "393282218320",
     "support_email": "admin2@store.com"
   },
   "valoriPredefiniti": {

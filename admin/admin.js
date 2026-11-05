@@ -2447,6 +2447,7 @@ window.apriDettaglioLotto = function(id) {
                 const numArticoli = estraiNumeroArticoli(order);
                 const cleanPhone = telefonoCliente.replace(/\D/g, '');
                 const waLink = cleanPhone ? `https://wa.me/${cleanPhone.startsWith('39') ? '' : '39'}${cleanPhone}` : '#';
+                const safeOrderId = (typeof escapeHtml === 'function') ? escapeHtml(String(order.id !== undefined && order.id !== null ? order.id : order.data)) : String(order.id !== undefined && order.id !== null ? order.id : order.data);
 
                 const costoFornitoreEur = order["Costo totale (EUR)"] || order.costo_totale_eur || '';
                 const costoFornitoreUsd = order["Costo totale (USD)"] || order.costo_totale_usd || '';
@@ -2483,11 +2484,16 @@ window.apriDettaglioLotto = function(id) {
                                     <h4 class="text-sm font-bold text-white leading-tight">${nomeCliente}</h4>
                                     <span class="text-[11px] text-[rgba(255,255,255,0.65)] font-mono block mt-0.5">📞 ${telefonoCliente}</span>
                                 </div>
-                                ${cleanPhone ? `
-                                    <a href="${waLink}" target="_blank" class="h-7 w-7 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner" title="Contatta su WhatsApp">
-                                        💬
-                                    </a>
-                                ` : ''}
+                                <div class="flex items-center gap-1.5">
+                                    ${cleanPhone ? `
+                                        <a href="${waLink}" target="_blank" class="h-7 w-7 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner" title="Contatta su WhatsApp">
+                                            💬
+                                        </a>
+                                    ` : ''}
+                                    <button onclick="apriModalRiepilogoCliente('${safeOrderId}')" type="button" class="h-7 w-7 bg-amber-950/20 text-brand-gold hover:bg-amber-900/40 border border-amber-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner cursor-pointer" title="Invia riepilogo al cliente">
+                                        ✈️
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- Items Box -->
@@ -2765,14 +2771,15 @@ function aggiornaStatisticheDashboard(force = false) {
         articoliLottoCorrenteTotali += estraiNumeroArticoli(o);
     });
 
-    // Alibaba Payment Fee (3% del costo fornitore in USD convertito in EUR)
+    // Alibaba Payment Fee (3% del costo fornitore in USD convertito in EUR per Fornitore 1, 0 per Fornitore 2)
     let alibabaFeeUsd = 0;
     let alibabaFeeEur = 0;
-    if (window.currentLottoData) {
-        alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd || 0);
-        alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur || 0);
+    const isForn2Active1 = (window.cachedSettings && Number(window.cachedSettings.fornitore_attivo) === 2) || (window.appSettings && Number(window.appSettings.fornitore_attivo) === 2) || (window.currentLottoData && Number(window.currentLottoData.fornitore_attivo) === 2);
+    if (window.currentLottoData && !isForn2Active1) {
+        alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd !== undefined ? window.currentLottoData.alibaba_fee_usd : 0);
+        alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur !== undefined ? window.currentLottoData.alibaba_fee_eur : 0);
     }
-    if (alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.costo_fornitore_usd) {
+    if (!isForn2Active1 && alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.alibaba_fee_usd === undefined && window.currentLottoData.costo_fornitore_usd) {
         alibabaFeeUsd = Number(window.currentLottoData.costo_fornitore_usd) * 0.03;
         const tasso = (window.cachedSettings && window.cachedSettings.exchangeRate) ? Number(window.cachedSettings.exchangeRate) : 1.05;
         alibabaFeeEur = alibabaFeeUsd * tasso;
@@ -2906,11 +2913,12 @@ function aggiornaStatisticheLottoCorrente() {
 
     let alibabaFeeUsd = 0;
     let alibabaFeeEur = 0;
-    if (window.currentLottoData) {
-        alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd || 0);
-        alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur || 0);
+    const isForn2Active2 = (window.cachedSettings && Number(window.cachedSettings.fornitore_attivo) === 2) || (window.appSettings && Number(window.appSettings.fornitore_attivo) === 2) || (window.currentLottoData && Number(window.currentLottoData.fornitore_attivo) === 2);
+    if (window.currentLottoData && !isForn2Active2) {
+        alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd !== undefined ? window.currentLottoData.alibaba_fee_usd : 0);
+        alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur !== undefined ? window.currentLottoData.alibaba_fee_eur : 0);
     }
-    if (alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.costo_fornitore_usd) {
+    if (!isForn2Active2 && alibabaFeeEur === 0 && window.currentLottoData && window.currentLottoData.alibaba_fee_usd === undefined && window.currentLottoData.costo_fornitore_usd) {
         alibabaFeeUsd = Number(window.currentLottoData.costo_fornitore_usd) * 0.03;
         const tasso = (window.cachedSettings && window.cachedSettings.exchangeRate) ? Number(window.cachedSettings.exchangeRate) : 1.05;
         alibabaFeeEur = alibabaFeeUsd * tasso;
@@ -5033,7 +5041,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
     currentActiveTab = tabId;
 
     // Sezioni appartenenti all'Area Secondaria
-    const secondaryTabs = ['recensioni', 'coupon', 'suddivisione-conti', 'gestione-catalogo', 'impostazioni', 'performance', 'strumenti'];
+    const secondaryTabs = ['recensioni', 'coupon', 'suddivisione-conti', 'gestione-catalogo', 'impostazioni', 'performance', 'fornitore', 'strumenti'];
 
     let activeMainTab = tabId;
     let activeSecondarySubTab = null;
@@ -5048,7 +5056,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'dashboard', 'prodotti', 'ordini', 'lotto', 
         'gestione-ordini', 'tracking', 'impostazioni', 'gestione-catalogo', 
         'recensioni', 'coupon', 'fornitura-tornei', 
-        'suddivisione-conti', 'performance', 'strumenti'
+        'suddivisione-conti', 'performance', 'fornitore', 'strumenti'
     ];
     
     // Mappa dei titoli dell'header
@@ -5065,7 +5073,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
         'coupon': 'Gestione Coupon Sconto',
         'fornitura-tornei': 'Fornitura Tornei & Eventi',
         'suddivisione-conti': 'Suddivisione Conti (Sergio & Riccardo)',
-        
+        'fornitore': 'Gestione Fornitore Attivo & Tariffe',
         'performance': 'Performance Sito Pubblico',
         'strumenti': 'Strumenti & Utilità'
     };
@@ -5109,7 +5117,7 @@ function switchTab(tabId, preserveSelectionMode = false) {
 
     // Aggiorna classi della sotto-navigazione dell'Area Secondaria
     if (activeMainTab === 'strumenti' && activeSecondarySubTab) {
-        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'gestione-catalogo', 'impostazioni', 'performance'];
+        const subnavIds = ['recensioni', 'coupon', 'suddivisione-conti', 'gestione-catalogo', 'impostazioni', 'performance', 'fornitore'];
         subnavIds.forEach(sub => {
             const subnavEl = document.getElementById(`subnav-${sub}`);
             if (subnavEl) {
@@ -5153,6 +5161,10 @@ function switchTab(tabId, preserveSelectionMode = false) {
         }
         if (tabId === 'gestione-catalogo' && typeof aggiornaMetricheSincronizzazioneImmagini === 'function') {
             aggiornaMetricheSincronizzazioneImmagini();
+        }
+    } else if (tabId === 'fornitore') {
+        if (typeof renderFornitoreSection === 'function') {
+            renderFornitoreSection();
         }
     } else if (tabId === 'gestione-ordini') {
         caricaGestioneOrdini();
@@ -5867,6 +5879,12 @@ function estraiArticoliOrdineConImmagini(order) {
                 pers = 'Nessuna';
             }
 
+            const rawSupplierPrice = (c.prezzo_fornitore !== undefined && c.prezzo_fornitore !== null && !isNaN(Number(c.prezzo_fornitore))) 
+                ? Number(c.prezzo_fornitore)
+                : ((c.costo_unitario_fornitore !== undefined && c.costo_unitario_fornitore !== null && !isNaN(Number(c.costo_unitario_fornitore)))
+                    ? Number(c.costo_unitario_fornitore)
+                    : null);
+
             items.push({
                 id: c.id || null,
                 legacy_id: c.legacy_id || null,
@@ -5882,6 +5900,7 @@ function estraiArticoliOrdineConImmagini(order) {
                 is_prezzo_fornitore: Boolean(c.is_prezzo_fornitore || c.origine_prezzo === 'fornitore'),
                 origine_prezzo: c.origine_prezzo || (c.is_prezzo_fornitore ? 'fornitore' : null),
                 totale_concordato: (c.totale_concordato !== undefined && c.totale_concordato !== null) ? parseFloat(c.totale_concordato) : null,
+                prezzo_fornitore: rawSupplierPrice,
                 infoPerso: pers,
                 imgUrl: imgUrl
             });
@@ -6161,6 +6180,29 @@ function calcolaSpedizioneClienteOrdine(order) {
  * Calcola in modo centralizzato e matematicamente coerente il riepilogo economico dell'ordine:
  * Subtotale Prodotti + Spedizione Cliente - Sconti Coupon = Totale Incassato Reale
  */
+
+function arrotondaTotaleCommerciale(val) {
+    if (val === null || val === undefined || isNaN(Number(val))) return 0;
+    const num = Number(val);
+    if (num <= 0) return 0;
+
+    const totalCents = Math.round(num * 100);
+    const euros = Math.floor(totalCents / 100);
+    const cents = totalCents % 100;
+
+    let roundedCents = 0;
+    if (cents >= 0 && cents <= 24) {
+        roundedCents = 0;
+    } else if (cents >= 25 && cents <= 74) {
+        roundedCents = 50;
+    } else if (cents >= 75 && cents <= 99) {
+        roundedCents = 100;
+    }
+
+    return (euros * 100 + roundedCents) / 100;
+}
+window.arrotondaTotaleCommerciale = arrotondaTotaleCommerciale;
+
 function calcolaRiepilogoFinanziarioOrdine(order) {
     if (!order) {
         return {
@@ -6244,13 +6286,14 @@ function calcolaRiepilogoFinanziarioOrdine(order) {
     const computedCostoEur = Number((costoTotaleUsd * cambioValuta).toFixed(2));
     const costoTotaleEur = (costoTotaleUsd > 0 && cambioValuta > 0) ? computedCostoEur : (rawCostoEur > 0 ? rawCostoEur : 0);
 
-    let totaleIncassato = 0;
+    let totaleOriginale = 0;
     if (isFornitoreCoupon || isAllPrezzoFornitore) {
-        totaleIncassato = subtotaleProdotti; // Spedizione cliente = €0,00
+        totaleOriginale = subtotaleProdotti; // Spedizione cliente = €0,00
     } else {
         // Formula coerente: Subtotale Prodotti + Spedizione Cliente - Sconti Coupon
-        totaleIncassato = Math.max(0, subtotaleProdotti + spedizioneCliente - couponDiscount);
+        totaleOriginale = Math.max(0, subtotaleProdotti + spedizioneCliente - couponDiscount);
     }
+    const totaleIncassato = arrotondaTotaleCommerciale(totaleOriginale);
 
     const isExcludedFromProfit = Boolean(
         order && (
@@ -6269,6 +6312,7 @@ function calcolaRiepilogoFinanziarioOrdine(order) {
         spedizioneCliente,
         couponDiscount,
         couponCode,
+        totaleOriginale,
         totaleIncassato,
         costoProdottiUsd,
         costoSpedizioneUsd,
@@ -6318,6 +6362,20 @@ function renderOrderItemsHTML(order) {
         const hasRealPriceDiff = Math.abs(itemTot - origTot) >= 0.009 || hasMultipleTiers;
         const hasCustomPrice = (item.ha_prezzo_concordato || item.prezzo_concordato !== null || hasMultipleTiers) && hasRealPriceDiff;
 
+        const cambioValuta = parseFlexibleDecimal(order["Cambio USD/EUR"] || order.cambio_usd_eur || window.appSettings?.cambio_usd_eur) || 0.92;
+        const hasSupplierPrice = item.prezzo_fornitore !== null && item.prezzo_fornitore !== undefined && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0;
+        const supplierPriceUsd = hasSupplierPrice ? Number(item.prezzo_fornitore) : null;
+        const supplierPriceEur = hasSupplierPrice ? Number((supplierPriceUsd * cambioValuta).toFixed(2)) : null;
+
+        const supplierPriceBadge = hasSupplierPrice
+            ? `<div class="text-[10px] text-slate-300 font-sans flex items-center gap-1 mt-0.5">
+                <span>📦 Costo fornitore:</span>
+                <strong class="text-amber-300 font-mono font-bold">$${supplierPriceUsd.toFixed(2).replace('.', ',')} (€${supplierPriceEur.toFixed(2).replace('.', ',')})</strong>
+               </div>`
+            : `<div class="text-[10px] text-slate-500 font-sans italic mt-0.5">
+                📦 Costo fornitore non disponibile
+               </div>`;
+
         return `
             <div class="flex items-center gap-3 py-2.5 border-b border-[rgba(255,255,255,0.08)] last:border-0">
                 <!-- Thumbnail Immagine Prodotto -->
@@ -6362,6 +6420,8 @@ function renderOrderItemsHTML(order) {
                         <span class="text-xs">✍️</span> 
                         <span>Pers.: <strong class="${item.infoPerso !== 'Nessuna' ? 'text-brand-gold font-bold' : 'text-[rgba(255,255,255,0.5)] font-normal'}">${item.infoPerso}</strong></span>
                     </div>
+
+                    ${supplierPriceBadge}
                 </div>
             </div>
         `;
@@ -6705,11 +6765,16 @@ function renderOrdini() {
                                 <h4 class="text-sm font-bold text-white leading-tight">${nomeCliente}</h4>
                                 <span class="text-[11px] text-[rgba(255,255,255,0.65)] font-mono block mt-0.5">📞 ${telefonoCliente}</span>
                             </div>
-                            ${cleanPhone ? `
-                                <a href="${waLink}" target="_blank" class="h-7 w-7 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner" title="Contatta su WhatsApp">
-                                    💬
-                                </a>
-                            ` : ''}
+                            <div class="flex items-center gap-1.5">
+                                ${cleanPhone ? `
+                                    <a href="${waLink}" target="_blank" class="h-7 w-7 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner" title="Contatta su WhatsApp">
+                                        💬
+                                    </a>
+                                ` : ''}
+                                <button onclick="apriModalRiepilogoCliente('${safeOrderId}')" type="button" class="h-7 w-7 bg-amber-950/20 text-brand-gold hover:bg-amber-900/40 border border-amber-900/30 rounded-full flex items-center justify-center text-xs transition-all shadow-inner cursor-pointer" title="Invia riepilogo al cliente">
+                                    ✈️
+                                </button>
+                            </div>
                         </div>
                     `}
                     
@@ -6725,91 +6790,97 @@ function renderOrdini() {
                     </div>
 
                     <!-- Riepilogo Economico -->
-                    <div class="bg-[#0B0B0B] p-4 rounded-xl border border-[rgba(255,255,255,0.08)] space-y-3 font-sans">
+                    <div class="bg-[#0B0B0B] p-3.5 rounded-xl border border-[rgba(255,255,255,0.08)] space-y-3 font-sans">
                         <div class="text-[10px] font-bold text-[rgba(255,255,255,0.65)] uppercase tracking-wider">Riepilogo Finanziario</div>
                         
-                        <div class="space-y-1.5 text-xs text-[rgba(255,255,255,0.88)]">
+                        <div class="space-y-3 text-xs text-[rgba(255,255,255,0.88)]">
                             ${(() => {
                                 const fin = calcolaRiepilogoFinanziarioOrdine(order);
                                 const sign = fin.profittoEur >= 0 ? '+' : '';
                                 return `
-                                <!-- Subtotale prodotti -->
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
-                                    <span class="font-mono font-semibold text-white">€ ${fin.subtotaleProdotti.toFixed(2).replace('.', ',')}</span>
-                                </div>
-                                <!-- Coupon (se presente) -->
-                                ${fin.couponDiscount > 0 || fin.couponCode ? `
-                                <div class="flex justify-between items-center py-0.5 text-emerald-400 font-medium">
-                                    <span class="flex items-center gap-1">
-                                        <span>🎟️</span> Coupon: <strong class="font-bold uppercase">${fin.couponCode || 'SCONTO'}</strong>
-                                    </span>
-                                    <span class="font-mono font-bold">-€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}</span>
-                                </div>
-                                ` : ''}
-                                <!-- Spedizione cliente -->
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-[rgba(255,255,255,0.65)]">Spedizione Cliente:</span>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="font-mono font-bold text-white">${fin.spedInfo.labelHtml}</span>
-                                        ${fin.spedInfo.isOverride ? `
-                                        <button type="button" onclick="event.stopPropagation(); window.toggleSpedizioneClienteAdmin('${safeOrderId}', false)" class="text-[10px] text-amber-300 hover:text-white bg-amber-950/70 hover:bg-amber-900 px-1.5 py-0.5 rounded border border-amber-800/80 font-bold transition cursor-pointer" title="Ripristina spedizione cliente calcolata">
-                                            Ripristina
-                                        </button>
-                                        ` : (fin.spedizioneCliente > 0 ? `
-                                        <button type="button" onclick="event.stopPropagation(); window.toggleSpedizioneClienteAdmin('${safeOrderId}', true)" class="text-[10px] text-rose-300 hover:text-white bg-rose-950/70 hover:bg-rose-900 px-1.5 py-0.5 rounded border border-rose-800/80 font-bold transition cursor-pointer" title="Azzera spedizione cliente per questo ordine">
-                                            Rimuovi
-                                        </button>
-                                        ` : '')}
+                                <!-- SEZIONE A: INCASSI CLIENTE (VENDITA) -->
+                                <div class="space-y-1">
+                                    <div class="text-[9px] font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1 pb-1 border-b border-emerald-950/40">
+                                        <span>💰</span> INCASSI CLIENTE (VENDITA)
+                                    </div>
+                                    <div class="flex justify-between items-center py-0.5">
+                                        <span class="text-[rgba(255,255,255,0.65)]">Subtotale Prodotti:</span>
+                                        <span class="font-mono font-semibold text-white">€ ${fin.subtotaleProdotti.toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                    ${fin.couponDiscount > 0 || fin.couponCode ? `
+                                    <div class="flex justify-between items-center py-0.5 text-emerald-400 font-medium">
+                                        <span class="flex items-center gap-1">
+                                            <span>🎟️</span> Coupon: <strong class="font-bold uppercase">${fin.couponCode || 'SCONTO'}</strong>
+                                        </span>
+                                        <span class="font-mono font-bold">-€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div class="flex justify-between items-center py-0.5">
+                                        <span class="text-[rgba(255,255,255,0.65)]" title="Spedizione addebitata al cliente per la consegna">Spedizione Addebitata al Cliente:</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-mono font-bold text-white">${fin.spedInfo.labelHtml}</span>
+                                            ${fin.spedInfo.isOverride ? `
+                                            <button type="button" onclick="event.stopPropagation(); window.toggleSpedizioneClienteAdmin('${safeOrderId}', false)" class="text-[10px] text-amber-300 hover:text-white bg-amber-950/70 hover:bg-amber-900 px-1.5 py-0.5 rounded border border-amber-800/80 font-bold transition cursor-pointer" title="Ripristina spedizione cliente calcolata">
+                                                Ripristina
+                                            </button>
+                                            ` : (fin.spedizioneCliente > 0 ? `
+                                            <button type="button" onclick="event.stopPropagation(); window.toggleSpedizioneClienteAdmin('${safeOrderId}', true)" class="text-[10px] text-rose-300 hover:text-white bg-rose-950/70 hover:bg-rose-900 px-1.5 py-0.5 rounded border border-rose-800/80 font-bold transition cursor-pointer" title="Azzera spedizione cliente per questo ordine">
+                                                Rimuovi
+                                            </button>
+                                            ` : '')}
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center py-1 border-t border-dashed border-[rgba(255,255,255,0.1)] font-bold">
+                                        <span class="text-white font-bold">Totale Incassato Cliente:</span>
+                                        <span class="font-extrabold text-emerald-400 font-mono text-sm">€ ${fin.totaleIncassato.toFixed(2).replace('.', ',')}</span>
                                     </div>
                                 </div>
-                                <!-- Totale Incassato -->
-                                <div class="flex justify-between items-center py-1 border-b border-dashed border-[rgba(255,255,255,0.08)] font-bold">
-                                    <span class="text-white font-bold">Totale Incassato:</span>
-                                    <span class="font-extrabold text-white font-mono text-sm">€ ${fin.totaleIncassato.toFixed(2).replace('.', ',')}</span>
+
+                                <!-- SEZIONE B: COSTI FORNITORE (ACQUISTO & LOGISTICA) -->
+                                <div class="space-y-1 pt-1 border-t border-[rgba(255,255,255,0.08)]">
+                                    <div class="text-[9px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1 pb-1 border-b border-amber-950/40">
+                                        <span>📦</span> COSTI FORNITORE (ACQUISTO & LOGISTICA)
+                                    </div>
+                                    <div class="flex justify-between items-center py-0.5">
+                                        <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
+                                        <span class="font-mono font-semibold text-white">
+                                            € ${(fin.costoProdottiUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
+                                            <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoProdottiUsd.toFixed(2).replace('.', ',')})</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-0.5">
+                                        <span class="text-[rgba(255,255,255,0.65)]" title="Costo logistico pagato al fornitore per il lotto">Spedizione Fornitore (Costo Logistico):</span>
+                                        <span class="font-mono font-semibold text-white">
+                                            € ${(fin.costoSpedizioneUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
+                                            <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoSpedizioneUsd.toFixed(2).replace('.', ',')})</span>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-1 border-t border-dashed border-[rgba(255,255,255,0.1)] font-bold">
+                                        <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale Fornitore:</span>
+                                        <span class="font-mono font-black text-white text-sm">
+                                            € ${fin.costoTotaleEur.toFixed(2).replace('.', ',')} 
+                                            <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${fin.costoTotaleUsd.toFixed(2).replace('.', ',')})</span>
+                                        </span>
+                                    </div>
+                                    <!-- Margine Reale (Profitto) -->
+                                    ${fin.isExcludedFromProfit ? `
+                                    <div class="flex justify-between items-center p-2 bg-amber-950/20 rounded-lg border border-amber-900/30 mt-1">
+                                        <span class="text-amber-400 font-extrabold text-xs uppercase tracking-tight flex items-center gap-1">
+                                            <span>🚫</span> Profitto Escluso:
+                                        </span>
+                                        <span class="font-mono font-black text-amber-400 text-sm">
+                                            € 0,00 <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal font-sans">(Calcolato: € ${fin.calculatedProfitEur.toFixed(2).replace('.', ',')})</span>
+                                        </span>
+                                    </div>
+                                    ` : `
+                                    <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-1">
+                                        <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale (Profitto Netto):</span>
+                                        <span class="font-mono font-black text-emerald-400 text-sm">
+                                            ${sign}€ ${fin.profittoEur.toFixed(2).replace('.', ',')}
+                                        </span>
+                                    </div>
+                                    `}
                                 </div>
-                                <!-- Costo Prodotti -->
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-[rgba(255,255,255,0.65)]">Costo Prodotti (Fornitore):</span>
-                                    <span class="font-mono font-semibold text-white">
-                                        € ${(fin.costoProdottiUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
-                                        <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoProdottiUsd.toFixed(2).replace('.', ',')})</span>
-                                    </span>
-                                </div>
-                                <!-- Spedizione Fornitore -->
-                                <div class="flex justify-between items-center py-0.5">
-                                    <span class="text-[rgba(255,255,255,0.65)]">Spedizione Fornitore (Costo):</span>
-                                    <span class="font-mono font-semibold text-white">
-                                        € ${(fin.costoSpedizioneUsd * fin.cambioValuta).toFixed(2).replace('.', ',')} 
-                                        <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal">($${fin.costoSpedizioneUsd.toFixed(2).replace('.', ',')})</span>
-                                    </span>
-                                </div>
-                                <!-- Costo Totale Reale -->
-                                <div class="flex justify-between items-center py-1.5 border-t border-[rgba(255,255,255,0.08)] mt-1 font-bold">
-                                    <span class="text-[rgba(255,255,255,0.88)] font-extrabold text-xs uppercase tracking-tight">Costo Totale Reale:</span>
-                                    <span class="font-mono font-black text-white text-sm">
-                                        € ${fin.costoTotaleEur.toFixed(2).replace('.', ',')} 
-                                        <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-bold">($${fin.costoTotaleUsd.toFixed(2).replace('.', ',')})</span>
-                                    </span>
-                                </div>
-                                <!-- Margine Reale (Profitto) -->
-                                ${fin.isExcludedFromProfit ? `
-                                <div class="flex justify-between items-center p-2 bg-amber-950/20 rounded-lg border border-amber-900/30 mt-2">
-                                    <span class="text-amber-400 font-extrabold text-xs uppercase tracking-tight flex items-center gap-1">
-                                        <span>🚫</span> Profitto Escluso:
-                                    </span>
-                                    <span class="font-mono font-black text-amber-400 text-sm">
-                                        € 0,00 <span class="text-[10px] text-[rgba(255,255,255,0.5)] font-normal font-sans">(Calcolato: € ${fin.calculatedProfitEur.toFixed(2).replace('.', ',')})</span>
-                                    </span>
-                                </div>
-                                ` : `
-                                <div class="flex justify-between items-center p-2 bg-emerald-950/20 rounded-lg border border-emerald-900/30 mt-2">
-                                    <span class="text-emerald-400 font-bold text-xs uppercase tracking-tight">Margine Reale:</span>
-                                    <span class="font-mono font-black text-emerald-400 text-sm">
-                                        ${sign}€ ${fin.profittoEur.toFixed(2).replace('.', ',')}
-                                    </span>
-                                </div>
-                                `}
                                 `;
                             })()}
                         </div>
@@ -29880,9 +29951,768 @@ async function salvaVenditaFuoriCatalogo() {
 }
 window.salvaVenditaFuoriCatalogo = salvaVenditaFuoriCatalogo;
 
+/* ========================================================
+   SEZIONE GESTIONE FORNITORE ATTIVO & TARIFFE FORNITORE 2
+   ======================================================== */
+
+let selectedFornitoreFormState = null;
+
+async function renderFornitoreSection() {
+    if (!window.appSettings || Object.keys(window.appSettings).length === 0) {
+        if (typeof caricaSettings === 'function') {
+            await caricaSettings();
+        }
+    }
+
+    if (!window.prodotti || !Array.isArray(window.prodotti) || window.prodotti.length === 0) {
+        if (typeof caricaProdotti === 'function') {
+            await caricaProdotti();
+        }
+    }
+
+    if (!window.accessori || !Array.isArray(window.accessori) || window.accessori.length === 0) {
+        try {
+            const res = await fetch('/api/accessories');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.accessories)) {
+                    window.accessori = data.accessories.filter(a => a && a.stato !== 'disattivato' && a.disponibile !== false);
+                }
+            }
+        } catch (e) {
+            console.warn("⚠️ Avviso caricamento accessori per Fornitore 2:", e);
+        }
+    }
+
+    renderFornitoreAttivoCard();
+    renderTabellaPrezziFornitore2();
+    renderTabellaSpedizioneFornitore2();
+}
+
+function renderFornitoreAttivoCard() {
+    const badgeContainer = document.getElementById('fornitore-attivo-badge-container');
+    const currentActive = window.appSettings && Number(window.appSettings.fornitore_attivo) === 2 ? 2 : 1;
+    
+    if (selectedFornitoreFormState === null) {
+        selectedFornitoreFormState = currentActive;
+    }
+
+    if (badgeContainer) {
+        if (currentActive === 2) {
+            badgeContainer.innerHTML = `
+                <span class="px-3 py-1.5 bg-amber-100 text-amber-800 border border-amber-200/80 rounded-xl font-extrabold text-xs flex items-center gap-1.5 shadow-sm">
+                    <span>🟠</span> Fornitore 2 Attivo
+                </span>
+            `;
+        } else {
+            badgeContainer.innerHTML = `
+                <span class="px-3 py-1.5 bg-blue-100 text-blue-800 border border-blue-200/80 rounded-xl font-extrabold text-xs flex items-center gap-1.5 shadow-sm">
+                    <span>🔵</span> Fornitore 1 Attivo (Default / Storico)
+                </span>
+            `;
+        }
+    }
+
+    // Aggiorna i radio button
+    const radioVal = selectedFornitoreFormState;
+    const radios = document.getElementsByName('fornitore_attivo_radio');
+    if (radios && radios.length > 0) {
+        radios.forEach(r => {
+            r.checked = (Number(r.value) === radioVal);
+        });
+    }
+
+    // Evidenzia visivamente la scheda selezionata nel form
+    const card1 = document.getElementById('card-option-fornitore-1');
+    const card2 = document.getElementById('card-option-fornitore-2');
+    if (card1) {
+        if (radioVal === 1) {
+            card1.className = "border-2 border-brand-gold bg-brand-gold/5 rounded-2xl p-4 flex items-start gap-3.5 cursor-pointer shadow-sm transition-all";
+        } else {
+            card1.className = "border-2 border-slate-200 rounded-2xl p-4 flex items-start gap-3.5 cursor-pointer hover:border-brand-gold/60 transition-all bg-slate-50/50";
+        }
+    }
+    if (card2) {
+        if (radioVal === 2) {
+            card2.className = "border-2 border-brand-gold bg-brand-gold/5 rounded-2xl p-4 flex items-start gap-3.5 cursor-pointer shadow-sm transition-all";
+        } else {
+            card2.className = "border-2 border-slate-200 rounded-2xl p-4 flex items-start gap-3.5 cursor-pointer hover:border-brand-gold/60 transition-all bg-slate-50/50";
+        }
+    }
+}
+
+function selezionaFornitoreAttivoInForm(val) {
+    selectedFornitoreFormState = Number(val) === 2 ? 2 : 1;
+    renderFornitoreAttivoCard();
+}
+
+async function salvaFornitoreAttivoSelection() {
+    const selectedVal = selectedFornitoreFormState || 1;
+
+    try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ settings: { fornitore_attivo: selectedVal } })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            if (data.settings) window.appSettings = data.settings;
+            if (data.lotto) window.currentLotto = data.lotto;
+            showToast(`✅ Fornitore ${selectedVal} attivato! Ricalcolo automatico completato.`, "success");
+            renderFornitoreAttivoCard();
+            if (typeof caricaDati === 'function') caricaDati();
+            if (typeof caricaLotto === 'function') caricaLotto();
+            if (typeof caricaStatisticheDashboard === 'function') caricaStatisticheDashboard();
+            if (typeof caricaOrdini === 'function') caricaOrdini();
+        } else {
+            selectedFornitoreFormState = window.appSettings ? Number(window.appSettings.fornitore_attivo || 1) : 1;
+            renderFornitoreAttivoCard();
+            showToast("Errore durante il salvataggio: " + (data.error || "Sconosciuto"), "error");
+        }
+    } catch (err) {
+        selectedFornitoreFormState = window.appSettings ? Number(window.appSettings.fornitore_attivo || 1) : 1;
+        renderFornitoreAttivoCard();
+        showToast("Errore di rete durante il salvataggio: " + err.message, "error");
+    }
+}
+
+const CATEGORIE_FORNITORE2 = [
+    { key: 'Kit', nome: 'Kit', note: 'Kit completo Adulto', defaultPrice: 9.00 },
+    { key: 'Player', nome: 'Player', note: 'Maglia versione Player (Adulto e Bambino)', defaultPrice: 9.00 },
+    { key: 'Fan', nome: 'Fan', note: 'Maglia versione Fan (Adulto e Bambino)', defaultPrice: 8.00 },
+    { key: 'Retro', nome: 'Retro', note: 'Maglia versione Retro', defaultPrice: 10.00 },
+    { key: 'Kit Allenamento', nome: 'Kit Allenamento', note: 'Completo da allenamento', defaultPrice: 13.00 },
+    { key: 'Tuta Mezza zip', nome: 'Tuta Mezza zip', note: 'Tuta sportiva con mezza zip', defaultPrice: 24.00 },
+    { key: 'Smanicati', nome: 'Smanicati', note: 'Smanicato / Gilet sportivo', defaultPrice: 12.00 },
+    { key: 'Maniche Lunghe', nome: 'Maniche Lunghe', note: 'Maglia a manica lunga', defaultPrice: 11.00 },
+    { key: 'Kit Bambino', nome: 'Kit Bambino', note: 'Kit completo da bambino', defaultPrice: 8.00 },
+    { key: 'Portiere', nome: 'Portiere', note: 'Kit / Maglia da portiere', defaultPrice: 9.00 },
+    { key: 'Antivento', nome: 'Antivento', note: 'Giacca antivento impermeabile', defaultPrice: 20.00 },
+    { key: 'Tute Zip Intera', nome: 'Tute Zip Intera', note: 'Tuta completa con zip intera', defaultPrice: 30.00 }
+];
+
+const ACCESSORI_FORNITORE2 = [
+    { key: 'Calzettoni', nome: 'Calzettoni', regola: 'Prezzo al paio (Spedizione $0)', defaultPrice: 2.00 },
+    { key: 'Nome', nome: 'Nome', regola: 'Personalizzazione nome singolo ($1)', defaultPrice: 1.00 },
+    { key: 'Numero', nome: 'Numero', regola: 'Personalizzazione numero singolo ($1)', defaultPrice: 1.00 },
+    { key: 'Patch', nome: 'Patch', regola: 'Prezzo per singola patch applicata ($1)', defaultPrice: 1.00 }
+];
+
+function renderTabellaPrezziFornitore2() {
+    const tbodyCat = document.getElementById('fornitore2-categorie-tbody');
+    const tbodyAcc = document.getElementById('fornitore2-accessori-tbody');
+
+    if (!window.appSettings) window.appSettings = {};
+    if (!window.appSettings.fornitore2_categorie_prezzi) {
+        window.appSettings.fornitore2_categorie_prezzi = {};
+    }
+    const catMap = window.appSettings.fornitore2_categorie_prezzi;
+
+    if (tbodyCat) {
+        tbodyCat.innerHTML = CATEGORIE_FORNITORE2.map(cat => {
+            const configuredVal = catMap[cat.key];
+            const hasValue = configuredVal !== undefined && configuredVal !== null && configuredVal !== "" && !isNaN(Number(configuredVal));
+            const currentPrice = hasValue ? Number(configuredVal) : cat.defaultPrice;
+
+            const badgeStato = hasValue
+                ? `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-md font-extrabold text-[10px] inline-flex items-center gap-1"><span>✓</span> Personalizzato</span>`
+                : `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-md font-bold text-[10px] inline-flex items-center gap-1"><span>⚙️</span> Default ($${cat.defaultPrice.toFixed(2)})</span>`;
+
+            return `
+                <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0">
+                    <td class="px-4 py-3">
+                        <span class="font-extrabold text-slate-900 block text-xs">${escapeHtml(cat.nome)}</span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-500 text-xs">
+                        ${escapeHtml(cat.note)}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="relative max-w-[140px]">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 font-mono text-xs">$</span>
+                            <input type="number" step="0.50" min="0" id="f2-cat-price-${escapeHtml(cat.key)}" 
+                                value="${currentPrice.toFixed(2)}" 
+                                data-cat-key="${escapeHtml(cat.key)}"
+                                class="f2-cat-price-input w-full pl-6 pr-2 py-1.5 bg-white border border-slate-300 font-bold text-slate-900 rounded-xl text-xs font-mono focus:outline-none focus:border-brand-gold">
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        ${badgeStato}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    if (tbodyAcc) {
+        tbodyAcc.innerHTML = ACCESSORI_FORNITORE2.map(acc => {
+            const configuredVal = catMap[acc.key];
+            const hasValue = configuredVal !== undefined && configuredVal !== null && configuredVal !== "" && !isNaN(Number(configuredVal));
+            const currentPrice = hasValue ? Number(configuredVal) : acc.defaultPrice;
+
+            const badgeStato = hasValue
+                ? `<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-md font-extrabold text-[10px] inline-flex items-center gap-1"><span>✓</span> Personalizzato</span>`
+                : `<span class="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-md font-bold text-[10px] inline-flex items-center gap-1"><span>⚙️</span> Default ($${acc.defaultPrice.toFixed(2)})</span>`;
+
+            return `
+                <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0">
+                    <td class="px-4 py-3">
+                        <span class="font-extrabold text-slate-900 block text-xs">${escapeHtml(acc.nome)}</span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-500 text-xs">
+                        ${escapeHtml(acc.regola)}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="relative max-w-[140px]">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 font-mono text-xs">$</span>
+                            <input type="number" step="0.50" min="0" id="f2-acc-price-${escapeHtml(acc.key)}" 
+                                value="${currentPrice.toFixed(2)}" 
+                                data-acc-key="${escapeHtml(acc.key)}"
+                                class="f2-acc-price-input w-full pl-6 pr-2 py-1.5 bg-white border border-slate-300 font-bold text-slate-900 rounded-xl text-xs font-mono focus:outline-none focus:border-brand-gold">
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        ${badgeStato}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+}
+
+async function salvaPrezziFornitore2() {
+    if (!window.appSettings) window.appSettings = {};
+    if (!window.appSettings.fornitore2_categorie_prezzi) {
+        window.appSettings.fornitore2_categorie_prezzi = {};
+    }
+
+    const updatedCatMap = { ...window.appSettings.fornitore2_categorie_prezzi };
+    let hasError = false;
+
+    const catInputs = document.querySelectorAll('.f2-cat-price-input');
+    catInputs.forEach(input => {
+        const key = input.getAttribute('data-cat-key');
+        if (!key) return;
+        const valStr = input.value.trim();
+        if (valStr !== "") {
+            const num = parseFloat(valStr);
+            if (isNaN(num) || num < 0) {
+                hasError = true;
+                input.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                updatedCatMap[key] = Number(num.toFixed(2));
+            }
+        }
+    });
+
+    const accInputs = document.querySelectorAll('.f2-acc-price-input');
+    accInputs.forEach(input => {
+        const key = input.getAttribute('data-acc-key');
+        if (!key) return;
+        const valStr = input.value.trim();
+        if (valStr !== "") {
+            const num = parseFloat(valStr);
+            if (isNaN(num) || num < 0) {
+                hasError = true;
+                input.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50');
+                updatedCatMap[key] = Number(num.toFixed(2));
+            }
+        }
+    });
+
+    if (hasError) {
+        showToast("Impossibile salvare: inserisci prezzi numerici validi e non negativi.", "error");
+        return;
+    }
+
+    window.appSettings.fornitore2_categorie_prezzi = updatedCatMap;
+
+    try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ settings: { fornitore2_categorie_prezzi: updatedCatMap } })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            if (data.settings) window.appSettings = data.settings;
+            if (data.lotto) window.currentLotto = data.lotto;
+            showToast("✅ Listino Fornitore 2 per Categorie salvato con successo!", "success");
+            renderTabellaPrezziFornitore2();
+            if (typeof caricaDati === 'function') caricaDati();
+            if (typeof caricaLotto === 'function') caricaLotto();
+            if (typeof caricaStatisticheDashboard === 'function') caricaStatisticheDashboard();
+            if (typeof caricaOrdini === 'function') caricaOrdini();
+        } else {
+            showToast("Errore durante il salvataggio del listino: " + (data.error || "Sconosciuto"), "error");
+        }
+    } catch (err) {
+        showToast("Errore di rete durante il salvataggio del listino: " + err.message, "error");
+    }
+}
+
+function renderTabellaSpedizioneFornitore2() {
+    const tbody = document.getElementById('fornitore2-spedizione-tbody');
+    if (!tbody) return;
+
+    if (!window.appSettings) window.appSettings = {};
+
+    const defaultForn2Tiers = [
+        { index: 1, min: 1, max: 4, cost: 5.0 },
+        { index: 2, min: 5, max: 200, cost: 0.0 }
+    ];
+
+    let f2Tiers = defaultForn2Tiers;
+    if (window.appSettings.fornitore2_spedizioneLotto && typeof window.appSettings.fornitore2_spedizioneLotto === 'object') {
+        if (typeof extractShippingTiers === 'function') {
+            const extracted = extractShippingTiers({ spedizioneLotto: window.appSettings.fornitore2_spedizioneLotto }, true);
+            if (extracted && extracted.length > 0) {
+                f2Tiers = extracted;
+            }
+        }
+    }
+
+    tbody.innerHTML = f2Tiers.map((tier, idx) => {
+        const tierNum = idx + 1;
+        const isFree = Number(tier.cost) === 0;
+        return `
+            <tr class="f2-shipping-row hover:bg-slate-50/80 transition-colors border-b border-slate-100 last:border-0" data-index="${tierNum}">
+                <td class="px-4 py-3 font-extrabold text-slate-800 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span>Scaglione #${tierNum}</span>
+                        ${isFree ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md font-bold text-[10px]">Gratis 🎉</span>' : ''}
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <input type="number" min="1" id="f2-shipping-min-${tierNum}" value="${tier.min || 1}" class="f2-ship-min w-24 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-brand-gold">
+                </td>
+                <td class="px-4 py-3">
+                    <input type="number" min="1" id="f2-shipping-max-${tierNum}" value="${tier.max || 200}" class="f2-ship-max w-24 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-brand-gold">
+                </td>
+                <td class="px-4 py-3">
+                    <div class="relative max-w-[140px]">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 font-mono text-xs">$</span>
+                        <input type="number" step="0.50" min="0" id="f2-shipping-cost-${tierNum}" value="${Number(tier.cost || 0).toFixed(2)}" class="f2-ship-cost w-full pl-6 pr-2 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-brand-gold">
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function salvaSpedizioneFornitore2() {
+    if (!window.appSettings) window.appSettings = {};
+
+    const rows = document.querySelectorAll('.f2-shipping-row');
+    const tiers = [];
+    let hasError = false;
+
+    rows.forEach((row, idx) => {
+        const minEl = row.querySelector('.f2-ship-min');
+        const maxEl = row.querySelector('.f2-ship-max');
+        const costEl = row.querySelector('.f2-ship-cost');
+
+        if (!minEl || !maxEl || !costEl) return;
+
+        const min = parseInt(minEl.value, 10);
+        const max = parseInt(maxEl.value, 10);
+        const cost = parseFloat(costEl.value);
+
+        if (isNaN(min) || min < 1 || isNaN(max) || max < min || isNaN(cost) || cost < 0) {
+            hasError = true;
+            minEl.classList.add('border-red-500');
+            maxEl.classList.add('border-red-500');
+            costEl.classList.add('border-red-500');
+        } else {
+            minEl.classList.remove('border-red-500');
+            maxEl.classList.remove('border-red-500');
+            costEl.classList.remove('border-red-500');
+
+            tiers.push({
+                index: idx + 1,
+                min: min,
+                max: max,
+                cost: Number(cost.toFixed(2))
+            });
+        }
+    });
+
+    if (hasError || tiers.length === 0) {
+        showToast("Errore di validazione: controlla che Min <= Max e Costo >= 0 per tutti gli scaglioni.", "error");
+        return;
+    }
+
+    const payloadSpedizione = { tiers: tiers };
+    window.appSettings.fornitore2_spedizioneLotto = payloadSpedizione;
+
+    try {
+        const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
+            body: JSON.stringify({ settings: { fornitore2_spedizioneLotto: payloadSpedizione } })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            if (data.settings) window.appSettings = data.settings;
+            if (data.lotto) window.currentLotto = data.lotto;
+            showToast("✅ Tariffe di spedizione Fornitore 2 salvate con successo!", "success");
+            renderTabellaSpedizioneFornitore2();
+            if (typeof caricaDati === 'function') caricaDati();
+            if (typeof caricaLotto === 'function') caricaLotto();
+            if (typeof caricaStatisticheDashboard === 'function') caricaStatisticheDashboard();
+            if (typeof caricaOrdini === 'function') caricaOrdini();
+        } else {
+            showToast("Errore durante il salvataggio della spedizione: " + (data.error || "Sconosciuto"), "error");
+        }
+    } catch (err) {
+        showToast("Errore di rete durante il salvataggio della spedizione: " + err.message, "error");
+    }
+}
+
+function copiaTariffeSpedizioneDaFornitore1() {
+    if (!window.appSettings) window.appSettings = {};
+    const f1Tiers = (typeof extractShippingTiers === 'function')
+        ? extractShippingTiers({ spedizioneLotto: window.appSettings.spedizioneLotto })
+        : [];
+
+    if (f1Tiers.length > 0) {
+        f1Tiers.forEach((tier, idx) => {
+            const tierNum = idx + 1;
+            const minEl = document.getElementById(`f2-shipping-min-${tierNum}`);
+            const maxEl = document.getElementById(`f2-shipping-max-${tierNum}`);
+            const costEl = document.getElementById(`f2-shipping-cost-${tierNum}`);
+            if (minEl) minEl.value = tier.min || 1;
+            if (maxEl) maxEl.value = tier.max || 200;
+            if (costEl) costEl.value = Number(tier.cost || 0).toFixed(2);
+        });
+        showToast("📋 Tariffe copiate da Fornitore 1. Clicca su 'Salva Spedizione Fornitore 2' per confermare.", "info");
+    } else {
+        showToast("Nessuna tariffa Fornitore 1 trovata da copiare.", "warning");
+    }
+}
+
+window.renderFornitoreSection = renderFornitoreSection;
+window.renderFornitoreAttivoCard = renderFornitoreAttivoCard;
+window.selezionaFornitoreAttivoInForm = selezionaFornitoreAttivoInForm;
+window.salvaFornitoreAttivoSelection = salvaFornitoreAttivoSelection;
+window.renderTabellaPrezziFornitore2 = renderTabellaPrezziFornitore2;
+window.salvaPrezziFornitore2 = salvaPrezziFornitore2;
+window.renderTabellaSpedizioneFornitore2 = renderTabellaSpedizioneFornitore2;
+window.salvaSpedizioneFornitore2 = salvaSpedizioneFornitore2;
+window.copiaTariffeSpedizioneDaFornitore1 = copiaTariffeSpedizioneDaFornitore1;
 
 
 
 
 
 
+
+
+
+
+// ==========================================
+// RIEPILOGO ORDINE CLIENTE (WHATSAPP PREVIEW)
+// ==========================================
+
+let currentRiepilogoOrdine = null;
+
+function trovaOrdineInSistema(orderIdOrData) {
+    if (!orderIdOrData) return null;
+    const strId = String(orderIdOrData).trim();
+    if (!Array.isArray(ordini)) return null;
+    return ordini.find(o => 
+        String(o.id) === strId || 
+        String(o.data) === strId ||
+        (o.id && String(o.id) === strId.replace(/^id_/, '')) ||
+        (o.data && String(o.data) === strId.replace(/^data_/, ''))
+    ) || null;
+}
+
+function normalizzaNumeroPerWhatsApp(telefono) {
+    if (!telefono) return '';
+    let clean = String(telefono).replace(/\D/g, '');
+    if (!clean) return '';
+    if (clean.length === 10 && clean.startsWith('3')) {
+        clean = '39' + clean;
+    }
+    return clean;
+}
+
+function apriModalRiepilogoCliente(orderIdOrData) {
+    const order = trovaOrdineInSistema(orderIdOrData);
+    if (!order) {
+        if (typeof showToast === 'function') showToast("Impossibile trovare l'ordine selezionato.", "error");
+        return;
+    }
+
+    currentRiepilogoOrdine = order;
+
+    const cronoIndexMap = (typeof costruisciMappaIndiciCronologici === 'function') ? costruisciMappaIndiciCronologici(ordini) : new Map();
+    const key = order.id ? `id_${Number(order.id)}` : `data_${order.data}`;
+    const displayIndex = cronoIndexMap.get(key) || order.id || '1';
+    order.displayIndex = displayIndex;
+
+    const modal = document.getElementById('modal-riepilogo-cliente');
+    if (!modal) return;
+
+    // Headings
+    const idEl = document.getElementById('modal-riepilogo-order-id');
+    const dateEl = document.getElementById('modal-riepilogo-order-date');
+    const nameEl = document.getElementById('modal-riepilogo-customer-name');
+    const phoneEl = document.getElementById('modal-riepilogo-customer-phone');
+    const countEl = document.getElementById('modal-riepilogo-items-count');
+
+    if (idEl) idEl.textContent = `ORD-#${displayIndex}`;
+    if (dateEl) dateEl.textContent = (typeof formattaDataOraOrdine === 'function') ? formattaDataOraOrdine(order) : (order.data || '');
+    if (nameEl) nameEl.textContent = order.nome || 'Cliente';
+    if (phoneEl) phoneEl.textContent = `📞 ${order.telefono || 'N/D'}`;
+
+    // Render items list
+    const items = (typeof estraiArticoliOrdineConImmagini === 'function') ? estraiArticoliOrdineConImmagini(order) : [];
+    if (countEl) countEl.textContent = `${items.length} unit${items.length === 1 ? 'à' : 'à'}`;
+
+    const itemsContainer = document.getElementById('modal-riepilogo-items-container');
+    const placeholderImg = "https://placehold.co/100x120/111111/d6a43a?text=Maglia";
+
+    if (itemsContainer) {
+        if (items.length === 0) {
+            itemsContainer.innerHTML = `<div class="py-4 text-center text-xs text-slate-400 italic">Nessun articolo rilevato per questo ordine.</div>`;
+        } else {
+            itemsContainer.innerHTML = items.map(item => {
+                const imgUrl = item.imgUrl || placeholderImg;
+                const qty = item.quantita || 1;
+                const unitPrice = Number(item.prezzo) || 0;
+                const itemTotal = (item.totale_concordato !== null && item.totale_concordato !== undefined && !isNaN(Number(item.totale_concordato)))
+                    ? Number(Number(item.totale_concordato).toFixed(2))
+                    : Number((unitPrice * qty).toFixed(2));
+
+                const safeName = (typeof escapeHtml === 'function') ? escapeHtml(item.nome || 'Prodotto') : (item.nome || 'Prodotto');
+                const safeCat = (typeof escapeHtml === 'function') ? escapeHtml(item.categoria || '') : (item.categoria || '');
+                const safeTaglia = (typeof escapeHtml === 'function') ? escapeHtml(item.taglia || 'N/D') : (item.taglia || 'N/D');
+                const safePers = (typeof escapeHtml === 'function') ? escapeHtml(item.infoPerso || 'Nessuna') : (item.infoPerso || 'Nessuna');
+
+                return `
+                    <div class="flex items-center gap-3 py-3 first:pt-0">
+                        <div class="w-12 h-14 bg-slate-100 border border-slate-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center p-1">
+                            <img src="${imgUrl}" alt="${safeName}" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='${placeholderImg}';" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-900 leading-tight truncate">${safeName}</h5>
+                                    ${safeCat ? `<span class="text-[10px] text-slate-500 block">${safeCat}</span>` : ''}
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <span class="text-xs font-mono font-bold text-slate-900">€ ${itemTotal.toFixed(2).replace('.', ',')}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono block">${qty}x € ${unitPrice.toFixed(2).replace('.', ',')}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1 text-[10px] flex-wrap">
+                                <span class="px-1.5 py-0.5 bg-slate-200 text-slate-700 font-bold rounded">Taglia: ${safeTaglia}</span>
+                                ${safePers && safePers !== 'Nessuna' ? `
+                                    <span class="px-1.5 py-0.5 bg-amber-100 text-amber-900 font-bold rounded">✏️ ${safePers}</span>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    // Financial totals (CUSTOMER FACING ONLY)
+    const fin = (typeof calcolaRiepilogoFinanziarioOrdine === 'function') ? calcolaRiepilogoFinanziarioOrdine(order) : { subtotaleProdotti: 0, spedizioneCliente: 0, totaleIncassato: 0, couponDiscount: 0 };
+    const subtotalEl = document.getElementById('modal-riepilogo-subtotal');
+    const shippingEl = document.getElementById('modal-riepilogo-shipping');
+    const grandTotalEl = document.getElementById('modal-riepilogo-grand-total');
+    const couponRowEl = document.getElementById('modal-riepilogo-coupon-row');
+    const couponCodeEl = document.getElementById('modal-riepilogo-coupon-code');
+    const couponAmountEl = document.getElementById('modal-riepilogo-coupon-amount');
+
+    if (subtotalEl) subtotalEl.textContent = `€ ${fin.subtotaleProdotti.toFixed(2).replace('.', ',')}`;
+    if (shippingEl) shippingEl.textContent = fin.spedizioneCliente === 0 ? 'GRATUITA' : `€ ${fin.spedizioneCliente.toFixed(2).replace('.', ',')}`;
+    if (grandTotalEl) grandTotalEl.textContent = `€ ${fin.totaleIncassato.toFixed(2).replace('.', ',')}`;
+
+    if (couponRowEl) {
+        if (fin.couponDiscount > 0) {
+            couponRowEl.classList.remove('hidden');
+            if (couponCodeEl) couponCodeEl.textContent = fin.couponCode || 'Coupon';
+            if (couponAmountEl) couponAmountEl.textContent = `-€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}`;
+        } else {
+            couponRowEl.classList.add('hidden');
+        }
+    }
+
+    // Default message
+    const msgTa = document.getElementById('modal-riepilogo-closing-message');
+    if (msgTa) {
+        msgTa.value = "Grazie per aver scelto Maglia d'Oro! Per qualsiasi chiarimento o aggiornamento sulla tua spedizione, siamo a tua completa disposizione.";
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function chiudiModalRiepilogoCliente() {
+    const modal = document.getElementById('modal-riepilogo-cliente');
+    if (modal) modal.classList.add('hidden');
+    currentRiepilogoOrdine = null;
+}
+
+function generaTestoRiepilogoClienteWhatsApp(order, closingMsg) {
+    if (!order) return '';
+
+    const items = (typeof estraiArticoliOrdineConImmagini === 'function') ? estraiArticoliOrdineConImmagini(order) : [];
+    const fin = (typeof calcolaRiepilogoFinanziarioOrdine === 'function') ? calcolaRiepilogoFinanziarioOrdine(order) : { subtotaleProdotti: 0, spedizioneCliente: 0, totaleIncassato: 0, couponDiscount: 0 };
+    const nomeCliente = order.nome || 'Gentile Cliente';
+    const displayIndex = order.displayIndex || order.id || 'N/D';
+    const dataOrdine = (typeof formattaDataOraOrdine === 'function') ? formattaDataOraOrdine(order) : (order.data || '');
+
+    let text = `👑 *MAGLIA D'ORO — Riepilogo Ordine*\n`;
+    text += `───────────────────────\n`;
+    text += `📌 *Ordine:* #${displayIndex}\n`;
+    text += `📅 *Data:* ${dataOrdine}\n`;
+    text += `👤 *Cliente:* ${nomeCliente}\n\n`;
+
+    text += `🛍️ *ARTICOLI ORDINATI:*\n`;
+    if (items.length === 0) {
+        text += `• Nessun articolo specificato\n`;
+    } else {
+        items.forEach((item, idx) => {
+            const qty = item.quantita || 1;
+            const nome = item.nome || 'Prodotto';
+            const cat = item.categoria ? ` (${item.categoria})` : '';
+            const taglia = item.taglia ? ` | Taglia: ${item.taglia}` : '';
+            
+            const unitPrice = Number(item.prezzo) || 0;
+            const itemTotal = (item.totale_concordato !== null && item.totale_concordato !== undefined && !isNaN(Number(item.totale_concordato)))
+                ? Number(Number(item.totale_concordato).toFixed(2))
+                : Number((unitPrice * qty).toFixed(2));
+            
+            text += `\n${idx + 1}. *${qty}x ${nome}${cat}*\n`;
+            if (taglia) text += `   • Taglia: *${item.taglia}*\n`;
+            
+            if (item.infoPerso && item.infoPerso !== 'Nessuna') {
+                text += `   • Personalizzazione: *${item.infoPerso}*\n`;
+            }
+            
+            text += `   • Prezzo: *€ ${itemTotal.toFixed(2).replace('.', ',')}*\n`;
+        });
+    }
+
+    text += `\n───────────────────────\n`;
+    text += `💰 *RIEPILOGO FINANZIARIO:*\n`;
+    text += `Subtotale Prodotti: € ${fin.subtotaleProdotti.toFixed(2).replace('.', ',')}\n`;
+
+    if (fin.couponDiscount > 0) {
+        const cCode = fin.couponCode ? ` (${fin.couponCode})` : '';
+        text += `Sconto / Coupon${cCode}: -€ ${fin.couponDiscount.toFixed(2).replace('.', ',')}\n`;
+    }
+
+    if (fin.spedizioneCliente === 0) {
+        text += `Spedizione: GRATUITA\n`;
+    } else {
+        text += `Spedizione: € ${fin.spedizioneCliente.toFixed(2).replace('.', ',')}\n`;
+    }
+
+    text += `\n⭐ *TOTALE DA PAGARE: € ${fin.totaleIncassato.toFixed(2).replace('.', ',')}*\n`;
+    text += `───────────────────────\n\n`;
+
+    const messageToUse = (closingMsg !== undefined && closingMsg !== null && closingMsg.trim() !== '') 
+        ? closingMsg.trim() 
+        : "Grazie per aver scelto Maglia d'Oro! Per qualsiasi chiarimento o aggiornamento sulla tua spedizione, siamo a tua completa disposizione.";
+
+    text += `${messageToUse}\n\n`;
+    text += `✨ *Maglia d'Oro* — Qualità & Passione`;
+
+    return text;
+}
+
+function inviaRiepilogoWhatsAppCliente() {
+    if (!currentRiepilogoOrdine) return;
+    const phone = normalizzaNumeroPerWhatsApp(currentRiepilogoOrdine.telefono);
+    const closingMsg = document.getElementById('modal-riepilogo-closing-message')?.value || '';
+    const text = generaTestoRiepilogoClienteWhatsApp(currentRiepilogoOrdine, closingMsg);
+    
+    const encodedText = encodeURIComponent(text);
+    if (!phone) {
+        if (typeof showToast === 'function') showToast("Numero di telefono cliente non presente. Apertura WhatsApp in corso...", "warning");
+        window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        return;
+    }
+
+    const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedText}`;
+    window.open(waUrl, '_blank');
+    if (typeof showToast === 'function') {
+        showToast("WhatsApp aperto con messaggio precompilato!", "success");
+    }
+}
+
+function copiaTestoRiepilogoCliente() {
+    if (!currentRiepilogoOrdine) return;
+    const closingMsg = document.getElementById('modal-riepilogo-closing-message')?.value || '';
+    const text = generaTestoRiepilogoClienteWhatsApp(currentRiepilogoOrdine, closingMsg);
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (typeof showToast === 'function') showToast("Riepilogo copiato negli appunti!", "success");
+        }).catch(() => {
+            copiaTestoFallback(text);
+        });
+    } else {
+        copiaTestoFallback(text);
+    }
+}
+
+function copiaTestoFallback(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        if (typeof showToast === 'function') showToast("Riepilogo copiato negli appunti!", "success");
+    } catch(e) {
+        if (typeof showToast === 'function') showToast("Impossibile copiare automaticamente.", "error");
+    }
+    document.body.removeChild(ta);
+}
+
+window.apriModalRiepilogoCliente = apriModalRiepilogoCliente;
+window.chiudiModalRiepilogoCliente = chiudiModalRiepilogoCliente;
+window.copiaTestoRiepilogoCliente = copiaTestoRiepilogoCliente;
+window.inviaRiepilogoWhatsAppCliente = inviaRiepilogoWhatsAppCliente;
+
+async function scaricaExcelRiepilogoCliente() {
+    if (!currentRiepilogoOrdine) {
+        if (typeof showToast === 'function') showToast("Nessun ordine selezionato per l'esportazione.", "error");
+        return;
+    }
+
+    const orderId = currentRiepilogoOrdine.id || currentRiepilogoOrdine.data;
+    if (!orderId) {
+        if (typeof showToast === 'function') showToast("ID ordine non valido.", "error");
+        return;
+    }
+
+    const rawName = currentRiepilogoOrdine.nome || currentRiepilogoOrdine.registered_name || 'Cliente';
+    const cleanName = String(rawName).replace(/[\\/:*?"<>|]/g, '').trim().replace(/\s+/g, '_') || 'Cliente';
+    const orderNum = currentRiepilogoOrdine.displayIndex || currentRiepilogoOrdine.id || '1';
+    const filename = `Riepilogo_Ordine_${orderNum}_${cleanName}.xlsx`;
+
+    if (typeof showToast === 'function') showToast("Generazione file Excel in corso...", "info");
+
+    const downloadUrl = `/api/admin/orders/${encodeURIComponent(orderId)}/excel`;
+    const success = await downloadAuthenticatedFile(downloadUrl, filename);
+    if (success) {
+        if (typeof showToast === 'function') showToast("File Excel scaricato con successo!", "success");
+    }
+}
+window.scaricaExcelRiepilogoCliente = scaricaExcelRiepilogoCliente;
