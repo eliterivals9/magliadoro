@@ -10256,6 +10256,59 @@ body {
                 box-shadow: none !important;
             }
 
+            /* PAGINA RISULTATI RICERCA - SFONDO BIANCO #FFFFFF UNIFORMATO ALLA HOMEPAGE */
+            #pagina-ricerca,
+            #pagina-ricerca main,
+            #pagina-ricerca .sezione-pagina {
+                background-color: #FFFFFF !important;
+                background: #FFFFFF !important;
+                color: #111111 !important;
+                min-height: 100vh;
+            }
+
+            #pagina-ricerca #titolo-ricerca {
+                color: #111111 !important;
+                font-weight: 800 !important;
+            }
+
+            #pagina-ricerca #sottotitolo-ricerca {
+                color: #595959 !important;
+            }
+
+            #pagina-ricerca #ordinamento-ricerca-container {
+                background-color: #FFFFFF !important;
+                background: #FFFFFF !important;
+                border: 1px solid #E8E7E2 !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            #pagina-ricerca #ordinamento-ricerca-container label {
+                color: #111111 !important;
+            }
+
+            #pagina-ricerca #ordinamento-ricerca-container select.select-premium {
+                background-color: #FFFFFF !important;
+                background: #FFFFFF !important;
+                border: 1px solid #DCD9D0 !important;
+                color: #111111 !important;
+            }
+
+            #pagina-ricerca #ordinamento-ricerca-container select.select-premium option {
+                background-color: #FFFFFF !important;
+                color: #111111 !important;
+            }
+
+            #pagina-ricerca #btn-reset-filtri-ricerca {
+                background-color: #F7F6F2 !important;
+                border: 1px solid #DCD9D0 !important;
+                color: #111111 !important;
+            }
+
+            #pagina-ricerca #btn-reset-filtri-ricerca:hover {
+                background-color: #E8E7E2 !important;
+                color: #111111 !important;
+            }
+
             /* GRIGLIA PRODOTTI: Espansa al 100% della Larghezza */
             #pagina-club #contenitore-club-griglia,
             #vista-prodotti-club #contenitore-club-griglia,
@@ -10264,7 +10317,10 @@ body {
             #pagina-mondiali #contenitore-nazionali-griglia,
             #vista-prodotti-nazionali #contenitore-nazionali-griglia,
             #pagina-mondiali.in-vista-prodotti #contenitore-nazionali-griglia.griglia-maglie,
-            #pagina-mondiali.in-vista-prodotti .griglia-maglie {
+            #pagina-mondiali.in-vista-prodotti .griglia-maglie,
+            #pagina-ricerca #contenitore-ricerca-griglia,
+            #pagina-ricerca #contenitore-ricerca-griglia.griglia-maglie,
+            #pagina-ricerca .griglia-maglie {
                 width: 100% !important;
                 display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -10284,7 +10340,7 @@ body {
                 box-sizing: border-box !important;
             }
 
-            /* CARD PRODOTTO SEZIONE CLUB, NAZIONALI E ACCESSORI - Stile Editoriale Griglia */
+            /* CARD PRODOTTO SEZIONE CLUB, NAZIONALI, ACCESSORI E RICERCA - Stile Editoriale Griglia */
             #contenitore-club-griglia > .card-prodotto-editoriale,
             #contenitore-club-griglia > .card-maglia,
             #contenitore-nazionali-griglia > .card-prodotto-editoriale,
@@ -10292,6 +10348,8 @@ body {
             #contenitore-accessori-griglia > .card-prodotto-editoriale,
             #contenitore-accessori-griglia > .card-maglia,
             #contenitore-accessori-griglia > .card-accessorio,
+            #contenitore-ricerca-griglia > .card-prodotto-editoriale,
+            #contenitore-ricerca-griglia > .card-maglia,
             #pagina-club .card-prodotto-editoriale,
             #pagina-club #contenitore-club-griglia .card-prodotto-editoriale,
             #vista-prodotti-club .card-prodotto-editoriale,
@@ -10309,7 +10367,11 @@ body {
             #pagina-accessori .card-maglia,
             #pagina-accessori .card-accessorio,
             #pagina-accessori #contenitore-accessori-griglia .card-maglia,
-            #pagina-accessori #contenitore-accessori-griglia .card-accessorio {
+            #pagina-accessori #contenitore-accessori-griglia .card-accessorio,
+            #pagina-ricerca .card-prodotto-editoriale,
+            #pagina-ricerca #contenitore-ricerca-griglia .card-prodotto-editoriale,
+            #pagina-ricerca .card-maglia,
+            #pagina-ricerca #contenitore-ricerca-griglia .card-maglia {
                 flex: none !important;
                 width: 100% !important;
                 min-width: 0 !important;
@@ -10349,7 +10411,11 @@ body {
             #pagina-accessori .card-maglia:hover,
             #pagina-accessori .card-accessorio:hover,
             #pagina-accessori #contenitore-accessori-griglia .card-maglia:hover,
-            #pagina-accessori #contenitore-accessori-griglia .card-accessorio:hover {
+            #pagina-accessori #contenitore-accessori-griglia .card-accessorio:hover,
+            #pagina-ricerca .card-prodotto-editoriale:hover,
+            #pagina-ricerca #contenitore-ricerca-griglia .card-prodotto-editoriale:hover,
+            #pagina-ricerca .card-maglia:hover,
+            #pagina-ricerca #contenitore-ricerca-griglia .card-maglia:hover {
                 transform: translateY(-3px) !important;
                 box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
                 border-color: rgba(214, 164, 58, 0.4) !important;
@@ -10366,7 +10432,9 @@ body {
             #vista-prodotti-nazionali .card-maglia:focus-within,
             #pagina-accessori .card-prodotto-editoriale:focus-within,
             #pagina-accessori .card-maglia:focus-within,
-            #pagina-accessori .card-accessorio:focus-within {
+            #pagina-accessori .card-accessorio:focus-within,
+            #pagina-ricerca .card-prodotto-editoriale:focus-within,
+            #pagina-ricerca .card-maglia:focus-within {
                 border-color: #111111 !important;
                 outline: 2px solid #111111 !important;
                 outline-offset: -1px !important;
@@ -10382,7 +10450,9 @@ body {
             #vista-prodotti-nazionali .contenitore-foto,
             #pagina-accessori .card-prodotto-foto-box,
             #pagina-accessori .contenitore-foto,
-            #pagina-accessori .area-immagine-accessorio {
+            #pagina-accessori .area-immagine-accessorio,
+            #pagina-ricerca .card-prodotto-foto-box,
+            #pagina-ricerca .contenitore-foto {
                 position: relative !important;
                 width: 100% !important;
                 min-width: 0 !important;
@@ -10413,7 +10483,9 @@ body {
             #vista-prodotti-nazionali .foto-maglia,
             #pagina-accessori .card-prodotto-foto,
             #pagina-accessori .foto-maglia,
-            #pagina-accessori .foto-accessorio {
+            #pagina-accessori .foto-accessorio,
+            #pagina-ricerca .card-prodotto-foto,
+            #pagina-ricerca .foto-maglia {
                 width: 100% !important;
                 height: 100% !important;
                 max-width: 100% !important;
@@ -10438,7 +10510,9 @@ body {
             #vista-prodotti-nazionali .card-prodotto-foto-box:hover .card-foto-zoom-badge,
             #vista-prodotti-nazionali .card-prodotto-foto-box:focus-visible .card-foto-zoom-badge,
             #pagina-accessori .card-prodotto-foto-box:hover .card-foto-zoom-badge,
-            #pagina-accessori .card-prodotto-foto-box:focus-visible .card-foto-zoom-badge {
+            #pagina-accessori .card-prodotto-foto-box:focus-visible .card-foto-zoom-badge,
+            #pagina-ricerca .card-prodotto-foto-box:hover .card-foto-zoom-badge,
+            #pagina-ricerca .card-prodotto-foto-box:focus-visible .card-foto-zoom-badge {
                 opacity: 1 !important;
                 transform: scale(1) !important;
                 color: #D6A43A !important;
@@ -10449,7 +10523,8 @@ body {
             #vista-prodotti-club .badge-card,
             #pagina-mondiali .badge-card,
             #vista-prodotti-nazionali .badge-card,
-            #pagina-accessori .badge-card {
+            #pagina-accessori .badge-card,
+            #pagina-ricerca .badge-card {
                 position: absolute !important;
                 top: 10px !important;
                 left: 10px !important;
@@ -10469,7 +10544,8 @@ body {
             #vista-prodotti-club .badge-card-tipo,
             #pagina-mondiali .badge-card-tipo,
             #vista-prodotti-nazionali .badge-card-tipo,
-            #pagina-accessori .badge-card-tipo {
+            #pagina-accessori .badge-card-tipo,
+            #pagina-ricerca .badge-card-tipo {
                 display: flex !important;
                 position: absolute !important;
                 top: 10px !important;
@@ -10499,7 +10575,9 @@ body {
             #pagina-mondiali .wishlist-heart-btn,
             #vista-prodotti-nazionali .wishlist-heart-btn,
             #pagina-accessori .card-heart-btn,
-            #pagina-accessori .wishlist-heart-btn {
+            #pagina-accessori .wishlist-heart-btn,
+            #pagina-ricerca .card-heart-btn,
+            #pagina-ricerca .wishlist-heart-btn {
                 position: absolute !important;
                 top: 12px !important;
                 right: 12px !important;
@@ -10529,7 +10607,9 @@ body {
             #pagina-mondiali .wishlist-heart-btn:hover,
             #vista-prodotti-nazionali .wishlist-heart-btn:hover,
             #pagina-accessori .card-heart-btn:hover,
-            #pagina-accessori .wishlist-heart-btn:hover {
+            #pagina-accessori .wishlist-heart-btn:hover,
+            #pagina-ricerca .card-heart-btn:hover,
+            #pagina-ricerca .wishlist-heart-btn:hover {
                 background: #FFFFFF !important;
                 border-color: #111111 !important;
                 transform: scale(1.1) !important;
@@ -10544,7 +10624,9 @@ body {
             #pagina-mondiali .wishlist-heart-btn.salvato,
             #vista-prodotti-nazionali .wishlist-heart-btn.salvato,
             #pagina-accessori .card-heart-btn.salvato,
-            #pagina-accessori .wishlist-heart-btn.salvato {
+            #pagina-accessori .wishlist-heart-btn.salvato,
+            #pagina-ricerca .card-heart-btn.salvato,
+            #pagina-ricerca .wishlist-heart-btn.salvato {
                 background: #FFF5F5 !important;
                 border-color: #FEB2B2 !important;
             }
@@ -10559,7 +10641,9 @@ body {
             #vista-prodotti-nazionali .info-maglia,
             #pagina-accessori .card-prodotto-info,
             #pagina-accessori .info-maglia,
-            #pagina-accessori .info-accessorio {
+            #pagina-accessori .info-accessorio,
+            #pagina-ricerca .card-prodotto-info,
+            #pagina-ricerca .info-maglia {
                 padding: 14px 16px 18px 16px !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -10578,7 +10662,8 @@ body {
             #vista-prodotti-club .card-prodotto-kicker,
             #pagina-mondiali .card-prodotto-kicker,
             #vista-prodotti-nazionali .card-prodotto-kicker,
-            #pagina-accessori .card-prodotto-kicker {
+            #pagina-accessori .card-prodotto-kicker,
+            #pagina-ricerca .card-prodotto-kicker {
                 font-size: 11px !important;
                 font-weight: 700 !important;
                 color: #D6A43A !important;
@@ -10588,14 +10673,16 @@ body {
                 margin-bottom: 4px !important;
             }
 
-            /* CARD PRODOTTO SEZIONE CLUB, NAZIONALI E ACCESSORI - Contenitori e Titolo */
+            /* CARD PRODOTTO SEZIONE CLUB, NAZIONALI, ACCESSORI E RICERCA - Contenitori e Titolo */
             #contenitore-club-griglia .card-prodotto-editoriale,
             #contenitore-club-griglia .card-maglia,
             #contenitore-nazionali-griglia .card-prodotto-editoriale,
             #contenitore-nazionali-griglia .card-maglia,
             #contenitore-accessori-griglia .card-prodotto-editoriale,
             #contenitore-accessori-griglia .card-maglia,
-            #contenitore-accessori-griglia .card-accessorio {
+            #contenitore-accessori-griglia .card-accessorio,
+            #contenitore-ricerca-griglia .card-prodotto-editoriale,
+            #contenitore-ricerca-griglia .card-maglia {
                 height: auto !important;
                 min-height: 100% !important;
                 overflow: visible !important;
@@ -10607,7 +10694,9 @@ body {
             #contenitore-nazionali-griglia .info-maglia,
             #contenitore-accessori-griglia .card-prodotto-info,
             #contenitore-accessori-griglia .info-maglia,
-            #contenitore-accessori-griglia .info-accessorio {
+            #contenitore-accessori-griglia .info-accessorio,
+            #contenitore-ricerca-griglia .card-prodotto-info,
+            #contenitore-ricerca-griglia .info-maglia {
                 width: 100% !important;
                 min-width: 0 !important;
                 height: auto !important;
@@ -10617,7 +10706,9 @@ body {
             #contenitore-club-griglia .testo-info,
             #contenitore-nazionali-griglia .testo-info,
             #contenitore-accessori-griglia .testo-info,
-            #pagina-accessori .testo-info {
+            #pagina-accessori .testo-info,
+            #contenitore-ricerca-griglia .testo-info,
+            #pagina-ricerca .testo-info {
                 width: 100% !important;
                 min-width: 0 !important;
                 height: auto !important;
@@ -10634,7 +10725,11 @@ body {
             #contenitore-accessori-griglia h3,
             #pagina-accessori .card-prodotto-titolo,
             #pagina-accessori h3,
-            #pagina-accessori .card-accessorio h3 {
+            #pagina-accessori .card-accessorio h3,
+            #contenitore-ricerca-griglia .card-prodotto-titolo,
+            #contenitore-ricerca-griglia h3,
+            #pagina-ricerca .card-prodotto-titolo,
+            #pagina-ricerca h3 {
                 color: #111111 !important;
                 -webkit-text-fill-color: #111111 !important;
                 opacity: 1 !important;
@@ -10668,7 +10763,13 @@ body {
             #contenitore-accessori-griglia .card-prodotto-titolo:hover,
             #contenitore-accessori-griglia .card-prodotto-titolo:focus,
             #contenitore-accessori-griglia h3:hover,
-            #contenitore-accessori-griglia h3:focus {
+            #contenitore-accessori-griglia h3:focus,
+            #contenitore-ricerca-griglia .card-prodotto-titolo:hover,
+            #contenitore-ricerca-griglia .card-prodotto-titolo:focus,
+            #contenitore-ricerca-griglia h3:hover,
+            #contenitore-ricerca-griglia h3:focus,
+            #pagina-ricerca .card-prodotto-titolo:hover,
+            #pagina-ricerca h3:hover {
                 color: #111111 !important;
                 -webkit-text-fill-color: #111111 !important;
                 text-decoration: none !important;
@@ -10681,7 +10782,9 @@ body {
             #pagina-mondiali .card-prodotto-footer,
             #vista-prodotti-nazionali .card-prodotto-footer,
             #pagina-mondiali .dettagli-prezzo-bottone,
-            #vista-prodotti-nazionali .dettagli-prezzo-bottone {
+            #vista-prodotti-nazionali .dettagli-prezzo-bottone,
+            #pagina-ricerca .card-prodotto-footer,
+            #pagina-ricerca .dettagli-prezzo-bottone {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: space-between !important;
@@ -10717,7 +10820,8 @@ body {
             #pagina-club .card-prodotto-prezzo-wrap,
             #vista-prodotti-club .card-prodotto-prezzo-wrap,
             #pagina-mondiali .card-prodotto-prezzo-wrap,
-            #vista-prodotti-nazionali .card-prodotto-prezzo-wrap {
+            #vista-prodotti-nazionali .card-prodotto-prezzo-wrap,
+            #pagina-ricerca .card-prodotto-prezzo-wrap {
                 min-width: 0 !important;
                 display: flex !important;
                 align-items: baseline !important;
@@ -10761,7 +10865,11 @@ body {
             #pagina-accessori .card-accessorio .prezzo,
             #pagina-accessori .card-accessorio .prezzo-accessorio,
             #pagina-accessori .prezzo-accessorio,
-            #pagina-accessori .prezzo {
+            #pagina-accessori .prezzo,
+            #pagina-ricerca .card-prodotto-prezzo,
+            #pagina-ricerca #contenitore-ricerca-griglia .card-prodotto-prezzo,
+            #pagina-ricerca .card-maglia .prezzo,
+            #pagina-ricerca .card-prodotto-editoriale .prezzo {
                 font-size: 16.5px !important;
                 font-weight: 900 !important;
                 color: #111111 !important;
@@ -10779,7 +10887,10 @@ body {
             #pagina-mondiali .btn-card-personalizza,
             #vista-prodotti-nazionali .btn-card-personalizza,
             #pagina-mondiali .btn-configura,
-            #vista-prodotti-nazionali .btn-configura {
+            #vista-prodotti-nazionali .btn-configura,
+            #pagina-ricerca .btn-card-personalizza,
+            #pagina-ricerca #contenitore-ricerca-griglia .btn-card-personalizza,
+            #pagina-ricerca .btn-configura {
                 background: #111111 !important;
                 color: #FFFFFF !important;
                 border: none !important;
@@ -10847,13 +10958,16 @@ body {
             #pagina-accessori .btn-configura:hover,
             #pagina-accessori #contenitore-accessori-griglia .btn-configura:hover,
             #pagina-accessori .btn-accessorio:hover,
-            #pagina-accessori #contenitore-accessori-griglia .btn-accessorio:hover {
+            #pagina-accessori #contenitore-accessori-griglia .btn-accessorio:hover,
+            #pagina-ricerca .btn-card-personalizza:hover,
+            #pagina-ricerca #contenitore-ricerca-griglia .btn-card-personalizza:hover,
+            #pagina-ricerca .btn-configura:hover {
                 background: #D6A43A !important;
                 color: #000000 !important;
                 transform: none !important;
             }
 
-            /* PAGINAZIONE SEZIONE CLUB, NAZIONALI E ACCESSORI */
+            /* PAGINAZIONE SEZIONE CLUB, NAZIONALI, ACCESSORI E RICERCA */
             #pagina-club .contenitore-paginazione,
             #pagina-club #contenitore-club-griglia .contenitore-paginazione,
             #vista-prodotti-club .contenitore-paginazione,
@@ -10861,7 +10975,9 @@ body {
             #pagina-mondiali #contenitore-nazionali-griglia .contenitore-paginazione,
             #vista-prodotti-nazionali .contenitore-paginazione,
             #pagina-accessori .contenitore-paginazione,
-            #pagina-accessori #contenitore-accessori-griglia .contenitore-paginazione {
+            #pagina-accessori #contenitore-accessori-griglia .contenitore-paginazione,
+            #pagina-ricerca .contenitore-paginazione,
+            #pagina-ricerca #contenitore-ricerca-griglia .contenitore-paginazione {
                 grid-column: 1 / -1 !important;
                 display: flex !important;
                 flex-direction: column !important;
@@ -10903,7 +11019,10 @@ body {
             #vista-prodotti-nazionali .info-paginazione-badge strong,
             #pagina-accessori .info-paginazione-badge,
             #pagina-accessori .info-paginazione-badge *,
-            #pagina-accessori .info-paginazione-badge strong {
+            #pagina-accessori .info-paginazione-badge strong,
+            #pagina-ricerca .info-paginazione-badge,
+            #pagina-ricerca .info-paginazione-badge *,
+            #pagina-ricerca .info-paginazione-badge strong {
                 font-size: 13.5px !important;
                 font-weight: 500 !important;
                 color: #111111 !important;
@@ -10921,7 +11040,8 @@ body {
             #pagina-mondiali .info-paginazione-badge strong,
             #pagina-mondiali #contenitore-nazionali-griglia .info-paginazione-badge strong,
             #vista-prodotti-nazionali .info-paginazione-badge strong,
-            #pagina-accessori .info-paginazione-badge strong {
+            #pagina-accessori .info-paginazione-badge strong,
+            #pagina-ricerca .info-paginazione-badge strong {
                 color: #111111 !important;
                 -webkit-text-fill-color: #111111 !important;
                 font-weight: 700 !important;
@@ -10931,7 +11051,8 @@ body {
             #vista-prodotti-club .wrapper-tasti-paginazione,
             #pagina-mondiali .wrapper-tasti-paginazione,
             #vista-prodotti-nazionali .wrapper-tasti-paginazione,
-            #pagina-accessori .wrapper-tasti-paginazione {
+            #pagina-accessori .wrapper-tasti-paginazione,
+            #pagina-ricerca .wrapper-tasti-paginazione {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
@@ -10944,7 +11065,8 @@ body {
             #vista-prodotti-club .btn-paginazione,
             #pagina-mondiali .btn-paginazione,
             #vista-prodotti-nazionali .btn-paginazione,
-            #pagina-accessori .btn-paginazione {
+            #pagina-accessori .btn-paginazione,
+            #pagina-ricerca .btn-paginazione {
                 background: #FFFFFF !important;
                 background-color: #FFFFFF !important;
                 background-image: none !important;
@@ -10969,7 +11091,8 @@ body {
             #vista-prodotti-club .btn-paginazione-nav,
             #pagina-mondiali .btn-paginazione-nav,
             #vista-prodotti-nazionali .btn-paginazione-nav,
-            #pagina-accessori .btn-paginazione-nav {
+            #pagina-accessori .btn-paginazione-nav,
+            #pagina-ricerca .btn-paginazione-nav {
                 padding: 0 12px !important;
                 font-weight: 600 !important;
                 font-size: 12.5px !important;
@@ -10979,7 +11102,8 @@ body {
             #vista-prodotti-club .btn-paginazione:hover:not(:disabled):not(.disabilitato),
             #pagina-mondiali .btn-paginazione:hover:not(:disabled):not(.disabilitato),
             #vista-prodotti-nazionali .btn-paginazione:hover:not(:disabled):not(.disabilitato),
-            #pagina-accessori .btn-paginazione:hover:not(:disabled):not(.disabilitato) {
+            #pagina-accessori .btn-paginazione:hover:not(:disabled):not(.disabilitato),
+            #pagina-ricerca .btn-paginazione:hover:not(:disabled):not(.disabilitato) {
                 background: #F4F4F0 !important;
                 background-color: #F4F4F0 !important;
                 border-color: #111111 !important;
@@ -10990,7 +11114,8 @@ body {
             #vista-prodotti-club .btn-paginazione.attivo,
             #pagina-mondiali .btn-paginazione.attivo,
             #vista-prodotti-nazionali .btn-paginazione.attivo,
-            #pagina-accessori .btn-paginazione.attivo {
+            #pagina-accessori .btn-paginazione.attivo,
+            #pagina-ricerca .btn-paginazione.attivo {
                 background: #111111 !important;
                 background-color: #111111 !important;
                 background-image: none !important;
@@ -11009,7 +11134,9 @@ body {
             #vista-prodotti-nazionali .btn-paginazione:disabled,
             #vista-prodotti-nazionali .btn-paginazione.disabilitato,
             #pagina-accessori .btn-paginazione:disabled,
-            #pagina-accessori .btn-paginazione.disabilitato {
+            #pagina-accessori .btn-paginazione.disabilitato,
+            #pagina-ricerca .btn-paginazione:disabled,
+            #pagina-ricerca .btn-paginazione.disabilitato {
                 opacity: 0.5 !important;
                 cursor: not-allowed !important;
                 pointer-events: none !important;
@@ -11039,14 +11166,16 @@ body {
                 #pagina-club .contenitore-foto,
                 #pagina-mondiali .contenitore-foto,
                 #pagina-accessori .contenitore-foto,
-                #pagina-accessori .area-immagine-accessorio {
+                #pagina-accessori .area-immagine-accessorio,
+                #pagina-ricerca .contenitore-foto {
                     min-height: auto !important;
                     height: clamp(140px, 36vw, 175px) !important;
                     padding: 8px !important;
                 }
                 #pagina-club .wishlist-heart-btn,
                 #pagina-mondiali .wishlist-heart-btn,
-                #pagina-accessori .wishlist-heart-btn {
+                #pagina-accessori .wishlist-heart-btn,
+                #pagina-ricerca .wishlist-heart-btn {
                     width: 28px !important;
                     height: 28px !important;
                     font-size: 13px !important;
@@ -11063,7 +11192,9 @@ body {
                 #vista-prodotti-nazionali .contenitore-foto,
                 #pagina-accessori .card-prodotto-foto-box,
                 #pagina-accessori .contenitore-foto,
-                #pagina-accessori .area-immagine-accessorio {
+                #pagina-accessori .area-immagine-accessorio,
+                #pagina-ricerca .card-prodotto-foto-box,
+                #pagina-ricerca .contenitore-foto {
                     padding: 10px !important;
                 }
                 #pagina-club .card-heart-btn,
@@ -11075,7 +11206,9 @@ body {
                 #pagina-mondiali .wishlist-heart-btn,
                 #vista-prodotti-nazionali .wishlist-heart-btn,
                 #pagina-accessori .card-heart-btn,
-                #pagina-accessori .wishlist-heart-btn {
+                #pagina-accessori .wishlist-heart-btn,
+                #pagina-ricerca .card-heart-btn,
+                #pagina-ricerca .wishlist-heart-btn {
                     width: 28px !important;
                     height: 28px !important;
                     font-size: 13px !important;
@@ -11086,7 +11219,8 @@ body {
                 #vista-prodotti-club .badge-card-tipo,
                 #pagina-mondiali .badge-card-tipo,
                 #vista-prodotti-nazionali .badge-card-tipo,
-                #pagina-accessori .badge-card-tipo {
+                #pagina-accessori .badge-card-tipo,
+                #pagina-ricerca .badge-card-tipo {
                     top: 6px !important;
                     right: 38px !important;
                     font-size: 8px !important;
@@ -11096,7 +11230,8 @@ body {
                 #vista-prodotti-club .badge-card,
                 #pagina-mondiali .badge-card,
                 #vista-prodotti-nazionali .badge-card,
-                #pagina-accessori .badge-card {
+                #pagina-accessori .badge-card,
+                #pagina-ricerca .badge-card {
                     top: 6px !important;
                     left: 6px !important;
                     font-size: 8.5px !important;
@@ -11112,7 +11247,9 @@ body {
                 #vista-prodotti-nazionali .info-maglia,
                 #pagina-accessori .card-prodotto-info,
                 #pagina-accessori .info-maglia,
-                #pagina-accessori .info-accessorio {
+                #pagina-accessori .info-accessorio,
+                #pagina-ricerca .card-prodotto-info,
+                #pagina-ricerca .info-maglia {
                     padding: 10px 10px 12px 10px !important;
                     gap: 6px !important;
                 }
@@ -11120,7 +11257,8 @@ body {
                 #vista-prodotti-club .card-prodotto-kicker,
                 #pagina-mondiali .card-prodotto-kicker,
                 #vista-prodotti-nazionali .card-prodotto-kicker,
-                #pagina-accessori .card-prodotto-kicker {
+                #pagina-accessori .card-prodotto-kicker,
+                #pagina-ricerca .card-prodotto-kicker {
                     font-size: 9.5px !important;
                     letter-spacing: 0.5px !important;
                     margin-bottom: 2px !important;
@@ -11133,7 +11271,11 @@ body {
                 #contenitore-accessori-griglia h3,
                 #pagina-accessori .card-prodotto-titolo,
                 #pagina-accessori h3,
-                #pagina-accessori .card-accessorio h3 {
+                #pagina-accessori .card-accessorio h3,
+                #contenitore-ricerca-griglia .card-prodotto-titolo,
+                #contenitore-ricerca-griglia h3,
+                #pagina-ricerca .card-prodotto-titolo,
+                #pagina-ricerca h3 {
                     font-size: 12px !important;
                     line-height: 1.3 !important;
                     color: #111111 !important;
@@ -11149,7 +11291,9 @@ body {
                 #contenitore-club-griglia .testo-info,
                 #contenitore-nazionali-griglia .testo-info,
                 #contenitore-accessori-griglia .testo-info,
-                #pagina-accessori .testo-info {
+                #pagina-accessori .testo-info,
+                #contenitore-ricerca-griglia .testo-info,
+                #pagina-ricerca .testo-info {
                     width: 100% !important;
                     min-width: 0 !important;
                     height: auto !important;
@@ -11170,7 +11314,10 @@ body {
                 #pagina-accessori .card-prodotto-footer,
                 #pagina-accessori #contenitore-accessori-griglia .card-prodotto-footer,
                 #pagina-accessori .dettagli-prezzo-bottone,
-                #pagina-accessori .dettagli-accessorio {
+                #pagina-accessori .dettagli-accessorio,
+                #pagina-ricerca .card-prodotto-footer,
+                #pagina-ricerca #contenitore-ricerca-griglia .card-prodotto-footer,
+                #pagina-ricerca .dettagli-prezzo-bottone {
                     display: flex !important;
                     flex-direction: column !important;
                     align-items: stretch !important;
@@ -11187,7 +11334,9 @@ body {
                 #vista-prodotti-club .card-prodotto-prezzo-wrap,
                 #pagina-mondiali .card-prodotto-prezzo-wrap,
                 #pagina-mondiali #contenitore-nazionali-griglia .card-prodotto-prezzo-wrap,
-                #vista-prodotti-nazionali .card-prodotto-prezzo-wrap {
+                #vista-prodotti-nazionali .card-prodotto-prezzo-wrap,
+                #pagina-ricerca .card-prodotto-prezzo-wrap,
+                #pagina-ricerca #contenitore-ricerca-griglia .card-prodotto-prezzo-wrap {
                     justify-content: center !important;
                     width: 100% !important;
                 }
@@ -11218,7 +11367,11 @@ body {
                 #pagina-mondiali #contenitore-nazionali-griglia .card-maglia .prezzo,
                 #vista-prodotti-nazionali .card-maglia .prezzo,
                 #pagina-mondiali .card-prodotto-editoriale .prezzo,
-                #vista-prodotti-nazionali .card-prodotto-editoriale .prezzo {
+                #vista-prodotti-nazionali .card-prodotto-editoriale .prezzo,
+                #pagina-ricerca .card-prodotto-prezzo,
+                #pagina-ricerca #contenitore-ricerca-griglia .card-prodotto-prezzo,
+                #pagina-ricerca .card-maglia .prezzo,
+                #pagina-ricerca .card-prodotto-editoriale .prezzo {
                     font-size: 14px !important;
                     text-align: center !important;
                     color: #111111 !important;
@@ -11248,7 +11401,10 @@ body {
                 #pagina-mondiali #contenitore-nazionali-griglia .btn-card-personalizza,
                 #vista-prodotti-nazionali .btn-card-personalizza,
                 #pagina-mondiali .btn-configura,
-                #vista-prodotti-nazionali .btn-configura {
+                #vista-prodotti-nazionali .btn-configura,
+                #pagina-ricerca .btn-card-personalizza,
+                #pagina-ricerca #contenitore-ricerca-griglia .btn-card-personalizza,
+                #pagina-ricerca .btn-configura {
                     width: 100% !important;
                     padding: 7px 6px !important;
                     font-size: 11px !important;
@@ -11292,7 +11448,9 @@ body {
                 #pagina-mondiali #contenitore-nazionali-griglia .contenitore-paginazione,
                 #vista-prodotti-nazionali .contenitore-paginazione,
                 #pagina-accessori .contenitore-paginazione,
-                #pagina-accessori #contenitore-accessori-griglia .contenitore-paginazione {
+                #pagina-accessori #contenitore-accessori-griglia .contenitore-paginazione,
+                #pagina-ricerca .contenitore-paginazione,
+                #pagina-ricerca #contenitore-ricerca-griglia .contenitore-paginazione {
                     margin: 20px auto 16px auto !important;
                     padding: 14px 10px !important;
                     gap: 10px !important;
@@ -11302,7 +11460,8 @@ body {
                 #vista-prodotti-club .wrapper-tasti-paginazione,
                 #pagina-mondiali .wrapper-tasti-paginazione,
                 #vista-prodotti-nazionali .wrapper-tasti-paginazione,
-                #pagina-accessori .wrapper-tasti-paginazione {
+                #pagina-accessori .wrapper-tasti-paginazione,
+                #pagina-ricerca .wrapper-tasti-paginazione {
                     gap: 4px !important;
                     justify-content: center !important;
                 }
@@ -11310,7 +11469,8 @@ body {
                 #vista-prodotti-club .btn-paginazione,
                 #pagina-mondiali .btn-paginazione,
                 #vista-prodotti-nazionali .btn-paginazione,
-                #pagina-accessori .btn-paginazione {
+                #pagina-accessori .btn-paginazione,
+                #pagina-ricerca .btn-paginazione {
                     min-width: 32px !important;
                     height: 32px !important;
                     font-size: 11.5px !important;
@@ -11321,7 +11481,8 @@ body {
                 #vista-prodotti-club .btn-paginazione-nav,
                 #pagina-mondiali .btn-paginazione-nav,
                 #vista-prodotti-nazionali .btn-paginazione-nav,
-                #pagina-accessori .btn-paginazione-nav {
+                #pagina-accessori .btn-paginazione-nav,
+                #pagina-ricerca .btn-paginazione-nav {
                     padding: 0 8px !important;
                     font-size: 11px !important;
                 }
@@ -11345,7 +11506,10 @@ body {
                 #vista-prodotti-nazionali .info-paginazione-badge strong,
                 #pagina-accessori .info-paginazione-badge,
                 #pagina-accessori .info-paginazione-badge *,
-                #pagina-accessori .info-paginazione-badge strong {
+                #pagina-accessori .info-paginazione-badge strong,
+                #pagina-ricerca .info-paginazione-badge,
+                #pagina-ricerca .info-paginazione-badge *,
+                #pagina-ricerca .info-paginazione-badge strong {
                     font-size: 12px !important;
                     color: #111111 !important;
                     -webkit-text-fill-color: #111111 !important;
@@ -13172,54 +13336,54 @@ body {
     </div>
 
     <!-- SCHEDA PAGINA: RISULTATI RICERCA -->
-    <div id="pagina-ricerca" class="sezione-pagina">
-        <main>
+    <div id="pagina-ricerca" class="sezione-pagina" style="background-color: #FFFFFF !important; background: #FFFFFF !important; color: #111111 !important; min-height: 100vh;">
+        <main style="background-color: #FFFFFF !important; background: #FFFFFF !important; color: #111111 !important;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                 <div>
-                    <h3 class="titolo-sezione" id="titolo-ricerca" style="margin-bottom: 4px;">Risultati della Ricerca</h3>
-                    <p class="desc-sezione" id="sottotitolo-ricerca" style="margin-bottom: 0;">Prodotti corrispondenti ai criteri inseriti.</p>
+                    <h3 class="titolo-sezione" id="titolo-ricerca" style="margin-bottom: 4px; color: #111111;">Risultati della Ricerca</h3>
+                    <p class="desc-sezione" id="sottotitolo-ricerca" style="margin-bottom: 0; color: #595959;">Prodotti corrispondenti ai criteri inseriti.</p>
                 </div>
             </div>
 
             <!-- CONTENITORE ORDINAMENTO E FILTRI SECONDARI RICERCA -->
-            <div id="ordinamento-ricerca-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap;">
+            <div id="ordinamento-ricerca-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 15px; flex-wrap: wrap; padding: 14px 18px; background: #FFFFFF; border: 1px solid #E8E7E2; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                 <!-- CONTATORE RISULTATI DINAMICO -->
-                <div id="contatore-risultati-ricerca" style="font-size: 13px; font-weight: 700; color: var(--primary, #D6A43A); letter-spacing: 0.5px;">
+                <div id="contatore-risultati-ricerca" style="font-size: 13.5px; font-weight: 800; color: #D6A43A; letter-spacing: 0.5px; text-transform: uppercase;">
                     <!-- Popolato dinamicamente es. "12 prodotti trovati" -->
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                     <!-- FILTRO CATEGORIA DINAMICO RICERCA -->
                     <div id="wrapper-filtro-categoria-ricerca" style="display: flex; align-items: center; gap: 8px;">
-                        <label for="select-filtro-categoria-ricerca" style="font-size: 13px; font-weight: 700; color: var(--on-surface-de-emphasis); text-transform: uppercase; letter-spacing: 0.5px;">Categoria:</label>
-                        <select id="select-filtro-categoria-ricerca" onchange="impostaFiltroCategoria(this.value)" class="select-premium" style="background: #161616; border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; outline: none;">
+                        <label for="select-filtro-categoria-ricerca" style="font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; letter-spacing: 0.5px;">Categoria:</label>
+                        <select id="select-filtro-categoria-ricerca" onchange="impostaFiltroCategoria(this.value)" class="select-premium" style="background: #FFFFFF; border: 1px solid #DCD9D0; color: #111111; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; outline: none;">
                             <!-- Popolato dinamicamente -->
                         </select>
                     </div>
 
                     <!-- FILTRO STAGIONE DINAMICO -->
                     <div id="wrapper-filtro-stagione-ricerca" style="display: flex; align-items: center; gap: 8px;">
-                        <label for="select-filtro-stagione-ricerca" style="font-size: 13px; font-weight: 700; color: var(--on-surface-de-emphasis); text-transform: uppercase; letter-spacing: 0.5px;">Stagione:</label>
-                        <select id="select-filtro-stagione-ricerca" onchange="impostaFiltroStagione(this.value)" class="select-premium">
-                            <option value="tutte" style="background-color: #111; color: #fff;">Tutte le stagioni</option>
+                        <label for="select-filtro-stagione-ricerca" style="font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; letter-spacing: 0.5px;">Stagione:</label>
+                        <select id="select-filtro-stagione-ricerca" onchange="impostaFiltroStagione(this.value)" class="select-premium" style="background: #FFFFFF; border: 1px solid #DCD9D0; color: #111111; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; outline: none;">
+                            <option value="tutte" style="background-color: #fff; color: #111;">Tutte le stagioni</option>
                         </select>
                     </div>
 
                     <!-- ORDINAMENTO -->
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <label for="select-ordinamento-ricerca" style="font-size: 13px; font-weight: 700; color: var(--on-surface-de-emphasis); text-transform: uppercase; letter-spacing: 0.5px;">Ordina per:</label>
-                        <select id="select-ordinamento-ricerca" onchange="cambiaOrdinamento(this.value)" class="select-premium">
-                            <option value="novita" style="background-color: #111; color: #fff;">Novità</option>
-                            <option value="stagione-recente" style="background-color: #111; color: #fff;">Stagione più recente</option>
-                            <option value="stagione-meno-recente" style="background-color: #111; color: #fff;">Stagione meno recente</option>
-                            <option value="prezzo-crescente" style="background-color: #111; color: #fff;">Prezzo crescente</option>
-                            <option value="prezzo-decrescente" style="background-color: #111; color: #fff;">Prezzo decrescente</option>
+                        <label for="select-ordinamento-ricerca" style="font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; letter-spacing: 0.5px;">Ordina per:</label>
+                        <select id="select-ordinamento-ricerca" onchange="cambiaOrdinamento(this.value)" class="select-premium" style="background: #FFFFFF; border: 1px solid #DCD9D0; color: #111111; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; height: 36px; outline: none;">
+                            <option value="novita" style="background-color: #fff; color: #111;">Novità</option>
+                            <option value="stagione-recente" style="background-color: #fff; color: #111;">Stagione più recente</option>
+                            <option value="stagione-meno-recente" style="background-color: #fff; color: #111;">Stagione meno recente</option>
+                            <option value="prezzo-crescente" style="background-color: #fff; color: #111;">Prezzo crescente</option>
+                            <option value="prezzo-decrescente" style="background-color: #fff; color: #111;">Prezzo decrescente</option>
                         </select>
                     </div>
 
                     <!-- PULSANTE RESET FILTRI -->
-                    <button id="btn-reset-filtri-ricerca" onclick="resettaFiltriRicerca()" class="btn-configura" style="padding: 8px 14px; font-size: 12px; border-radius: var(--radius-s); display: inline-flex; align-items: center; gap: 4px; background: transparent; border: 1px solid var(--outline); color: var(--on-surface-de-emphasis); cursor: pointer; transition: all 0.2s ease;">
-                        <span class="material-icons" style="font-size: 14px;">filter_alt_off</span> Reset filtri
+                    <button id="btn-reset-filtri-ricerca" onclick="resettaFiltriRicerca()" class="btn-configura" style="padding: 7px 12px; font-size: 12px; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; background: #F7F6F2; border: 1px solid #DCD9D0; color: #111111; cursor: pointer; transition: all 0.2s ease;">
+                        <span class="material-icons" style="font-size: 15px;">filter_alt_off</span> Reset filtri
                     </button>
                 </div>
             </div>
@@ -22318,10 +22482,13 @@ for (const cat in hierarchy) {
 
             if (totalItems === 0) {
                 contenitore.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px; color: var(--on-surface-de-emphasis);">
-                        <span style="font-size: 40px; display: block; margin-bottom: 10px;">🔍</span>
-                        <p style="font-weight: 700; font-size: 16px; margin-bottom: 5px;">Nessun prodotto trovato.</p>
-                        <p style="font-size: 13px; opacity: 0.8;">Prova a cercare un'altra squadra, stagione o tipologia di maglia, oppure reimposta i filtri.</p>
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: #FFFFFF; border: 1px solid #E8E7E2; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.02); margin: 20px 0;">
+                        <span style="font-size: 42px; display: block; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">🔍</span>
+                        <h4 style="font-weight: 800; font-size: 17px; margin: 0 0 6px 0; color: #111111; text-transform: uppercase; letter-spacing: 0.5px;">Nessun prodotto trovato</h4>
+                        <p style="font-size: 13.5px; color: #595959; max-width: 480px; margin: 0 auto 20px auto; line-height: 1.5;">Prova a cercare un'altra squadra, stagione o tipologia di maglia, oppure reimposta i filtri di ricerca.</p>
+                        <button type="button" onclick="resettaFiltriRicerca()" style="padding: 9px 18px; border-radius: 8px; background: #111111; color: #FFFFFF; font-weight: 700; font-size: 12.5px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                            <span class="material-icons" style="font-size: 16px;">filter_alt_off</span> Mostra tutti i prodotti
+                        </button>
                     </div>`;
             } else {
                 let cardsHtmlBuffer = '';
@@ -22339,11 +22506,11 @@ for (const cat in hierarchy) {
                     else if (classif === "Portiere") tag = `Portiere ${p.stagione || ''}`.trim();
                     else tag = `${classif || p.categoria} ${p.stagione || ''}`.trim();
 
-                    cardsHtmlBuffer += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4);
+                    cardsHtmlBuffer += renderizzaCardHTML(p.versione, p.immagine, tag, p.prezzo, false, "", p.categoria, p.id, p.legacy_id, p.target, idx >= 4, true);
                 });
 
                 if (totalPages > 1) {
-                    cardsHtmlBuffer += generaHTMLPaginazione(paginaCorrenteRicerca, totalPages, totalItems, startIdx + 1, Math.min(endIdx, totalItems), 'cambiaPaginaRicerca');
+                    cardsHtmlBuffer += generaHTMLPaginazione(paginaCorrenteRicerca, totalPages, totalItems, startIdx + 1, Math.min(endIdx, totalItems), 'cambiaPaginaRicerca', true);
                 }
 
                 contenitore.innerHTML = cardsHtmlBuffer;
@@ -24507,7 +24674,7 @@ function renderizzaProdottiSquadraConFiltri() {
             return url.trim();
         }
 
-        function renderizzaCardHTML(nome, img, tag, prezzoInput = 23.99, mostraScontoInput = false, testoBadgeInput = "", categoria = "", idProdotto = "", legacyIdProdotto = "", targetProdotto = "", lazyLoad = true, usaVarianteEditoriale = false) {
+        function renderizzaCardHTML(nome, img, tag, prezzoInput = 23.99, mostraScontoInput = false, testoBadgeInput = "", categoria = "", idProdotto = "", legacyIdProdotto = "", targetProdotto = "", lazyLoad = true, usaVarianteEditoriale = true) {
             const fallbackImg = 'https://placehold.co/240x240/eaeef3/1e293b?text=' + encodeURIComponent(nome);
             const immagineDaUsare = img ? img : fallbackImg;
             

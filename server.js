@@ -1409,15 +1409,9 @@ function resolveFornitore2BasePrice(item, allCatalogProducts = null, allAccessor
   const catPrices = currentSettings.fornitore2_categorie_prezzi || {};
   const legacyProductPrices = currentSettings.fornitore2_prezzi || {};
 
-  // 1. Controllo diretto del prezzo fornitore specificato sull'articolo
+  // 1. Controllo diretto del prezzo specificato sull'articolo per Fornitore 2
   if (item.prezzo_fornitore2 !== undefined && item.prezzo_fornitore2 !== null && !isNaN(Number(item.prezzo_fornitore2)) && Number(item.prezzo_fornitore2) > 0) {
     return Number(item.prezzo_fornitore2);
-  }
-  if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
-    return Number(item.prezzo_fornitore);
-  }
-  if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
-    return Number(item.Prezzo_fornitore);
   }
 
   // 2. Controllo se si tratta di un accessorio, pallone, o calzettoni
@@ -1473,9 +1467,6 @@ function resolveFornitore2BasePrice(item, allCatalogProducts = null, allAccessor
   if (matchedProd) {
     if (matchedProd.prezzo_fornitore2 !== undefined && matchedProd.prezzo_fornitore2 !== null && !isNaN(Number(matchedProd.prezzo_fornitore2)) && Number(matchedProd.prezzo_fornitore2) > 0) {
       return Number(matchedProd.prezzo_fornitore2);
-    }
-    if (matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && !isNaN(Number(matchedProd.prezzo_fornitore)) && Number(matchedProd.prezzo_fornitore) > 0) {
-      return Number(matchedProd.prezzo_fornitore);
     }
   }
 
@@ -1575,6 +1566,34 @@ function resolveFornitore2BasePrice(item, allCatalogProducts = null, allAccessor
   }
 
   return 8.00;
+}
+
+/**
+ * Determina in modo autorevole il fornitore (1 o 2) associato a un lotto (storico o attivo)
+ */
+function getSupplierForLotto(lotto, fallbackSettings = null) {
+  if (!lotto || typeof lotto !== 'object') {
+    const s = fallbackSettings || getSettings();
+    return Number(s?.fornitore_attivo || 1) === 2 ? 2 : 1;
+  }
+  if (lotto.fornitore_attivo !== undefined && lotto.fornitore_attivo !== null) {
+    return Number(lotto.fornitore_attivo) === 2 ? 2 : 1;
+  }
+  if (lotto.fornitore_id !== undefined && lotto.fornitore_id !== null) {
+    return Number(lotto.fornitore_id) === 2 ? 2 : 1;
+  }
+  if (lotto.fornitore !== undefined && lotto.fornitore !== null) {
+    return Number(lotto.fornitore) === 2 ? 2 : 1;
+  }
+  if (lotto.fornitore_nome && String(lotto.fornitore_nome).toLowerCase().includes('2')) {
+    return 2;
+  }
+  const alibabaUsd = lotto.alibaba_fee_usd !== undefined ? Number(lotto.alibaba_fee_usd) : null;
+  const costoForn = Number(lotto.costo_fornitore_usd || lotto.costo_prodotti_usd || 0);
+  if (alibabaUsd === 0 && costoForn > 0) {
+    return 2;
+  }
+  return 1;
 }
 
 function resolveSupplierBasePrice(item, allCatalogProducts = null, allAccessories = null, options = {}) {
@@ -2580,11 +2599,30 @@ function compileProductFieldsForExcel(normalizedItem) {
   return { titleEng, titleCh, styleEng, isCalz: false };
 }
 
-async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
+async function generaExcelLotto(lottoId, orders, customOutputPath = null, options = {}) {
   const templateObj = await getOrLoadSupplierTemplateWorkbook();
   if (!templateObj || !templateObj.workbook) {
     throw new Error("Impossibile creare il workbook del fornitore.");
   }
+
+  const settings = options.settings || getSettings();
+
+  // Risoluzione centralizzata ed autoritaria del fornitore per questo lotto specifico
+  let lotSupplier = options.supplier !== undefined && options.supplier !== null ? Number(options.supplier) : null;
+  if (lotSupplier === null) {
+    try {
+      const allLotti = await getDbLotti();
+      const targetLot = (allLotti || []).find(l => Number(l.id) === Number(lottoId));
+      if (targetLot) {
+        lotSupplier = getSupplierForLotto(targetLot);
+      }
+    } catch (e) {}
+  }
+  if (lotSupplier === null) {
+    lotSupplier = Number(settings.fornitore_attivo || 1) === 2 ? 2 : 1;
+  }
+
+  console.log(`[GENERA EXCEL LOTTO #${lottoId}] Fornitore applicato per il file Excel: ${lotSupplier === 2 ? 'Fornitore 2' : 'Fornitore 1'}`);
 
   const workbook = templateObj.workbook;
   const worksheet = templateObj.worksheet || workbook.getWorksheet(1) || workbook.worksheets[0];
@@ -2681,8 +2719,8 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
 
       const isCalzTmp = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
 
-      // PREZZO FORNITORE BASE IN USD (Resolver centrale autorevole)
-      const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories);
+      // PREZZO FORNITORE BASE IN USD (Resolver centrale autorevole coerente con il fornitore del lotto)
+      const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories, { supplier: lotSupplier, settings });
 
       // Calcolo personalizzazioni fornitore in USD (Formula ufficiale: $1 Nome, $1 Numero, $1 Patch)
       const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
@@ -3159,8 +3197,7 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
   shippingRow.getCell(1).value = "shipping Cost (USD)";
   shippingRow.getCell(1).font = { bold: true };
   
-  const settings = getSettings();
-  const isForn2 = Number(settings?.fornitore_attivo) === 2;
+  const isForn2 = (lotSupplier === 2);
   let unitShipping = 0;
   let totShippingUSD = 0;
 
@@ -3176,7 +3213,7 @@ async function generaExcelLotto(lottoId, orders, customOutputPath = null) {
       totShippingUSD = 0.0;
     }
   } else {
-    unitShipping = getShippingRateByQuantity(physicalShippingPcs, settings);
+    unitShipping = getShippingRateByQuantity(physicalShippingPcs, settings, { supplier: lotSupplier });
     totShippingUSD = Number((totalShippingUnits * unitShipping).toFixed(2));
   }
 
@@ -3429,13 +3466,15 @@ async function handleDownloadExcelLotto(req, res, targetLottoId) {
     const isCurrentLotto = (Number(lottoId) === Number(currentActiveLottoId));
 
     if (isCurrentLotto) {
-      // 1. LOTTO IN CORSO -> Rigenerazione dinamica on-demand al momento del download
+      // 1. LOTTO IN CORSO -> Rigenerazione dinamica on-demand al momento del download con Fornitore attivo
+      const settings = getSettings();
+      const currentSupplier = Number(settings.fornitore_attivo || 1) === 2 ? 2 : 1;
       const allOrders = await getDbOrders();
       const unarchivedOrders = (allOrders || []).filter(o => !o.is_archived && isOrderActiveForLotto(o));
       const activeOrders = unarchivedOrders.filter(o => o.lotto_id === null || o.lotto_id === undefined || Number(o.lotto_id) === Number(lottoId));
 
-      console.log(`[EXCEL LOTTO] Generazione dinamica on-demand per Lotto #${lottoId} (IN CORSO) con ${activeOrders.length} ordini attivi`);
-      await generaExcelLotto(lottoId, activeOrders);
+      console.log(`[EXCEL LOTTO] Generazione dinamica on-demand per Lotto #${lottoId} (IN CORSO - Fornitore ${currentSupplier}) con ${activeOrders.length} ordini attivi`);
+      await generaExcelLotto(lottoId, activeOrders, null, { supplier: currentSupplier, settings });
 
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       return res.download(filePath, filename, (err) => {
@@ -3445,18 +3484,19 @@ async function handleDownloadExcelLotto(req, res, targetLottoId) {
         }
       });
     } else {
-      // 2. LOTTO ARCHIVIATO / CHIUSO
+      // 2. LOTTO ARCHIVIATO / CHIUSO -> Preserva il fornitore dello snapshot storico
       const allLotti = await getDbLotti();
       const archivedLotto = (allLotti || []).find(l => Number(l.id) === Number(lottoId));
 
       if (archivedLotto) {
+        const lotSupplier = getSupplierForLotto(archivedLotto);
         const allOrders = await getDbOrders();
         const lotOrders = getOrdersForArchivedLotto(archivedLotto, allOrders);
-        console.log(`[EXCEL LOTTO] Generazione on-demand Excel aggiornato con miniature patch per Lotto archiviato #${lottoId} (${lotOrders.length} ordini)`);
+        console.log(`[EXCEL LOTTO] Generazione on-demand Excel per Lotto archiviato #${lottoId} (Fornitore ${lotSupplier}, ${lotOrders.length} ordini)`);
         
-        // Genera in una copia temporanea dedicata per non sovrascrivere il file storico originale
+        // Genera in una copia temporanea dedicata preservando il fornitore dello snapshot
         const tempDownloadPath = path.join(os.tmpdir(), `LOTTO_${String(lottoId).padStart(4, '0')}_updated_${Date.now()}_${Math.random().toString(36).substring(7)}.xlsx`);
-        await generaExcelLotto(lottoId, lotOrders, tempDownloadPath);
+        await generaExcelLotto(lottoId, lotOrders, tempDownloadPath, { supplier: lotSupplier });
 
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         return res.download(tempDownloadPath, filename, (err) => {
@@ -9993,7 +10033,8 @@ app.get('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
         const costoProdottiUsd = Number(l.costo_prodotti_usd || 0);
         const costoSpedizioneUsd = Number(l.costo_spedizione_usd || 0);
         const costoFornitoreUsd = Number(l.costo_fornitore_usd || (costoProdottiUsd + costoSpedizioneUsd));
-        const isArchivedForn2 = Number(l.fornitore_attivo) === 2;
+        const lotSupplier = getSupplierForLotto(l, settings);
+        const isArchivedForn2 = (lotSupplier === 2);
         const alibabaFeeUsd = isArchivedForn2 ? 0 : Number(l.alibaba_fee_usd !== undefined ? l.alibaba_fee_usd : (costoFornitoreUsd * 0.03));
         const alibabaFeeEur = isArchivedForn2 ? 0 : Number(l.alibaba_fee_eur !== undefined ? l.alibaba_fee_eur : convertUsdToEur(alibabaFeeUsd, null, 'GET /api/lotto/archive'));
         
@@ -10023,6 +10064,8 @@ app.get('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
 
         return {
           ...l,
+          fornitore_attivo: lotSupplier,
+          fornitore_nome: lotSupplier === 2 ? "Fornitore 2" : "Fornitore 1",
           orders: lotOrders,
           numero_ordini: lotOrders.length > 0 ? lotOrders.length : (l.numero_ordini || 0),
           numero_articoli: calculatedArticoli || (l.numero_articoli || 0),
@@ -10031,6 +10074,8 @@ app.get('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
           incasso_netto_eur: incassoEffettivo,
           spese_extra_usd: extraExpensesUsd,
           spese_extra_eur: extraExpensesEur,
+          alibaba_fee_usd: alibabaFeeUsd,
+          alibaba_fee_eur: alibabaFeeEur,
           costo_totale_usd: costoTotaleUsd,
           costo_totale_eur: costoTotaleEur,
           profitto_eur: profittoEur,
@@ -10039,8 +10084,11 @@ app.get('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
         };
       } catch (e) {
         const lotOrders = getOrdersForArchivedLotto(l, allOrders);
+        const lotSupplier = getSupplierForLotto(l, settings);
         return {
           ...l,
+          fornitore_attivo: lotSupplier,
+          fornitore_nome: lotSupplier === 2 ? "Fornitore 2" : "Fornitore 1",
           orders: lotOrders,
           numero_ordini: lotOrders.length > 0 ? lotOrders.length : (l.numero_ordini || 0)
         };
@@ -10614,10 +10662,15 @@ function parseOrderTotalCustomerPaid(order) {
   return parseFlexibleDecimal(raw);
 }
 
-function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProducts = null) {
+function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProducts = null, options = {}) {
   if (!settings) {
     settings = getSettings();
   }
+  const lotSupplier = (options && options.supplier !== undefined && options.supplier !== null)
+    ? Number(options.supplier)
+    : Number(settings?.fornitore_attivo || 1);
+  const isForn2Lotto = (lotSupplier === 2);
+
   let numero_totale_articoli = 0;
   let numero_articoli_spedizione = 0;
   let unita_spedizione_economiche = 0;
@@ -10684,7 +10737,7 @@ function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProduct
       const isCalz = isAccessoryOrSocks(item) || (matchedProd ? isAccessoryOrSocks(matchedProd) : false);
 
       // 2. PREZZO BASE FORNITORE (Resolver centrale autorevole - NO extra XXL, NO extra kit)
-      const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories);
+      const basePriceUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories, { supplier: lotSupplier, settings });
 
       // 3. PERSONALIZZAZIONI FORNITORE ($1 Nome, $1 Numero, $1 Patch)
       const rawInfoPerso = item.infoPerso || item.personalizzazione || "";
@@ -10704,7 +10757,6 @@ function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProduct
   costo_base_prodotti_usd = Number(costo_base_prodotti_usd.toFixed(2));
   costo_totale_personalizzazioni_usd = Number(costo_totale_personalizzazioni_usd.toFixed(2));
 
-  const isForn2Lotto = Number(settings?.fornitore_attivo) === 2;
   let spedizione_unitaria = 0.0;
   let spedizione_corrente_usd = 0.0;
 
@@ -11189,6 +11241,7 @@ app.post('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
       });
 
       const settings = getSettings();
+      const activeSupplier = Number(settings.fornitore_attivo || 1) === 2 ? 2 : 1;
       let lotExtraExpenses = [];
       try {
         const profitData = await getDbProfitShares();
@@ -11198,7 +11251,7 @@ app.post('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
         console.warn("⚠️ Impossibile caricare spese extra per chiusura lotto:", errExp.message);
       }
 
-      const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses);
+      const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses, null, { supplier: activeSupplier });
 
       let totaleNumeroOrdini = activeOrders.length;
       let totaleNumeroArticoli = totals.numero_totale_articoli;
@@ -11242,8 +11295,8 @@ app.post('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
       sendProgress(50, "Generazione file Excel fornitore...", { phase: 3, lottoId });
       let excelUrl = "";
       try {
-        excelUrl = await generaExcelLotto(lottoId, activeOrders);
-        console.log(`[BACKEND Chiudi Lotto] Excel generato correttamente: ${excelUrl}`);
+        excelUrl = await generaExcelLotto(lottoId, activeOrders, null, { supplier: activeSupplier, settings });
+        console.log(`[BACKEND Chiudi Lotto] Excel generato correttamente con Fornitore ${activeSupplier}: ${excelUrl}`);
       } catch (excelErr) {
         console.error("⚠️ Errore nella generazione dell'Excel del fornitore:", excelErr.message);
       }
@@ -11258,6 +11311,8 @@ app.post('/api/lotto/archive', adminAuthMiddleware, async (req, res) => {
       const nuovoLottoArchiviato = {
         id: lottoId,
         numero_lotto: `Lotto #${lottoId}`,
+        fornitore_attivo: activeSupplier,
+        fornitore_nome: activeSupplier === 2 ? "Fornitore 2" : "Fornitore 1",
         archived_at: archivedAt,
         status: 'archived',
         numero_ordini: totaleNumeroOrdini,
@@ -21340,6 +21395,224 @@ app.post('/api/admin/gestione-ordini/update', adminAuthMiddleware, async (req, r
   }
 });
 
+// POST /api/admin/orders/:id/items/add - Aggiunge un articolo/accessorio a un ordine esistente e ricalcola i totali economici
+app.post('/api/admin/orders/:id/items/add', adminAuthMiddleware, async (req, res) => {
+  try {
+    const orderId = req.params.id || req.body?.order_id || req.body?.id;
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: "Identificatore ordine mancante." });
+    }
+
+    const newItem = (req.body && req.body.item && typeof req.body.item === 'object') ? req.body.item : req.body;
+    if (!newItem || typeof newItem !== 'object' || (!newItem.squadra && !newItem.id && !newItem.nome && !newItem.accessory_id)) {
+      return res.status(400).json({ success: false, error: "Dati articolo da aggiungere non validi." });
+    }
+
+    const supabase = getSupabaseClient();
+    let existingOrder = null;
+    try {
+      if (supabase) {
+        const { data: ords } = await supabase.from('orders').select('*').eq('id', orderId);
+        if (ords && ords.length > 0) existingOrder = ords[0];
+      }
+      if (!existingOrder) {
+        const localOrds = getLocalOrders();
+        existingOrder = localOrds.find(o => Number(o.id) === Number(orderId) || String(o.id) === String(orderId)) || null;
+      }
+      if (!existingOrder) {
+        const merged = await getDbOrdersMerged();
+        existingOrder = merged.find(o => Number(o.id) === Number(orderId) || String(o.id) === String(orderId)) || null;
+      }
+    } catch (err) {
+      console.warn("⚠️ Recupero ordine fallito in items/add:", err.message);
+    }
+
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, error: `Ordine #${orderId} non trovato.` });
+    }
+
+    let existingCart = existingOrder.carrello;
+    if (typeof existingCart === 'string') {
+      try {
+        existingCart = JSON.parse(existingCart);
+      } catch (e) {
+        existingCart = [];
+      }
+    }
+    if (!Array.isArray(existingCart)) {
+      existingCart = [];
+    }
+
+    const updatedCart = [...existingCart, newItem];
+
+    let cartSubtotalEur = 0;
+    let cartShippingEur = 0;
+    let cartProdCostUsd = 0;
+    let cartShippingUnitsCount = 0;
+
+    let settings = getSettings();
+    let localAccessories = [];
+    try { localAccessories = getLocalAccessories(); } catch (e) {}
+    let localProducts = getLocalProducts();
+    let supabaseProducts = [];
+    if (supabase) {
+      try { supabaseProducts = await getAllProductsFromSupabase(supabase); } catch (e) {}
+    }
+    const allDbProducts = supabaseProducts.length > 0 ? supabaseProducts : localProducts;
+
+    // Determina il fornitore (1 o 2) per questo ordine / lotto
+    let lotSupplier = Number(settings?.fornitore_attivo || 1);
+    if (existingOrder.lotto_id) {
+      try {
+        const allLotti = await getDbLotti();
+        const matchedLotto = (allLotti || []).find(l => Number(l.id) === Number(existingOrder.lotto_id));
+        if (matchedLotto) {
+          lotSupplier = getSupplierForLotto(matchedLotto, settings);
+        }
+      } catch (e) {}
+    }
+
+    updatedCart.forEach(item => {
+      if (!item) return;
+      const isSped = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
+      const itemPrice = (Number(item.prezzo) || 0) * (Number(item.quantita) || 1);
+      if (isSped) {
+        cartShippingEur += itemPrice;
+      } else {
+        const q = Math.max(1, parseInt(item.quantita) || 1);
+        cartSubtotalEur += itemPrice;
+        if (isSupplierShippingEnabledForItem(item, localAccessories)) {
+          cartShippingUnitsCount += q;
+        }
+        const baseUSD = resolveSupplierBasePrice(item, allDbProducts, localAccessories, { supplier: lotSupplier, settings });
+        const isCalz = isAccessoryOrSocks(item);
+        const customDetails = isCalz ? { customizationCostUSD: 0.00 } : parseCustomizationDetails(item.infoPerso || item.personalizzazione || "", item);
+        cartProdCostUsd += (baseUSD + customDetails.customizationCostUSD) * q;
+      }
+    });
+
+    let currentLottoShippingArticles = 1;
+    try {
+      const lFile = path.join(__dirname, 'lotto.json');
+      if (fs.existsSync(lFile)) {
+        const lObj = JSON.parse(fs.readFileSync(lFile, 'utf8'));
+        currentLottoShippingArticles = lObj.numero_articoli_spedizione !== undefined ? Math.max(1, lObj.numero_articoli_spedizione) : Math.max(1, lObj.numero_totale_articoli || 1);
+      }
+    } catch (e) {}
+
+    const unitShippingRate = getShippingRateByQuantity(currentLottoShippingArticles, settings);
+    const orderShippingUsd = Number((cartShippingUnitsCount * unitShippingRate).toFixed(2));
+    const orderTotalUsd = Number((cartProdCostUsd + orderShippingUsd).toFixed(2));
+    const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
+    const orderTotalEur = convertUsdToEur(orderTotalUsd, exchangeRate, 'orders/items/add');
+
+    let couponDiscount = 0;
+    const discountRef = existingOrder.coupon_discount;
+    if (discountRef !== undefined && discountRef !== null && Number(discountRef) > 0) {
+      couponDiscount = Number(discountRef);
+    }
+
+    const calculatedTotaleNum = Math.max(0, cartSubtotalEur + cartShippingEur - couponDiscount);
+    const calculatedTotaleStr = calculatedTotaleNum.toFixed(2).replace('.', ',') + "€";
+    const calculatedProfitEur = Number((calculatedTotaleNum - orderTotalEur).toFixed(2));
+
+    const updateData = {
+      carrello: updatedCart,
+      totale: calculatedTotaleStr,
+      costo_prodotti_usd: String(cartProdCostUsd.toFixed(2)),
+      costo_spedizione_usd: String(orderShippingUsd.toFixed(2)),
+      costo_totale_usd: String(orderTotalUsd.toFixed(2)),
+      costo_totale_eur: String(orderTotalEur.toFixed(2)),
+      profitto_eur: String(calculatedProfitEur.toFixed(2))
+    };
+
+    if (supabase) {
+      const supabaseUpdateData = {};
+      const validOrdersColumns = [
+        'carrello', 'squadra', 'personalizzazione', 'taglia', 'lotto_id',
+        'totale', 'costo_prodotti_usd', 'costo_spedizione_usd', 'costo_totale_usd',
+        'costo_totale_eur', 'profitto_eur', 'prezzo_fornitore'
+      ];
+      for (const col of validOrdersColumns) {
+        if (updateData[col] !== undefined) {
+          supabaseUpdateData[col] = updateData[col];
+        }
+      }
+      if (Object.keys(supabaseUpdateData).length > 0) {
+        try {
+          const { error: ordErr } = await supabase
+            .from('orders')
+            .update(supabaseUpdateData)
+            .eq('id', orderId);
+
+          if (ordErr) {
+            console.error(`❌ Errore aggiornamento ordine #${orderId} in Supabase:`, ordErr.message);
+          } else {
+            console.log(`✅ Ordine #${orderId} aggiornato con successo in Supabase 'orders' (aggiunto articolo)`);
+          }
+        } catch (e) {
+          console.error(`⚠️ Eccezione aggiornamento ordine #${orderId} in Supabase:`, e.message);
+        }
+      }
+    }
+
+    try {
+      const localOrders = getLocalOrders();
+      const localIdx = localOrders.findIndex(o => Number(o.id) === Number(orderId) || String(o.id) === String(orderId));
+      if (localIdx !== -1) {
+        localOrders[localIdx] = {
+          ...localOrders[localIdx],
+          ...updateData
+        };
+      } else {
+        localOrders.push({
+          id: Number(orderId) || orderId,
+          data: existingOrder.data || new Date().toLocaleString('it-IT'),
+          nome: existingOrder.nome || '',
+          ...updateData
+        });
+      }
+      fs.writeFileSync(LOCAL_ORDERS_FILE, JSON.stringify(localOrders, null, 2), 'utf8');
+      console.log(`✅ Cache locale orders_local.json aggiornata per ordine #${orderId}`);
+    } catch (e) {
+      console.warn("⚠️ Impossibile aggiornare cache locale orders_local.json:", e.message);
+    }
+
+    if (supabase) {
+      try {
+        const { data: existingCust, error: findCustErr } = await supabase
+          .from('customer_orders')
+          .select('*')
+          .eq('admin_order_id', Number(orderId));
+
+        if (!findCustErr && existingCust && existingCust.length > 0) {
+          const parsedTot = parseFloat(String(calculatedTotaleStr).replace('€', '').replace(/\s+/g, '').replace(',', '.'));
+          await supabase
+            .from('customer_orders')
+            .update({
+              total: !isNaN(parsedTot) ? parsedTot : undefined,
+              updated_at: new Date().toISOString()
+            })
+            .eq('admin_order_id', Number(orderId));
+          console.log(`✅ Aggiornato record customer_orders per admin_order_id #${orderId}`);
+        }
+      } catch (err) {
+        console.warn("⚠️ Aggiornamento customer_orders fallito:", err.message);
+      }
+    }
+
+    await recalculateCurrentLotto();
+
+    const mergedOrders = await getDbOrdersMerged();
+    const updatedOrd = mergedOrders.find(o => Number(o.id) === Number(orderId) || String(o.id) === String(orderId));
+
+    return res.json({ success: true, order: updatedOrd || { ...existingOrder, ...updateData } });
+  } catch (err) {
+    console.error("⚠️ Errore POST /api/admin/orders/:id/items/add:", err.message);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/admin/orders/toggle-shipping-override - Rimuove o ripristina la spedizione cliente per un ordine
 app.post('/api/admin/orders/toggle-shipping-override', adminAuthMiddleware, async (req, res) => {
   try {
@@ -23684,6 +23957,8 @@ if (process.env.NODE_ENV !== 'test') {
 
 export {
   app,
+  getSupplierForLotto,
+  generaExcelLotto,
   resolveSupplierBasePrice,
   calculateSupplierProductCost,
   calcolaCostoFornitoreProdotto,

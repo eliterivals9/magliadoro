@@ -2034,10 +2034,14 @@ function renderCronologiaLotti() {
         
         const lottoNumStr = String(l.id || 1).padStart(4, '0');
         const lottoFilename = `LOTTO_${lottoNumStr}.xlsx`;
+        const isForn2 = Number(l.fornitore_attivo) === 2 || (l.fornitore_nome && String(l.fornitore_nome).includes('2'));
+        const supplierBadge = isForn2 
+            ? '<span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200">Fornitore 2</span>' 
+            : '<span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">Fornitore 1</span>';
         
         return `
             <tr class="hover:bg-slate-50/50 transition-colors">
-                <td class="px-4 py-3.5 text-xs font-bold text-slate-900">${l.numero_lotto || `Lotto #${l.id}`}</td>
+                <td class="px-4 py-3.5 text-xs font-bold text-slate-900">${l.numero_lotto || `Lotto #${l.id}`}${supplierBadge}</td>
                 <td class="px-4 py-3.5 text-xs text-slate-500 font-medium font-mono">${l.archived_at || ''}</td>
                 <td class="px-4 py-3.5 text-xs text-slate-600 font-semibold font-mono">${l.numero_ordini || 0}</td>
                 <td class="px-4 py-3.5 text-xs text-slate-600 font-semibold font-mono">${l.numero_articoli || 0}</td>
@@ -2293,10 +2297,12 @@ window.apriDettaglioLotto = function(id) {
     const margineEl = document.getElementById('detail-lotto-margine');
     const ordersContainer = document.getElementById('lotto-orders-cards-container');
 
-    const feeUsd = Number(lotto.alibaba_fee_usd !== undefined ? lotto.alibaba_fee_usd : ((Number(lotto.costo_prodotti_usd || 0) + Number(lotto.costo_spedizione_usd || 0)) * 0.03));
-    const feeEur = Number(lotto.alibaba_fee_eur || 0);
+    const isForn2Detail = Number(lotto.fornitore_attivo) === 2 || (lotto.fornitore_nome && String(lotto.fornitore_nome).includes('2'));
+    const feeUsd = isForn2Detail ? 0 : Number(lotto.alibaba_fee_usd !== undefined ? lotto.alibaba_fee_usd : ((Number(lotto.costo_prodotti_usd || 0) + Number(lotto.costo_spedizione_usd || 0)) * 0.03));
+    const feeEur = isForn2Detail ? 0 : Number(lotto.alibaba_fee_eur || 0);
 
-    if (titleEl) titleEl.innerText = lotto.numero_lotto || `Lotto #${lotto.id}`;
+    const supplierTag = isForn2Detail ? ' (Fornitore 2)' : ' (Fornitore 1)';
+    if (titleEl) titleEl.innerText = (lotto.numero_lotto || `Lotto #${lotto.id}`) + supplierTag;
     if (dateEl) dateEl.innerText = `Chiuso il: ${lotto.archived_at || ''}`;
     if (ordiniEl) ordiniEl.innerText = lotto.numero_ordini || 0;
     if (articoliEl) articoliEl.innerText = lotto.numero_articoli || 0;

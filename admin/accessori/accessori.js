@@ -1043,53 +1043,7 @@ async function handleAccessoryImageUpload(inputEl) {
             throw new Error("Unauthorized: Nessun token di autenticazione amministrativa. Effettua nuovamente l'accesso.");
         }
 
-        const base64ToSend = await comprimiImmagineAccessorioAsync(file, 1200, 0.85);
-        if (!base64ToSend) {
-            throw new Error("Impossibile leggere il file immagine.");
-        }
-
-        const uploadResult = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/admin/store-image', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Authorization', authHeaders['Authorization']);
-
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable && percentEl) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    percentEl.innerText = `Caricamento ${percent}%`;
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        if (data.success && (data.internalUrl || data.url)) {
-                            resolve(data.internalUrl || data.url);
-                        } else {
-                            reject(new Error(data.error || "Risposta non valida da Supabase Storage"));
-                        }
-                    } catch (e) {
-                        reject(new Error("Errore durante l'analisi della risposta di Supabase Storage"));
-                    }
-                } else {
-                    let errMsg = `Errore HTTP ${xhr.status} durante il salvataggio su Supabase Storage`;
-                    try {
-                        const errData = JSON.parse(xhr.responseText);
-                        if (errData && errData.error) errMsg = errData.error;
-                    } catch (e) {}
-                    reject(new Error(errMsg));
-                }
-            };
-
-            xhr.onerror = () => reject(new Error("Errore di connessione di rete verso Supabase Storage"));
-            xhr.send(JSON.stringify({
-                productId: null,
-                originalUrl: null,
-                imageBase64: base64ToSend
-            }));
-        });
+        const uploadResult = await caricaImmagineAccessorioStorageAsync(file, currentEditingId || null);
 
         const hiddenInput = document.getElementById('modal-acc-immagine');
         if (hiddenInput) hiddenInput.value = uploadResult;
@@ -2989,18 +2943,22 @@ function aggiornaContatoriBulk() {
 }
 
 // Helper: Upload immagine persistente su Supabase Storage riutilizzando /api/admin/store-image
-async function caricaImmagineAccessorioStorageAsync(file) {
+async function caricaImmagineAccessorioStorageAsync(file, productId = null) {
     const base64ToSend = await comprimiImmagineAccessorioAsync(file, 1200, 0.85);
     if (!base64ToSend) {
         throw new Error("Impossibile leggere il file immagine");
     }
 
     const authHeaders = await getAccessoriAuthHeaders();
+    if (!authHeaders['Authorization']) {
+        throw new Error("Unauthorized: Token amministrativo non valido o sessione scaduta. Effettua di nuovo l'accesso.");
+    }
+
     const res = await fetch('/api/admin/store-image', {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
-            productId: null,
+            productId: productId || null,
             originalUrl: null,
             imageBase64: base64ToSend
         })
