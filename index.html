@@ -28135,6 +28135,21 @@ function renderizzaProdottiSquadraConFiltri() {
                 return;
             }
             window._isSubmittingOrderProcess = true;
+            const perfTraceId = 'fe_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+            const tFeStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            const feNow = () => (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            const fePerf = {
+                traceId: perfTraceId,
+                itemsCount: carrello.length,
+                phase: 'frontend_validation',
+                validationMs: 0,
+                authSessionMs: 0,
+                apiOrdersMs: 0,
+                postUiRenderMs: 0,
+                customerSyncMs: 0,
+                totalFrontendMs: 0,
+                ok: false
+            };
 
             const isConv = Boolean(window.fornituraTorneoAttiva && window.fornituraTorneoAttiva.valid);
             let nome = '';
@@ -28164,6 +28179,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     }
 
                     if (campiMancanti.length > 0) {
+                        window._isSubmittingOrderProcess = false;
                         evidenziaEFocalizzaPrimoCampoMancante(campiMancanti);
                         return;
                     }
@@ -28190,6 +28206,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 }
 
                 if (campiMancanti.length > 0) {
+                    window._isSubmittingOrderProcess = false;
                     evidenziaEFocalizzaPrimoCampoMancante(campiMancanti);
                     return;
                 }
@@ -28208,6 +28225,7 @@ function renderizzaProdottiSquadraConFiltri() {
                         if (pFound) cCat = pFound.categoria;
                     }
                     if (!isCategoriaAutorizzataTorneo(cCat, authCats)) {
+                        window._isSubmittingOrderProcess = false;
                         const err = `Prodotto non autorizzato dalla convenzione torneo: "${it.squadra || 'Prodotto'}" (${cCat || 'Senza categoria'}). Categorie consentite: ${Array.isArray(authCats) && authCats.length > 0 ? authCats.join(', ') : 'Nessuna'}.`;
                         if (window.mostraToastPremium) {
                             window.mostraToastPremium(err, "error");
@@ -28240,6 +28258,7 @@ function renderizzaProdottiSquadraConFiltri() {
                     it.taglia = normAccTaglia;
                 }
             }
+            fePerf.validationMs = Number((feNow() - tFeStart).toFixed(1));
 
             const btn = document.getElementById('btn-invia-ordine-db');
             if (btn) {
@@ -28252,6 +28271,8 @@ function renderizzaProdottiSquadraConFiltri() {
             }
 
             if (sessioneUtente) {
+                fePerf.phase = 'auth_session_refresh';
+                const tAuthStart = feNow();
                 try {
                     const client = await getCustomerSupabaseClient();
                     if (client) {
@@ -28270,6 +28291,7 @@ function renderizzaProdottiSquadraConFiltri() {
                 } catch (e) {
                     console.warn("Refresh sessione prima dell'ordine:", e);
                 }
+                fePerf.authSessionMs = Number((feNow() - tAuthStart).toFixed(1));
             }
 
             try {
@@ -28293,6 +28315,8 @@ function renderizzaProdottiSquadraConFiltri() {
                     torneo_id: window.fornituraTorneoAttiva ? window.fornituraTorneoAttiva.torneo_id : null
                 };
 
+                fePerf.phase = 'api_orders_fetch';
+                const tApiStart = feNow();
                 const res = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -28300,7 +28324,12 @@ function renderizzaProdottiSquadraConFiltri() {
                 });
 
                 const data = await res.json();
+                fePerf.apiOrdersMs = Number((feNow() - tApiStart).toFixed(1));
+                fePerf.httpStatus = res.status;
+
                 if (data.success) {
+                    fePerf.phase = 'post_order_ui_render';
+                    const tPostUiStart = feNow();
                     window.currentCheckoutIdempotencyKey = null;
                     // RESET COMPLETO MODALITÀ FORNITURA TORNEO DOPO ORDINE INVIATO CON SUCCESSO
                     window.fornituraTorneoAttiva = null;
@@ -28339,22 +28368,32 @@ function renderizzaProdottiSquadraConFiltri() {
                     } else if (window.mostraToastPremium) {
                         window.mostraToastPremium("Ordine inviato con successo!", "success");
                     }
+                    fePerf.postUiRenderMs = Number((feNow() - tPostUiStart).toFixed(1));
 
                     if (sessioneUtente && typeof window.sincronizzaOrdiniCliente === 'function') {
+                        fePerf.phase = 'customer_orders_sync';
+                        const tSyncStart = feNow();
                         await window.sincronizzaOrdiniCliente();
+                        fePerf.customerSyncMs = Number((feNow() - tSyncStart).toFixed(1));
                     }
+                    fePerf.ok = true;
+                    fePerf.phase = 'completed';
                 } else {
+                    fePerf.error = data.error || 'order_failed';
                     // SE L'ORDINE FALLISCE: NON resettare nulla (il cliente può riprovare)
                     if (window.mostraToastPremium) {
                         window.mostraToastPremium(data.error || "Errore durante l'invio dell'ordine.", "error");
                     }
                 }
             } catch (err) {
+                fePerf.error = err && err.message ? err.message : 'network_error';
                 console.error("Errore invio ordine:", err);
                 if (window.mostraToastPremium) {
                     window.mostraToastPremium("Errore di connessione. Riprova più tardi.", "error");
                 }
             } finally {
+                fePerf.totalFrontendMs = Number((feNow() - tFeStart).toFixed(1));
+                console.info(`[CHECKOUT PERF] [${perfTraceId}] total=${fePerf.totalFrontendMs}ms | val=${fePerf.validationMs}ms | auth=${fePerf.authSessionMs}ms | apiOrders=${fePerf.apiOrdersMs}ms | ui=${fePerf.postUiRenderMs}ms | custSync=${fePerf.customerSyncMs}ms | ok=${fePerf.ok}`, fePerf);
                 window._isSubmittingOrderProcess = false;
                 if (btn) {
                     btn.disabled = false;

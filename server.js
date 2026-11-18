@@ -962,11 +962,30 @@ function generateDefaultProducts() {
   return tempDatabase;
 }
 
+let localProductsCache = null; // { mtimeMs, size, data }
+
+function invalidateLocalProductsCache() {
+  localProductsCache = null;
+}
+
 function getLocalProducts() {
   if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
     try {
-      return JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      const stat = fs.statSync(LOCAL_PRODUCTS_FILE);
+      if (
+        localProductsCache &&
+        localProductsCache.mtimeMs === stat.mtimeMs &&
+        localProductsCache.size === stat.size &&
+        Array.isArray(localProductsCache.data)
+      ) {
+        return localProductsCache.data;
+      }
+      const parsed = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      const newStat = fs.statSync(LOCAL_PRODUCTS_FILE);
+      localProductsCache = { mtimeMs: newStat.mtimeMs, size: newStat.size, data: parsed };
+      return parsed;
     } catch (e) {
+      localProductsCache = null;
       console.error("⚠️ Error reading local products file, recreating database...", e);
     }
   }
@@ -977,8 +996,12 @@ function getLocalProducts() {
 
 function saveLocalProducts(products) {
   try {
+    localProductsCache = null;
     fs.writeFileSync(LOCAL_PRODUCTS_FILE, JSON.stringify(products, null, 2), 'utf8');
+    const stat = fs.statSync(LOCAL_PRODUCTS_FILE);
+    localProductsCache = { mtimeMs: stat.mtimeMs, size: stat.size, data: products };
   } catch (e) {
+    localProductsCache = null;
     console.error("⚠️ Error saving local products file:", e);
   }
 }
@@ -2285,22 +2308,41 @@ function getEffectiveExchangeRate(settings = null) {
   return getCentralizedExchangeRate(settings);
 }
 
-async function getLiveOrSettingsExchangeRate(settings = null) {
+async function getLiveOrSettingsExchangeRate(settings = null, perfCtx = null) {
+  const tStart = perfCtx ? performance.now() : 0;
   const currentSettings = settings || getSettings();
   const valuta = (currentSettings && currentSettings.cambioValuta) || {};
   if (valuta.mode === 'manual' && valuta.manual_rate !== undefined && valuta.manual_rate !== null && valuta.manual_rate !== '') {
+    if (perfCtx) {
+      perfCtx.metrics.exchangeMode = 'manual';
+      perfCtx.metrics.exchangeExternalFetch = false;
+      perfCtx.metrics.exchangeFetchOk = true;
+      perfCtx.metrics.exchangeRateMs = Number((performance.now() - tStart).toFixed(1));
+    }
     return parseFloat(valuta.manual_rate) || 0.856;
+  }
+  if (perfCtx) {
+    perfCtx.metrics.exchangeMode = valuta.mode || 'auto';
+    perfCtx.metrics.exchangeExternalFetch = true;
+    perfCtx.metrics.exchangeFetchOk = false;
   }
   try {
     const rateRes = await fetch('https://open.er-api.com/v6/latest/USD');
     if (rateRes.ok) {
       const rateData = await rateRes.json();
       if (rateData && rateData.rates && rateData.rates.EUR) {
+        if (perfCtx) {
+          perfCtx.metrics.exchangeFetchOk = true;
+          perfCtx.metrics.exchangeRateMs = Number((performance.now() - tStart).toFixed(1));
+        }
         return Number(rateData.rates.EUR);
       }
     }
   } catch (err) {
     console.warn("⚠️ Live exchange rate fetch failed, using configured fallback:", err.message);
+  }
+  if (perfCtx) {
+    perfCtx.metrics.exchangeRateMs = Number((performance.now() - tStart).toFixed(1));
   }
   if (valuta.manual_rate !== undefined && valuta.manual_rate !== null && valuta.manual_rate !== '') {
     return parseFloat(valuta.manual_rate) || 0.856;
@@ -4354,8 +4396,11 @@ async function migrateExistingPatchesToSupabaseStorage(settings) {
 // IN-MEMORY CACHE PER /api/products & /api/teams (Fase 25)
 // ==========================================
 const PRODUCTS_CACHE_TTL_MS = 5 * 60 * 1000; // TTL: 5 minuti (300.000 ms)
-let productsCacheData = null;       // Oggetto { responseJson, timestamp }
+let productsCacheData = null;       // Oggetto { responseJson, rawProducts, timestamp }
 let productsFetchPromise = null;    // Promise attiva per dedup richieste contemporanee
+let supabaseProductsFetchPromise = null; // Single-flight per fetch paginata Supabase in getAllProductsFromSupabase
+let supabaseProductsFetchClient = null;
+let productsCacheGeneration = 0;
 
 const TEAM_COUNTS_CACHE_TTL_MS = 5 * 60 * 1000;
 let teamProductCountsCache = null;   // Oggetto { counts, totalClub, timestamp }
@@ -4364,14 +4409,52 @@ let teamProductCountsCache = null;   // Oggetto { counts, totalClub, timestamp }
 const PRODUCTS_COUNT_CACHE_TTL_MS = 60 * 1000; // 60 secondi
 let productsCountCache = null;
 
+function buildNormalizedProductsList(data) {
+  return (Array.isArray(data) ? data : []).map(p => {
+    let target = p.target;
+    let categoria = normalizzaCategoria(p.categoria);
+    if (categoria === "Kit" && (p.categoria === "Kit Bambino" || target === "Bambino")) {
+      target = "Bambino";
+    }
+    if (!target) {
+      const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${p.categoria || ''}`.toLowerCase();
+      if (textToCheck.includes('kids') || textToCheck.includes('bambino') || textToCheck.includes('child') || textToCheck.includes('youth')) {
+        target = "Bambino";
+      } else {
+        target = "Adulto";
+      }
+    }
+    return {
+      id: p.id,
+      legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
+      created_at: p.created_at || p.created_time || p.data_inserimento || null,
+      squadra: p.squadra || '',
+      categoria: categoria,
+      target: target,
+      versione: p.versione || '',
+      stagione: p.stagione || '',
+      prezzo: p.prezzo !== undefined ? Number(p.prezzo) : 23.99,
+      prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null && p.prezzo_fornitore !== "" ? Number(p.prezzo_fornitore) : null,
+      immagine: p.immagine || '',
+      filtro_catalogo: p.filtro_catalogo || '',
+      tag: p.tag || '',
+      tipo: p.tipo || ''
+    };
+  });
+}
+
 function invalidateProductsCache() {
   if (productsCacheData) {
     console.log('[CACHE /api/products] Cache in memoria invalidata per aggiornamento dati.');
   }
+  productsCacheGeneration++;
   productsCacheData = null;
   productsFetchPromise = null;
+  supabaseProductsFetchPromise = null;
+  supabaseProductsFetchClient = null;
   teamProductCountsCache = null;
   productsCountCache = null;
+  invalidateLocalProductsCache();
 }
 
 async function getProductsCatalogFromCacheOrFetch() {
@@ -4396,53 +4479,26 @@ async function getProductsCatalogFromCacheOrFetch() {
         data = allProductsRaw;
       } catch (dbErr) {
         if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
-          data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+          data = getLocalProducts();
           source = 'local';
         } else {
           throw dbErr;
         }
       }
     } else if (fs.existsSync(LOCAL_PRODUCTS_FILE)) {
-      data = JSON.parse(fs.readFileSync(LOCAL_PRODUCTS_FILE, 'utf8'));
+      data = getLocalProducts();
       source = 'local';
     } else {
       throw new Error("Nessun database configurato o trovato.");
     }
 
-    const products = data.map(p => {
-      let target = p.target;
-      let categoria = normalizzaCategoria(p.categoria);
-      if (categoria === "Kit" && (p.categoria === "Kit Bambino" || target === "Bambino")) {
-        target = "Bambino";
-      }
-      if (!target) {
-        const textToCheck = `${p.squadra || ''} ${p.versione || ''} ${p.categoria || ''}`.toLowerCase();
-        if (textToCheck.includes('kids') || textToCheck.includes('bambino') || textToCheck.includes('child') || textToCheck.includes('youth')) {
-          target = "Bambino";
-        } else {
-          target = "Adulto";
-        }
-      }
-      return {
-        id: p.id,
-        legacy_id: p.legacy_id !== undefined && p.legacy_id !== null ? p.legacy_id : p.id,
-        created_at: p.created_at || p.created_time || p.data_inserimento || null,
-        squadra: p.squadra || '',
-        categoria: categoria,
-        target: target,
-        versione: p.versione || '',
-        stagione: p.stagione || '',
-        prezzo: p.prezzo !== undefined ? Number(p.prezzo) : 23.99,
-        prezzo_fornitore: p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null && p.prezzo_fornitore !== "" ? Number(p.prezzo_fornitore) : null,
-        immagine: p.immagine || '',
-        filtro_catalogo: p.filtro_catalogo || '',
-        tag: p.tag || '',
-        tipo: p.tipo || ''
-      };
-    });
+    const products = buildNormalizedProductsList(data);
 
     const responseJson = { success: true, source, products };
-    productsCacheData = { responseJson, timestamp: Date.now() };
+    if (source === 'supabase' && products.length > 0 && productsCacheData && (Date.now() - productsCacheData.timestamp < PRODUCTS_CACHE_TTL_MS)) {
+      return productsCacheData.responseJson.products;
+    }
+    productsCacheData = { responseJson, rawProducts: source === 'supabase' ? data : null, timestamp: Date.now() };
     return products;
   })();
 
@@ -4523,43 +4579,150 @@ function invalidateSettingsCache() {
 }
 
 // Helper per scaricare in modo resiliente e paginato TUTTI i prodotti da Supabase (evitando il limite di 1000 righe)
-async function getAllProductsFromSupabase(supabase) {
+async function getAllProductsFromSupabase(supabase, perfCtx = null) {
+  const tStart = perfCtx ? performance.now() : 0;
   const now = Date.now();
   if (productsCacheData && (now - productsCacheData.timestamp < PRODUCTS_CACHE_TTL_MS) && productsCacheData.responseJson && Array.isArray(productsCacheData.responseJson.products)) {
-    return productsCacheData.responseJson.products;
-  }
-  if (!supabase) return [];
-  let allProductsRaw = [];
-  let rangeStart = 0;
-  const chunkSize = 1000;
-  let hasMore = true;
-  let batchIndex = 1;
-  while (hasMore) {
-    const rangeEnd = rangeStart + chunkSize - 1;
-    const { data: chunk, error } = await supabase
-      .from('products')
-      .select('*')
-      .order('legacy_id', { ascending: true })
-      .range(rangeStart, rangeEnd);
-
-    if (error) {
-      console.warn(`⚠️ Error loading products at batch ${batchIndex} (range: ${rangeStart}-${rangeEnd}):`, error.message);
-      throw error;
+    const cachedList = Array.isArray(productsCacheData.rawProducts)
+      ? productsCacheData.rawProducts
+      : productsCacheData.responseJson.products;
+    if (perfCtx) {
+      perfCtx.productFetches.push({
+        phase: perfCtx.currentPhase,
+        cacheHit: true,
+        pages: 0,
+        rows: cachedList.length,
+        durationMs: Number((performance.now() - tStart).toFixed(1))
+      });
     }
+    return cachedList;
+  }
+  if (!supabase) {
+    if (perfCtx) {
+      perfCtx.productFetches.push({
+        phase: perfCtx.currentPhase,
+        cacheHit: false,
+        pages: 0,
+        rows: 0,
+        noClient: true,
+        durationMs: Number((performance.now() - tStart).toFixed(1))
+      });
+    }
+    return [];
+  }
 
-    if (chunk && chunk.length > 0) {
-      allProductsRaw = allProductsRaw.concat(chunk);
-      if (chunk.length < chunkSize) {
-        hasMore = false;
-      } else {
-        rangeStart += chunkSize;
-        batchIndex++;
+  // Single-flight: evita fetch paginate duplicate in parallelo su cache fredda
+  if (supabaseProductsFetchPromise && supabaseProductsFetchClient === supabase) {
+    try {
+      const sharedRes = await supabaseProductsFetchPromise;
+      if (perfCtx) {
+        perfCtx.productFetches.push({
+          phase: perfCtx.currentPhase,
+          cacheHit: false,
+          sharedFlight: true,
+          pages: 0,
+          rows: sharedRes.allProductsRaw.length,
+          durationMs: Number((performance.now() - tStart).toFixed(1))
+        });
       }
-    } else {
-      hasMore = false;
+      return sharedRes.allProductsRaw;
+    } catch (err) {
+      if (perfCtx) {
+        perfCtx.productFetches.push({
+          phase: perfCtx.currentPhase,
+          cacheHit: false,
+          sharedFlight: true,
+          pages: 0,
+          rows: 0,
+          error: true,
+          durationMs: Number((performance.now() - tStart).toFixed(1))
+        });
+      }
+      throw err;
     }
   }
-  return allProductsRaw;
+
+  const myGen = productsCacheGeneration;
+  let pagesFetched = 0;
+  let allProductsRaw = [];
+
+  const fetchPromise = (async () => {
+    let rangeStart = 0;
+    const chunkSize = 1000;
+    let hasMore = true;
+    let batchIndex = 1;
+    while (hasMore) {
+      const rangeEnd = rangeStart + chunkSize - 1;
+      pagesFetched++;
+      const { data: chunk, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('legacy_id', { ascending: true })
+        .range(rangeStart, rangeEnd);
+
+      if (error) {
+        console.warn(`⚠️ Error loading products at batch ${batchIndex} (range: ${rangeStart}-${rangeEnd}):`, error.message);
+        throw error;
+      }
+
+      if (chunk && chunk.length > 0) {
+        allProductsRaw = allProductsRaw.concat(chunk);
+        if (chunk.length < chunkSize) {
+          hasMore = false;
+        } else {
+          rangeStart += chunkSize;
+          batchIndex++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    // Popola productsCacheData solo dopo caricamento completo riuscito e non invalidato nel frattempo
+    if (myGen === productsCacheGeneration && allProductsRaw.length > 0) {
+      const normalizedProducts = buildNormalizedProductsList(allProductsRaw);
+      productsCacheData = {
+        responseJson: { success: true, source: 'supabase', products: normalizedProducts },
+        rawProducts: allProductsRaw,
+        timestamp: Date.now()
+      };
+    }
+    return { allProductsRaw, pagesFetched };
+  })();
+
+  supabaseProductsFetchPromise = fetchPromise;
+  supabaseProductsFetchClient = supabase;
+
+  try {
+    const res = await fetchPromise;
+    if (perfCtx) {
+      perfCtx.productFetches.push({
+        phase: perfCtx.currentPhase,
+        cacheHit: false,
+        pages: res.pagesFetched,
+        rows: res.allProductsRaw.length,
+        durationMs: Number((performance.now() - tStart).toFixed(1))
+      });
+    }
+    return res.allProductsRaw;
+  } catch (err) {
+    if (perfCtx) {
+      perfCtx.productFetches.push({
+        phase: perfCtx.currentPhase,
+        cacheHit: false,
+        pages: pagesFetched,
+        rows: allProductsRaw.length,
+        error: true,
+        durationMs: Number((performance.now() - tStart).toFixed(1))
+      });
+    }
+    throw err;
+  } finally {
+    if (supabaseProductsFetchPromise === fetchPromise) {
+      supabaseProductsFetchPromise = null;
+      supabaseProductsFetchClient = null;
+    }
+  }
 }
 
 // ==========================================
@@ -4831,13 +4994,18 @@ async function ensureLottoExistsInDb(lottoId) {
   }
 }
 
-async function insertDbOrder(order) {
+async function insertDbOrder(order, perfCtx = null) {
+  const tStart = perfCtx ? performance.now() : 0;
+  if (perfCtx) perfCtx.currentPhase = 'insert_order_init';
   const supabase = getSupabaseClient();
   if (!supabase) {
     throw new Error("Supabase non è configurato.");
   }
   if (order.lotto_id !== undefined && order.lotto_id !== null && !isNaN(Number(order.lotto_id))) {
+    if (perfCtx) perfCtx.currentPhase = 'insert_order_ensure_lotto';
+    const tEnsure = perfCtx ? performance.now() : 0;
     await ensureLottoExistsInDb(order.lotto_id);
+    if (perfCtx) perfCtx.metrics.ensureLottoMs = Number((performance.now() - tEnsure).toFixed(1));
   }
   const orderData = {
     data: order.data,
@@ -4867,10 +5035,13 @@ async function insertDbOrder(order) {
 console.log(JSON.stringify(orderData, null, 2));
 console.log("=======================================================\n");
 
+  if (perfCtx) perfCtx.currentPhase = 'insert_order_supabase';
+  const tInsert = perfCtx ? performance.now() : 0;
   const { data, error } = await supabase
   .from('orders')
   .insert(orderData)
   .select();
+  if (perfCtx) perfCtx.metrics.ordersInsertMs = Number((performance.now() - tInsert).toFixed(1));
 
 if (error) {
   console.error("⚠️ Inserting order to Supabase failed:", error.message);
@@ -4884,11 +5055,14 @@ console.log("==========================================================\n");
 console.log("✅ Order inserted successfully in Supabase 'orders' table.");
 if (data && data.length > 0) {
   try {
+    const tLocal = perfCtx ? performance.now() : 0;
     saveLocalOrder(data[0]);
+    if (perfCtx) perfCtx.metrics.saveLocalOrderMs = Number((performance.now() - tLocal).toFixed(1));
   } catch (eLoc) {
     console.warn("⚠️ Errore salvataggio local orders in insertDbOrder:", eLoc.message);
   }
 }
+if (perfCtx) perfCtx.metrics.insertDbOrderMs = Number((performance.now() - tStart).toFixed(1));
 return data && data.length > 0 ? data[0] : null;
 }
 
@@ -9195,6 +9369,13 @@ const DEFAULT_ACCESSORIES_SETTINGS = {
 };
 
 let accessoriesSettingsCache = null;
+let localAccessoriesCache = null; // { mtimeMs, size, data }
+let localAccessoriesCacheGeneration = 0;
+
+function invalidateLocalAccessoriesCache() {
+  localAccessoriesCacheGeneration++;
+  localAccessoriesCache = null;
+}
 
 // Sincronizzazione persistente accessori con Supabase (sopravvive a restart container)
 async function syncAccessoriesFromSupabase() {
@@ -9203,7 +9384,10 @@ async function syncAccessoriesFromSupabase() {
     if (supabase) {
       const { data, error } = await supabase.from('settings').select('value').eq('key', 'accessories_data').maybeSingle();
       if (!error && data && Array.isArray(data.value) && data.value.length > 0) {
+        invalidateLocalAccessoriesCache();
         fs.writeFileSync(LOCAL_ACCESSORIES_FILE, JSON.stringify(data.value, null, 2), 'utf8');
+        const stat = fs.statSync(LOCAL_ACCESSORIES_FILE);
+        localAccessoriesCache = { mtimeMs: stat.mtimeMs, size: stat.size, data: data.value };
         console.log(`[ACCESSORI] Sincronizzati ${data.value.length} accessori da Supabase settings.`);
         return data.value;
       }
@@ -9220,13 +9404,27 @@ syncAccessoriesFromSupabase().catch(() => {});
 function getLocalAccessories() {
   try {
     if (fs.existsSync(LOCAL_ACCESSORIES_FILE)) {
+      const stat = fs.statSync(LOCAL_ACCESSORIES_FILE);
+      if (
+        localAccessoriesCache &&
+        localAccessoriesCache.mtimeMs === stat.mtimeMs &&
+        localAccessoriesCache.size === stat.size &&
+        Array.isArray(localAccessoriesCache.data)
+      ) {
+        return [...localAccessoriesCache.data];
+      }
       const raw = fs.readFileSync(LOCAL_ACCESSORIES_FILE, 'utf8');
       if (raw && raw.trim()) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const newStat = fs.statSync(LOCAL_ACCESSORIES_FILE);
+          localAccessoriesCache = { mtimeMs: newStat.mtimeMs, size: newStat.size, data: parsed };
+          return [...parsed];
+        }
       }
     }
   } catch (err) {
+    localAccessoriesCache = null;
     console.error("⚠️ [ACCESSORI] Errore lettura accessories_local.json:", err.message);
   }
   return [];
@@ -9234,7 +9432,12 @@ function getLocalAccessories() {
 
 function saveLocalAccessories(accessories) {
   try {
+    invalidateLocalAccessoriesCache();
     fs.writeFileSync(LOCAL_ACCESSORIES_FILE, JSON.stringify(accessories, null, 2), 'utf8');
+    if (Array.isArray(accessories) && accessories.length > 0) {
+      const stat = fs.statSync(LOCAL_ACCESSORIES_FILE);
+      localAccessoriesCache = { mtimeMs: stat.mtimeMs, size: stat.size, data: [...accessories] };
+    }
     
     // Persistenza duratura su Supabase (settings: accessories_data)
     (async () => {
@@ -9254,6 +9457,7 @@ function saveLocalAccessories(accessories) {
 
     return true;
   } catch (err) {
+    invalidateLocalAccessoriesCache();
     console.error("⚠️ [ACCESSORI] Errore salvataggio accessories_local.json:", err.message);
     return false;
   }
@@ -11028,9 +11232,13 @@ function calculateLottoTotals(orders, settings, extraExpenses = [], allDbProduct
   let costo_totale_personalizzazioni_usd = 0.0;
 
   let localAccessories = [];
-  try {
-    localAccessories = getLocalAccessories();
-  } catch (e) {}
+  if (options && Array.isArray(options.localAccessories)) {
+    localAccessories = options.localAccessories;
+  } else {
+    try {
+      localAccessories = getLocalAccessories();
+    } catch (e) {}
+  }
 
   if (!allDbProducts) {
     let localProducts = [];
@@ -11181,8 +11389,21 @@ async function getProssimoLottoId() {
 
 let lottoMutexPromise = Promise.resolve();
 
-function runWithLottoLock(fn) {
-  const next = lottoMutexPromise.then(() => fn()).catch(err => {
+function runWithLottoLock(fn, perfCtx = null) {
+  const tEnqueue = perfCtx ? performance.now() : 0;
+  const next = lottoMutexPromise.then(async () => {
+    const tAcquired = perfCtx ? performance.now() : 0;
+    if (perfCtx) {
+      perfCtx.metrics.mutexWaitMs = Number((tAcquired - tEnqueue).toFixed(1));
+    }
+    try {
+      return await fn();
+    } finally {
+      if (perfCtx) {
+        perfCtx.metrics.mutexHoldMs = Number((performance.now() - tAcquired).toFixed(1));
+      }
+    }
+  }).catch(err => {
     console.error("⚠️ Errore nell'operazione atomica del lotto:", err);
     throw err;
   });
@@ -11190,7 +11411,8 @@ function runWithLottoLock(fn) {
   return next;
 }
 
-async function recalculateCurrentLottoInternal() {
+async function recalculateCurrentLottoInternal(perfCtx = null, options = {}) {
+  const tRecalcStart = perfCtx ? performance.now() : 0;
   const lottoFile = path.join(__dirname, 'lotto.json');
   let settings = getSettings();
   let activeOrders = [];
@@ -11198,15 +11420,27 @@ async function recalculateCurrentLottoInternal() {
   let allOrders = [];
   let archive = [];
   try {
+    if (perfCtx) perfCtx.currentPhase = 'recalc_lotto_fetch_lotti';
+    const tLotti = perfCtx ? performance.now() : 0;
     archive = await getDbLotti();
+    if (perfCtx) perfCtx.metrics.recalcLottiMs = Number((performance.now() - tLotti).toFixed(1));
+
+    if (perfCtx) perfCtx.currentPhase = 'recalc_lotto_fetch_orders';
+    const tOrders = perfCtx ? performance.now() : 0;
     allOrders = await getDbOrders();
+    if (perfCtx) {
+      perfCtx.metrics.recalcOrdersSelectMs = Number((performance.now() - tOrders).toFixed(1));
+      perfCtx.metrics.recalcAllOrdersCount = Array.isArray(allOrders) ? allOrders.length : 0;
+    }
     const unarchivedOrders = allOrders.filter(o => !o.is_archived && isOrderActiveForLotto(o));
     
     currentLottoId = resolveActiveCurrentLottoId(unarchivedOrders, archive);
     
     activeOrders = unarchivedOrders.filter(o => o.lotto_id === null || o.lotto_id === undefined || Number(o.lotto_id) === Number(currentLottoId));
+    if (perfCtx) perfCtx.metrics.recalcActiveOrdersCount = activeOrders.length;
   } catch (err) {
     console.error("⚠️ Error fetching active orders for recalculating lotto:", err.message);
+    if (perfCtx) perfCtx.metrics.recalcLottoTotalMs = Number((performance.now() - tRecalcStart).toFixed(1));
     if (fs.existsSync(lottoFile)) {
       try {
         return JSON.parse(fs.readFileSync(lottoFile, 'utf8'));
@@ -11225,33 +11459,74 @@ async function recalculateCurrentLottoInternal() {
 
   let lotExtraExpenses = [];
   try {
+    if (perfCtx) perfCtx.currentPhase = 'recalc_lotto_profit_shares';
+    const tProfit = perfCtx ? performance.now() : 0;
     const profitData = await getDbProfitShares();
+    if (perfCtx) perfCtx.metrics.recalcProfitSharesMs = Number((performance.now() - tProfit).toFixed(1));
     const allExtra = Array.isArray(profitData.extra_expenses) ? profitData.extra_expenses : [];
     lotExtraExpenses = allExtra.filter(e => e.lotto_id !== undefined && e.lotto_id !== null && Number(e.lotto_id) === Number(currentLottoId));
   } catch (errExp) {
     console.warn("⚠️ Impossibile caricare spese extra per ricalcolo lotto:", errExp.message);
   }
 
-  let localProducts = [];
-  try {
-    localProducts = getLocalProducts();
-  } catch (e) {}
-  let supabaseProducts = [];
-  try {
-    const supabase = getSupabaseClient();
-    if (supabase) {
-      supabaseProducts = await getAllProductsFromSupabase(supabase);
-    }
-  } catch (e) {}
-  let localAccessories = [];
-  try {
-    localAccessories = getLocalAccessories();
-  } catch (e) {}
+  if (perfCtx) perfCtx.currentPhase = 'recalc_lotto_catalog';
+  const preloadedCatalog = (options && options.preloadedCatalog && Array.isArray(options.preloadedCatalog.allDbProducts) && options.preloadedCatalog.allDbProducts.length > 0 &&
+    options.preloadedCatalog.productsGen === productsCacheGeneration &&
+    options.preloadedCatalog.accessoriesGen === localAccessoriesCacheGeneration)
+    ? options.preloadedCatalog
+    : null;
 
-  const allDbProducts = [
-    ...(supabaseProducts.length > 0 ? supabaseProducts : localProducts),
-    ...(Array.isArray(localAccessories) ? localAccessories : [])
-  ];
+  let localAccessories = [];
+  let allDbProducts = [];
+
+  if (preloadedCatalog) {
+    allDbProducts = preloadedCatalog.allDbProducts;
+    localAccessories = Array.isArray(preloadedCatalog.localAccessories) ? preloadedCatalog.localAccessories : getLocalAccessories();
+    if (perfCtx) {
+      perfCtx.metrics.recalcLocalCatalogMs = 0;
+      perfCtx.metrics.recalcSupabaseProductsMs = 0;
+      perfCtx.productFetches.push({
+        phase: perfCtx.currentPhase,
+        cacheHit: true,
+        preloaded: true,
+        pages: 0,
+        rows: allDbProducts.length,
+        durationMs: 0
+      });
+    }
+  } else {
+    const tRecalcLocal = perfCtx ? performance.now() : 0;
+    try {
+      localAccessories = getLocalAccessories();
+    } catch (e) {}
+    if (perfCtx) perfCtx.metrics.recalcLocalCatalogMs = Number((performance.now() - tRecalcLocal).toFixed(1));
+
+    let supabaseProducts = [];
+    try {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        const tRecalcSupaProd = perfCtx ? performance.now() : 0;
+        supabaseProducts = await getAllProductsFromSupabase(supabase, perfCtx);
+        if (perfCtx) perfCtx.metrics.recalcSupabaseProductsMs = Number((performance.now() - tRecalcSupaProd).toFixed(1));
+      }
+    } catch (e) {}
+
+    let localProducts = [];
+    if (supabaseProducts.length === 0) {
+      const tFallbackLocal = perfCtx ? performance.now() : 0;
+      try {
+        localProducts = getLocalProducts();
+      } catch (e) {}
+      if (perfCtx) {
+        perfCtx.metrics.recalcLocalCatalogMs = Number(((perfCtx.metrics.recalcLocalCatalogMs || 0) + (performance.now() - tFallbackLocal)).toFixed(1));
+      }
+    }
+
+    allDbProducts = [
+      ...(supabaseProducts.length > 0 ? supabaseProducts : localProducts),
+      ...(Array.isArray(localAccessories) ? localAccessories : [])
+    ];
+  }
 
   const prodByIdMap = new Map();
   const prodByLegacyIdMap = new Map();
@@ -11263,12 +11538,19 @@ async function recalculateCurrentLottoInternal() {
     });
   }
 
+  if (perfCtx) perfCtx.currentPhase = 'recalc_lotto_totals';
+  const tCalcTotals = perfCtx ? performance.now() : 0;
   const lotSupplier = resolveSupplierForLottoId(currentLottoId, archive, settings);
-  const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses, allDbProducts, { supplier: lotSupplier });
+  const totals = calculateLottoTotals(activeOrders, settings, lotExtraExpenses, allDbProducts, { supplier: lotSupplier, localAccessories });
   const currentUnitShippingRate = totals.spedizione_unitaria;
+  if (perfCtx) perfCtx.metrics.recalcTotalsCalcMs = Number((performance.now() - tCalcTotals).toFixed(1));
 
   // Sincronizza dinamicamente la tariffa di spedizione e tutti i calcoli economici di TUTTI gli ordini attivi del lotto
+  const tSyncOrdersStart = perfCtx ? performance.now() : 0;
+  let existingOrdersUpdateMsAcc = 0;
+  let existingOrdersUpdatedCount = 0;
   if (activeOrders.length > 0) {
+    if (perfCtx) perfCtx.currentPhase = 'recalc_lotto_update_existing_orders';
     let hasOrderChanges = false;
     const supabase = getSupabaseClient();
 
@@ -11400,6 +11682,7 @@ async function recalculateCurrentLottoInternal() {
 
       if (supabase && ord.id && orderHasChanged) {
         try {
+          const tOrdUpd = perfCtx ? performance.now() : 0;
           await supabase.from('orders').update({
             costo_prodotti_usd: newProdCostUSDStr,
             costo_spedizione_usd: newShippingStr,
@@ -11408,6 +11691,10 @@ async function recalculateCurrentLottoInternal() {
             profitto_eur: newProfitEURStr,
             carrello: cartItems
           }).eq('id', ord.id);
+          if (perfCtx) {
+            existingOrdersUpdateMsAcc += (performance.now() - tOrdUpd);
+            existingOrdersUpdatedCount++;
+          }
         } catch (supErr) {
           console.warn(`⚠️ Errore aggiornamento ordine ${ord.id} su Supabase durante ricalcolo lotto:`, supErr.message);
         }
@@ -11428,6 +11715,11 @@ async function recalculateCurrentLottoInternal() {
         console.warn("⚠️ Errore salvataggio local orders durante ricalcolo lotto:", errLocal.message);
       }
     }
+  }
+  if (perfCtx) {
+    perfCtx.metrics.existingOrdersUpdateMs = Number(existingOrdersUpdateMsAcc.toFixed(1));
+    perfCtx.metrics.existingOrdersUpdatedCount = existingOrdersUpdatedCount;
+    perfCtx.metrics.existingOrdersSyncLoopMs = Number((performance.now() - tSyncOrdersStart).toFixed(1));
   }
 
   console.log(`[GLOBAL SHIPPING RECALC DEBUG]\nlottoId: ${currentLottoId}\ntotalQuantity: ${totals.numero_totale_articoli}\nshippingRate: ${currentUnitShippingRate}\nordersAffected: ${activeOrders.length}\ntotalShipping: ${totals.spedizione_corrente_usd}`);
@@ -11457,11 +11749,14 @@ async function recalculateCurrentLottoInternal() {
   };
 
   try {
+    const tLottoWrite = perfCtx ? performance.now() : 0;
     fs.writeFileSync(lottoFile, JSON.stringify(updatedLotto, null, 2), 'utf8');
+    if (perfCtx) perfCtx.metrics.recalcLottoJsonWriteMs = Number((performance.now() - tLottoWrite).toFixed(1));
   } catch (writeErr) {
     console.error("⚠️ Failed to write lotto.json:", writeErr.message);
   }
 
+  if (perfCtx) perfCtx.metrics.recalcLottoTotalMs = Number((performance.now() - tRecalcStart).toFixed(1));
   return updatedLotto;
 }
 
@@ -19372,8 +19667,93 @@ function saveIdempotencyRecord(key, record) {
   }
 }
 
+// Helper diagnostico non invasivo per tracciamento tempi di checkout (zero PII/token/chiavi)
+function createCheckoutPerfContext() {
+  return {
+    reqId: `ord_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`,
+    tStart: performance.now(),
+    currentPhase: 'init',
+    productFetches: [],
+    metrics: {}
+  };
+}
+
+function logCheckoutPerfSummary(perfCtx, statusCode, extra = {}) {
+  try {
+    const totalBackendMs = Number((performance.now() - perfCtx.tStart).toFixed(1));
+    const m = perfCtx.metrics;
+    const primaryFetch = perfCtx.productFetches[0] || null;
+    const recalcFetch = perfCtx.productFetches.length > 1 ? perfCtx.productFetches[perfCtx.productFetches.length - 1] : null;
+    const summaryObj = {
+      reqId: perfCtx.reqId,
+      status: statusCode,
+      phase: perfCtx.currentPhase,
+      totalBackendMs,
+      itemsCount: m.itemsCount ?? null,
+      catalog: {
+        totalMs: m.catalogLoadTotalMs ?? null,
+        localProductsMs: m.localProductsMs ?? null,
+        localAccessoriesMs: m.localAccessoriesMs ?? null,
+        supabaseProductsMs: m.supabaseProductsMs ?? null,
+        cacheHit: primaryFetch ? primaryFetch.cacheHit : null,
+        pages: primaryFetch ? primaryFetch.pages : null,
+        rows: primaryFetch ? primaryFetch.rows : null
+      },
+      itemsValidationMs: m.itemsValidationMs ?? null,
+      totalsCalcMs: m.totalsCalcMs ?? null,
+      couponMs: m.couponMs ?? 0,
+      exchangeRate: {
+        ms: m.exchangeRateMs ?? null,
+        mode: m.exchangeMode ?? null,
+        externalFetch: m.exchangeExternalFetch ?? null,
+        fetchOk: m.exchangeFetchOk ?? null
+      },
+      mutex: {
+        waitMs: m.mutexWaitMs ?? null,
+        holdMs: m.mutexHoldMs ?? null,
+        torneoSquadreSelectMs: m.torneoSquadreSelectMs ?? null,
+        tournamentQuotaCheckMs: m.tournamentQuotaCheckMs ?? null,
+        tournamentSaveMs: m.tournamentSaveMs ?? null
+      },
+      insertOrder: {
+        totalMs: m.insertDbOrderMs ?? null,
+        ensureLottoMs: m.ensureLottoMs ?? null,
+        ordersInsertMs: m.ordersInsertMs ?? null,
+        saveLocalOrderMs: m.saveLocalOrderMs ?? null
+      },
+      recalcLotto: {
+        totalMs: m.recalcLottoTotalMs ?? null,
+        lottiMs: m.recalcLottiMs ?? null,
+        ordersSelectMs: m.recalcOrdersSelectMs ?? null,
+        allOrdersCount: m.recalcAllOrdersCount ?? null,
+        activeOrdersCount: m.recalcActiveOrdersCount ?? null,
+        profitSharesMs: m.recalcProfitSharesMs ?? null,
+        localCatalogMs: m.recalcLocalCatalogMs ?? null,
+        supabaseProductsMs: m.recalcSupabaseProductsMs ?? null,
+        productsCacheHit: recalcFetch ? recalcFetch.cacheHit : null,
+        productsPages: recalcFetch ? recalcFetch.pages : null,
+        totalsCalcMs: m.recalcTotalsCalcMs ?? null,
+        existingOrdersUpdateMs: m.existingOrdersUpdateMs ?? null,
+        existingOrdersUpdatedCount: m.existingOrdersUpdatedCount ?? null,
+        existingOrdersSyncLoopMs: m.existingOrdersSyncLoopMs ?? null,
+        lottoJsonWriteMs: m.recalcLottoJsonWriteMs ?? null
+      },
+      customerArea: {
+        hasUserId: m.hasUserId ?? false,
+        totalMs: m.customerAreaTotalMs ?? 0,
+        customerOrdersInsertMs: m.customerOrdersInsertMs ?? null,
+        customerOrderItemsInsertMs: m.customerOrderItemsInsertMs ?? null
+      },
+      ...extra
+    };
+    console.log(`[CHECKOUT PERF] [${perfCtx.reqId}] status=${statusCode} total=${totalBackendMs}ms | catalog=${m.catalogLoadTotalMs ?? '-'}ms(hit=${primaryFetch ? primaryFetch.cacheHit : '-'}) | val=${m.itemsValidationMs ?? '-'}ms | fx=${m.exchangeRateMs ?? '-'}ms | mutexWait=${m.mutexWaitMs ?? '-'}ms mutexHold=${m.mutexHoldMs ?? '-'}ms | insert=${m.insertDbOrderMs ?? '-'}ms | recalc=${m.recalcLottoTotalMs ?? '-'}ms(upd=${m.existingOrdersUpdatedCount ?? 0}:${m.existingOrdersUpdateMs ?? '-'}ms) | areaCliente=${m.customerAreaTotalMs ?? 0}ms`);
+    console.log(`[CHECKOUT PERF DETAIL] [${perfCtx.reqId}] ${JSON.stringify(summaryObj)}`);
+  } catch (perfLogErr) {}
+}
+
 // POST /api/orders - Registra un ordine, aggiorna il lotto in tempo reale e salva su Supabase
 app.post('/api/orders', async (req, res) => {
+  const perfCtx = createCheckoutPerfContext();
   if (typeof req.body === 'string' && req.body.trim().startsWith('{')) {
     try { req.body = JSON.parse(req.body); } catch (e) {}
   }
@@ -19387,12 +19767,14 @@ app.post('/api/orders', async (req, res) => {
         console.log(`⏳ [IDEMPOTENCY LOCK] Chiamata concorrente per chiave "${idempotencyKey}", in attesa di completamento...`);
         try {
           const asyncRes = await existing.inFlightPromise;
+          logCheckoutPerfSummary(perfCtx, asyncRes.statusCode || 200, { idempotencyHit: 'in_flight' });
           return res.status(asyncRes.statusCode || 200).json(asyncRes.response);
         } catch (e) {
           // In caso di errore server sulla richiesta concorrente, consenti il re-try
         }
       } else if (existing.response) {
         console.log(`ℹ️ [IDEMPOTENCY DUPLICATE PREVENTED] Restituzione risposta già associata alla chiave "${idempotencyKey}".`);
+        logCheckoutPerfSummary(perfCtx, existing.statusCode || 200, { idempotencyHit: 'cached' });
         return res.status(existing.statusCode || 200).json(existing.response);
       }
     }
@@ -19405,6 +19787,8 @@ app.post('/api/orders', async (req, res) => {
       resolveInFlight = resolve;
       rejectInFlight = reject;
     });
+    // Previene UnhandledPromiseRejection su errore 500 quando non ci sono chiamate concorrenti in attesa su existing.inFlightPromise
+    promise.catch(() => {});
     saveIdempotencyRecord(idempotencyKey, {
       timestamp: Date.now(),
       inFlightPromise: promise,
@@ -19413,7 +19797,8 @@ app.post('/api/orders', async (req, res) => {
     });
   }
 
-  function respondIdempotent(statusCode, responseBody) {
+  function respondIdempotent(statusCode, responseBody, perfExtra = {}) {
+    logCheckoutPerfSummary(perfCtx, statusCode, perfExtra);
     if (idempotencyKey) {
       if (statusCode >= 500) {
         global.processedOrderKeys.delete(idempotencyKey);
@@ -19432,13 +19817,16 @@ app.post('/api/orders', async (req, res) => {
   }
 
   try {
+    perfCtx.currentPhase = 'request_validation';
     console.log("=========================================");
-    console.log("📬 [DEBUG SERVER] POST /api/orders RECEIVED!");
+    console.log(`📬 [DEBUG SERVER] POST /api/orders RECEIVED! [${perfCtx.reqId}]`);
     if (idempotencyKey) console.log("🔑 [IDEMPOTENCY KEY]:", idempotencyKey);
     console.log("1. Full Body sent by frontend:", JSON.stringify(req.body, null, 2));
     console.log("=========================================");
 
     const { nome, telefono, carrello, user_id, access_token, registered_name, coupon_code, coupon_discount, coupon_type, coupon_value } = req.body;
+    perfCtx.metrics.itemsCount = Array.isArray(carrello) ? carrello.length : 0;
+    perfCtx.metrics.hasUserId = Boolean(user_id);
 
     let badRequestReason = "";
     if (!nome) badRequestReason += "Il campo 'nome' è vuoto o mancante. ";
@@ -19465,23 +19853,42 @@ app.post('/api/orders', async (req, res) => {
     }
 
     // Carica tutti i prodotti da Supabase per reperire prezzo_fornitore
-    let localProducts = getLocalProducts();
+    perfCtx.currentPhase = 'catalog_loading';
+    const tCatalogStart = performance.now();
+    const tLocAcc = performance.now();
     let localAccessories = getLocalAccessories();
+    perfCtx.metrics.localAccessoriesMs = Number((performance.now() - tLocAcc).toFixed(1));
+    const accessoriesGenAtLoad = localAccessoriesCacheGeneration;
     let supabaseProducts = [];
 
     // Tenta di ottenere prodotti aggiornati da Supabase
     try {
       const supabase = getSupabaseClient();
       if (supabase) {
-        supabaseProducts = await getAllProductsFromSupabase(supabase);
+        const tSupaProd = performance.now();
+        supabaseProducts = await getAllProductsFromSupabase(supabase, perfCtx);
+        perfCtx.metrics.supabaseProductsMs = Number((performance.now() - tSupaProd).toFixed(1));
       }
     } catch (e) {
       console.warn("⚠️ Impossibile caricare prodotti da Supabase per l'ordine, utilizzo fallback locale:", e.message);
     }
 
+    let localProducts = [];
+    if (supabaseProducts.length === 0) {
+      const tLocProd = performance.now();
+      localProducts = getLocalProducts();
+      perfCtx.metrics.localProductsMs = Number((performance.now() - tLocProd).toFixed(1));
+    } else {
+      perfCtx.metrics.localProductsMs = 0;
+    }
+
+    const productsGenAtLoad = productsCacheGeneration;
     const allDbProducts = [...(supabaseProducts.length > 0 ? supabaseProducts : localProducts), ...localAccessories];
+    perfCtx.metrics.catalogLoadTotalMs = Number((performance.now() - tCatalogStart).toFixed(1));
 
     // PRE-VALIDAZIONE RIGIDA SERVER-SIDE: Ogni articolo nel carrello (eccetto voci tecniche di spedizione/servizio) DEVE esistere realmente nel catalogo
+    perfCtx.currentPhase = 'items_validation';
+    const tItemsValStart = performance.now();
     for (let index = 0; index < carrello.length; index++) {
       const item = carrello[index];
       const isSpedizioneCliente = item.squadra && isTechnicalShippingOrServiceLine(item.squadra);
@@ -19622,8 +20029,11 @@ app.post('/api/orders', async (req, res) => {
         item.prezzo = prezzoConcordatoVal;
       }
     }
+    perfCtx.metrics.itemsValidationMs = Number((performance.now() - tItemsValStart).toFixed(1));
 
     // Calcoliamo i totali dell'ordine
+    perfCtx.currentPhase = 'totals_and_shipping_calc';
+    const tTotalsCalcStart = performance.now();
     let totale_pagato_cliente = 0;
     let costo_prodotti_usd = 0;
     let quantita_totale_articoli = 0;
@@ -19747,8 +20157,11 @@ app.post('/api/orders', async (req, res) => {
     });
 
     const prezzoFornitoreString = itemSupplierPrices.join(' / ');
+    perfCtx.metrics.totalsCalcMs = Number((performance.now() - tTotalsCalcStart).toFixed(1));
 
     // --- APPLICAZIONE SCONTO COUPON SUL SERVER ---
+    perfCtx.currentPhase = 'coupon_processing';
+    const tCouponStart = performance.now();
     let discount_eur = 0;
     let isSupplierCoupon = false;
     let supplierCostEur = 0;
@@ -19775,7 +20188,7 @@ app.post('/api/orders', async (req, res) => {
             discount_eur = Math.min(parseFloat(c.value), subtotal_eur + shipping_cost_eur);
           } else if (c.type === 'fornitore' || c.type === 'supplier_price') {
             const settings = getSettings();
-            const exRate = await getLiveOrSettingsExchangeRate(settings);
+            const exRate = await getLiveOrSettingsExchangeRate(settings, perfCtx);
             supplierCostEur = calcolaCostoFornitoreEur(carrello, exRate, allDbProducts, true, { supplier: Number(settings?.fornitore_attivo || 1), settings });
             isSupplierCoupon = true;
             discount_eur = Math.max(0, Number((subtotal_eur - supplierCostEur).toFixed(2)));
@@ -19785,6 +20198,7 @@ app.post('/api/orders', async (req, res) => {
         }
       }
     }
+    perfCtx.metrics.couponMs = Number((performance.now() - tCouponStart).toFixed(1));
 
     if (isSupplierCoupon) {
       totale_pagato_cliente = Math.max(0, totale_pagato_cliente - discount_eur);
@@ -19811,8 +20225,9 @@ app.post('/api/orders', async (req, res) => {
     }
 
     // 1. Recupera tasso di cambio USD/EUR live o manuale da settings
+    perfCtx.currentPhase = 'exchange_rate';
     const settings = getSettings();
-    const exchangeRate = await getLiveOrSettingsExchangeRate(settings);
+    const exchangeRate = await getLiveOrSettingsExchangeRate(settings, perfCtx);
 
     // 2. Carica e calcola Lotto Corrente persistente
     const lottoFile = path.join(__dirname, 'lotto.json');
@@ -19950,13 +20365,17 @@ app.post('/api/orders', async (req, res) => {
       : getCurrentActiveLottoId();
 
     // Salva l'ordine e ricalcola il lotto in modo atomico (sincronizzato) per evitare race condition
+    perfCtx.currentPhase = 'lotto_lock_waiting';
     const { insertedAdminOrder, finalLotto, isAggregated, isTournamentPayment, nuovoPagamento } = await runWithLottoLock(async () => {
       // =========================================================================
       // FASE 9: CONTROLLO ATOMICO DELLA QUOTA CONVENZIONE TORNEO
       // =========================================================================
       // 1. Identifica se ci sono articoli Convenzione Torneo nel carrello
+      perfCtx.currentPhase = 'lotto_lock_torneo_squadre';
       const fornituraSquadreMap = new Map(); // key: squadraId -> { squadra, quantitaRichiesta }
+      const tTorneoSquadre = performance.now();
       const tutteSquadre = await getAllTorneoSquadre();
+      perfCtx.metrics.torneoSquadreSelectMs = Number((performance.now() - tTorneoSquadre).toFixed(1));
 
       if (Array.isArray(carrello) && carrello.length > 0) {
         for (const item of carrello) {
@@ -20039,6 +20458,8 @@ app.post('/api/orders', async (req, res) => {
       }
 
       // Se ci sono convenzioni coinvolte, verifica la capienza autoritativa della quota
+      perfCtx.currentPhase = 'lotto_lock_tournament_quota';
+      const tQuotaStart = performance.now();
       for (const entry of fornituraSquadreMap.values()) {
         const squadra = entry.squadra;
         const quantitaRichiesta = entry.quantitaRichiesta;
@@ -20059,6 +20480,9 @@ app.post('/api/orders', async (req, res) => {
           err.squadra = squadra.nome_squadra;
           throw err;
         }
+      }
+      if (fornituraSquadreMap.size > 0) {
+        perfCtx.metrics.tournamentQuotaCheckMs = Number((performance.now() - tQuotaStart).toFixed(1));
       }
 
       // =========================================================================
@@ -20159,7 +20583,9 @@ app.post('/api/orders', async (req, res) => {
           data_pagamento: null
         };
 
+        const tTournamentSave = performance.now();
         await saveTorneoPagamento(nuovoPagamento);
+        perfCtx.metrics.tournamentSaveMs = Number((performance.now() - tTournamentSave).toFixed(1));
         console.log(`✅ [PAGAMENTO TORNEO REGISTRATO] Salvato pagamento #${nuovoPagamento.id} come "IN ATTESA DI PAGAMENTO".`);
 
         return {
@@ -20172,11 +20598,20 @@ app.post('/api/orders', async (req, res) => {
       }
 
       console.log("📤 Registrazione dell'ordine nel database Supabase (atomica)...");
-      const insertedOrder = await insertDbOrder(rigaOrdine);
+      perfCtx.currentPhase = 'insert_order';
+      const insertedOrder = await insertDbOrder(rigaOrdine, perfCtx);
       console.log("📤 Ricalcolo automatico del lotto corrente (atomico)...");
-      const finalLottoRecalc = await recalculateCurrentLottoInternal();
+      perfCtx.currentPhase = 'recalc_lotto';
+      const finalLottoRecalc = await recalculateCurrentLottoInternal(perfCtx, {
+        preloadedCatalog: {
+          allDbProducts,
+          localAccessories,
+          productsGen: productsGenAtLoad,
+          accessoriesGen: accessoriesGenAtLoad
+        }
+      });
       return { insertedAdminOrder: insertedOrder, finalLotto: finalLottoRecalc, isAggregated: false, isTournamentPayment: false, nuovoPagamento: null };
-    });
+    }, perfCtx);
 
     // Se è un ordine torneo, rispondiamo con successo per lo stato in attesa di pagamento
     if (isTournamentPayment && nuovoPagamento) {
@@ -20208,6 +20643,8 @@ app.post('/api/orders', async (req, res) => {
     console.log("access_token:", access_token ? "PRESENTE" : "ASSENTE");
     console.log("=================================");
     if (insertedAdminOrder && user_id) {
+      perfCtx.currentPhase = 'customer_area_save';
+      const tCustomerAreaStart = performance.now();
       try {
         console.log(`👤 Utente autenticato rilevato (${user_id}). Associazione dell'ordine all'Area Cliente...`);
         const targetSupabase = getSupabaseAdminClient() || getSupabaseClient();
@@ -20249,6 +20686,7 @@ app.post('/api/orders', async (req, res) => {
           let custOrderRow = null;
           let custOrderErr = null;
 
+          const tCustOrderInsert = performance.now();
           const initialInsert = await targetSupabase
             .from('customer_orders')
             .insert(customerOrderData)
@@ -20267,6 +20705,7 @@ app.post('/api/orders', async (req, res) => {
             custOrderRow = retryInsert.data;
             custOrderErr = retryInsert.error;
           }
+          perfCtx.metrics.customerOrdersInsertMs = Number((performance.now() - tCustOrderInsert).toFixed(1));
 
           if (custOrderErr) {
             console.error("❌ Errore inserimento in customer_orders:", custOrderErr.message);
@@ -20300,9 +20739,11 @@ app.post('/api/orders', async (req, res) => {
 
             if (orderItemsToInsert.length > 0) {
               console.log("📤 Inserimento in customer_order_items:", orderItemsToInsert);
+              const tCustItemsInsert = performance.now();
               const { error: itemsErr } = await targetSupabase
                 .from('customer_order_items')
                 .insert(orderItemsToInsert);
+              perfCtx.metrics.customerOrderItemsInsertMs = Number((performance.now() - tCustItemsInsert).toFixed(1));
               
               if (itemsErr) {
                 console.error("❌ Errore inserimento in customer_order_items:", itemsErr.message);
@@ -20314,9 +20755,12 @@ app.post('/api/orders', async (req, res) => {
         }
       } catch (errArea) {
         console.error("⚠️ Eccezione durante l'associazione dell'ordine all'Area Cliente:", errArea.message);
+        perfCtx.metrics.customerAreaError = errArea.message;
       }
+      perfCtx.metrics.customerAreaTotalMs = Number((performance.now() - tCustomerAreaStart).toFixed(1));
     }
 
+    perfCtx.currentPhase = 'completed';
     console.log("=== DEBUG SERVER SUCCESS ===");
     return respondIdempotent(200, {
       success: true,
@@ -20330,13 +20774,14 @@ app.post('/api/orders', async (req, res) => {
   } catch (err) {
     console.error("⚠️ Errore durante la registrazione dell'ordine:", err);
     const statusCode = err.statusCode || 500;
+    console.error(`[CHECKOUT PERF ERROR] [${perfCtx.reqId}] phase=${perfCtx.currentPhase} status=${statusCode} elapsedMs=${Number((performance.now() - perfCtx.tStart).toFixed(1))} error=${err.message}`);
     return respondIdempotent(statusCode, {
       success: false,
       error: err.message,
       requested: err.requested,
       available: err.available,
       squadra: err.squadra
-    });
+    }, { failedPhase: perfCtx.currentPhase, errorMessage: err.message });
   }
 });
 
@@ -23881,6 +24326,7 @@ app.post('/api/reclassification/approve', async (req, res) => {
         }
       } catch (lErr) {}
     }
+    invalidateProductsCache();
 
     // 3. AGGIORNA STATO REVISIONE
     item.status = 'approved';
@@ -23984,6 +24430,7 @@ app.post('/api/reclassification/manual-update', async (req, res) => {
         }
       } catch (lErr) {}
     }
+    invalidateProductsCache();
 
     // 3. AGGIORNA STATO REVISIONE
     item.status = 'approved_manual';
@@ -24320,5 +24767,13 @@ export {
   loadSettingsFromSupabase,
   invalidateSettingsCache,
   normalizeFornitoreAttivo,
+  getAllProductsFromSupabase,
+  getLocalProducts,
+  saveLocalProducts,
+  getLocalAccessories,
+  saveLocalAccessories,
+  invalidateProductsCache,
+  invalidateLocalProductsCache,
+  invalidateLocalAccessoriesCache,
   __setSupabaseTestClients
 };
