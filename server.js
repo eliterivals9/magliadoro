@@ -19628,6 +19628,7 @@ app.post('/api/orders', async (req, res) => {
     let costo_prodotti_usd = 0;
     let quantita_totale_articoli = 0;
     let quantita_articoli_spedizione = 0;
+    let quantita_unita_spedizione = 0;
     const stringaSquadre = [];
     const stringaPersonalizzazioni = [];
     const stringaTaglie = [];
