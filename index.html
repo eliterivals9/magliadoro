@@ -2110,6 +2110,55 @@ body {
             border-color: #111111 !important;
             box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.12) !important;
         }
+        #modal-accessorio-dettaglio .acc-taglia-options {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            padding: 4px !important;
+            border-radius: 10px !important;
+            border: 1px solid transparent !important;
+            transition: border-color 0.2s ease, background-color 0.2s ease !important;
+            box-sizing: border-box !important;
+        }
+        #modal-accessorio-dettaglio .acc-taglia-options.errore {
+            border-color: #ef4444 !important;
+            background-color: #FEF2F2 !important;
+        }
+        #modal-accessorio-dettaglio .acc-taglia-option {
+            width: 100% !important;
+            min-height: 44px !important;
+            padding: 10px 12px !important;
+            border-radius: 8px !important;
+            background-color: #FFFFFF !important;
+            border: 1.5px solid #E8E7E2 !important;
+            color: #111111 !important;
+            font-size: 13.5px !important;
+            font-weight: 700 !important;
+            font-family: inherit !important;
+            text-transform: none !important;
+            letter-spacing: 0 !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            transition: all 0.15s ease !important;
+            box-sizing: border-box !important;
+            box-shadow: none !important;
+        }
+        #modal-accessorio-dettaglio .acc-taglia-option:hover {
+            border-color: #111111 !important;
+            background-color: #F7F6F2 !important;
+        }
+        #modal-accessorio-dettaglio .acc-taglia-option.selezionata {
+            background-color: #111111 !important;
+            border-color: #111111 !important;
+            color: #FFFFFF !important;
+        }
+        #modal-accessorio-dettaglio .acc-taglia-option:focus-visible {
+            outline: 2px solid #111111 !important;
+            outline-offset: 2px !important;
+        }
         #modal-accessorio-dettaglio .box-anteprima-prezzo-acc {
             background-color: #F7F6F2 !important;
             padding: 12px 14px !important;
@@ -16161,13 +16210,7 @@ body {
                     </button>
                 ` : '';
 
-                const isManuale = typeof accessorioRichiedeTagliaManuale === 'function' ? accessorioRichiedeTagliaManuale(item) : false;
-                let tagliaInfoHtml = '';
-                if (isManuale) {
-                    tagliaInfoHtml = `<p class="stagione" style="margin: 4px 0 0 0; font-size: 12px; color: #595959; font-weight: 500;">Taglia a scelta</p>`;
-                } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
-                    tagliaInfoHtml = `<p class="stagione" style="margin: 4px 0 0 0; font-size: 12px; color: #595959; font-weight: 500;">Taglia: ${escapeHtml(item.taglia)}</p>`;
-                }
+                const tagliaInfoHtml = `<p class="stagione" style="margin: 4px 0 0 0; font-size: 12px; color: #595959; font-weight: 500;">Taglia a scelta</p>`;
 
                 const kickerText = (item.marca && item.marca.trim() !== '') 
                     ? marcaEscaped.toUpperCase() 
@@ -16275,15 +16318,36 @@ body {
         }
         window.isCartItemAccessory = isCartItemAccessory;
 
-        function accessorioRichiedeTagliaManuale(item) {
-            if (!item) return false;
-            if (item.richiede_taglia === true || item.gestione_taglia === 'manuale') return true;
-            if (item.taglia && String(item.taglia).toLowerCase() === 'manuale') return true;
-            const cat = String(item.categoria || '').toLowerCase().trim();
-            const nome = String(item.nome || item.squadra || item.versione || '').toLowerCase().trim();
-            if ((cat.includes('calz') || nome.includes('calz') || cat.includes('guant') || cat.includes('parast')) && item.gestione_taglia !== 'nessuna') {
-                return true;
+        const ACCESSORIO_TAGLIE_CONSENTITE = ['Taglia bambino', 'Taglia adulto'];
+
+        function normalizzaTagliaAccessorio(val) {
+            const norm = String(val || '').trim().toLowerCase();
+            if (norm === 'taglia bambino') return 'Taglia bambino';
+            if (norm === 'taglia adulto') return 'Taglia adulto';
+            return '';
+        }
+
+        function selezionaTagliaAccessorio(tagliaVal) {
+            const normalized = normalizzaTagliaAccessorio(tagliaVal);
+            const hiddenInput = document.getElementById('modal-acc-taglia-valore');
+            if (hiddenInput) {
+                hiddenInput.value = normalized;
             }
+            const group = document.getElementById('modal-acc-taglia-group');
+            if (group) {
+                group.classList.remove('errore');
+                group.querySelectorAll('.acc-taglia-option').forEach(btn => {
+                    const isSel = btn.getAttribute('data-taglia') === normalized;
+                    btn.classList.toggle('selezionata', isSel);
+                    btn.setAttribute('aria-checked', isSel ? 'true' : 'false');
+                });
+            }
+            const errEl = document.getElementById('modal-acc-taglia-errore');
+            if (errEl) errEl.style.display = 'none';
+        }
+        window.selezionaTagliaAccessorio = selezionaTagliaAccessorio;
+
+        function accessorioRichiedeTagliaManuale() {
             return false;
         }
 
@@ -16369,43 +16433,24 @@ body {
             }
 
             if (opzioniContainer) {
-                let opzHtml = '';
-                const isManuale = accessorioRichiedeTagliaManuale(item) || (cartItemToEdit && cartItemToEdit.taglia && cartItemToEdit.taglia !== 'nessuna');
-
-                if (isManuale) {
-                    opzHtml += `
-                        <div id="box-taglia-manuale-acc" style="margin-bottom: 6px;">
-                            <label for="modal-acc-input-taglia" style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 8px;">
-                                <span>TAGLIA <span style="color: #ef4444;">*</span></span>
-                                <span style="font-size: 11px; color: #666660; font-weight: 600; text-transform: none;">Inserimento manuale</span>
+                let opzHtml = `
+                    <div id="box-taglia-scelta-acc" style="margin-bottom: 6px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <label id="label-modal-acc-taglia" style="font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin: 0;">
+                                TAGLIA <span style="color: #ef4444;">*</span>
                             </label>
-                            <div style="position: relative;">
-                                <input type="text" id="modal-acc-input-taglia" placeholder="Scrivi la taglia" autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 10px 14px; min-height: 44px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E8E7E2; color: #111111; font-size: 14px; font-weight: 600; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease;" oninput="const err = document.getElementById('modal-acc-taglia-errore'); if(err) err.style.display='none'; this.style.borderColor='#111111';" onkeydown="if(event.key==='Enter'){event.preventDefault(); confermaAggiungiAccessorioCarrello();}">
-                            </div>
-                            <div id="modal-acc-taglia-errore" style="display: none; color: #ef4444; font-size: 12px; font-weight: 700; margin-top: 6px;">
-                                Inserisci la taglia prima di procedere.
-                            </div>
+                            <span style="font-size: 11px; color: #666660; font-weight: 600; text-transform: none;">Scelta obbligatoria</span>
                         </div>
-                    `;
-                } else if (item.opzioni && Array.isArray(item.opzioni.taglie) && item.opzioni.taglie.length > 0) {
-                    opzHtml += `
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 6px;">Seleziona Misura / Taglia</label>
-                            <select id="modal-acc-select-taglia" style="width: 100%; padding: 10px 14px; min-height: 44px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E8E7E2; color: #111111; font-size: 14px; font-weight: 600; outline: none;">
-                                ${item.opzioni.taglie.map(t => `<option value="${t}">${t}</option>`).join('')}
-                            </select>
+                        <input type="hidden" id="modal-acc-taglia-valore" value="">
+                        <div id="modal-acc-taglia-group" class="acc-taglia-options" role="radiogroup" aria-labelledby="label-modal-acc-taglia">
+                            <button type="button" class="acc-taglia-option" data-taglia="Taglia bambino" role="radio" aria-checked="false" onclick="selezionaTagliaAccessorio('Taglia bambino')">Taglia bambino</button>
+                            <button type="button" class="acc-taglia-option" data-taglia="Taglia adulto" role="radio" aria-checked="false" onclick="selezionaTagliaAccessorio('Taglia adulto')">Taglia adulto</button>
                         </div>
-                    `;
-                } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
-                    opzHtml += `
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 700; color: #111111; text-transform: uppercase; margin-bottom: 6px;">Taglia</label>
-                            <div style="padding: 10px 14px; background: #F7F6F2; border: 1px solid #E8E7E2; border-radius: 8px; color: #111111; font-size: 14px; font-weight: 600;">
-                                ${item.taglia}
-                            </div>
+                        <div id="modal-acc-taglia-errore" style="display: none; color: #ef4444; font-size: 12px; font-weight: 700; margin-top: 6px;">
+                            Seleziona una taglia prima di procedere.
                         </div>
-                    `;
-                }
+                    </div>
+                `;
 
                 if (item.opzioni && Array.isArray(item.opzioni.colori) && item.opzioni.colori.length > 0) {
                     opzHtml += `
@@ -16421,13 +16466,9 @@ body {
 
                 // Precompilazione campi in modalità Modifica
                 if (cartItemToEdit) {
-                    const inputTaglia = document.getElementById('modal-acc-input-taglia');
-                    if (inputTaglia && cartItemToEdit.taglia) {
-                        inputTaglia.value = (cartItemToEdit.taglia === 'manuale' || cartItemToEdit.taglia === 'nessuna') ? '' : cartItemToEdit.taglia;
-                    }
-                    const selectTaglia = document.getElementById('modal-acc-select-taglia');
-                    if (selectTaglia && cartItemToEdit.taglia) {
-                        selectTaglia.value = cartItemToEdit.taglia;
+                    const prefilledTaglia = normalizzaTagliaAccessorio(cartItemToEdit.taglia);
+                    if (prefilledTaglia) {
+                        selezionaTagliaAccessorio(prefilledTaglia);
                     }
                     const selectColore = document.getElementById('modal-acc-select-colore');
                     if (selectColore && cartItemToEdit.infoPerso) {
@@ -16441,20 +16482,6 @@ body {
 
             document.body.style.overflow = 'hidden';
             modal.style.display = 'flex';
-            // Auto focus input taglia se presente
-            setTimeout(() => {
-                const inp = document.getElementById('modal-acc-input-taglia');
-                if (inp) {
-                    try {
-                        inp.focus({ preventScroll: true });
-                    } catch(e) {
-                        inp.focus();
-                    }
-                    if (inp.value) {
-                        inp.select();
-                    }
-                }
-            }, 50);
         }
 
         function chiudiAccessorioModal() {
@@ -16507,40 +16534,25 @@ body {
                 }
             }
 
-            const isManuale = accessorioRichiedeTagliaManuale(item);
-            let tagliaScelta = '';
+            const hiddenTaglia = document.getElementById('modal-acc-taglia-valore');
+            const tagliaScelta = normalizzaTagliaAccessorio(hiddenTaglia ? hiddenTaglia.value : '');
+            const erroreTaglia = document.getElementById('modal-acc-taglia-errore');
+            const groupTaglia = document.getElementById('modal-acc-taglia-group');
 
-            if (isManuale) {
-                const inputTaglia = document.getElementById('modal-acc-input-taglia');
-                const rawTaglia = inputTaglia ? inputTaglia.value.trim() : '';
-                const erroreTaglia = document.getElementById('modal-acc-taglia-errore');
-
-                if (!rawTaglia) {
-                    if (erroreTaglia) {
-                        erroreTaglia.style.display = 'block';
-                    }
-                    if (inputTaglia) {
-                        inputTaglia.style.borderColor = '#ef4444';
-                        inputTaglia.focus();
-                    }
-                    const msg = "Inserisci la taglia prima di procedere.";
-                    if (window.mostraToastPremium) {
-                        window.mostraToastPremium(msg, "error");
-                    } else {
-                        alert(msg);
-                    }
-                    return;
+            if (!tagliaScelta) {
+                if (erroreTaglia) {
+                    erroreTaglia.style.display = 'block';
                 }
-                tagliaScelta = rawTaglia;
-            } else {
-                const selectTaglia = document.getElementById('modal-acc-select-taglia');
-                if (selectTaglia) {
-                    tagliaScelta = selectTaglia.value;
-                } else if (item.taglia && item.taglia !== 'manuale' && item.taglia !== 'nessuna') {
-                    tagliaScelta = item.taglia;
+                if (groupTaglia) {
+                    groupTaglia.classList.add('errore');
+                }
+                const msg = "Seleziona una taglia prima di procedere.";
+                if (window.mostraToastPremium) {
+                    window.mostraToastPremium(msg, "error");
                 } else {
-                    tagliaScelta = '';
+                    alert(msg);
                 }
+                return;
             }
 
             const selectColore = document.getElementById('modal-acc-select-colore');
@@ -28204,6 +28216,28 @@ function renderizzaProdottiSquadraConFiltri() {
                         }
                         return;
                     }
+                }
+            }
+
+            // Controllo obbligatorio taglia accessori nel carrello (Taglia bambino / Taglia adulto)
+            for (let i = 0; i < carrello.length; i++) {
+                const it = carrello[i];
+                if (typeof isCartItemAccessory === 'function' && isCartItemAccessory(it)) {
+                    const normAccTaglia = normalizzaTagliaAccessorio(it.taglia);
+                    if (!normAccTaglia) {
+                        window._isSubmittingOrderProcess = false;
+                        const errAcc = `Seleziona una taglia valida (Taglia bambino o Taglia adulto) per "${it.squadra || 'Accessorio'}".`;
+                        if (window.mostraToastPremium) {
+                            window.mostraToastPremium(errAcc, "error");
+                        } else {
+                            alert(errAcc);
+                        }
+                        if (typeof avviaModificaArticolo === 'function') {
+                            avviaModificaArticolo(i);
+                        }
+                        return;
+                    }
+                    it.taglia = normAccTaglia;
                 }
             }
 

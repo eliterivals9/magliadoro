@@ -31,6 +31,26 @@ export function setupItemEndpoints(app, helpers) {
     ricostruisciCarrelloDaStringhe
   } = helpers;
 
+  function isLottoReallyArchived(lottoRecord) {
+    if (!lottoRecord) return false;
+    const statusNorm = String(lottoRecord.status || '').trim().toLowerCase();
+    // Un lotto ripristinato, attivo o riaperto è modificabile anche se conserva archived_at storico
+    if (statusNorm === 'ripristinato' || statusNorm === 'attivo' || statusNorm === 'riaperto') {
+      return false;
+    }
+    if (statusNorm === 'archived' || statusNorm === 'chiuso') {
+      return true;
+    }
+    // Compatibilità con record storici privi di status esplicito
+    const archivedAtNorm = String(lottoRecord.archived_at || '').trim().toLowerCase();
+    return Boolean(
+      archivedAtNorm &&
+      archivedAtNorm !== 'in corso' &&
+      archivedAtNorm !== 'in_corso' &&
+      archivedAtNorm !== 'attivo'
+    );
+  }
+
   async function ricalcolaTotaliEDatiDerivatiOrdine(order, updatedCarrello) {
     const settings = getSettings();
     let localAccessories = [];
@@ -231,7 +251,7 @@ export function setupItemEndpoints(app, helpers) {
       if (targetOrder.lotto_id) {
         const lotti = await getDbLotti();
         const currentLottoRecord = lotti.find(l => Number(l.id) === Number(targetOrder.lotto_id));
-        if (currentLottoRecord && (currentLottoRecord.status === 'archived' || (currentLottoRecord.archived_at && currentLottoRecord.archived_at !== 'In corso' && currentLottoRecord.archived_at !== 'Attivo'))) {
+        if (isLottoReallyArchived(currentLottoRecord)) {
           return res.status(400).json({ success: false, error: "Impossibile modificare un ordine appartenente a un lotto già archiviato." });
         }
       }
@@ -261,7 +281,11 @@ export function setupItemEndpoints(app, helpers) {
 
       // Applica TAGLIA
       if (taglia !== undefined && taglia !== null) {
-        const cleanTaglia = String(taglia).trim().toUpperCase();
+        const rawTaglia = String(taglia).trim();
+        const lowerTaglia = rawTaglia.toLowerCase();
+        const cleanTaglia = lowerTaglia === 'taglia bambino'
+          ? 'Taglia bambino'
+          : (lowerTaglia === 'taglia adulto' ? 'Taglia adulto' : rawTaglia.toUpperCase());
         if (cleanTaglia) {
           item.taglia = cleanTaglia;
         }
@@ -339,7 +363,7 @@ export function setupItemEndpoints(app, helpers) {
       if (targetOrder.lotto_id) {
         const lotti = await getDbLotti();
         const currentLottoRecord = lotti.find(l => Number(l.id) === Number(targetOrder.lotto_id));
-        if (currentLottoRecord && (currentLottoRecord.status === 'archived' || (currentLottoRecord.archived_at && currentLottoRecord.archived_at !== 'In corso' && currentLottoRecord.archived_at !== 'Attivo'))) {
+        if (isLottoReallyArchived(currentLottoRecord)) {
           return res.status(400).json({ success: false, error: "Impossibile modificare un ordine appartenente a un lotto già archiviato." });
         }
       }
@@ -436,7 +460,7 @@ export function setupItemEndpoints(app, helpers) {
       if (targetOrder.lotto_id) {
         const lotti = await getDbLotti();
         const currentLottoRecord = lotti.find(l => Number(l.id) === Number(targetOrder.lotto_id));
-        if (currentLottoRecord && (currentLottoRecord.status === 'archived' || (currentLottoRecord.archived_at && currentLottoRecord.archived_at !== 'In corso' && currentLottoRecord.archived_at !== 'Attivo'))) {
+        if (isLottoReallyArchived(currentLottoRecord)) {
           return res.status(400).json({ success: false, error: "Impossibile modificare un ordine appartenente a un lotto già archiviato." });
         }
       }
@@ -497,7 +521,11 @@ export function setupItemEndpoints(app, helpers) {
       const stag = stagione || (matchedAcc ? '' : (matchedProd ? matchedProd.stagione : '2026/2027'));
       const vers = versione || (matchedAcc ? matchedAcc.nome : (matchedProd ? matchedProd.versione : ''));
       const tgt = target || (matchedAcc ? 'Unica' : (matchedProd ? matchedProd.target : 'Adulto'));
-      const cleanTaglia = (taglia || (isAccessoryItem ? 'UNICA' : 'M')).trim().toUpperCase();
+      const rawTagliaInput = String(taglia || (isAccessoryItem ? 'Taglia adulto' : 'M')).trim();
+      const lowerTagliaInput = rawTagliaInput.toLowerCase();
+      const cleanTaglia = lowerTagliaInput === 'taglia bambino'
+        ? 'Taglia bambino'
+        : (lowerTagliaInput === 'taglia adulto' ? 'Taglia adulto' : rawTagliaInput.toUpperCase());
       const q = Math.max(1, parseInt(quantita, 10) || 1);
 
       // Prezzo di vendita

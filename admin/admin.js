@@ -2780,7 +2780,7 @@ function aggiornaStatisticheDashboard(force = false) {
     // Alibaba Payment Fee (3% del costo fornitore in USD convertito in EUR per Fornitore 1, 0 per Fornitore 2)
     let alibabaFeeUsd = 0;
     let alibabaFeeEur = 0;
-    const isForn2Active1 = (window.cachedSettings && Number(window.cachedSettings.fornitore_attivo) === 2) || (window.appSettings && Number(window.appSettings.fornitore_attivo) === 2) || (window.currentLottoData && Number(window.currentLottoData.fornitore_attivo) === 2);
+    const isForn2Active1 = getEffectiveSupplierForLottoClient(window.currentLottoData, window.appSettings || window.cachedSettings) === 2;
     if (window.currentLottoData && !isForn2Active1) {
         alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd !== undefined ? window.currentLottoData.alibaba_fee_usd : 0);
         alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur !== undefined ? window.currentLottoData.alibaba_fee_eur : 0);
@@ -2919,7 +2919,7 @@ function aggiornaStatisticheLottoCorrente() {
 
     let alibabaFeeUsd = 0;
     let alibabaFeeEur = 0;
-    const isForn2Active2 = (window.cachedSettings && Number(window.cachedSettings.fornitore_attivo) === 2) || (window.appSettings && Number(window.appSettings.fornitore_attivo) === 2) || (window.currentLottoData && Number(window.currentLottoData.fornitore_attivo) === 2);
+    const isForn2Active2 = getEffectiveSupplierForLottoClient(window.currentLottoData, window.appSettings || window.cachedSettings) === 2;
     if (window.currentLottoData && !isForn2Active2) {
         alibabaFeeUsd = Number(window.currentLottoData.alibaba_fee_usd !== undefined ? window.currentLottoData.alibaba_fee_usd : 0);
         alibabaFeeEur = Number(window.currentLottoData.alibaba_fee_eur !== undefined ? window.currentLottoData.alibaba_fee_eur : 0);
@@ -5871,6 +5871,10 @@ function estraiArticoliOrdineConImmagini(order) {
     }
 
     const orderMainImg = estraiUrlImmaginePulito(order.foto);
+    const ordSupplier = getEffectiveSupplierForOrderClient(order, window.appSettings || window.cachedSettings);
+    const prodList = (Array.isArray(window.prodotti) && window.prodotti.length > 0)
+        ? window.prodotti
+        : (Array.isArray(window.catalogoProdotti) ? window.catalogoProdotti : []);
 
     if (Array.isArray(cart) && cart.length > 0) {
         cart.forEach(c => {
@@ -5885,9 +5889,11 @@ function estraiArticoliOrdineConImmagini(order) {
                 pers = 'Nessuna';
             }
 
-            const rawSupplierPrice = (c.prezzo_fornitore !== undefined && c.prezzo_fornitore !== null && !isNaN(Number(c.prezzo_fornitore))) 
-                ? Number(c.prezzo_fornitore)
-                : ((c.costo_unitario_fornitore !== undefined && c.costo_unitario_fornitore !== null && !isNaN(Number(c.costo_unitario_fornitore)))
+            const matchedP = prodList.find(p => (c.id && String(p.id) === String(c.id)) || (c.legacy_id && String(p.legacy_id) === String(c.legacy_id))) || null;
+            const resolvedSupPrice = resolveSupplierBasePriceClient(c, ordSupplier, window.appSettings || window.cachedSettings, matchedP);
+            const rawSupplierPrice = resolvedSupPrice !== null
+                ? resolvedSupPrice
+                : ((ordSupplier !== 2 && c.costo_unitario_fornitore !== undefined && c.costo_unitario_fornitore !== null && !isNaN(Number(c.costo_unitario_fornitore)))
                     ? Number(c.costo_unitario_fornitore)
                     : null);
 
@@ -5907,6 +5913,7 @@ function estraiArticoliOrdineConImmagini(order) {
                 origine_prezzo: c.origine_prezzo || (c.is_prezzo_fornitore ? 'fornitore' : null),
                 totale_concordato: (c.totale_concordato !== undefined && c.totale_concordato !== null) ? parseFloat(c.totale_concordato) : null,
                 prezzo_fornitore: rawSupplierPrice,
+                prezzo_fornitore2: ordSupplier === 2 ? rawSupplierPrice : (c.prezzo_fornitore2 !== undefined ? Number(c.prezzo_fornitore2) : null),
                 infoPerso: pers,
                 imgUrl: imgUrl
             });
@@ -6265,10 +6272,14 @@ function calcolaRiepilogoFinanziarioOrdine(order) {
     let costoSpedizioneUsd = parseFlexibleDecimal(order["Costo spedizione (USD)"] || order["osto spedizione (USD)"] || order.costo_spedizione_usd);
 
     if (costoProdottiUsd === 0 && rawCartList.length > 0) {
+        const ordSupFin = getEffectiveSupplierForOrderClient(order, window.appSettings || window.cachedSettings);
         rawCartList.forEach(item => {
-            if (!item) return;
+            if (!item || (item.squadra && isTechnicalShippingOrServiceLine(item.squadra))) return;
             const q = parseInt(item.quantita, 10) || 1;
-            const uCost = parseFlexibleDecimal(item.costo_fornitore_unitario_usd || item.prezzo_fornitore_usd || item.prezzo_fornitore);
+            const baseU = resolveSupplierBasePriceClient(item, ordSupFin, window.appSettings || window.cachedSettings);
+            const uCost = (baseU !== null && baseU > 0)
+                ? baseU
+                : parseFlexibleDecimal(ordSupFin === 2 ? (item.prezzo_fornitore2 || 0) : (item.costo_fornitore_unitario_usd || item.prezzo_fornitore_usd || item.prezzo_fornitore));
             if (uCost > 0) {
                 costoProdottiUsd += (uCost * q);
             }
@@ -6908,20 +6919,22 @@ function renderOrdini() {
  * Carica le impostazioni dal server e popola l'UI
  */
 let settingsFetchPromise = null;
+let hasLoadedSettingsFromServer = false;
 async function caricaSettings(force = false) {
-    if (!force && window.appSettings && Object.keys(window.appSettings).length > 0) {
+    if (!force && hasLoadedSettingsFromServer && window.appSettings && Object.keys(window.appSettings).length > 0 && window.appSettings.fornitore_attivo !== undefined) {
         return window.appSettings;
     }
-    if (settingsFetchPromise) return settingsFetchPromise;
+    if (!force && settingsFetchPromise) return settingsFetchPromise;
     settingsFetchPromise = (async () => {
         try {
-            const res = await fetch('/api/settings');
+            const res = await fetch('/api/settings', { cache: 'no-store' });
             if (res.ok) {
                 const ct = res.headers.get('content-type') || '';
                 if (!ct.includes('application/json')) return window.appSettings;
                 const data = await res.json();
                 if (data.success && data.settings) {
                     window.appSettings = data.settings;
+                    hasLoadedSettingsFromServer = true;
                     popolaSettingsUI();
                 }
             }
@@ -7021,6 +7034,14 @@ function popolaSettingsUI() {
     renderFiltriCatalogoTabella();
     renderRegoleImportazioneJsonTabella();
     if (typeof renderPatchesTabella === 'function') renderPatchesTabella();
+
+    // Sincronizza selettore Fornitore Attivo con le impostazioni caricate dal server
+    if (window.appSettings && window.appSettings.fornitore_attivo !== undefined) {
+        selectedFornitoreFormState = Number(window.appSettings.fornitore_attivo) === 2 ? 2 : 1;
+        if (typeof renderFornitoreAttivoCard === 'function') {
+            renderFornitoreAttivoCard();
+        }
+    }
 
     // Aggiorna select per rinomina squadre
     aggiornaSquadreDropdown();
@@ -7399,17 +7420,14 @@ async function salvaSezioneSettings(sezione) {
             body: JSON.stringify(window.appSettings)
         });
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                window.appSettings = data.settings;
-                showToast("Impostazioni salvate con successo!", "success");
-                popolaSettingsUI();
-            } else {
-                showToast("Errore durante il salvataggio.", "error");
-            }
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data && data.success) {
+            window.appSettings = data.settings;
+            hasLoadedSettingsFromServer = true;
+            showToast("Impostazioni salvate con successo!", "success");
+            popolaSettingsUI();
         } else {
-            showToast("Errore di connessione al server.", "error");
+            showToast("Errore durante il salvataggio: " + (data.error || `HTTP ${response.status}`), "error");
         }
     } catch (e) {
         console.error(e);
@@ -13396,6 +13414,13 @@ function ricostruisciCarrelloDaStringheLocal(order) {
         const totaleEuro = parseFloat(String(order.totale).replace(',', '.'));
         const prezzoDiviso = isNaN(totaleEuro) ? 23.99 : (totaleEuro / squadre.length);
 
+        const resolvedReconstructedBase = resolveSupplierBasePriceClient(
+            { squadra: nomeProdotto, categoria: "Casa", target: "Adulto" },
+            getEffectiveSupplierForOrderClient(order),
+            window.appSettings || window.cachedSettings
+        );
+        const effReconstructedSup = getEffectiveSupplierForOrderClient(order);
+
         items.push({
             squadra: nomeProdotto,
             categoria: "Casa",
@@ -13406,7 +13431,9 @@ function ricostruisciCarrelloDaStringheLocal(order) {
             infoPerso: persStr,
             quantita: quantita,
             prezzo: prezzoDiviso,
-            prezzo_fornitore: 14.50
+            ...(effReconstructedSup === 2
+                ? (resolvedReconstructedBase !== null ? { prezzo_fornitore2: resolvedReconstructedBase } : {})
+                : (resolvedReconstructedBase !== null ? { prezzo_fornitore: resolvedReconstructedBase } : {}))
         });
     });
 
@@ -13593,11 +13620,20 @@ async function apriGestioneOrdineModal(id) {
         window.currentOrdineProdotti = ricostruisciCarrelloDaStringheLocal(ord);
     }
 
-    // Assicuriamo che ogni articolo abbia un prezzo_fornitore valido
+    // Assicuriamo che ogni articolo abbia il prezzo fornitore coerente con il fornitore del lotto/ordine (senza fallback hardcoded)
+    const modalOrdSupplier = getEffectiveSupplierForOrderClient(ord, window.appSettings || window.cachedSettings);
     window.currentOrdineProdotti.forEach(item => {
-        if (item.prezzo_fornitore === undefined || item.prezzo_fornitore === null) {
-            const p = (prodotti || []).find(p => String(p.id) === String(item.id) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id)));
-            item.prezzo_fornitore = p && p.prezzo_fornitore !== undefined ? p.prezzo_fornitore : 14.50;
+        const prodListCatalog = (Array.isArray(window.prodotti) && window.prodotti.length > 0) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
+        const p = prodListCatalog.find(pr => String(pr.id) === String(item.id) || (item.legacy_id && String(pr.legacy_id) === String(item.legacy_id))) || null;
+        if (modalOrdSupplier === 2) {
+            if (item.prezzo_fornitore2 === undefined || item.prezzo_fornitore2 === null) {
+                const resolvedF2 = resolveFornitore2BasePriceClient(item, window.appSettings || window.cachedSettings, p);
+                if (resolvedF2 !== null) item.prezzo_fornitore2 = resolvedF2;
+            }
+        } else if (item.prezzo_fornitore === undefined || item.prezzo_fornitore === null) {
+            if (p && p.prezzo_fornitore !== undefined && p.prezzo_fornitore !== null) {
+                item.prezzo_fornitore = Number(p.prezzo_fornitore);
+            }
         }
     });
 
@@ -13654,6 +13690,16 @@ function parseCustomizationDetailsClient(infoPerso, item = {}) {
     let nome = "";
     let numero = "";
     let patches = [];
+    const pushPatchTokens = (rawPatch) => {
+        if (!rawPatch) return;
+        const list = Array.isArray(rawPatch) ? rawPatch : String(rawPatch).split(',');
+        list.forEach(token => {
+            const p = String(token || '').trim();
+            if (p && !["nessuna", "nessuno", "no", "false", "none", ""].includes(p.toLowerCase()) && !patches.includes(p)) {
+                patches.push(p);
+            }
+        });
+    };
 
     if (item && typeof item === "object") {
         if (item.customName || item.nome_personalizzazione || (item.nome && typeof item.nome === "string" && !["nessuno", "nessuna", "no", ""].includes(item.nome.trim().toLowerCase()) && item.nome !== item.versione && item.nome !== item.squadra)) {
@@ -13664,10 +13710,9 @@ function parseCustomizationDetailsClient(infoPerso, item = {}) {
         }
         if (item.customPatch || item.patch || item.patches) {
             if (Array.isArray(item.patches)) {
-                item.patches.forEach(p => { if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim()); });
+                pushPatchTokens(item.patches);
             } else {
-                const p = String(item.customPatch || item.patch).trim();
-                if (p && !["nessuna", "nessuno", "no", "false", ""].includes(p.toLowerCase())) patches.push(p);
+                pushPatchTokens(item.customPatch || item.patch);
             }
         }
     }
@@ -13679,9 +13724,9 @@ function parseCustomizationDetailsClient(infoPerso, item = {}) {
         if (infoPerso.nome && !nome) nome = String(infoPerso.nome).trim();
         if (infoPerso.numero && !numero) numero = String(infoPerso.numero).trim();
         if (Array.isArray(infoPerso.patches)) {
-            infoPerso.patches.forEach(p => { if (p && !patches.includes(String(p).trim())) patches.push(String(p).trim()); });
+            pushPatchTokens(infoPerso.patches);
         } else if (infoPerso.patch) {
-            patches.push(String(infoPerso.patch).trim());
+            pushPatchTokens(infoPerso.patch);
         }
     }
 
@@ -13690,10 +13735,7 @@ function parseCustomizationDetailsClient(infoPerso, item = {}) {
         const patchRegex = /(?:Patch|Patches|Badge|Badges):\s*([^|\n\/-]+)/gi;
         let pMatch;
         while ((pMatch = patchRegex.exec(cleanText)) !== null) {
-            const val = pMatch[1].trim();
-            if (val && !["nessuna", "nessuno", "no", "false", "none", ""].includes(val.toLowerCase()) && !patches.includes(val)) {
-                patches.push(val);
-            }
+            pushPatchTokens(pMatch[1]);
         }
 
         const nomeRegex = /Nome:\s*([^|\n\/,-]+)/i;
@@ -13748,6 +13790,235 @@ function parseCustomizationDetailsClient(infoPerso, item = {}) {
         patches,
         patchStr: patches.join(", ")
     };
+}
+
+const DOCUMENTED_F2_CATEGORY_PRICES_CLIENT = {
+    'kit': 9.00,
+    'player': 9.00,
+    'fan': 8.00,
+    'retro': 10.00,
+    'kit allenamento': 13.00,
+    'tuta mezza zip': 24.00,
+    'smanicati': 12.00,
+    'maniche lunghe': 11.00,
+    'kit bambino': 8.00,
+    'portiere': 9.00,
+    'antivento': 20.00,
+    'tute zip intera': 30.00,
+    'calzettoni': 2.00
+};
+const DEFAULT_F2_CUSTOMIZATION_COSTS_CLIENT = { nome: 1.00, numero: 1.00, patch: 1.00 };
+
+function getGlobalActiveSupplierClient(settingsOverride = null) {
+    const s = settingsOverride || window.appSettings || window.cachedSettings || {};
+    return Number(s.fornitore_attivo || 1) === 2 ? 2 : 1;
+}
+
+function hasLottoHistoricalSnapshotClient(lotto) {
+    if (!lotto || typeof lotto !== 'object') return false;
+    const st = String(lotto.status || '').trim().toLowerCase();
+    const archAt = String(lotto.archived_at || '').trim();
+    const archLower = archAt.toLowerCase();
+    const isOpenPlaceholder = (
+        st === '' ||
+        st === 'attivo' ||
+        st === 'active' ||
+        st === 'in_corso' ||
+        st === 'in corso'
+    ) && (!archAt || archLower === 'in corso' || archLower === 'attivo' || archLower === 'in_corso');
+    if (st === 'archived' || st === 'archiviato' || st === 'chiuso' || st === 'ripristinato' || st === 'riaperto') return true;
+    if (archAt && archLower !== 'in corso' && archLower !== 'attivo' && archLower !== 'in_corso') return true;
+    if (isOpenPlaceholder) return false;
+    if (lotto.fornitore_attivo !== undefined && lotto.fornitore_attivo !== null) return true;
+    if (lotto.fornitore_id !== undefined && lotto.fornitore_id !== null) return true;
+    if (lotto.fornitore !== undefined && lotto.fornitore !== null) return true;
+    if (lotto.fornitore_nome && String(lotto.fornitore_nome).trim() !== '') return true;
+    return false;
+}
+
+function getEffectiveSupplierForLottoClient(lotto, settingsOverride = null) {
+    const globalSup = getGlobalActiveSupplierClient(settingsOverride);
+    if (!lotto || typeof lotto !== 'object' || !hasLottoHistoricalSnapshotClient(lotto)) {
+        return globalSup;
+    }
+    if (lotto.fornitore_attivo !== undefined && lotto.fornitore_attivo !== null) {
+        return Number(lotto.fornitore_attivo) === 2 ? 2 : 1;
+    }
+    if (lotto.fornitore_id !== undefined && lotto.fornitore_id !== null) {
+        return Number(lotto.fornitore_id) === 2 ? 2 : 1;
+    }
+    if (lotto.fornitore !== undefined && lotto.fornitore !== null) {
+        return Number(lotto.fornitore) === 2 ? 2 : 1;
+    }
+    if (lotto.fornitore_nome && String(lotto.fornitore_nome).toLowerCase().includes('2')) return 2;
+    if (lotto.fornitore_nome && String(lotto.fornitore_nome).toLowerCase().includes('1')) return 1;
+    const alibabaUsd = lotto.alibaba_fee_usd !== undefined && lotto.alibaba_fee_usd !== null ? Number(lotto.alibaba_fee_usd) : null;
+    const costoForn = Number(lotto.costo_fornitore_usd || lotto.costo_prodotti_usd || 0);
+    if (alibabaUsd === 0 && costoForn > 0) return 2;
+    if (alibabaUsd !== null && alibabaUsd > 0) return 1;
+    return 1;
+}
+
+function getEffectiveSupplierForOrderClient(order, settingsOverride = null) {
+    const globalSup = getGlobalActiveSupplierClient(settingsOverride);
+    if (!order || order.lotto_id === undefined || order.lotto_id === null || String(order.lotto_id).trim() === '') {
+        return globalSup;
+    }
+    const lid = Number(order.lotto_id);
+    const lottiList = [];
+    if (Array.isArray(window.cronologiaLotti)) lottiList.push(...window.cronologiaLotti);
+    else if (typeof cronologiaLotti !== 'undefined' && Array.isArray(cronologiaLotti)) lottiList.push(...cronologiaLotti);
+    if (window.currentLottoData && window.currentLottoData.id) lottiList.push(window.currentLottoData);
+    const matched = lottiList.find(l => l && Number(l.id) === lid);
+    if (matched && hasLottoHistoricalSnapshotClient(matched)) {
+        return getEffectiveSupplierForLottoClient(matched, settingsOverride);
+    }
+    return globalSup;
+}
+
+function resolveFornitore2CategoryClient(item, fallbackProd = null) {
+    const cat = String(fallbackProd?.categoria || item?.categoria || '').trim().toLowerCase();
+    const target = String(fallbackProd?.target || item?.target || '').trim().toLowerCase();
+    const nameFull = `${fallbackProd?.squadra || item?.squadra || ''} ${fallbackProd?.versione || item?.versione || ''} ${fallbackProd?.nome || item?.nome || ''} ${cat}`.toLowerCase();
+    if (cat === 'calzettoni' || cat.includes('calzet') || cat.includes('calze') || cat.includes('sock') || nameFull.includes('calzet') || nameFull.includes('calze') || nameFull.includes('sock')) return 'Calzettoni';
+    if (cat === 'tute zip intera' || cat === 'tuta zip intera' || ((cat.includes('tuta') || cat.includes('tute') || nameFull.includes('tuta')) && (nameFull.includes('zip intera') || nameFull.includes('full zip')))) return 'Tute Zip Intera';
+    if (cat === 'tuta mezza zip' || cat === 'tuta' || cat === 'tute' || nameFull.includes('mezza zip') || nameFull.includes('half zip') || nameFull.includes('tuta')) return 'Tuta Mezza zip';
+    if (cat === 'antivento' || nameFull.includes('antivento') || nameFull.includes('windbreaker') || nameFull.includes('k-way')) return 'Antivento';
+    if (cat === 'smanicati' || cat === 'smanicato' || nameFull.includes('smanicat') || nameFull.includes('gilet')) return 'Smanicati';
+    if (cat === 'maniche lunghe' || cat === 'manica lunga' || nameFull.includes('maniche lunghe') || nameFull.includes('manica lunga') || nameFull.includes('long sleeve')) return 'Maniche Lunghe';
+    if (cat === 'kit allenamento' || cat === 'allenamento' || nameFull.includes('allenamento') || nameFull.includes('training')) return 'Kit Allenamento';
+    if (cat === 'portiere' || nameFull.includes('portiere') || nameFull.includes('gk') || nameFull.includes('goalkeeper')) return 'Portiere';
+    if (cat === 'kit bambino' || cat === 'bambino' || target === 'bambino' || target === 'kids' || nameFull.includes('bambin') || nameFull.includes('kid')) return 'Kit Bambino';
+    if (cat === 'retro' || nameFull.includes('retro') || nameFull.includes('vintage')) return 'Retro';
+    if (cat === 'player' || cat === 'player version' || nameFull.includes('player')) return 'Player';
+    if (cat === 'fan' || cat === 'fan version' || cat === 'casa' || cat === 'trasferta' || cat === 'terza' || cat === 'terza maglia' || nameFull.includes('fan')) return 'Fan';
+    if (cat === 'kit' || nameFull.includes('kit')) return 'Kit';
+    return (fallbackProd?.categoria || item?.categoria || '').trim();
+}
+
+function resolveFornitore2BasePriceClient(item, settingsOverride = null, matchedProd = null) {
+    if (!item || typeof item !== 'object') return null;
+    const s = settingsOverride || window.appSettings || window.cachedSettings || {};
+    const f2ProductPrices = (s.fornitore2_prezzi && typeof s.fornitore2_prezzi === 'object') ? s.fornitore2_prezzi : {};
+    const f2CatPrices = (s.fornitore2_categorie_prezzi && typeof s.fornitore2_categorie_prezzi === 'object') ? s.fornitore2_categorie_prezzi : {};
+    const lookupCI = (mapObj, key) => {
+        if (!mapObj || !key) return null;
+        if (mapObj[key] !== undefined && mapObj[key] !== null && mapObj[key] !== '' && !isNaN(Number(mapObj[key]))) return Number(mapObj[key]);
+        const kLower = String(key).trim().toLowerCase();
+        for (const [k, v] of Object.entries(mapObj)) {
+            if (String(k).trim().toLowerCase() === kLower && v !== undefined && v !== null && v !== '' && !isNaN(Number(v))) return Number(v);
+        }
+        return null;
+    };
+
+    const isAcc = item.tipo_catalogo === 'accessori' || Boolean(item.accessory_id) || matchedProd?.tipo_catalogo === 'accessori';
+    if (isAcc) {
+        const accIds = [item.accessory_id, item.id, matchedProd?.id].filter(v => v !== undefined && v !== null && String(v).trim() !== '');
+        for (const aid of accIds) {
+            const found = lookupCI(f2ProductPrices, String(aid));
+            if (found !== null) return found;
+        }
+        const rawAccCat = (matchedProd?.categoria || item.categoria || '').trim();
+        const f2AccCat = resolveFornitore2CategoryClient(item, matchedProd);
+        for (const k of [rawAccCat, f2AccCat, 'Accessori']) {
+            const cfg = lookupCI(f2CatPrices, k);
+            if (cfg !== null) return cfg;
+            if (k && DOCUMENTED_F2_CATEGORY_PRICES_CLIENT[k.toLowerCase()] !== undefined) return DOCUMENTED_F2_CATEGORY_PRICES_CLIENT[k.toLowerCase()];
+        }
+        if (matchedProd?.prezzo_fornitore2 !== undefined && matchedProd.prezzo_fornitore2 !== null && !isNaN(Number(matchedProd.prezzo_fornitore2))) {
+            return Number(matchedProd.prezzo_fornitore2);
+        }
+        if (item.prezzo_fornitore2 !== undefined && item.prezzo_fornitore2 !== null && !isNaN(Number(item.prezzo_fornitore2))) {
+            return Number(item.prezzo_fornitore2);
+        }
+        return null;
+    }
+
+    if (item.prezzo_fornitore2 !== undefined && item.prezzo_fornitore2 !== null && !isNaN(Number(item.prezzo_fornitore2)) && Number(item.prezzo_fornitore2) > 0) {
+        return Number(item.prezzo_fornitore2);
+    }
+    const prodIds = [matchedProd?.id, matchedProd?.legacy_id, item.id, item.legacy_id].filter(v => v !== undefined && v !== null && String(v).trim() !== '');
+    for (const pid of prodIds) {
+        const found = lookupCI(f2ProductPrices, String(pid));
+        if (found !== null) return found;
+    }
+    if (matchedProd?.prezzo_fornitore2 !== undefined && matchedProd.prezzo_fornitore2 !== null && !isNaN(Number(matchedProd.prezzo_fornitore2)) && Number(matchedProd.prezzo_fornitore2) > 0) {
+        return Number(matchedProd.prezzo_fornitore2);
+    }
+    const rawCat = String(matchedProd?.categoria || item.categoria || '').trim();
+    const mappedCat = resolveFornitore2CategoryClient(item, matchedProd);
+    for (const cKey of [rawCat, mappedCat]) {
+        if (!cKey) continue;
+        const cfg = lookupCI(f2CatPrices, cKey);
+        if (cfg !== null) return cfg;
+        const doc = DOCUMENTED_F2_CATEGORY_PRICES_CLIENT[cKey.toLowerCase()];
+        if (doc !== undefined) return doc;
+    }
+    return null;
+}
+
+function resolveSupplierBasePriceClient(item, supplierOverride = null, settingsOverride = null, matchedProd = null) {
+    if (!item || typeof item !== 'object') return null;
+    const s = settingsOverride || window.appSettings || window.cachedSettings || {};
+    const effSup = supplierOverride !== null && supplierOverride !== undefined ? (Number(supplierOverride) === 2 ? 2 : 1) : getGlobalActiveSupplierClient(s);
+    if (effSup === 2) {
+        return resolveFornitore2BasePriceClient(item, s, matchedProd);
+    }
+    if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && !isNaN(Number(matchedProd.prezzo_fornitore)) && Number(matchedProd.prezzo_fornitore) >= 0) {
+        return Number(matchedProd.prezzo_fornitore);
+    }
+    if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
+        return Number(item.prezzo_fornitore);
+    }
+    if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
+        return Number(item.Prezzo_fornitore);
+    }
+    return null;
+}
+
+function getItemCustomizationCostUSDClient(item, customDetails, settingsOverride = null, supplierOverride = null) {
+    if (!item) return 0;
+    const rawCat = String(item.categoria || '').trim().toLowerCase();
+    const rawName = String(item.squadra || item.nome || '').trim().toLowerCase();
+    if (item.tipo_catalogo === 'accessori' || Boolean(item.accessory_id) || rawCat === 'calzettoni' || rawCat.includes('calze') || rawCat === 'accessori' || rawName.includes('calzet') || rawName.includes('calze')) {
+        return 0;
+    }
+    const s = settingsOverride || window.appSettings || window.cachedSettings || {};
+    const effSup = supplierOverride !== null && supplierOverride !== undefined ? (Number(supplierOverride) === 2 ? 2 : 1) : getGlobalActiveSupplierClient(s);
+    let nomeCost = 1.00;
+    let numCost = 1.00;
+    let patchCost = 1.00;
+    if (effSup === 2) {
+        const f2Map = s.fornitore2_categorie_prezzi || {};
+        const readCost = (k, defVal) => {
+            for (const [mk, mv] of Object.entries(f2Map)) {
+                if (String(mk).trim().toLowerCase() === k && mv !== undefined && mv !== null && mv !== '' && !isNaN(Number(mv))) {
+                    return Number(mv);
+                }
+            }
+            return defVal;
+        };
+        nomeCost = readCost('nome', DEFAULT_F2_CUSTOMIZATION_COSTS_CLIENT.nome);
+        numCost = readCost('numero', DEFAULT_F2_CUSTOMIZATION_COSTS_CLIENT.numero);
+        patchCost = readCost('patch', DEFAULT_F2_CUSTOMIZATION_COSTS_CLIENT.patch);
+    }
+    let total = 0;
+    if (customDetails?.nome && String(customDetails.nome).trim()) total += nomeCost;
+    if (customDetails?.numero && String(customDetails.numero).trim()) total += numCost;
+    let patchCount = 0;
+    if (Array.isArray(customDetails?.patches) && customDetails.patches.length > 0) {
+        customDetails.patches.forEach(p => {
+            if (p && String(p).includes(',')) {
+                patchCount += String(p).split(',').map(x => x.trim()).filter(Boolean).length;
+            } else if (p && !["nessuna", "nessuno", "no", "false", ""].includes(String(p).toLowerCase().trim())) {
+                patchCount += 1;
+            }
+        });
+    } else if (customDetails?.patchStr && String(customDetails.patchStr).trim()) {
+        patchCount += String(customDetails.patchStr).split(',').map(x => x.trim()).filter(x => x && !["nessuna", "nessuno", "no", "false", ""].includes(x.toLowerCase())).length;
+    }
+    total += (patchCount * patchCost);
+    return Number(total.toFixed(2));
 }
 
 /**
@@ -13810,6 +14081,8 @@ function renderProdottiModificabili() {
     }
 
     const currentOrd = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(window.currentGestioneOrderId)) || null;
+    const modalOrdSup = getEffectiveSupplierForOrderClient(currentOrd, window.appSettings || window.cachedSettings);
+    const prodListModal = (Array.isArray(window.prodotti) && window.prodotti.length > 0) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
 
     container.innerHTML = window.currentOrdineProdotti.map((item, idx) => {
         const squadra = item.squadra || item.nome || 'Prodotto';
@@ -13817,7 +14090,9 @@ function renderProdottiModificabili() {
         const quantita = parseInt(item.quantita, 10) || 1;
         const rawPers = item.infoPerso || item.personalizzazione || 'Nessuna';
         const prezzo = parseFloat(item.prezzo) || 23.99;
-        const prezzoForn = parseFloat(item.prezzo_fornitore) || 14.50;
+        const matchedCatalogModal = prodListModal.find(p => (item.id && String(p.id) === String(item.id)) || (item.legacy_id && String(p.legacy_id) === String(item.legacy_id))) || null;
+        const prezzoFornResolved = resolveSupplierBasePriceClient(item, modalOrdSup, window.appSettings || window.cachedSettings, matchedCatalogModal);
+        const prezzoFornDisplay = prezzoFornResolved !== null && !isNaN(Number(prezzoFornResolved)) ? `$${Number(prezzoFornResolved).toFixed(2)}` : 'N/D';
 
         const fObj = item.fornitura && typeof item.fornitura === 'object' ? item.fornitura : {};
         const isFornitura = Boolean(item.fornitura || item.torneo_id || fObj.torneo_id);
@@ -13881,7 +14156,7 @@ function renderProdottiModificabili() {
                                         <span>Prezzo: <strong class="text-white font-mono">€${rawPrezzo.toFixed(2).replace('.', ',')}</strong></span>
                                     `}
                                     <span>•</span>
-                                    <span>Fornitore: <strong class="text-white font-mono">$${prezzoForn.toFixed(2)}</strong></span>
+                                    <span>Fornitore ${modalOrdSup}: <strong class="text-white font-mono">${prezzoFornDisplay}</strong></span>
                                 </div>
                             </div>
 
@@ -13956,6 +14231,27 @@ function ottieniTaglieUfficialiProdotto(prodotto) {
     const catLower = (prodotto?.categoria || '').toLowerCase();
     const tgtLower = (prodotto?.target || '').toLowerCase();
 
+    const isAccessorio = Boolean(
+        prodotto?.tipo_catalogo === 'accessori' ||
+        prodotto?.tipo_catalogo === 'accessorio' ||
+        prodotto?.accessory_id ||
+        catLower === 'accessori' ||
+        catLower === 'accessorio' ||
+        catLower.includes('calz') ||
+        catLower.includes('guant') ||
+        catLower.includes('parast') ||
+        nomeLower.includes('calzett') ||
+        nomeLower.includes('calzini') ||
+        nomeLower.includes('parastinch') ||
+        nomeLower.includes('guanti da portiere')
+    );
+    if (isAccessorio) {
+        return [
+            { value: 'Taglia bambino', label: 'Taglia bambino' },
+            { value: 'Taglia adulto', label: 'Taglia adulto' }
+        ];
+    }
+
     const isBambino = tgtLower === 'bambino' || catLower === 'kit bambino' || catLower.includes('bambino') || nomeLower.includes('bambino') || nomeLower.includes('kids') || nomeLower.includes('kid') || nomeLower.includes('bambina');
     const isTuta = catLower === 'tuta' || catLower === 'tute' || nomeLower.includes('tuta') || nomeLower.includes('tracksuit');
 
@@ -14017,11 +14313,16 @@ window.apriModalModificaArticolo = function(idx) {
     if (idxInput) idxInput.value = idx;
 
     // Recupera prodotto correlato per determinare target/categoria corretta
+    const isAccItem = Boolean(
+        item.tipo_catalogo === 'accessori' ||
+        item.tipo_catalogo === 'accessorio' ||
+        item.accessory_id
+    );
     let matchedProd = null;
-    if (item.id) {
+    if (!isAccItem && item.id) {
         matchedProd = (window.prodotti || []).find(p => String(p.id) === String(item.id));
     }
-    if (!matchedProd && item.legacy_id) {
+    if (!isAccItem && !matchedProd && item.legacy_id) {
         matchedProd = (window.prodotti || []).find(p => p.legacy_id !== undefined && String(p.legacy_id) === String(item.legacy_id));
     }
     if (!matchedProd) {
@@ -14314,8 +14615,15 @@ function validateShippingTiersClient(tiers) {
     return { valid: true, tiers: sorted };
 }
 
-function extractShippingTiersClient(spedizioneLotto) {
-    const rules = (spedizioneLotto && typeof spedizioneLotto === 'object') ? spedizioneLotto : (window.appSettings?.spedizioneLotto || {});
+function extractShippingTiersClient(spedizioneLotto, supplierOverride = null) {
+    const s = window.appSettings || window.cachedSettings || {};
+    const effSup = supplierOverride === true || Number(supplierOverride) === 2
+        ? 2
+        : (Number(supplierOverride) === 1 ? 1 : getGlobalActiveSupplierClient(s));
+    const fallbackRules = effSup === 2
+        ? (s.fornitore2_spedizioneLotto || s.spedizioneLotto || {})
+        : (s.spedizioneLotto || {});
+    const rules = (spedizioneLotto && typeof spedizioneLotto === 'object') ? spedizioneLotto : fallbackRules;
 
     if (Array.isArray(rules.tiers) && rules.tiers.length > 0) {
         return rules.tiers.map((t, idx) => ({
@@ -14356,7 +14664,14 @@ function extractShippingTiersClient(spedizioneLotto) {
         return tiers;
     }
 
-    // Configurazione ufficiale di fallback se non caricato da server
+    if (effSup === 2) {
+        return [
+            { index: 1, min: 1, max: 4, cost: 5.0 },
+            { index: 2, min: 5, max: 200, cost: 0.0 }
+        ];
+    }
+
+    // Configurazione ufficiale di fallback F1 se non caricato da server
     return [
         { index: 1, min: 1, max: 2, cost: 13.0 },
         { index: 2, min: 3, max: 5, cost: 9.0 },
@@ -14369,21 +14684,50 @@ function extractShippingTiersClient(spedizioneLotto) {
     ];
 }
 
-function getShippingRateByQuantityClient(quantity, settings) {
-    const qty = Math.max(0, parseInt(quantity, 10) || 0);
-    const tiers = extractShippingTiersClient(settings?.spedizioneLotto || window.appSettings?.spedizioneLotto);
-    if (!tiers || tiers.length === 0) return 0.0;
+function getSupplierShippingTotalAndUnitClient(physicalShippingPcs, totalShippingUnits, settings = null, supplier = null) {
+    const s = settings || window.appSettings || window.cachedSettings || {};
+    const effSup = supplier !== undefined && supplier !== null ? (Number(supplier) === 2 ? 2 : 1) : getGlobalActiveSupplierClient(s);
+    const qtyPcs = Math.max(0, parseInt(physicalShippingPcs, 10) || 0);
+    const qtyUnits = Math.max(0, parseInt(totalShippingUnits, 10) || 0);
+    if (qtyPcs <= 0 || qtyUnits <= 0) {
+        return { unitShipping: 0.0, totalShipping: 0.0 };
+    }
+    const shipRules = effSup === 2 ? (s.fornitore2_spedizioneLotto || s.spedizioneLotto) : s.spedizioneLotto;
+    const tiers = extractShippingTiersClient(shipRules, effSup);
+    if (!tiers || tiers.length === 0) return { unitShipping: 0.0, totalShipping: 0.0 };
 
-    const effectiveQty = qty > 0 ? qty : 1;
+    let matchedCost = Number(tiers[tiers.length - 1].cost || 0);
     for (const tier of tiers) {
         const min = tier.min !== null && !isNaN(tier.min) ? tier.min : 1;
         const max = (tier.max !== null && tier.max !== undefined && tier.max !== Infinity) ? tier.max : Infinity;
-        if (effectiveQty >= min && effectiveQty <= max) {
-            return Number(tier.cost);
+        if (qtyPcs >= min && qtyPcs <= max) {
+            matchedCost = Number(tier.cost || 0);
+            break;
         }
     }
-    const lastTier = tiers[tiers.length - 1];
-    return Number(lastTier.cost);
+
+    if (effSup === 2) {
+        const totalShipping = Number(matchedCost.toFixed(2));
+        const unitShipping = Number((totalShipping / qtyUnits).toFixed(4));
+        return { unitShipping, totalShipping };
+    }
+
+    const unitShipping = Number(matchedCost);
+    const totalShipping = Number((qtyUnits * unitShipping).toFixed(2));
+    return { unitShipping, totalShipping };
+}
+
+function getShippingRateByQuantityClient(quantity, settings, options = {}) {
+    const s = settings || window.appSettings || window.cachedSettings || {};
+    const effSup = options?.supplier !== undefined && options?.supplier !== null
+        ? (Number(options.supplier) === 2 ? 2 : 1)
+        : getGlobalActiveSupplierClient(s);
+    const qty = Math.max(0, parseInt(quantity, 10) || 0);
+    if (qty <= 0) return 0.0;
+    const totalUnits = (options?.totalShippingUnits !== undefined && options?.totalShippingUnits !== null)
+        ? Math.max(1, parseInt(options.totalShippingUnits, 10) || qty)
+        : qty;
+    return getSupplierShippingTotalAndUnitClient(qty, totalUnits, s, effSup).unitShipping;
 }
 
 /**
@@ -14406,7 +14750,7 @@ function getItemShippingMultiplierClient(item, matchedProd = null) {
     } else {
         const cat = String(matchedProd?.categoria || item?.categoria || '').trim().toLowerCase();
         const nameLower = name.toLowerCase();
-        if (cat === 'calzettoni' || cat.includes('calzet') || cat.includes('sock') || cat === 'accessori' || cat.includes('accessori') || nameLower.includes('calzet') || nameLower.includes('sock') || item.tipo_catalogo === 'accessori') {
+        if (cat === 'calzettoni' || cat.includes('calzet') || cat.includes('calze') || cat.includes('sock') || cat === 'accessori' || cat.includes('accessori') || nameLower.includes('calzet') || nameLower.includes('calze') || nameLower.includes('sock') || item.tipo_catalogo === 'accessori') {
             return 0;
         }
     }
@@ -14478,6 +14822,8 @@ async function calcolaESituazioneEconomica() {
                 const bPrice = parseFloat(b.prezzo) || 0;
                 const aForn = parseFloat(a.prezzo_fornitore) || 0;
                 const bForn = parseFloat(b.prezzo_fornitore) || 0;
+                const aForn2 = parseFloat(a.prezzo_fornitore2) || 0;
+                const bForn2 = parseFloat(b.prezzo_fornitore2) || 0;
                 const aQty = parseInt(a.quantita) || 1;
                 const bQty = parseInt(b.quantita) || 1;
                 
@@ -14486,6 +14832,7 @@ async function calcolaESituazioneEconomica() {
                        aPers === bPers &&
                        Math.abs(aPrice - bPrice) < 0.01 &&
                        Math.abs(aForn - bForn) < 0.01 &&
+                       Math.abs(aForn2 - bForn2) < 0.01 &&
                        aQty === bQty;
             };
 
@@ -14523,29 +14870,76 @@ async function calcolaESituazioneEconomica() {
     }
 
     if (!usaDatiOriginali) {
-        let physicalItemCount = 0;
+        const currentOrd = window.currentGestioneOrderId
+            ? (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(window.currentGestioneOrderId)) || null
+            : null;
+        const ecoOrdSupplier = getEffectiveSupplierForOrderClient(currentOrd, appSettings);
+        const prodListEco = (Array.isArray(window.prodotti) && window.prodotti.length > 0) ? window.prodotti : (Array.isArray(prodotti) ? prodotti : []);
+
+        let physicalShippingPcs = 0;
         let shippingUnits = 0;
         window.currentOrdineProdotti.forEach(prod => {
             const isSped = prod.squadra && typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(prod.squadra);
             if (isSped) return;
             const q = parseInt(prod.quantita, 10) || 1;
             totArticoli += q;
-            physicalItemCount += q;
-            const mult = getItemShippingMultiplierClient(prod);
-            shippingUnits += (q * mult);
-            const pUSD = parseFloat(prod.prezzo_fornitore) || 14.50;
+            const matchedCatalogEco = prodListEco.find(p => (prod.id && String(p.id) === String(prod.id)) || (prod.legacy_id && String(p.legacy_id) === String(prod.legacy_id))) || null;
+            const mult = getItemShippingMultiplierClient(prod, matchedCatalogEco);
+            if (mult > 0) {
+                physicalShippingPcs += q;
+                shippingUnits += (q * mult);
+            }
+            const baseUSD = resolveSupplierBasePriceClient(prod, ecoOrdSupplier, appSettings, matchedCatalogEco) || 0;
+            const customDetailsEco = parseCustomizationDetailsClient(prod.infoPerso || prod.personalizzazione, prod);
+            const customUSD = getItemCustomizationCostUSDClient(prod, customDetailsEco, appSettings, ecoOrdSupplier);
+            const pUSD = Number((baseUSD + customUSD).toFixed(2));
             costoProdUSD += (pUSD * q);
-            const pEUR = parseFloat(prod.prezzo) || 23.99;
+            const pEUR = prod.prezzo !== undefined && prod.prezzo !== null && !isNaN(Number(prod.prezzo)) ? Number(prod.prezzo) : 0;
             totaleOrdineEUR += (pEUR * q);
         });
 
-        // Calcolo spedizione unitaria dinamica per articolo basata sulla quantità totale di pezzi fisici del lotto corrente
-        const activeOrders = Array.isArray(ordini) ? ordini.filter(isOrderActive) : [];
-        let totalLotArticles = activeOrders.reduce((sum, o) => sum + estraiNumeroArticoli(o), 0);
-        if (totalLotArticles <= 0) totalLotArticles = physicalItemCount;
-        const spedizioneUnitaria = getShippingRateByQuantityClient(totalLotArticles, appSettings);
+        // Calcolo spedizione unitaria dinamica per unità spedibile coerente con F1 (per unità) e F2 (fisso lotto / unità)
+        const allCandidateOrders = (Array.isArray(window.gestioneOrdiniList) && window.gestioneOrdiniList.length > 0)
+            ? window.gestioneOrdiniList
+            : (Array.isArray(ordini) ? ordini : []);
+        const targetLotId = currentOrd?.lotto_id !== undefined && currentOrd?.lotto_id !== null ? Number(currentOrd.lotto_id) : null;
+        let totalLotShippingPcs = 0;
+        let totalLotShippingUnits = 0;
+        allCandidateOrders.forEach(o => {
+            if (!o) return;
+            if (currentOrd && Number(o.id) === Number(currentOrd.id)) {
+                totalLotShippingPcs += physicalShippingPcs;
+                totalLotShippingUnits += shippingUnits;
+                return;
+            }
+            if (o.is_archived) return;
+            if (targetLotId !== null && Number(o.lotto_id) !== targetLotId) return;
+            if (targetLotId === null && !isOrderActive(o)) return;
+            let oCart = Array.isArray(o.carrello) ? o.carrello : [];
+            if (!oCart.length && typeof o.carrello === 'string' && o.carrello.trim()) {
+                try { oCart = JSON.parse(o.carrello); } catch (e) {}
+            }
+            if (oCart.length > 0) {
+                oCart.forEach(ci => {
+                    if (!ci || (ci.squadra && typeof isTechnicalShippingOrServiceLine === 'function' && isTechnicalShippingOrServiceLine(ci.squadra))) return;
+                    const cq = parseInt(ci.quantita, 10) || 1;
+                    const cm = getItemShippingMultiplierClient(ci);
+                    if (cm > 0) {
+                        totalLotShippingPcs += cq;
+                        totalLotShippingUnits += (cq * cm);
+                    }
+                });
+            } else {
+                const c = estraiNumeroArticoli(o);
+                totalLotShippingPcs += c;
+                totalLotShippingUnits += c;
+            }
+        });
+        if (totalLotShippingPcs <= 0) totalLotShippingPcs = physicalShippingPcs;
+        if (totalLotShippingUnits <= 0) totalLotShippingUnits = shippingUnits;
 
-        costoSpedizioneUSD = Number((shippingUnits * spedizioneUnitaria).toFixed(2));
+        const shipTotals = getSupplierShippingTotalAndUnitClient(totalLotShippingPcs, totalLotShippingUnits, appSettings, ecoOrdSupplier);
+        costoSpedizioneUSD = Number((shippingUnits * shipTotals.unitShipping).toFixed(2));
         costoTotaleUSD = Number((costoProdUSD + costoSpedizioneUSD).toFixed(2));
         costoTotaleEUR = Number((costoTotaleUSD * exchangeRate).toFixed(2));
         profittoEUR = Number((totaleOrdineEUR - costoTotaleEUR).toFixed(2));
@@ -14656,7 +15050,10 @@ window.gestioneSelezionaProdottoCatalogo = function(id) {
     if (stagioneInput) stagioneInput.value = prod.stagione || '2026/2027';
     if (versioneInput) versioneInput.value = prod.versione || '';
     if (prezzoInput) prezzoInput.value = prod.prezzo_consigliato || 23.99;
-    if (supplierInput) supplierInput.value = prod.prezzo_fornitore || 14.50;
+    const currentOrdCat = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(window.currentGestioneOrderId)) || null;
+    const catSup = getEffectiveSupplierForOrderClient(currentOrdCat, window.appSettings || window.cachedSettings);
+    const resolvedCatSupPrice = resolveSupplierBasePriceClient(prod, catSup, window.appSettings || window.cachedSettings, prod);
+    if (supplierInput) supplierInput.value = resolvedCatSupPrice !== null ? Number(resolvedCatSupPrice).toFixed(2) : '';
 
     window.lastSelectedCatalogProductId = prod.id;
     window.lastSelectedCatalogProductLegacyId = prod.legacy_id || prod.id;
@@ -14759,7 +15156,8 @@ function ottieniAccessoriPickerNormalizzati() {
         stagione: '',
         versione: a.nome,
         prezzo: Number(a.prezzo) || 6.00,
-        prezzo_fornitore: a.prezzo_fornitore !== undefined && a.prezzo_fornitore !== null ? Number(a.prezzo_fornitore) : 3.00,
+        prezzo_fornitore: a.prezzo_fornitore !== undefined && a.prezzo_fornitore !== null ? Number(a.prezzo_fornitore) : undefined,
+        prezzo_fornitore2: a.prezzo_fornitore2 !== undefined && a.prezzo_fornitore2 !== null ? Number(a.prezzo_fornitore2) : undefined,
         immagine: a.immagine || a.imgUrl || '',
         gestione_taglia: a.gestione_taglia || 'unica',
         richiede_taglia: a.richiede_taglia,
@@ -15119,7 +15517,8 @@ function apriConfigurazioneProdottoPickerAdmin(productId) {
                 stagione: '',
                 versione: acc.nome,
                 prezzo: Number(acc.prezzo) || 6.00,
-                prezzo_fornitore: acc.prezzo_fornitore !== undefined && acc.prezzo_fornitore !== null ? Number(acc.prezzo_fornitore) : 3.00,
+                prezzo_fornitore: acc.prezzo_fornitore !== undefined && acc.prezzo_fornitore !== null ? Number(acc.prezzo_fornitore) : undefined,
+                prezzo_fornitore2: acc.prezzo_fornitore2 !== undefined && acc.prezzo_fornitore2 !== null ? Number(acc.prezzo_fornitore2) : undefined,
                 immagine: acc.immagine || acc.imgUrl || '',
                 gestione_taglia: acc.gestione_taglia || 'unica',
                 richiede_taglia: acc.richiede_taglia,
@@ -15183,15 +15582,10 @@ function apriConfigurazioneProdottoPickerAdmin(productId) {
     const selectTaglia = document.getElementById('config-picker-taglia');
     if (selectTaglia) {
         if (isAccessorio) {
-            let tagliaOptions = [];
-            if (prod.gestione_taglia === 'scelta' && Array.isArray(prod.opzioni) && prod.opzioni.length > 0) {
-                tagliaOptions = prod.opzioni.map(o => ({ value: String(o).trim(), label: String(o).trim() }));
-            } else if (prod.gestione_taglia === 'manuale' && typeof prod.taglia === 'string' && prod.taglia.trim()) {
-                tagliaOptions = prod.taglia.split(/[,/]/).map(t => ({ value: t.trim(), label: t.trim() })).filter(t => t.value);
-            }
-            if (tagliaOptions.length === 0) {
-                tagliaOptions = [{ value: 'Unica', label: 'Taglia Unica' }];
-            }
+            const tagliaOptions = [
+                { value: 'Taglia bambino', label: 'Taglia bambino' },
+                { value: 'Taglia adulto', label: 'Taglia adulto' }
+            ];
             selectTaglia.innerHTML = tagliaOptions.map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`).join('');
         } else {
             const officialSizes = ottieniTaglieUfficialiProdotto(prod);
@@ -15293,7 +15687,11 @@ async function confermaAggiungiProdottoPickerAdmin(e) {
     const patchInput = document.getElementById('config-picker-patch');
     const btnConferma = document.getElementById('btn-conferma-aggiungi-art-picker');
 
-    const taglia = (selectTaglia ? selectTaglia.value : 'M').trim().toUpperCase() || 'M';
+    const rawTagliaPicker = (selectTaglia ? selectTaglia.value : (isAccessorio ? 'Taglia adulto' : 'M')).trim();
+    const lowerTagliaPicker = rawTagliaPicker.toLowerCase();
+    const taglia = lowerTagliaPicker === 'taglia bambino'
+        ? 'Taglia bambino'
+        : (lowerTagliaPicker === 'taglia adulto' ? 'Taglia adulto' : (rawTagliaPicker.toUpperCase() || 'M'));
     const quantita = Math.max(1, parseInt(qInput ? qInput.value : 1, 10) || 1);
     const customName = isAccessorio ? '' : (nomeInput ? nomeInput.value : '').trim();
     const customNumber = isAccessorio ? '' : (numInput ? numInput.value : '').trim();
@@ -15325,6 +15723,10 @@ async function confermaAggiungiProdottoPickerAdmin(e) {
     const rawImg = currentPickerConfigProduct.immagine || currentPickerConfigProduct.imgUrl || currentPickerConfigProduct.image || currentPickerConfigProduct.foto;
     const cleanImg = (typeof estraiUrlImmaginePulito === 'function') ? (estraiUrlImmaginePulito(rawImg) || rawImg) : rawImg;
 
+    const currentPickerOrder = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(orderId)) || null;
+    const pickerSupplier = getEffectiveSupplierForOrderClient(currentPickerOrder, window.appSettings || window.cachedSettings);
+    const resolvedPickerSupPrice = resolveSupplierBasePriceClient(currentPickerConfigProduct, pickerSupplier, window.appSettings || window.cachedSettings, currentPickerConfigProduct);
+
     const itemPayload = {
         id: currentPickerConfigProduct.id,
         accessory_id: isAccessorio ? (currentPickerConfigProduct.accessory_id || currentPickerConfigProduct.id) : undefined,
@@ -15338,7 +15740,9 @@ async function confermaAggiungiProdottoPickerAdmin(e) {
         taglia: taglia,
         quantita: quantita,
         prezzo: isAccessorio ? Number(currentPickerConfigProduct.prezzo) : unitPrice,
-        prezzo_fornitore: currentPickerConfigProduct.prezzo_fornitore !== undefined && currentPickerConfigProduct.prezzo_fornitore !== null ? Number(currentPickerConfigProduct.prezzo_fornitore) : undefined,
+        ...(pickerSupplier === 2
+            ? (resolvedPickerSupPrice !== null ? { prezzo_fornitore2: resolvedPickerSupPrice } : {})
+            : (resolvedPickerSupPrice !== null ? { prezzo_fornitore: resolvedPickerSupPrice } : {})),
         infoPerso: personalizzazioneTesto,
         personalizzazione: personalizzazioneTesto,
         customName: customName,
@@ -15455,7 +15859,12 @@ window.gestioneInserisciNuovoProdotto = function() {
     const quantita = parseInt(document.getElementById('add-prod-quantita')?.value, 10) || 1;
     const infoPerso = document.getElementById('add-prod-perso')?.value.trim() || 'No';
     const prezzo = parseFloat(document.getElementById('add-prod-prezzo')?.value) || 23.99;
-    const prezzo_fornitore = parseFloat(document.getElementById('add-prod-prezzo-fornitore')?.value) || 14.50;
+    const rawFornInput = parseFloat(document.getElementById('add-prod-prezzo-fornitore')?.value);
+    const currentAddOrd = (window.gestioneOrdiniList || []).find(o => Number(o.id) === Number(window.currentGestioneOrderId)) || null;
+    const addOrdSup = getEffectiveSupplierForOrderClient(currentAddOrd, window.appSettings || window.cachedSettings);
+    const resolvedFallbackSup = !isNaN(rawFornInput)
+        ? rawFornInput
+        : resolveSupplierBasePriceClient({ squadra, categoria, target, version: versione }, addOrdSup, window.appSettings || window.cachedSettings);
 
     if (!squadra) {
         showToast("Per favore, inserisci il nome del prodotto o la squadra.", "error");
@@ -15474,7 +15883,9 @@ window.gestioneInserisciNuovoProdotto = function() {
         quantita: quantita,
         infoPerso: infoPerso,
         prezzo: prezzo,
-        prezzo_fornitore: prezzo_fornitore
+        ...(addOrdSup === 2
+            ? (resolvedFallbackSup !== null ? { prezzo_fornitore2: resolvedFallbackSup } : {})
+            : (resolvedFallbackSup !== null ? { prezzo_fornitore: resolvedFallbackSup } : {}))
     };
 
     window.currentOrdineProdotti.push(newItem);
@@ -15500,7 +15911,8 @@ window.svuotaAggiungiForm = function() {
     document.getElementById('add-prod-quantita').value = '1';
     document.getElementById('add-prod-perso').value = '';
     document.getElementById('add-prod-prezzo').value = '23.99';
-    document.getElementById('add-prod-prezzo-fornitore').value = '14.50';
+    const fornInputEl = document.getElementById('add-prod-prezzo-fornitore');
+    if (fornInputEl) fornInputEl.value = '';
 
     window.lastSelectedCatalogProductId = null;
     window.lastSelectedCatalogProductLegacyId = null;
@@ -15653,61 +16065,88 @@ window.aggiornaDatoProdottoSingolo = window.aggiornaDatoProdottoSingolo || aggio
 // =========================================================================
 let localAdminReviews = [];
 let editRecSelectedImages = [];
+let adminReviewsFetchPromise = null;
 
 async function caricaRecensioniAdmin(silente = false) {
-    try {
-        const res = await fetch('/api/reviews?admin=true');
-        if (!res.ok) {
-            if (!silente) showToast("Errore nel caricamento delle recensioni: " + res.status, "error");
-            return;
-        }
-        const data = await res.json();
-        
-        if (data && data.success) {
-            localAdminReviews = data.reviews || [];
-            
-            // Aggiorna metriche
-            const totale = localAdminReviews.length;
-            const pending = localAdminReviews.filter(r => r.status === 'pending').length;
-            const approved = localAdminReviews.filter(r => r.status === 'approved').length;
-            const rejected = localAdminReviews.filter(r => r.status === 'rejected').length;
-            
-            const totEl = document.getElementById('rec-stat-totale');
-            const penEl = document.getElementById('rec-stat-attesa');
-            const appEl = document.getElementById('rec-stat-approvate');
-            const rejEl = document.getElementById('rec-stat-rifiutate');
-            
-            if (totEl) totEl.innerText = totale;
-            if (penEl) penEl.innerText = pending;
-            if (appEl) appEl.innerText = approved;
-            if (rejEl) rejEl.innerText = rejected;
-            
-            // Aggiorna badge notifiche visive per Recensioni in attesa di approvazione
-            const recBadgeEl = document.getElementById('admin-recensioni-badge');
-            const subRecBadgeEl = document.getElementById('subnav-recensioni-badge');
-            [recBadgeEl, subRecBadgeEl].forEach(bEl => {
-                if (bEl) {
-                    if (pending > 0) {
-                        bEl.innerText = pending;
-                        bEl.classList.remove('hidden');
-                    } else {
-                        bEl.classList.add('hidden');
-                    }
+    if (adminReviewsFetchPromise) return adminReviewsFetchPromise;
+
+    adminReviewsFetchPromise = (async () => {
+        const maxAttempts = 3;
+        let lastErr = null;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const res = await fetch('/api/reviews?admin=true', { cache: 'no-store' });
+                if (!res.ok) {
+                    if (!silente) showToast("Errore nel caricamento delle recensioni: " + res.status, "error");
+                    return;
                 }
-            });
-            
-            if (typeof currentActiveTab !== 'undefined' && currentActiveTab === 'recensioni') {
-                applicaFiltriRecensioni();
+                const data = await res.json();
+                
+                if (data && data.success) {
+                    localAdminReviews = data.reviews || [];
+                    
+                    // Aggiorna metriche
+                    const totale = localAdminReviews.length;
+                    const pending = localAdminReviews.filter(r => r.status === 'pending').length;
+                    const approved = localAdminReviews.filter(r => r.status === 'approved').length;
+                    const rejected = localAdminReviews.filter(r => r.status === 'rejected').length;
+                    
+                    const totEl = document.getElementById('rec-stat-totale');
+                    const penEl = document.getElementById('rec-stat-attesa');
+                    const appEl = document.getElementById('rec-stat-approvate');
+                    const rejEl = document.getElementById('rec-stat-rifiutate');
+                    
+                    if (totEl) totEl.innerText = totale;
+                    if (penEl) penEl.innerText = pending;
+                    if (appEl) appEl.innerText = approved;
+                    if (rejEl) rejEl.innerText = rejected;
+                    
+                    // Aggiorna badge notifiche visive per Recensioni in attesa di approvazione
+                    const recBadgeEl = document.getElementById('admin-recensioni-badge');
+                    const subRecBadgeEl = document.getElementById('subnav-recensioni-badge');
+                    [recBadgeEl, subRecBadgeEl].forEach(bEl => {
+                        if (bEl) {
+                            if (pending > 0) {
+                                bEl.innerText = pending;
+                                bEl.classList.remove('hidden');
+                            } else {
+                                bEl.classList.add('hidden');
+                            }
+                        }
+                    });
+                    
+                    const isRecensioniVisible = typeof currentActiveTab !== 'undefined' && (
+                        currentActiveTab === 'recensioni' ||
+                        (currentActiveTab === 'strumenti' && typeof activeSecondarySubTab !== 'undefined' && activeSecondarySubTab === 'recensioni')
+                    );
+                    if (isRecensioniVisible) {
+                        applicaFiltriRecensioni();
+                    }
+                } else {
+                    if (!silente) showToast("Errore nel caricamento delle recensioni: " + (data ? data.error : ''), "error");
+                }
+                return;
+            } catch (err) {
+                lastErr = err;
+                const isTransientNetworkError = err && (err.name === 'TypeError' || String(err.message || '').toLowerCase().includes('fetch'));
+                if (isTransientNetworkError && attempt < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, attempt * 450));
+                    continue;
+                }
+                break;
             }
-        } else {
-            if (!silente) showToast("Errore nel caricamento delle recensioni: " + (data ? data.error : ''), "error");
         }
-    } catch (err) {
-        if (!silente) {
-            console.error("Errore caricaRecensioniAdmin:", err);
-            showToast("Errore di rete durante il caricamento delle recensioni.", "error");
+
+        if (lastErr && !silente) {
+            console.warn("Avviso caricaRecensioniAdmin:", lastErr.message || lastErr);
+            showToast("Connessione temporaneamente non disponibile durante il caricamento delle recensioni.", "error");
         }
-    }
+    })().finally(() => {
+        adminReviewsFetchPromise = null;
+    });
+
+    return adminReviewsFetchPromise;
 }
 
 function applicaFiltriRecensioni() {
@@ -25072,6 +25511,9 @@ function ripristinaPrezzoItem(itemIdx) {
 function calcolaPrezzoFornitoreSingoloArticolo(item, order) {
     if (!item) return null;
 
+    const appS = window.appSettings || window.cachedSettings || {};
+    const orderSupplier = getEffectiveSupplierForOrderClient(order, appS);
+
     // 0. Source Autorevole Diretta: Se l'ordine ha 1 solo articolo fisico ed ha già il Costo Totale Reale calcolato dal backend
     const cartItems = Array.isArray(order?.carrello) ? order.carrello : [];
     const nonTechItems = cartItems.filter(ci => ci && !(ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra)));
@@ -25084,13 +25526,20 @@ function calcolaPrezzoFornitoreSingoloArticolo(item, order) {
         }
     }
 
-    // 1. Recupero prodotto dal catalogo admin per ottenere il prezzo fornitore ufficiale
+    // 1. Recupero prodotto o accessorio dal catalogo admin per ottenere il prezzo fornitore ufficiale
     const prodList = (Array.isArray(window.prodotti) && window.prodotti.length > 0)
         ? window.prodotti
         : (Array.isArray(window.catalogoProdotti) ? window.catalogoProdotti : []);
+    const accList = Array.isArray(window.accessori) ? window.accessori : [];
 
     let matchedProd = null;
-    if (item.id) {
+    const isAccReq = item.tipo_catalogo === 'accessori' || Boolean(item.accessory_id);
+    if (isAccReq && accList.length > 0) {
+        const aid = item.accessory_id || item.id;
+        matchedProd = accList.find(a => String(a.id) === String(aid)) || null;
+        if (matchedProd) matchedProd = { ...matchedProd, tipo_catalogo: 'accessori' };
+    }
+    if (!matchedProd && item.id) {
         matchedProd = prodList.find(p => String(p.id) === String(item.id));
     }
     if (!matchedProd && item.legacy_id) {
@@ -25100,80 +25549,76 @@ function calcolaPrezzoFornitoreSingoloArticolo(item, order) {
         matchedProd = prodList.find(p => p.versione === item.nome || p.squadra === item.nome || p.nome === item.nome);
     }
 
-    // 2. Determinazione prezzo base fornitore in USD (nessun extra taglia/kit)
-    let baseKitUSD = null;
-    if (matchedProd && matchedProd.prezzo_fornitore !== undefined && matchedProd.prezzo_fornitore !== null && !isNaN(Number(matchedProd.prezzo_fornitore)) && Number(matchedProd.prezzo_fornitore) > 0) {
-        baseKitUSD = Number(matchedProd.prezzo_fornitore);
-    } else if (item.prezzo_fornitore !== undefined && item.prezzo_fornitore !== null && !isNaN(Number(item.prezzo_fornitore)) && Number(item.prezzo_fornitore) > 0) {
-        baseKitUSD = Number(item.prezzo_fornitore);
-    } else if (item.Prezzo_fornitore !== undefined && item.Prezzo_fornitore !== null && !isNaN(Number(item.Prezzo_fornitore)) && Number(item.Prezzo_fornitore) > 0) {
-        baseKitUSD = Number(item.Prezzo_fornitore);
-    } else if (item.prezzo_originale && Number(item.prezzo_originale) > 0) {
-        baseKitUSD = Number(item.prezzo_originale) * 0.4;
-    } else if (item.prezzo && Number(item.prezzo) > 0) {
-        baseKitUSD = Number(item.prezzo) * 0.4;
-    }
+    // 2. Determinazione prezzo base fornitore in USD coerente con il fornitore attivo/storico (nessun fallback F2 -> F1 né 0.4*prezzo)
+    const baseKitUSD = resolveSupplierBasePriceClient(item, orderSupplier, appS, matchedProd);
 
-    if (baseKitUSD === null || isNaN(baseKitUSD) || baseKitUSD <= 0) {
+    if (baseKitUSD === null || isNaN(baseKitUSD) || baseKitUSD < 0) {
         return null;
     }
 
-    // 3. Calcolo personalizzazioni ($1 Nome, $1 Numero, $1 per ciascuna Patch)
+    // 3. Calcolo personalizzazioni dinamiche per fornitore ($0 su accessori/calzettoni)
     const custom = parseCustomizationDetailsClient(item.infoPerso || item.personalizzazione, item);
-    let persCostUSD = 0.00;
-    if (custom.nome && custom.nome.trim()) {
-        persCostUSD += 1.00;
-    }
-    if (custom.numero && String(custom.numero).trim()) {
-        persCostUSD += 1.00;
-    }
-    let patchCount = 0;
-    if (Array.isArray(custom.patches) && custom.patches.length > 0) {
-        custom.patches.forEach(p => {
-            if (p && String(p).includes(',')) {
-                patchCount += String(p).split(',').map(s => s.trim()).filter(Boolean).length;
-            } else if (p && !["nessuna", "nessuno", "no", "false", ""].includes(String(p).toLowerCase().trim())) {
-                patchCount += 1;
-            }
-        });
-    } else if (custom.patchStr && custom.patchStr.trim()) {
-        patchCount += custom.patchStr.split(',').map(s => s.trim()).filter(s => s && !["nessuna", "nessuno", "no", "false", ""].includes(s.toLowerCase())).length;
-    }
-    persCostUSD += (patchCount * 1.00);
+    const persCostUSD = getItemCustomizationCostUSDClient(item, custom, appS, orderSupplier);
 
-    // 4. Determinazione quota spedizione fornitore dinamica per pezzo (in USD)
+    // 4. Determinazione quota spedizione fornitore dinamica per unità spedibile (F1 per unità vs F2 fisso lotto diviso proporzionalmente)
     let unitShippingUSD = 0.00;
     const allOrders = (Array.isArray(window.gestioneOrdiniList) && window.gestioneOrdiniList.length > 0)
         ? window.gestioneOrdiniList
         : (Array.isArray(window.ordini) ? window.ordini : []);
 
+    const calcOrderShippingPcsAndUnits = (ordObj) => {
+        let pcs = 0;
+        let units = 0;
+        let cart = Array.isArray(ordObj?.carrello) ? ordObj.carrello : [];
+        if (!cart.length && typeof ordObj?.carrello === 'string' && ordObj.carrello.trim()) {
+            try { cart = JSON.parse(ordObj.carrello); } catch (e) {}
+        }
+        if (cart.length > 0) {
+            cart.forEach(ci => {
+                if (!ci || (ci.squadra && isTechnicalShippingOrServiceLine(ci.squadra))) return;
+                const q = Number(ci.quantita) || 1;
+                const m = getItemShippingMultiplierClient(ci);
+                if (m > 0) {
+                    pcs += q;
+                    units += (q * m);
+                }
+            });
+        } else {
+            const count = (typeof estraiNumeroArticoli === 'function') ? estraiNumeroArticoli(ordObj) : 1;
+            pcs += count;
+            units += count;
+        }
+        return { pcs, units };
+    };
+
     if (order && order.lotto_id !== undefined && order.lotto_id !== null && String(order.lotto_id).trim() !== '') {
         const lotIdNum = Number(order.lotto_id);
         const lottoOrders = allOrders.filter(o => !o.is_archived && Number(o.lotto_id) === lotIdNum);
-        let totalLottoPieces = lottoOrders.reduce((sum, o) => {
-            const count = (typeof estraiNumeroArticoli === 'function')
-                ? estraiNumeroArticoli(o)
-                : (Array.isArray(o.carrello) ? o.carrello.reduce((s, it) => s + (Number(it.quantita) || 1), 0) : 1);
-            return sum + count;
-        }, 0);
+        let totalLottoPieces = 0;
+        let totalLottoUnits = 0;
+        lottoOrders.forEach(o => {
+            const res = calcOrderShippingPcsAndUnits(o);
+            totalLottoPieces += res.pcs;
+            totalLottoUnits += res.units;
+        });
 
-        if (window.currentLottoData && Number(window.currentLottoData.id) === lotIdNum && Number(window.currentLottoData.numero_totale_articoli) > 0) {
-            totalLottoPieces = Math.max(totalLottoPieces, Number(window.currentLottoData.numero_totale_articoli));
+        if (window.currentLottoData && Number(window.currentLottoData.id) === lotIdNum) {
+            const lPcs = Number(window.currentLottoData.numero_articoli_spedizione ?? window.currentLottoData.numero_totale_articoli ?? 0);
+            const lUnits = Number(window.currentLottoData.unita_spedizione_economiche ?? lPcs);
+            if (lPcs > totalLottoPieces) totalLottoPieces = lPcs;
+            if (lUnits > totalLottoUnits) totalLottoUnits = lUnits;
         }
 
         if (totalLottoPieces <= 0) {
-            totalLottoPieces = Array.isArray(order.carrello)
-                ? order.carrello.reduce((s, it) => s + (Number(it.quantita) || 1), 0)
-                : 1;
+            const selfRes = calcOrderShippingPcsAndUnits(order);
+            totalLottoPieces = selfRes.pcs || 1;
+            totalLottoUnits = selfRes.units || totalLottoPieces;
         }
 
-        unitShippingUSD = getShippingRateByQuantityClient(totalLottoPieces, window.appSettings);
+        unitShippingUSD = getSupplierShippingTotalAndUnitClient(totalLottoPieces, totalLottoUnits, appS, orderSupplier).unitShipping;
     } else {
-        // Ordine senza Lotto: usa il numero di pezzi fisici dell'ordine corrente
-        const orderPieces = Array.isArray(order?.carrello)
-            ? order.carrello.reduce((s, it) => s + (Number(it.quantita) || 1), 0)
-            : (Number(item.quantita) || 1);
-        unitShippingUSD = getShippingRateByQuantityClient(orderPieces, window.appSettings);
+        const selfRes = order ? calcOrderShippingPcsAndUnits(order) : { pcs: Number(item.quantita) || 1, units: (Number(item.quantita) || 1) * getItemShippingMultiplierClient(item, matchedProd) };
+        unitShippingUSD = getSupplierShippingTotalAndUnitClient(selfRes.pcs || 1, selfRes.units || 1, appS, orderSupplier).unitShipping;
     }
 
     const shippingMult = getItemShippingMultiplierClient(item, matchedProd);
@@ -25193,10 +25638,10 @@ function calcolaPrezzoFornitoreSingoloArticolo(item, order) {
     }
 
     if (!exchangeRate || exchangeRate <= 0) {
-        if (window.appSettings?.cambioValuta?.mode === 'manual' && window.appSettings?.cambioValuta?.manual_rate) {
-            exchangeRate = parseFloat(window.appSettings.cambioValuta.manual_rate) || 0.86;
-        } else if (window.appSettings?.cambio_usd_eur) {
-            exchangeRate = parseFloat(window.appSettings.cambio_usd_eur) || 0.86;
+        if (appS?.cambioValuta?.mode === 'manual' && appS?.cambioValuta?.manual_rate) {
+            exchangeRate = parseFloat(appS.cambioValuta.manual_rate) || 0.86;
+        } else if (appS?.cambio_usd_eur) {
+            exchangeRate = parseFloat(appS.cambio_usd_eur) || 0.86;
         } else {
             exchangeRate = 0.86;
         }
@@ -29964,11 +30409,11 @@ window.salvaVenditaFuoriCatalogo = salvaVenditaFuoriCatalogo;
 let selectedFornitoreFormState = null;
 
 async function renderFornitoreSection() {
-    if (!window.appSettings || Object.keys(window.appSettings).length === 0) {
-        if (typeof caricaSettings === 'function') {
-            await caricaSettings();
-        }
+    if (typeof caricaSettings === 'function') {
+        await caricaSettings(true);
     }
+
+    selectedFornitoreFormState = window.appSettings && Number(window.appSettings.fornitore_attivo) === 2 ? 2 : 1;
 
     if (!window.prodotti || !Array.isArray(window.prodotti) || window.prodotti.length === 0) {
         if (typeof caricaProdotti === 'function') {
@@ -30053,7 +30498,9 @@ function selezionaFornitoreAttivoInForm(val) {
 }
 
 async function salvaFornitoreAttivoSelection() {
-    const selectedVal = selectedFornitoreFormState || 1;
+    const selectedVal = Number(selectedFornitoreFormState) === 2 ? 2 : 1;
+    const saveBtn = document.getElementById('btn-save-fornitore-attivo');
+    if (saveBtn) saveBtn.disabled = true;
 
     try {
         const authHeaders = typeof getAdminAuthHeaders === 'function' ? getAdminAuthHeaders() : {};
@@ -30062,25 +30509,29 @@ async function salvaFornitoreAttivoSelection() {
             headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({ settings: { fornitore_attivo: selectedVal } })
         });
-        const data = await res.json();
-        if (data && data.success) {
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data && data.success) {
             if (data.settings) window.appSettings = data.settings;
+            hasLoadedSettingsFromServer = true;
+            selectedFornitoreFormState = window.appSettings ? (Number(window.appSettings.fornitore_attivo) === 2 ? 2 : 1) : selectedVal;
             if (data.lotto) window.currentLotto = data.lotto;
-            showToast(`✅ Fornitore ${selectedVal} attivato! Ricalcolo automatico completato.`, "success");
+            showToast(`✅ Fornitore ${selectedFornitoreFormState} attivato! Ricalcolo automatico completato.`, "success");
             renderFornitoreAttivoCard();
             if (typeof caricaDati === 'function') caricaDati();
             if (typeof caricaLotto === 'function') caricaLotto();
             if (typeof caricaStatisticheDashboard === 'function') caricaStatisticheDashboard();
             if (typeof caricaOrdini === 'function') caricaOrdini();
         } else {
-            selectedFornitoreFormState = window.appSettings ? Number(window.appSettings.fornitore_attivo || 1) : 1;
+            selectedFornitoreFormState = window.appSettings ? (Number(window.appSettings.fornitore_attivo) === 2 ? 2 : 1) : 1;
             renderFornitoreAttivoCard();
-            showToast("Errore durante il salvataggio: " + (data.error || "Sconosciuto"), "error");
+            showToast("Errore durante il salvataggio: " + (data.error || `HTTP ${res.status}`), "error");
         }
     } catch (err) {
-        selectedFornitoreFormState = window.appSettings ? Number(window.appSettings.fornitore_attivo || 1) : 1;
+        selectedFornitoreFormState = window.appSettings ? (Number(window.appSettings.fornitore_attivo) === 2 ? 2 : 1) : 1;
         renderFornitoreAttivoCard();
         showToast("Errore di rete durante il salvataggio: " + err.message, "error");
+    } finally {
+        if (saveBtn) saveBtn.disabled = false;
     }
 }
 
@@ -30275,11 +30726,9 @@ function renderTabellaSpedizioneFornitore2() {
 
     let f2Tiers = defaultForn2Tiers;
     if (window.appSettings.fornitore2_spedizioneLotto && typeof window.appSettings.fornitore2_spedizioneLotto === 'object') {
-        if (typeof extractShippingTiers === 'function') {
-            const extracted = extractShippingTiers({ spedizioneLotto: window.appSettings.fornitore2_spedizioneLotto }, true);
-            if (extracted && extracted.length > 0) {
-                f2Tiers = extracted;
-            }
+        const extracted = extractShippingTiersClient(window.appSettings.fornitore2_spedizioneLotto, 2);
+        if (extracted && extracted.length > 0) {
+            f2Tiers = extracted;
         }
     }
 
@@ -30383,9 +30832,7 @@ async function salvaSpedizioneFornitore2() {
 
 function copiaTariffeSpedizioneDaFornitore1() {
     if (!window.appSettings) window.appSettings = {};
-    const f1Tiers = (typeof extractShippingTiers === 'function')
-        ? extractShippingTiers({ spedizioneLotto: window.appSettings.spedizioneLotto })
-        : [];
+    const f1Tiers = extractShippingTiersClient(window.appSettings.spedizioneLotto, 1);
 
     if (f1Tiers.length > 0) {
         f1Tiers.forEach((tier, idx) => {

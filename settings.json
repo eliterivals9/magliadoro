@@ -1,5 +1,5 @@
 {
-  "fornitore_attivo": 1,
+  "fornitore_attivo": 2,
   "fornitore2_prezzi": {},
   "fornitore2_categorie_prezzi": {
     "Kit": 9,
@@ -22,16 +22,16 @@
   "fornitore2_spedizioneLotto": {
     "tiers": [
       {
-        "index": 1,
-        "min": 1,
         "max": 4,
-        "cost": 5
+        "min": 1,
+        "cost": 5,
+        "index": 1
       },
       {
-        "index": 2,
-        "min": 5,
         "max": 200,
-        "cost": 0
+        "min": 5,
+        "cost": 0,
+        "index": 2
       }
     ]
   },
@@ -76,29 +76,29 @@
     "Smanicati_Bambino": 21.99
   },
   "spedizioneLotto": {
-    "range1_min": 1,
     "range1_max": 2,
-    "range1_cost": 13,
-    "range2_min": 3,
+    "range1_min": 1,
     "range2_max": 5,
-    "range2_cost": 9,
-    "range3_min": 6,
+    "range2_min": 3,
     "range3_max": 9,
-    "range3_cost": 7,
-    "range4_min": 10,
+    "range3_min": 6,
     "range4_max": 20,
-    "range4_cost": 4,
-    "range5_min": 21,
+    "range4_min": 10,
     "range5_max": 40,
-    "range5_cost": 3,
-    "range6_min": 41,
+    "range5_min": 21,
     "range6_max": 59,
-    "range6_cost": 2,
-    "range7_min": 60,
+    "range6_min": 41,
     "range7_max": 99,
-    "range7_cost": 1,
-    "range8_min": 100,
+    "range7_min": 60,
     "range8_max": 200,
+    "range8_min": 100,
+    "range1_cost": 13,
+    "range2_cost": 9,
+    "range3_cost": 7,
+    "range4_cost": 4,
+    "range5_cost": 3,
+    "range6_cost": 2,
+    "range7_cost": 1,
     "range8_cost": 0
   },
   "cambioValuta": {
@@ -165,7 +165,7 @@
     },
     {
       "id": "cat_tuta",
-      "nome": "Tuta",
+      "nome": "Tuta Mezza zip",
       "stato": "attivo",
       "ordine": 6,
       "prezzo_adulto": 44.99,
@@ -226,6 +226,14 @@
       "ordine": 13,
       "prezzo_adulto": 20.99,
       "prezzo_bambino": 19.99
+    },
+    {
+      "id": "cat_1793406679278",
+      "nome": "Tute Zip intera",
+      "stato": "attivo",
+      "ordine": 14,
+      "prezzo_adulto": 47.99,
+      "prezzo_bambino": 44.99
     }
   ],
   "filtriCatalogo": [
@@ -348,39 +356,10 @@
       ]
     },
     {
-      "id": "fil_1788554210237",
-      "nome": "Maniche Lunghe",
-      "stato": "attivo",
-      "ordine": 3,
-      "categorieTarget": [
-        {
-          "target": [
-            "Adulto"
-          ],
-          "categoria": "Maniche Lunghe"
-        }
-      ],
-      "categorie_associate": [
-        "Maniche Lunghe"
-      ]
-    },
-    {
-      "id": "fil_1788554230517",
-      "nome": "Kit allenamento",
-      "stato": "attivo",
-      "ordine": 4
-    },
-    {
-      "id": "fil_1788554243607",
-      "nome": "Smanicati",
-      "stato": "attivo",
-      "ordine": 5
-    },
-    {
       "id": "fil_1788554268389",
       "nome": "Kit Portiere",
       "stato": "attivo",
-      "ordine": 6,
+      "ordine": 3,
       "categorieTarget": [
         {
           "target": [
@@ -394,8 +373,37 @@
       ]
     },
     {
+      "id": "fil_1788554230517",
+      "nome": "Kit allenamento",
+      "stato": "attivo",
+      "ordine": 4
+    },
+    {
+      "id": "fil_1788554210237",
+      "nome": "Maniche Lunghe",
+      "stato": "attivo",
+      "ordine": 5,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Maniche Lunghe"
+        }
+      ],
+      "categorie_associate": [
+        "Maniche Lunghe"
+      ]
+    },
+    {
+      "id": "fil_1788554243607",
+      "nome": "Smanicati",
+      "stato": "attivo",
+      "ordine": 6
+    },
+    {
       "id": "fil_1788554283312",
-      "nome": "Tute",
+      "nome": "Tuta Mezza zip",
       "stato": "attivo",
       "ordine": 7,
       "categorieTarget": [
@@ -403,18 +411,35 @@
           "target": [
             "Adulto"
           ],
-          "categoria": "Tuta"
+          "categoria": "Tuta Mezza zip"
         }
       ],
       "categorie_associate": [
-        "Tuta"
+        "Tuta Mezza zip"
+      ]
+    },
+    {
+      "id": "fil_1793407091599",
+      "nome": "Tuta Zip intera",
+      "stato": "attivo",
+      "ordine": 8,
+      "categorieTarget": [
+        {
+          "target": [
+            "Adulto"
+          ],
+          "categoria": "Tute Zip intera"
+        }
+      ],
+      "categorie_associate": [
+        "Tute Zip intera"
       ]
     },
     {
       "id": "fil_1788554303416",
       "nome": "Versione Retrò",
       "stato": "attivo",
-      "ordine": 8,
+      "ordine": 9,
       "categorieTarget": [
         {
           "target": [
@@ -431,7 +456,7 @@
       "id": "fil_1788554320040",
       "nome": "Versione Fan",
       "stato": "attivo",
-      "ordine": 9,
+      "ordine": 10,
       "categorieTarget": [
         {
           "target": [
@@ -448,7 +473,7 @@
       "id": "fil_1788554327256",
       "nome": "Versione Player",
       "stato": "attivo",
-      "ordine": 10,
+      "ordine": 11,
       "categorieTarget": [
         {
           "target": [
@@ -465,19 +490,19 @@
       "id": "fil_1788554340634",
       "nome": "Versione Polo",
       "stato": "attivo",
-      "ordine": 11
+      "ordine": 12
     },
     {
       "id": "fil_1788554345240",
       "nome": "Antivento",
       "stato": "attivo",
-      "ordine": 12
+      "ordine": 13
     },
     {
       "id": "fil_1788554365362",
       "nome": "Tutto bambino",
       "stato": "attivo",
-      "ordine": 13,
+      "ordine": 14,
       "categorieTarget": [
         {
           "target": [
@@ -513,7 +538,7 @@
           "target": [
             "Bambino"
           ],
-          "categoria": "Tuta"
+          "categoria": "Tuta Mezza zip"
         },
         {
           "target": [
@@ -556,6 +581,12 @@
             "Bambino"
           ],
           "categoria": "Pantaloncini"
+        },
+        {
+          "target": [
+            "Bambino"
+          ],
+          "categoria": "Tute Zip intera"
         }
       ],
       "categorie_associate": [
@@ -564,21 +595,16 @@
         "Fan",
         "Retro",
         "Kit Allenamento",
-        "Tuta",
+        "Tuta Mezza zip",
         "Polo",
         "Smanicati",
         "Maniche Lunghe",
         "Kit Bambino",
         "Portiere",
         "Antivento",
-        "Pantaloncini"
+        "Pantaloncini",
+        "Tute Zip intera"
       ]
-    },
-    {
-      "id": "fil_1789734460764",
-      "nome": "Pantaloncini",
-      "stato": "attivo",
-      "ordine": 14
     }
   ],
   "regoleImportazioneJson": [
@@ -710,6 +736,8 @@
           "leghe": [
             "Serie A"
           ],
+          "squadre": [],
+          "modalita": "leghe",
           "abilitato": true,
           "tutte_leghe": false
         },
@@ -1161,72 +1189,10 @@
       "disponibile_per": {
         "club": {
           "leghe": [],
-          "squadre": [
-            "AC Milan",
-            "Ajax",
-            "Arsenal F.C.",
-            "AS Monaco",
-            "AS Roma",
-            "Aston Villa",
-            "Atalanta",
-            "Athletic Club",
-            "Atletico Madrid",
-            "Barcellona",
-            "Bayer Leverkusen",
-            "Bayern Monaco",
-            "Benfica",
-            "Bologna",
-            "Borussia Dortmund",
-            "Borussia Mönchengladbach",
-            "Celta Vigo",
-            "Celtic",
-            "Chelsea F.C.",
-            "Club Brugge",
-            "Como",
-            "Deportivo La Coruña",
-            "Eindhoven",
-            "Eintracht Francoforte",
-            "FC Nantes",
-            "FC Porto",
-            "Feyenoord",
-            "Fiorentina",
-            "Galatasaray",
-            "Girona F.C.",
-            "Hamburger SV",
-            "Inter",
-            "Juventus",
-            "Lazio",
-            "Leeds United",
-            "Leicester City",
-            "Lens",
-            "Lipsia",
-            "Liverpool F.C.",
-            "Málaga",
-            "Manchester City",
-            "Manchester United",
-            "Newcastle United",
-            "Olympique Lione (Lyon)",
-            "Olympique Marsiglia",
-            "Paris Saint-Germain",
-            "Parma",
-            "Rangers",
-            "Real Betis",
-            "Real Madrid",
-            "Real Sociedad",
-            "Red Star Belgrade",
-            "Schalke 04",
-            "Siviglia",
-            "Sporting Lisbona (Sporting CP)",
-            "SSC Napoli",
-            "Stade Rennais",
-            "Tottenham Hotspur",
-            "Union Berlino",
-            "Valencia",
-            "Villarreal"
-          ],
-          "modalita": "squadre",
+          "squadre": [],
+          "modalita": "tutte",
           "abilitato": true,
-          "tutte_leghe": false
+          "tutte_leghe": true
         },
         "categorie": {
           "categorie": [
